@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ClinicRole {
+  ADMIN
+  PROVIDER
+  RECEPTIONIST
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELED
+  NO_SHOW
+}
+
+enum NotificationChannel {
+  WHATSAPP
+  EMAIL
+  SMS
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELED
+}
+
+model Clinic {
+  id           String        @id @default(uuid())
+  clerkOrgId   String        @unique
+  name         String
+  slug         String        @unique
+  timeZone     String        @default("America/Sao_Paulo")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  memberships  Membership[]
+  customers    Customer[]
+  services     Service[]
+  appointments Appointment[]
+  notifications Notification[]
+}
+
+model User {
+  id          String       @id @default(uuid())
+  clerkUserId String       @unique
+  email       String
+  name        String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  memberships Membership[]
+}
+
+model Membership {
+  id        String     @id @default(uuid())
+  role      ClinicRole @default(PROVIDER)
+  clinicId  String
+  userId    String
+  clinic    Clinic     @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@unique([clinicId, userId])
+  @@index([userId])
+}
+
+model Customer {
+  id           String        @id @default(uuid())
+  name         String
+  email        String?
+  phone        String
+  clinicId     String
+  clinic       Clinic        @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@unique([clinicId, phone])
+  @@index([clinicId, name])
+}
+
+model Service {
+  id           String        @id @default(uuid())
+  name         String
+  duration     Int
+  price        Decimal       @db.Decimal(10, 2)
+  isActive     Boolean       @default(true)
+  clinicId     String
+  clinic       Clinic        @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([clinicId, isActive])
+}
+
+model Appointment {
+  id          String            @id @default(uuid())
+  startTime   DateTime
+  endTime     DateTime
+  status      AppointmentStatus @default(PENDING)
+  notes       String?
+  clinicId    String
+  customerId  String
+  serviceId   String
+  clinic      Clinic            @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  customer    Customer          @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  service     Service           @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  notifications Notification[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([clinicId, startTime])
+  @@index([customerId, startTime])
+  @@index([serviceId, startTime])
+}
+
+model Notification {
+  id            String              @id @default(uuid())
+  channel       NotificationChannel
+  status        NotificationStatus  @default(PENDING)
+  scheduledFor  DateTime
+  sentAt        DateTime?
+  content       String
+  providerRef   String?
+  clinicId      String
+  appointmentId String
+  clinic        Clinic              @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  appointment   Appointment         @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([status, scheduledFor])
+  @@index([clinicId, appointmentId])
+}
