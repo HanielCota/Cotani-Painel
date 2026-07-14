@@ -16,11 +16,28 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  applicationName: "Cotani",
   title: {
-    default: "Cotani",
+    default: "Cotani — Gestão inteligente para clínicas",
     template: "%s | Cotani",
   },
-  description: "Gestão inteligente de agendamentos para sua clínica.",
+  description:
+    "Plataforma de gestão para clínicas: agenda online, clientes, relatórios e agendamento público com lembretes automáticos por WhatsApp.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.ico",
+  },
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    siteName: "Cotani",
+    title: "Cotani — Gestão inteligente para clínicas",
+    description:
+      "Plataforma de gestão para clínicas: agenda online, clientes, relatórios e agendamento público com lembretes automáticos por WhatsApp.",
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
