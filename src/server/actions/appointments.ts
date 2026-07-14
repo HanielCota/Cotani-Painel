@@ -7,6 +7,7 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { parseClinicDateTime } from "@/lib/timezone";
 import { requireActiveClinic } from "@/server/tenant";
+import { DOUBLE_BOOKING_MESSAGE, isDoubleBookingError, scheduleAppointment } from "@/server/services/scheduling";
 import type { ActionResult } from "@/types";
 
 const appointmentSchema = z.object({
@@ -53,6 +54,12 @@ async function hasSchedulingConflict({
   });
 }
 
+function revalidateScheduleViews() {
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/agenda");
+  revalidatePath("/dashboard/relatorios");
+}
+
 export async function createAppointment(input: unknown): Promise<ActionResult> {
   await auth.protect();
 
@@ -77,52 +84,33 @@ export async function createAppointment(input: unknown): Promise<ActionResult> {
     return { status: "error", message: "O cliente ou o serviço não pertence à clínica ativa." };
   }
 
-  const endTime = new Date(parsed.data.startTime.getTime() + service.duration * 60_000);
-
   if (service.duration <= 0) {
     return { status: "error", message: "O serviço selecionado possui uma duração inválida." };
   }
 
-  try {
-    const wasCreated = await prisma.$transaction(async (transaction) => {
-      const conflictingAppointment = await transaction.appointment.findFirst({
-        where: {
-          clinicId: clinic.id,
-          status: { not: "CANCELED" },
-          startTime: { lt: endTime },
-          endTime: { gt: parsed.data.startTime },
-          OR: [{ customerId: customer.id }, { serviceId: service.id }],
-        },
-        select: { id: true },
-      });
+  const result = await scheduleAppointment({
+    clinicId: clinic.id,
+    clinicName: clinic.name,
+    timeZone: clinic.timeZone,
+    customerId: customer.id,
+    customerName: customer.name,
+    customerPhone: customer.phone,
+    serviceId: service.id,
+    serviceName: service.name,
+    serviceDuration: service.duration,
+    startTime: parsed.data.startTime,
+    notes: parsed.data.notes,
+  });
 
-      if (conflictingAppointment) {
-        return false;
-      }
+  if (result.status === "conflict") {
+    return { status: "error", message: "Já existe um atendimento nesse horário para o cliente ou serviço selecionado." };
+  }
 
-      await transaction.appointment.create({
-        data: {
-          clinicId: clinic.id,
-          customerId: customer.id,
-          serviceId: service.id,
-          startTime: parsed.data.startTime,
-          endTime,
-          notes: parsed.data.notes,
-        },
-      });
-
-      return true;
-    });
-
-    if (!wasCreated) {
-      return { status: "error", message: "Já existe um atendimento nesse horário para o cliente ou serviço selecionado." };
-    }
-  } catch {
+  if (result.status === "error") {
     return { status: "error", message: "Não foi possível criar o agendamento. Tente novamente." };
   }
 
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/agenda");
+  revalidateScheduleViews();
   return { status: "success", message: "Agendamento criado." };
 }
 
@@ -204,13 +192,22 @@ export async function rescheduleAppointmentFromForm(_previousState: ActionResult
     return { status: "error", message: "Já existe um atendimento nesse horário para o cliente ou serviço selecionado." };
   }
 
-  await prisma.appointment.update({
-    where: { id: appointment.id },
-    data: { startTime, endTime },
-  });
+  try {
+    await prisma.appointment.update({
+      where: { id: appointment.id },
+      data: { startTime, endTime },
+    });
+  } catch (error) {
+    // Rede de segurança: se a exclusion constraint disparar (concorrência real
+    // entre o check acima e o update), devolve mensagem amigável em vez de 500.
+    if (isDoubleBookingError(error)) {
+      return { status: "error", message: DOUBLE_BOOKING_MESSAGE };
+    }
 
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/agenda");
+    throw error;
+  }
+
+  revalidateScheduleViews();
   return { status: "success", message: "Atendimento reagendado." };
 }
 
@@ -253,7 +250,6 @@ export async function updateAppointmentStatus(appointmentId: string, status: App
     data: { status: parsedStatus.data },
   });
 
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/agenda");
+  revalidateScheduleViews();
   return { status: "success", message: "Status do atendimento atualizado." };
 }
