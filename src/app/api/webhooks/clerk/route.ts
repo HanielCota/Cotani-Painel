@@ -1,7 +1,19 @@
 import { verifyWebhook } from "@clerk/nextjs/webhooks";
 import { NextRequest, NextResponse } from "next/server";
 
+import { ClinicRole } from "@/generated/prisma/enums";
+import type { Prisma } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
+
+type ClerkWebhookEvent = Awaited<ReturnType<typeof verifyWebhook>>;
+// Os membros da union declaram `type` como união de literais; o Extract precisa cobrir a união inteira.
+type OrganizationEventData = Extract<ClerkWebhookEvent, { type: "organization.created" | "organization.updated" }>["data"];
+type UserEventData = Extract<ClerkWebhookEvent, { type: "user.created" | "user.updated" }>["data"];
+type DeletedUserEventData = Extract<ClerkWebhookEvent, { type: "user.deleted" }>["data"];
+type MembershipEventData = Extract<
+  ClerkWebhookEvent,
+  { type: "organizationMembership.created" | "organizationMembership.updated" | "organizationMembership.deleted" }
+>["data"];
 
 function slugify(value: string) {
   return value
@@ -13,6 +25,114 @@ function slugify(value: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+function mapClerkRole(clerkRole: string): ClinicRole {
+  return clerkRole === "org:admin" ? ClinicRole.ADMIN : ClinicRole.PROVIDER;
+}
+
+function getPrimaryEmail(user: UserEventData) {
+  const primary = user.email_addresses.find((address) => address.id === user.primary_email_address_id);
+
+  return (primary ?? user.email_addresses[0])?.email_address ?? null;
+}
+
+function getDisplayName(user: { first_name: string | null; last_name: string | null }) {
+  const name = [user.first_name, user.last_name].filter(Boolean).join(" ").trim();
+
+  return name.length > 0 ? name : null;
+}
+
+async function upsertClinic(organization: OrganizationEventData, client: Prisma.TransactionClient | typeof prisma = prisma) {
+  const slug = `${slugify(organization.name)}-${organization.id.slice(-6).toLowerCase()}`;
+
+  return client.clinic.upsert({
+    where: { clerkOrgId: organization.id },
+    create: {
+      clerkOrgId: organization.id,
+      name: organization.name,
+      slug,
+    },
+    update: {
+      name: organization.name,
+    },
+  });
+}
+
+async function upsertUser(user: UserEventData) {
+  const email = getPrimaryEmail(user);
+  const name = getDisplayName(user) ?? email ?? user.username ?? "Sem nome";
+
+  await prisma.user.upsert({
+    where: { clerkUserId: user.id },
+    create: {
+      clerkUserId: user.id,
+      email,
+      name,
+    },
+    update: {
+      email,
+      name,
+    },
+  });
+}
+
+async function deleteUser(user: DeletedUserEventData) {
+  if (!user.id) {
+    return;
+  }
+
+  await prisma.user.deleteMany({
+    where: { clerkUserId: user.id },
+  });
+}
+
+async function upsertMembership(data: MembershipEventData) {
+  const clerkUserId = data.public_user_data.user_id;
+  const identifier = data.public_user_data.identifier;
+  // O identifier do Clerk pode ser e-mail, telefone ou username — só persistimos como e-mail o que tem formato de e-mail.
+  const email = identifier.includes("@") ? identifier : null;
+  const name = getDisplayName(data.public_user_data) ?? identifier;
+  const role = mapClerkRole(data.role);
+
+  await prisma.$transaction(async (transaction) => {
+    // A clínica é recriada aqui por segurança contra eventos fora de ordem
+    // (organization.created pode não ter sido processado ainda).
+    const clinic = await upsertClinic(data.organization, transaction);
+
+    const user = await transaction.user.upsert({
+      where: { clerkUserId },
+      create: {
+        clerkUserId,
+        email,
+        name,
+      },
+      // Os dados cadastrais do usuário são mantidos pelos eventos user.*;
+      // aqui apenas garantimos que a linha exista.
+      update: {},
+    });
+
+    await transaction.membership.upsert({
+      where: { clinicId_userId: { clinicId: clinic.id, userId: user.id } },
+      create: {
+        clinicId: clinic.id,
+        userId: user.id,
+        role,
+      },
+      update: {
+        role,
+      },
+    });
+  });
+}
+
+async function deleteMembership(data: MembershipEventData) {
+  await prisma.membership.deleteMany({
+    where: {
+      clinic: { clerkOrgId: data.organization.id },
+      user: { clerkUserId: data.public_user_data.user_id },
+    },
+  });
+}
+
 export async function POST(request: NextRequest) {
   let event;
 
@@ -22,31 +142,37 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Assinatura do webhook inválida." }, { status: 400 });
   }
 
-  if (event.type === "organization.created" || event.type === "organization.updated") {
-    const organization = event.data;
-    const slug = `${slugify(organization.name)}-${organization.id.slice(-6).toLowerCase()}`;
+  switch (event.type) {
+    case "organization.created":
+    case "organization.updated":
+      await upsertClinic(event.data);
+      break;
 
-    await prisma.clinic.upsert({
-      where: { clerkOrgId: organization.id },
-      create: {
-        clerkOrgId: organization.id,
-        name: organization.name,
-        slug,
-      },
-      update: {
-        name: organization.name,
-      },
-    });
-  }
+    case "organization.deleted":
+      if (event.data.id) {
+        await prisma.clinic.deleteMany({
+          where: { clerkOrgId: event.data.id },
+        });
+      }
+      break;
 
-  if (event.type === "organization.deleted") {
-    const organization = event.data;
+    case "user.created":
+    case "user.updated":
+      await upsertUser(event.data);
+      break;
 
-    if (organization.id) {
-      await prisma.clinic.deleteMany({
-        where: { clerkOrgId: organization.id },
-      });
-    }
+    case "user.deleted":
+      await deleteUser(event.data);
+      break;
+
+    case "organizationMembership.created":
+    case "organizationMembership.updated":
+      await upsertMembership(event.data);
+      break;
+
+    case "organizationMembership.deleted":
+      await deleteMembership(event.data);
+      break;
   }
 
   return NextResponse.json({ received: true });
