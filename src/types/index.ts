@@ -10,3 +10,29 @@ export interface AgendaAppointment {
   endTime: string;
   status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELED" | "NO_SHOW";
 }
+
+export interface CustomerListItem {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string;
+  createdAt: string;
+}
+
+export interface CustomersPage {
+  items: CustomerListItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface DashboardMetrics {
+  totalAppointments: number;
+  confirmedToday: number;
+  noShowsThisMonth: number;
+  totalCustomers: number;
+  totalServices: number;
+  activeCustomersThisMonth: number;
+  confirmationRate: number;
+  noShowRate: number;
+}

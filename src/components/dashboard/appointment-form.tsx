@@ -1,7 +1,9 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { CalendarPlusIcon } from "lucide-react";
+import { toast } from "sonner";
 
 import { createAppointmentFromForm } from "@/server/actions/appointments";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -25,6 +27,20 @@ interface AppointmentFormProps {
 
 export function AppointmentForm({ customers, services, minStartTime, timeZone }: AppointmentFormProps) {
   const [state, formAction, isPending] = useActionState(createAppointmentFromForm, initialState);
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!state.message) {
+      return;
+    }
+
+    if (state.status === "error") {
+      toast.error(state.message);
+      return;
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["appointments"] });
+  }, [state, queryClient]);
 
   return (
     <Card className="border border-border/80 shadow-sm">

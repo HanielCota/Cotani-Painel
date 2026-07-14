@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { BanIcon, CheckIcon, CircleOffIcon, UserRoundXIcon } from "lucide-react";
 
 import { updateAppointmentStatus } from "@/server/actions/appointments";
@@ -26,11 +27,18 @@ const actionLabels = {
 export function AppointmentActions({ appointmentId, status }: AppointmentActionsProps) {
   const [result, setResult] = useState<ActionResult | null>(null);
   const [isPending, startTransition] = useTransition();
+  const queryClient = useQueryClient();
   const actions = status === "PENDING" ? ["CONFIRMED", "CANCELED", "NO_SHOW"] as const : ["COMPLETED", "CANCELED", "NO_SHOW"] as const;
 
   function handleStatusChange(nextStatus: (typeof actions)[number]) {
     startTransition(async () => {
-      setResult(await updateAppointmentStatus(appointmentId, nextStatus));
+      const nextResult = await updateAppointmentStatus(appointmentId, nextStatus);
+
+      setResult(nextResult);
+
+      if (nextResult.status === "success") {
+        queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      }
     });
   }
 

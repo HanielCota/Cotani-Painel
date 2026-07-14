@@ -18,5 +18,6 @@ export function useAppointments() {
   return useQuery({
     queryKey: ["appointments"],
     queryFn: fetchAppointments,
+    refetchInterval: 30_000,
   });
 }

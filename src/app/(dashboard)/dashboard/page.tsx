@@ -1,14 +1,14 @@
-import { ArrowRightIcon, CalendarCheck2Icon, CircleAlertIcon, Clock3Icon, UsersIcon } from "lucide-react";
+import { ArrowRightIcon, CalendarDaysIcon } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { DashboardMetricCards } from "@/components/dashboard/dashboard-metric-cards";
 import { EmptyClinicState } from "@/components/dashboard/empty-clinic-state";
-import { MetricCard } from "@/components/dashboard/metric-card";
+import { TodayAgendaList } from "@/components/dashboard/today-agenda-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import prisma from "@/lib/prisma";
-import { getClinicDateBounds } from "@/lib/timezone";
 import { requireActiveClinic } from "@/server/tenant";
 
 export const dynamic = "force-dynamic";
@@ -23,24 +23,7 @@ export default async function DashboardPage() {
     return <EmptyClinicState />;
   }
 
-  const { startOfToday, startOfTomorrow, startOfMonth } = getClinicDateBounds(clinic.timeZone);
-
-  const [totalAppointments, confirmedToday, noShowsThisMonth, totalCustomers, totalServices] = await Promise.all([
-    prisma.appointment.count({ where: { clinicId: clinic.id } }),
-    prisma.appointment.count({
-      where: {
-        clinicId: clinic.id,
-        startTime: { gte: startOfToday, lt: startOfTomorrow },
-        status: "CONFIRMED",
-      },
-    }),
-    prisma.appointment.count({
-      where: {
-        clinicId: clinic.id,
-        status: "NO_SHOW",
-        startTime: { gte: startOfMonth },
-      },
-    }),
+  const [totalCustomers, totalServices] = await Promise.all([
     prisma.customer.count({ where: { clinicId: clinic.id } }),
     prisma.service.count({ where: { clinicId: clinic.id, isActive: true } }),
   ]);
@@ -51,12 +34,22 @@ export default async function DashboardPage() {
         <h1 className="text-3xl font-semibold tracking-tight">Visão geral</h1>
         <p className="text-sm text-muted-foreground">Acompanhe a operação da {clinic.name} em tempo real.</p>
       </div>
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard title="Agendamentos totais" value={String(totalAppointments)} description="Histórico da clínica" icon={CalendarCheck2Icon} />
-        <MetricCard title="Confirmados hoje" value={String(confirmedToday)} description="Com confirmação registrada" icon={Clock3Icon} />
-        <MetricCard title="No-shows no mês" value={String(noShowsThisMonth)} description="Para acompanhar de perto" icon={CircleAlertIcon} />
-        <MetricCard title="Clientes" value={String(totalCustomers)} description="Base ativa da clínica" icon={UsersIcon} />
-      </section>
+      <DashboardMetricCards />
+      <Card className="border border-border/80 shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><CalendarDaysIcon /> Agenda de hoje</CardTitle>
+          <CardDescription>Atendimentos confirmados e pendentes do dia, atualizados automaticamente.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <TodayAgendaList timeZone={clinic.timeZone} />
+        </CardContent>
+        <CardFooter>
+          <Button nativeButton={false} render={<Link href="/dashboard/agenda" />}>
+            Abrir agenda
+            <ArrowRightIcon data-icon="inline-end" />
+          </Button>
+        </CardFooter>
+      </Card>
       <Card className="border border-border/80 shadow-sm">
         <CardHeader>
           <CardTitle>Próximo passo</CardTitle>

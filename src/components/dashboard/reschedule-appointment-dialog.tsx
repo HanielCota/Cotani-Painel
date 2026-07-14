@@ -1,7 +1,9 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { CalendarClockIcon } from "lucide-react";
+import { toast } from "sonner";
 
 import { rescheduleAppointmentFromForm } from "@/server/actions/appointments";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -22,7 +24,21 @@ interface RescheduleAppointmentDialogProps {
 
 export function RescheduleAppointmentDialog({ appointmentId, currentStartTime, minStartTime }: RescheduleAppointmentDialogProps) {
   const [state, formAction, isPending] = useActionState(rescheduleAppointmentFromForm, initialState);
+  const queryClient = useQueryClient();
   const inputId = `reschedule-${appointmentId}`;
+
+  useEffect(() => {
+    if (!state.message) {
+      return;
+    }
+
+    if (state.status === "error") {
+      toast.error(state.message);
+      return;
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["appointments"] });
+  }, [state, queryClient]);
 
   return (
     <Dialog>

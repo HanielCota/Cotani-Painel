@@ -81,6 +81,9 @@ export function getClinicDateBounds(timeZone: string, now = new Date()) {
   const tomorrow = getZonedDateParts(new Date(Date.UTC(current.year, current.month - 1, current.day + 1)), "UTC");
   const startOfTomorrow = zonedDateTimeToUtc({ ...tomorrow, hour: 0, minute: 0, second: 0 }, timeZone);
   const startOfMonth = zonedDateTimeToUtc({ ...current, day: 1, hour: 0, minute: 0, second: 0 }, timeZone);
+  // current.month é 1-based; Date.UTC espera 0-based, então isto cai no dia 1 do mês seguinte (com rollover em dezembro).
+  const nextMonth = getZonedDateParts(new Date(Date.UTC(current.year, current.month, 1)), "UTC");
+  const startOfNextMonth = zonedDateTimeToUtc({ ...nextMonth, hour: 0, minute: 0, second: 0 }, timeZone);
 
-  return { startOfToday, startOfTomorrow, startOfMonth };
+  return { startOfToday, startOfTomorrow, startOfMonth, startOfNextMonth };
 }
