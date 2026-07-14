@@ -1049,11 +1049,19 @@ export type AppointmentScalarFieldEnum = (typeof AppointmentScalarFieldEnum)[key
 
 export const NotificationScalarFieldEnum = {
   id: 'id',
+  kind: 'kind',
   channel: 'channel',
   status: 'status',
-  scheduledFor: 'scheduledFor',
-  sentAt: 'sentAt',
+  recipient: 'recipient',
   content: 'content',
+  idempotencyKey: 'idempotencyKey',
+  scheduledFor: 'scheduledFor',
+  nextAttemptAt: 'nextAttemptAt',
+  sentAt: 'sentAt',
+  attempts: 'attempts',
+  maxAttempts: 'maxAttempts',
+  lockedAt: 'lockedAt',
+  error: 'error',
   providerRef: 'providerRef',
   clinicId: 'clinicId',
   appointmentId: 'appointmentId',
@@ -1182,6 +1190,20 @@ export type EnumAppointmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType
  * Reference to a field of type 'AppointmentStatus[]'
  */
 export type ListEnumAppointmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AppointmentStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'NotificationKind'
+ */
+export type EnumNotificationKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NotificationKind'>
+    
+
+
+/**
+ * Reference to a field of type 'NotificationKind[]'
+ */
+export type ListEnumNotificationKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NotificationKind[]'>
     
 
 

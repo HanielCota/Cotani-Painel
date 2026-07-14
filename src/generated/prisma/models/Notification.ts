@@ -20,17 +20,37 @@ export type NotificationModel = runtime.Types.Result.DefaultSelection<Prisma.$No
 
 export type AggregateNotification = {
   _count: NotificationCountAggregateOutputType | null
+  _avg: NotificationAvgAggregateOutputType | null
+  _sum: NotificationSumAggregateOutputType | null
   _min: NotificationMinAggregateOutputType | null
   _max: NotificationMaxAggregateOutputType | null
 }
 
+export type NotificationAvgAggregateOutputType = {
+  attempts: number | null
+  maxAttempts: number | null
+}
+
+export type NotificationSumAggregateOutputType = {
+  attempts: number | null
+  maxAttempts: number | null
+}
+
 export type NotificationMinAggregateOutputType = {
   id: string | null
+  kind: $Enums.NotificationKind | null
   channel: $Enums.NotificationChannel | null
   status: $Enums.NotificationStatus | null
-  scheduledFor: Date | null
-  sentAt: Date | null
+  recipient: string | null
   content: string | null
+  idempotencyKey: string | null
+  scheduledFor: Date | null
+  nextAttemptAt: Date | null
+  sentAt: Date | null
+  attempts: number | null
+  maxAttempts: number | null
+  lockedAt: Date | null
+  error: string | null
   providerRef: string | null
   clinicId: string | null
   appointmentId: string | null
@@ -40,11 +60,19 @@ export type NotificationMinAggregateOutputType = {
 
 export type NotificationMaxAggregateOutputType = {
   id: string | null
+  kind: $Enums.NotificationKind | null
   channel: $Enums.NotificationChannel | null
   status: $Enums.NotificationStatus | null
-  scheduledFor: Date | null
-  sentAt: Date | null
+  recipient: string | null
   content: string | null
+  idempotencyKey: string | null
+  scheduledFor: Date | null
+  nextAttemptAt: Date | null
+  sentAt: Date | null
+  attempts: number | null
+  maxAttempts: number | null
+  lockedAt: Date | null
+  error: string | null
   providerRef: string | null
   clinicId: string | null
   appointmentId: string | null
@@ -54,11 +82,19 @@ export type NotificationMaxAggregateOutputType = {
 
 export type NotificationCountAggregateOutputType = {
   id: number
+  kind: number
   channel: number
   status: number
-  scheduledFor: number
-  sentAt: number
+  recipient: number
   content: number
+  idempotencyKey: number
+  scheduledFor: number
+  nextAttemptAt: number
+  sentAt: number
+  attempts: number
+  maxAttempts: number
+  lockedAt: number
+  error: number
   providerRef: number
   clinicId: number
   appointmentId: number
@@ -68,13 +104,31 @@ export type NotificationCountAggregateOutputType = {
 }
 
 
+export type NotificationAvgAggregateInputType = {
+  attempts?: true
+  maxAttempts?: true
+}
+
+export type NotificationSumAggregateInputType = {
+  attempts?: true
+  maxAttempts?: true
+}
+
 export type NotificationMinAggregateInputType = {
   id?: true
+  kind?: true
   channel?: true
   status?: true
-  scheduledFor?: true
-  sentAt?: true
+  recipient?: true
   content?: true
+  idempotencyKey?: true
+  scheduledFor?: true
+  nextAttemptAt?: true
+  sentAt?: true
+  attempts?: true
+  maxAttempts?: true
+  lockedAt?: true
+  error?: true
   providerRef?: true
   clinicId?: true
   appointmentId?: true
@@ -84,11 +138,19 @@ export type NotificationMinAggregateInputType = {
 
 export type NotificationMaxAggregateInputType = {
   id?: true
+  kind?: true
   channel?: true
   status?: true
-  scheduledFor?: true
-  sentAt?: true
+  recipient?: true
   content?: true
+  idempotencyKey?: true
+  scheduledFor?: true
+  nextAttemptAt?: true
+  sentAt?: true
+  attempts?: true
+  maxAttempts?: true
+  lockedAt?: true
+  error?: true
   providerRef?: true
   clinicId?: true
   appointmentId?: true
@@ -98,11 +160,19 @@ export type NotificationMaxAggregateInputType = {
 
 export type NotificationCountAggregateInputType = {
   id?: true
+  kind?: true
   channel?: true
   status?: true
-  scheduledFor?: true
-  sentAt?: true
+  recipient?: true
   content?: true
+  idempotencyKey?: true
+  scheduledFor?: true
+  nextAttemptAt?: true
+  sentAt?: true
+  attempts?: true
+  maxAttempts?: true
+  lockedAt?: true
+  error?: true
   providerRef?: true
   clinicId?: true
   appointmentId?: true
@@ -149,6 +219,18 @@ export type NotificationAggregateArgs<ExtArgs extends runtime.Types.Extensions.I
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: NotificationAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: NotificationSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: NotificationMinAggregateInputType
@@ -179,23 +261,35 @@ export type NotificationGroupByArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   _count?: NotificationCountAggregateInputType | true
+  _avg?: NotificationAvgAggregateInputType
+  _sum?: NotificationSumAggregateInputType
   _min?: NotificationMinAggregateInputType
   _max?: NotificationMaxAggregateInputType
 }
 
 export type NotificationGroupByOutputType = {
   id: string
+  kind: $Enums.NotificationKind
   channel: $Enums.NotificationChannel
   status: $Enums.NotificationStatus
-  scheduledFor: Date
-  sentAt: Date | null
+  recipient: string
   content: string
+  idempotencyKey: string
+  scheduledFor: Date
+  nextAttemptAt: Date
+  sentAt: Date | null
+  attempts: number
+  maxAttempts: number
+  lockedAt: Date | null
+  error: string | null
   providerRef: string | null
   clinicId: string
   appointmentId: string
   createdAt: Date
   updatedAt: Date
   _count: NotificationCountAggregateOutputType | null
+  _avg: NotificationAvgAggregateOutputType | null
+  _sum: NotificationSumAggregateOutputType | null
   _min: NotificationMinAggregateOutputType | null
   _max: NotificationMaxAggregateOutputType | null
 }
@@ -220,11 +314,19 @@ export type NotificationWhereInput = {
   OR?: Prisma.NotificationWhereInput[]
   NOT?: Prisma.NotificationWhereInput | Prisma.NotificationWhereInput[]
   id?: Prisma.StringFilter<"Notification"> | string
+  kind?: Prisma.EnumNotificationKindFilter<"Notification"> | $Enums.NotificationKind
   channel?: Prisma.EnumNotificationChannelFilter<"Notification"> | $Enums.NotificationChannel
   status?: Prisma.EnumNotificationStatusFilter<"Notification"> | $Enums.NotificationStatus
-  scheduledFor?: Prisma.DateTimeFilter<"Notification"> | Date | string
-  sentAt?: Prisma.DateTimeNullableFilter<"Notification"> | Date | string | null
+  recipient?: Prisma.StringFilter<"Notification"> | string
   content?: Prisma.StringFilter<"Notification"> | string
+  idempotencyKey?: Prisma.StringFilter<"Notification"> | string
+  scheduledFor?: Prisma.DateTimeFilter<"Notification"> | Date | string
+  nextAttemptAt?: Prisma.DateTimeFilter<"Notification"> | Date | string
+  sentAt?: Prisma.DateTimeNullableFilter<"Notification"> | Date | string | null
+  attempts?: Prisma.IntFilter<"Notification"> | number
+  maxAttempts?: Prisma.IntFilter<"Notification"> | number
+  lockedAt?: Prisma.DateTimeNullableFilter<"Notification"> | Date | string | null
+  error?: Prisma.StringNullableFilter<"Notification"> | string | null
   providerRef?: Prisma.StringNullableFilter<"Notification"> | string | null
   clinicId?: Prisma.StringFilter<"Notification"> | string
   appointmentId?: Prisma.StringFilter<"Notification"> | string
@@ -236,11 +338,19 @@ export type NotificationWhereInput = {
 
 export type NotificationOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  scheduledFor?: Prisma.SortOrder
-  sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  recipient?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  idempotencyKey?: Prisma.SortOrder
+  scheduledFor?: Prisma.SortOrder
+  nextAttemptAt?: Prisma.SortOrder
+  sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  attempts?: Prisma.SortOrder
+  maxAttempts?: Prisma.SortOrder
+  lockedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  error?: Prisma.SortOrderInput | Prisma.SortOrder
   providerRef?: Prisma.SortOrderInput | Prisma.SortOrder
   clinicId?: Prisma.SortOrder
   appointmentId?: Prisma.SortOrder
@@ -252,14 +362,22 @@ export type NotificationOrderByWithRelationInput = {
 
 export type NotificationWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  idempotencyKey?: string
   AND?: Prisma.NotificationWhereInput | Prisma.NotificationWhereInput[]
   OR?: Prisma.NotificationWhereInput[]
   NOT?: Prisma.NotificationWhereInput | Prisma.NotificationWhereInput[]
+  kind?: Prisma.EnumNotificationKindFilter<"Notification"> | $Enums.NotificationKind
   channel?: Prisma.EnumNotificationChannelFilter<"Notification"> | $Enums.NotificationChannel
   status?: Prisma.EnumNotificationStatusFilter<"Notification"> | $Enums.NotificationStatus
-  scheduledFor?: Prisma.DateTimeFilter<"Notification"> | Date | string
-  sentAt?: Prisma.DateTimeNullableFilter<"Notification"> | Date | string | null
+  recipient?: Prisma.StringFilter<"Notification"> | string
   content?: Prisma.StringFilter<"Notification"> | string
+  scheduledFor?: Prisma.DateTimeFilter<"Notification"> | Date | string
+  nextAttemptAt?: Prisma.DateTimeFilter<"Notification"> | Date | string
+  sentAt?: Prisma.DateTimeNullableFilter<"Notification"> | Date | string | null
+  attempts?: Prisma.IntFilter<"Notification"> | number
+  maxAttempts?: Prisma.IntFilter<"Notification"> | number
+  lockedAt?: Prisma.DateTimeNullableFilter<"Notification"> | Date | string | null
+  error?: Prisma.StringNullableFilter<"Notification"> | string | null
   providerRef?: Prisma.StringNullableFilter<"Notification"> | string | null
   clinicId?: Prisma.StringFilter<"Notification"> | string
   appointmentId?: Prisma.StringFilter<"Notification"> | string
@@ -267,23 +385,33 @@ export type NotificationWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Notification"> | Date | string
   clinic?: Prisma.XOR<Prisma.ClinicScalarRelationFilter, Prisma.ClinicWhereInput>
   appointment?: Prisma.XOR<Prisma.AppointmentScalarRelationFilter, Prisma.AppointmentWhereInput>
-}, "id">
+}, "id" | "idempotencyKey">
 
 export type NotificationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  scheduledFor?: Prisma.SortOrder
-  sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  recipient?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  idempotencyKey?: Prisma.SortOrder
+  scheduledFor?: Prisma.SortOrder
+  nextAttemptAt?: Prisma.SortOrder
+  sentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  attempts?: Prisma.SortOrder
+  maxAttempts?: Prisma.SortOrder
+  lockedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  error?: Prisma.SortOrderInput | Prisma.SortOrder
   providerRef?: Prisma.SortOrderInput | Prisma.SortOrder
   clinicId?: Prisma.SortOrder
   appointmentId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.NotificationCountOrderByAggregateInput
+  _avg?: Prisma.NotificationAvgOrderByAggregateInput
   _max?: Prisma.NotificationMaxOrderByAggregateInput
   _min?: Prisma.NotificationMinOrderByAggregateInput
+  _sum?: Prisma.NotificationSumOrderByAggregateInput
 }
 
 export type NotificationScalarWhereWithAggregatesInput = {
@@ -291,11 +419,19 @@ export type NotificationScalarWhereWithAggregatesInput = {
   OR?: Prisma.NotificationScalarWhereWithAggregatesInput[]
   NOT?: Prisma.NotificationScalarWhereWithAggregatesInput | Prisma.NotificationScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Notification"> | string
+  kind?: Prisma.EnumNotificationKindWithAggregatesFilter<"Notification"> | $Enums.NotificationKind
   channel?: Prisma.EnumNotificationChannelWithAggregatesFilter<"Notification"> | $Enums.NotificationChannel
   status?: Prisma.EnumNotificationStatusWithAggregatesFilter<"Notification"> | $Enums.NotificationStatus
-  scheduledFor?: Prisma.DateTimeWithAggregatesFilter<"Notification"> | Date | string
-  sentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Notification"> | Date | string | null
+  recipient?: Prisma.StringWithAggregatesFilter<"Notification"> | string
   content?: Prisma.StringWithAggregatesFilter<"Notification"> | string
+  idempotencyKey?: Prisma.StringWithAggregatesFilter<"Notification"> | string
+  scheduledFor?: Prisma.DateTimeWithAggregatesFilter<"Notification"> | Date | string
+  nextAttemptAt?: Prisma.DateTimeWithAggregatesFilter<"Notification"> | Date | string
+  sentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Notification"> | Date | string | null
+  attempts?: Prisma.IntWithAggregatesFilter<"Notification"> | number
+  maxAttempts?: Prisma.IntWithAggregatesFilter<"Notification"> | number
+  lockedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Notification"> | Date | string | null
+  error?: Prisma.StringNullableWithAggregatesFilter<"Notification"> | string | null
   providerRef?: Prisma.StringNullableWithAggregatesFilter<"Notification"> | string | null
   clinicId?: Prisma.StringWithAggregatesFilter<"Notification"> | string
   appointmentId?: Prisma.StringWithAggregatesFilter<"Notification"> | string
@@ -305,11 +441,19 @@ export type NotificationScalarWhereWithAggregatesInput = {
 
 export type NotificationCreateInput = {
   id?: string
+  kind: $Enums.NotificationKind
   channel: $Enums.NotificationChannel
   status?: $Enums.NotificationStatus
-  scheduledFor: Date | string
-  sentAt?: Date | string | null
+  recipient: string
   content: string
+  idempotencyKey: string
+  scheduledFor: Date | string
+  nextAttemptAt: Date | string
+  sentAt?: Date | string | null
+  attempts?: number
+  maxAttempts?: number
+  lockedAt?: Date | string | null
+  error?: string | null
   providerRef?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -319,11 +463,19 @@ export type NotificationCreateInput = {
 
 export type NotificationUncheckedCreateInput = {
   id?: string
+  kind: $Enums.NotificationKind
   channel: $Enums.NotificationChannel
   status?: $Enums.NotificationStatus
-  scheduledFor: Date | string
-  sentAt?: Date | string | null
+  recipient: string
   content: string
+  idempotencyKey: string
+  scheduledFor: Date | string
+  nextAttemptAt: Date | string
+  sentAt?: Date | string | null
+  attempts?: number
+  maxAttempts?: number
+  lockedAt?: Date | string | null
+  error?: string | null
   providerRef?: string | null
   clinicId: string
   appointmentId: string
@@ -333,11 +485,19 @@ export type NotificationUncheckedCreateInput = {
 
 export type NotificationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumNotificationKindFieldUpdateOperationsInput | $Enums.NotificationKind
   channel?: Prisma.EnumNotificationChannelFieldUpdateOperationsInput | $Enums.NotificationChannel
   status?: Prisma.EnumNotificationStatusFieldUpdateOperationsInput | $Enums.NotificationStatus
-  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recipient?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string
+  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  nextAttemptAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  maxAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -347,11 +507,19 @@ export type NotificationUpdateInput = {
 
 export type NotificationUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumNotificationKindFieldUpdateOperationsInput | $Enums.NotificationKind
   channel?: Prisma.EnumNotificationChannelFieldUpdateOperationsInput | $Enums.NotificationChannel
   status?: Prisma.EnumNotificationStatusFieldUpdateOperationsInput | $Enums.NotificationStatus
-  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recipient?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string
+  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  nextAttemptAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  maxAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clinicId?: Prisma.StringFieldUpdateOperationsInput | string
   appointmentId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -361,11 +529,19 @@ export type NotificationUncheckedUpdateInput = {
 
 export type NotificationCreateManyInput = {
   id?: string
+  kind: $Enums.NotificationKind
   channel: $Enums.NotificationChannel
   status?: $Enums.NotificationStatus
-  scheduledFor: Date | string
-  sentAt?: Date | string | null
+  recipient: string
   content: string
+  idempotencyKey: string
+  scheduledFor: Date | string
+  nextAttemptAt: Date | string
+  sentAt?: Date | string | null
+  attempts?: number
+  maxAttempts?: number
+  lockedAt?: Date | string | null
+  error?: string | null
   providerRef?: string | null
   clinicId: string
   appointmentId: string
@@ -375,11 +551,19 @@ export type NotificationCreateManyInput = {
 
 export type NotificationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumNotificationKindFieldUpdateOperationsInput | $Enums.NotificationKind
   channel?: Prisma.EnumNotificationChannelFieldUpdateOperationsInput | $Enums.NotificationChannel
   status?: Prisma.EnumNotificationStatusFieldUpdateOperationsInput | $Enums.NotificationStatus
-  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recipient?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string
+  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  nextAttemptAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  maxAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -387,11 +571,19 @@ export type NotificationUpdateManyMutationInput = {
 
 export type NotificationUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumNotificationKindFieldUpdateOperationsInput | $Enums.NotificationKind
   channel?: Prisma.EnumNotificationChannelFieldUpdateOperationsInput | $Enums.NotificationChannel
   status?: Prisma.EnumNotificationStatusFieldUpdateOperationsInput | $Enums.NotificationStatus
-  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recipient?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string
+  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  nextAttemptAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  maxAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clinicId?: Prisma.StringFieldUpdateOperationsInput | string
   appointmentId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -411,11 +603,19 @@ export type NotificationOrderByRelationAggregateInput = {
 
 export type NotificationCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  scheduledFor?: Prisma.SortOrder
-  sentAt?: Prisma.SortOrder
+  recipient?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  idempotencyKey?: Prisma.SortOrder
+  scheduledFor?: Prisma.SortOrder
+  nextAttemptAt?: Prisma.SortOrder
+  sentAt?: Prisma.SortOrder
+  attempts?: Prisma.SortOrder
+  maxAttempts?: Prisma.SortOrder
+  lockedAt?: Prisma.SortOrder
+  error?: Prisma.SortOrder
   providerRef?: Prisma.SortOrder
   clinicId?: Prisma.SortOrder
   appointmentId?: Prisma.SortOrder
@@ -423,13 +623,26 @@ export type NotificationCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
+export type NotificationAvgOrderByAggregateInput = {
+  attempts?: Prisma.SortOrder
+  maxAttempts?: Prisma.SortOrder
+}
+
 export type NotificationMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  scheduledFor?: Prisma.SortOrder
-  sentAt?: Prisma.SortOrder
+  recipient?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  idempotencyKey?: Prisma.SortOrder
+  scheduledFor?: Prisma.SortOrder
+  nextAttemptAt?: Prisma.SortOrder
+  sentAt?: Prisma.SortOrder
+  attempts?: Prisma.SortOrder
+  maxAttempts?: Prisma.SortOrder
+  lockedAt?: Prisma.SortOrder
+  error?: Prisma.SortOrder
   providerRef?: Prisma.SortOrder
   clinicId?: Prisma.SortOrder
   appointmentId?: Prisma.SortOrder
@@ -439,16 +652,29 @@ export type NotificationMaxOrderByAggregateInput = {
 
 export type NotificationMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   channel?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  scheduledFor?: Prisma.SortOrder
-  sentAt?: Prisma.SortOrder
+  recipient?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  idempotencyKey?: Prisma.SortOrder
+  scheduledFor?: Prisma.SortOrder
+  nextAttemptAt?: Prisma.SortOrder
+  sentAt?: Prisma.SortOrder
+  attempts?: Prisma.SortOrder
+  maxAttempts?: Prisma.SortOrder
+  lockedAt?: Prisma.SortOrder
+  error?: Prisma.SortOrder
   providerRef?: Prisma.SortOrder
   clinicId?: Prisma.SortOrder
   appointmentId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type NotificationSumOrderByAggregateInput = {
+  attempts?: Prisma.SortOrder
+  maxAttempts?: Prisma.SortOrder
 }
 
 export type NotificationCreateNestedManyWithoutClinicInput = {
@@ -535,6 +761,10 @@ export type NotificationUncheckedUpdateManyWithoutAppointmentNestedInput = {
   deleteMany?: Prisma.NotificationScalarWhereInput | Prisma.NotificationScalarWhereInput[]
 }
 
+export type EnumNotificationKindFieldUpdateOperationsInput = {
+  set?: $Enums.NotificationKind
+}
+
 export type EnumNotificationChannelFieldUpdateOperationsInput = {
   set?: $Enums.NotificationChannel
 }
@@ -549,11 +779,19 @@ export type NullableDateTimeFieldUpdateOperationsInput = {
 
 export type NotificationCreateWithoutClinicInput = {
   id?: string
+  kind: $Enums.NotificationKind
   channel: $Enums.NotificationChannel
   status?: $Enums.NotificationStatus
-  scheduledFor: Date | string
-  sentAt?: Date | string | null
+  recipient: string
   content: string
+  idempotencyKey: string
+  scheduledFor: Date | string
+  nextAttemptAt: Date | string
+  sentAt?: Date | string | null
+  attempts?: number
+  maxAttempts?: number
+  lockedAt?: Date | string | null
+  error?: string | null
   providerRef?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -562,11 +800,19 @@ export type NotificationCreateWithoutClinicInput = {
 
 export type NotificationUncheckedCreateWithoutClinicInput = {
   id?: string
+  kind: $Enums.NotificationKind
   channel: $Enums.NotificationChannel
   status?: $Enums.NotificationStatus
-  scheduledFor: Date | string
-  sentAt?: Date | string | null
+  recipient: string
   content: string
+  idempotencyKey: string
+  scheduledFor: Date | string
+  nextAttemptAt: Date | string
+  sentAt?: Date | string | null
+  attempts?: number
+  maxAttempts?: number
+  lockedAt?: Date | string | null
+  error?: string | null
   providerRef?: string | null
   appointmentId: string
   createdAt?: Date | string
@@ -604,11 +850,19 @@ export type NotificationScalarWhereInput = {
   OR?: Prisma.NotificationScalarWhereInput[]
   NOT?: Prisma.NotificationScalarWhereInput | Prisma.NotificationScalarWhereInput[]
   id?: Prisma.StringFilter<"Notification"> | string
+  kind?: Prisma.EnumNotificationKindFilter<"Notification"> | $Enums.NotificationKind
   channel?: Prisma.EnumNotificationChannelFilter<"Notification"> | $Enums.NotificationChannel
   status?: Prisma.EnumNotificationStatusFilter<"Notification"> | $Enums.NotificationStatus
-  scheduledFor?: Prisma.DateTimeFilter<"Notification"> | Date | string
-  sentAt?: Prisma.DateTimeNullableFilter<"Notification"> | Date | string | null
+  recipient?: Prisma.StringFilter<"Notification"> | string
   content?: Prisma.StringFilter<"Notification"> | string
+  idempotencyKey?: Prisma.StringFilter<"Notification"> | string
+  scheduledFor?: Prisma.DateTimeFilter<"Notification"> | Date | string
+  nextAttemptAt?: Prisma.DateTimeFilter<"Notification"> | Date | string
+  sentAt?: Prisma.DateTimeNullableFilter<"Notification"> | Date | string | null
+  attempts?: Prisma.IntFilter<"Notification"> | number
+  maxAttempts?: Prisma.IntFilter<"Notification"> | number
+  lockedAt?: Prisma.DateTimeNullableFilter<"Notification"> | Date | string | null
+  error?: Prisma.StringNullableFilter<"Notification"> | string | null
   providerRef?: Prisma.StringNullableFilter<"Notification"> | string | null
   clinicId?: Prisma.StringFilter<"Notification"> | string
   appointmentId?: Prisma.StringFilter<"Notification"> | string
@@ -618,11 +872,19 @@ export type NotificationScalarWhereInput = {
 
 export type NotificationCreateWithoutAppointmentInput = {
   id?: string
+  kind: $Enums.NotificationKind
   channel: $Enums.NotificationChannel
   status?: $Enums.NotificationStatus
-  scheduledFor: Date | string
-  sentAt?: Date | string | null
+  recipient: string
   content: string
+  idempotencyKey: string
+  scheduledFor: Date | string
+  nextAttemptAt: Date | string
+  sentAt?: Date | string | null
+  attempts?: number
+  maxAttempts?: number
+  lockedAt?: Date | string | null
+  error?: string | null
   providerRef?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -631,11 +893,19 @@ export type NotificationCreateWithoutAppointmentInput = {
 
 export type NotificationUncheckedCreateWithoutAppointmentInput = {
   id?: string
+  kind: $Enums.NotificationKind
   channel: $Enums.NotificationChannel
   status?: $Enums.NotificationStatus
-  scheduledFor: Date | string
-  sentAt?: Date | string | null
+  recipient: string
   content: string
+  idempotencyKey: string
+  scheduledFor: Date | string
+  nextAttemptAt: Date | string
+  sentAt?: Date | string | null
+  attempts?: number
+  maxAttempts?: number
+  lockedAt?: Date | string | null
+  error?: string | null
   providerRef?: string | null
   clinicId: string
   createdAt?: Date | string
@@ -670,11 +940,19 @@ export type NotificationUpdateManyWithWhereWithoutAppointmentInput = {
 
 export type NotificationCreateManyClinicInput = {
   id?: string
+  kind: $Enums.NotificationKind
   channel: $Enums.NotificationChannel
   status?: $Enums.NotificationStatus
-  scheduledFor: Date | string
-  sentAt?: Date | string | null
+  recipient: string
   content: string
+  idempotencyKey: string
+  scheduledFor: Date | string
+  nextAttemptAt: Date | string
+  sentAt?: Date | string | null
+  attempts?: number
+  maxAttempts?: number
+  lockedAt?: Date | string | null
+  error?: string | null
   providerRef?: string | null
   appointmentId: string
   createdAt?: Date | string
@@ -683,11 +961,19 @@ export type NotificationCreateManyClinicInput = {
 
 export type NotificationUpdateWithoutClinicInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumNotificationKindFieldUpdateOperationsInput | $Enums.NotificationKind
   channel?: Prisma.EnumNotificationChannelFieldUpdateOperationsInput | $Enums.NotificationChannel
   status?: Prisma.EnumNotificationStatusFieldUpdateOperationsInput | $Enums.NotificationStatus
-  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recipient?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string
+  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  nextAttemptAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  maxAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -696,11 +982,19 @@ export type NotificationUpdateWithoutClinicInput = {
 
 export type NotificationUncheckedUpdateWithoutClinicInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumNotificationKindFieldUpdateOperationsInput | $Enums.NotificationKind
   channel?: Prisma.EnumNotificationChannelFieldUpdateOperationsInput | $Enums.NotificationChannel
   status?: Prisma.EnumNotificationStatusFieldUpdateOperationsInput | $Enums.NotificationStatus
-  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recipient?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string
+  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  nextAttemptAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  maxAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   appointmentId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -709,11 +1003,19 @@ export type NotificationUncheckedUpdateWithoutClinicInput = {
 
 export type NotificationUncheckedUpdateManyWithoutClinicInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumNotificationKindFieldUpdateOperationsInput | $Enums.NotificationKind
   channel?: Prisma.EnumNotificationChannelFieldUpdateOperationsInput | $Enums.NotificationChannel
   status?: Prisma.EnumNotificationStatusFieldUpdateOperationsInput | $Enums.NotificationStatus
-  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recipient?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string
+  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  nextAttemptAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  maxAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   appointmentId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -722,11 +1024,19 @@ export type NotificationUncheckedUpdateManyWithoutClinicInput = {
 
 export type NotificationCreateManyAppointmentInput = {
   id?: string
+  kind: $Enums.NotificationKind
   channel: $Enums.NotificationChannel
   status?: $Enums.NotificationStatus
-  scheduledFor: Date | string
-  sentAt?: Date | string | null
+  recipient: string
   content: string
+  idempotencyKey: string
+  scheduledFor: Date | string
+  nextAttemptAt: Date | string
+  sentAt?: Date | string | null
+  attempts?: number
+  maxAttempts?: number
+  lockedAt?: Date | string | null
+  error?: string | null
   providerRef?: string | null
   clinicId: string
   createdAt?: Date | string
@@ -735,11 +1045,19 @@ export type NotificationCreateManyAppointmentInput = {
 
 export type NotificationUpdateWithoutAppointmentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumNotificationKindFieldUpdateOperationsInput | $Enums.NotificationKind
   channel?: Prisma.EnumNotificationChannelFieldUpdateOperationsInput | $Enums.NotificationChannel
   status?: Prisma.EnumNotificationStatusFieldUpdateOperationsInput | $Enums.NotificationStatus
-  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recipient?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string
+  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  nextAttemptAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  maxAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -748,11 +1066,19 @@ export type NotificationUpdateWithoutAppointmentInput = {
 
 export type NotificationUncheckedUpdateWithoutAppointmentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumNotificationKindFieldUpdateOperationsInput | $Enums.NotificationKind
   channel?: Prisma.EnumNotificationChannelFieldUpdateOperationsInput | $Enums.NotificationChannel
   status?: Prisma.EnumNotificationStatusFieldUpdateOperationsInput | $Enums.NotificationStatus
-  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recipient?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string
+  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  nextAttemptAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  maxAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clinicId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -761,11 +1087,19 @@ export type NotificationUncheckedUpdateWithoutAppointmentInput = {
 
 export type NotificationUncheckedUpdateManyWithoutAppointmentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumNotificationKindFieldUpdateOperationsInput | $Enums.NotificationKind
   channel?: Prisma.EnumNotificationChannelFieldUpdateOperationsInput | $Enums.NotificationChannel
   status?: Prisma.EnumNotificationStatusFieldUpdateOperationsInput | $Enums.NotificationStatus
-  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  recipient?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
+  idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string
+  scheduledFor?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  nextAttemptAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  maxAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clinicId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -776,11 +1110,19 @@ export type NotificationUncheckedUpdateManyWithoutAppointmentInput = {
 
 export type NotificationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  kind?: boolean
   channel?: boolean
   status?: boolean
-  scheduledFor?: boolean
-  sentAt?: boolean
+  recipient?: boolean
   content?: boolean
+  idempotencyKey?: boolean
+  scheduledFor?: boolean
+  nextAttemptAt?: boolean
+  sentAt?: boolean
+  attempts?: boolean
+  maxAttempts?: boolean
+  lockedAt?: boolean
+  error?: boolean
   providerRef?: boolean
   clinicId?: boolean
   appointmentId?: boolean
@@ -792,11 +1134,19 @@ export type NotificationSelect<ExtArgs extends runtime.Types.Extensions.Internal
 
 export type NotificationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  kind?: boolean
   channel?: boolean
   status?: boolean
-  scheduledFor?: boolean
-  sentAt?: boolean
+  recipient?: boolean
   content?: boolean
+  idempotencyKey?: boolean
+  scheduledFor?: boolean
+  nextAttemptAt?: boolean
+  sentAt?: boolean
+  attempts?: boolean
+  maxAttempts?: boolean
+  lockedAt?: boolean
+  error?: boolean
   providerRef?: boolean
   clinicId?: boolean
   appointmentId?: boolean
@@ -808,11 +1158,19 @@ export type NotificationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
 
 export type NotificationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  kind?: boolean
   channel?: boolean
   status?: boolean
-  scheduledFor?: boolean
-  sentAt?: boolean
+  recipient?: boolean
   content?: boolean
+  idempotencyKey?: boolean
+  scheduledFor?: boolean
+  nextAttemptAt?: boolean
+  sentAt?: boolean
+  attempts?: boolean
+  maxAttempts?: boolean
+  lockedAt?: boolean
+  error?: boolean
   providerRef?: boolean
   clinicId?: boolean
   appointmentId?: boolean
@@ -824,11 +1182,19 @@ export type NotificationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
 
 export type NotificationSelectScalar = {
   id?: boolean
+  kind?: boolean
   channel?: boolean
   status?: boolean
-  scheduledFor?: boolean
-  sentAt?: boolean
+  recipient?: boolean
   content?: boolean
+  idempotencyKey?: boolean
+  scheduledFor?: boolean
+  nextAttemptAt?: boolean
+  sentAt?: boolean
+  attempts?: boolean
+  maxAttempts?: boolean
+  lockedAt?: boolean
+  error?: boolean
   providerRef?: boolean
   clinicId?: boolean
   appointmentId?: boolean
@@ -836,7 +1202,7 @@ export type NotificationSelectScalar = {
   updatedAt?: boolean
 }
 
-export type NotificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "channel" | "status" | "scheduledFor" | "sentAt" | "content" | "providerRef" | "clinicId" | "appointmentId" | "createdAt" | "updatedAt", ExtArgs["result"]["notification"]>
+export type NotificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "kind" | "channel" | "status" | "recipient" | "content" | "idempotencyKey" | "scheduledFor" | "nextAttemptAt" | "sentAt" | "attempts" | "maxAttempts" | "lockedAt" | "error" | "providerRef" | "clinicId" | "appointmentId" | "createdAt" | "updatedAt", ExtArgs["result"]["notification"]>
 export type NotificationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   clinic?: boolean | Prisma.ClinicDefaultArgs<ExtArgs>
   appointment?: boolean | Prisma.AppointmentDefaultArgs<ExtArgs>
@@ -858,11 +1224,19 @@ export type $NotificationPayload<ExtArgs extends runtime.Types.Extensions.Intern
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
+    kind: $Enums.NotificationKind
     channel: $Enums.NotificationChannel
     status: $Enums.NotificationStatus
-    scheduledFor: Date
-    sentAt: Date | null
+    recipient: string
     content: string
+    idempotencyKey: string
+    scheduledFor: Date
+    nextAttemptAt: Date
+    sentAt: Date | null
+    attempts: number
+    maxAttempts: number
+    lockedAt: Date | null
+    error: string | null
     providerRef: string | null
     clinicId: string
     appointmentId: string
@@ -1294,11 +1668,19 @@ export interface Prisma__NotificationClient<T, Null = never, ExtArgs extends run
  */
 export interface NotificationFieldRefs {
   readonly id: Prisma.FieldRef<"Notification", 'String'>
+  readonly kind: Prisma.FieldRef<"Notification", 'NotificationKind'>
   readonly channel: Prisma.FieldRef<"Notification", 'NotificationChannel'>
   readonly status: Prisma.FieldRef<"Notification", 'NotificationStatus'>
-  readonly scheduledFor: Prisma.FieldRef<"Notification", 'DateTime'>
-  readonly sentAt: Prisma.FieldRef<"Notification", 'DateTime'>
+  readonly recipient: Prisma.FieldRef<"Notification", 'String'>
   readonly content: Prisma.FieldRef<"Notification", 'String'>
+  readonly idempotencyKey: Prisma.FieldRef<"Notification", 'String'>
+  readonly scheduledFor: Prisma.FieldRef<"Notification", 'DateTime'>
+  readonly nextAttemptAt: Prisma.FieldRef<"Notification", 'DateTime'>
+  readonly sentAt: Prisma.FieldRef<"Notification", 'DateTime'>
+  readonly attempts: Prisma.FieldRef<"Notification", 'Int'>
+  readonly maxAttempts: Prisma.FieldRef<"Notification", 'Int'>
+  readonly lockedAt: Prisma.FieldRef<"Notification", 'DateTime'>
+  readonly error: Prisma.FieldRef<"Notification", 'String'>
   readonly providerRef: Prisma.FieldRef<"Notification", 'String'>
   readonly clinicId: Prisma.FieldRef<"Notification", 'String'>
   readonly appointmentId: Prisma.FieldRef<"Notification", 'String'>

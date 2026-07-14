@@ -72,23 +72,6 @@ export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedDateTimeFilter<$PrismaModel>
 }
 
-export type EnumClinicRoleFilter<$PrismaModel = never> = {
-  equals?: $Enums.ClinicRole | Prisma.EnumClinicRoleFieldRefInput<$PrismaModel>
-  in?: $Enums.ClinicRole[] | Prisma.ListEnumClinicRoleFieldRefInput<$PrismaModel>
-  notIn?: $Enums.ClinicRole[] | Prisma.ListEnumClinicRoleFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumClinicRoleFilter<$PrismaModel> | $Enums.ClinicRole
-}
-
-export type EnumClinicRoleWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.ClinicRole | Prisma.EnumClinicRoleFieldRefInput<$PrismaModel>
-  in?: $Enums.ClinicRole[] | Prisma.ListEnumClinicRoleFieldRefInput<$PrismaModel>
-  notIn?: $Enums.ClinicRole[] | Prisma.ListEnumClinicRoleFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumClinicRoleWithAggregatesFilter<$PrismaModel> | $Enums.ClinicRole
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumClinicRoleFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumClinicRoleFilter<$PrismaModel>
-}
-
 export type StringNullableFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
@@ -125,6 +108,23 @@ export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedStringNullableFilter<$PrismaModel>
   _max?: Prisma.NestedStringNullableFilter<$PrismaModel>
+}
+
+export type EnumClinicRoleFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClinicRole | Prisma.EnumClinicRoleFieldRefInput<$PrismaModel>
+  in?: $Enums.ClinicRole[] | Prisma.ListEnumClinicRoleFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClinicRole[] | Prisma.ListEnumClinicRoleFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClinicRoleFilter<$PrismaModel> | $Enums.ClinicRole
+}
+
+export type EnumClinicRoleWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClinicRole | Prisma.EnumClinicRoleFieldRefInput<$PrismaModel>
+  in?: $Enums.ClinicRole[] | Prisma.ListEnumClinicRoleFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClinicRole[] | Prisma.ListEnumClinicRoleFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClinicRoleWithAggregatesFilter<$PrismaModel> | $Enums.ClinicRole
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumClinicRoleFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumClinicRoleFilter<$PrismaModel>
 }
 
 export type IntFilter<$PrismaModel = never> = {
@@ -211,6 +211,13 @@ export type EnumAppointmentStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumAppointmentStatusFilter<$PrismaModel>
 }
 
+export type EnumNotificationKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.NotificationKind | Prisma.EnumNotificationKindFieldRefInput<$PrismaModel>
+  in?: $Enums.NotificationKind[] | Prisma.ListEnumNotificationKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.NotificationKind[] | Prisma.ListEnumNotificationKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumNotificationKindFilter<$PrismaModel> | $Enums.NotificationKind
+}
+
 export type EnumNotificationChannelFilter<$PrismaModel = never> = {
   equals?: $Enums.NotificationChannel | Prisma.EnumNotificationChannelFieldRefInput<$PrismaModel>
   in?: $Enums.NotificationChannel[] | Prisma.ListEnumNotificationChannelFieldRefInput<$PrismaModel>
@@ -234,6 +241,16 @@ export type DateTimeNullableFilter<$PrismaModel = never> = {
   gt?: Date | string | Prisma.DateTimeFieldRefInput<$PrismaModel>
   gte?: Date | string | Prisma.DateTimeFieldRefInput<$PrismaModel>
   not?: Prisma.NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+}
+
+export type EnumNotificationKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.NotificationKind | Prisma.EnumNotificationKindFieldRefInput<$PrismaModel>
+  in?: $Enums.NotificationKind[] | Prisma.ListEnumNotificationKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.NotificationKind[] | Prisma.ListEnumNotificationKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumNotificationKindWithAggregatesFilter<$PrismaModel> | $Enums.NotificationKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumNotificationKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumNotificationKindFilter<$PrismaModel>
 }
 
 export type EnumNotificationChannelWithAggregatesFilter<$PrismaModel = never> = {
@@ -337,23 +354,6 @@ export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedDateTimeFilter<$PrismaModel>
 }
 
-export type NestedEnumClinicRoleFilter<$PrismaModel = never> = {
-  equals?: $Enums.ClinicRole | Prisma.EnumClinicRoleFieldRefInput<$PrismaModel>
-  in?: $Enums.ClinicRole[] | Prisma.ListEnumClinicRoleFieldRefInput<$PrismaModel>
-  notIn?: $Enums.ClinicRole[] | Prisma.ListEnumClinicRoleFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumClinicRoleFilter<$PrismaModel> | $Enums.ClinicRole
-}
-
-export type NestedEnumClinicRoleWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.ClinicRole | Prisma.EnumClinicRoleFieldRefInput<$PrismaModel>
-  in?: $Enums.ClinicRole[] | Prisma.ListEnumClinicRoleFieldRefInput<$PrismaModel>
-  notIn?: $Enums.ClinicRole[] | Prisma.ListEnumClinicRoleFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumClinicRoleWithAggregatesFilter<$PrismaModel> | $Enums.ClinicRole
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumClinicRoleFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumClinicRoleFilter<$PrismaModel>
-}
-
 export type NestedStringNullableFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
@@ -394,6 +394,23 @@ export type NestedIntNullableFilter<$PrismaModel = never> = {
   gt?: number | Prisma.IntFieldRefInput<$PrismaModel>
   gte?: number | Prisma.IntFieldRefInput<$PrismaModel>
   not?: Prisma.NestedIntNullableFilter<$PrismaModel> | number | null
+}
+
+export type NestedEnumClinicRoleFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClinicRole | Prisma.EnumClinicRoleFieldRefInput<$PrismaModel>
+  in?: $Enums.ClinicRole[] | Prisma.ListEnumClinicRoleFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClinicRole[] | Prisma.ListEnumClinicRoleFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClinicRoleFilter<$PrismaModel> | $Enums.ClinicRole
+}
+
+export type NestedEnumClinicRoleWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClinicRole | Prisma.EnumClinicRoleFieldRefInput<$PrismaModel>
+  in?: $Enums.ClinicRole[] | Prisma.ListEnumClinicRoleFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClinicRole[] | Prisma.ListEnumClinicRoleFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClinicRoleWithAggregatesFilter<$PrismaModel> | $Enums.ClinicRole
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumClinicRoleFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumClinicRoleFilter<$PrismaModel>
 }
 
 export type NestedDecimalFilter<$PrismaModel = never> = {
@@ -480,6 +497,13 @@ export type NestedEnumAppointmentStatusWithAggregatesFilter<$PrismaModel = never
   _max?: Prisma.NestedEnumAppointmentStatusFilter<$PrismaModel>
 }
 
+export type NestedEnumNotificationKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.NotificationKind | Prisma.EnumNotificationKindFieldRefInput<$PrismaModel>
+  in?: $Enums.NotificationKind[] | Prisma.ListEnumNotificationKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.NotificationKind[] | Prisma.ListEnumNotificationKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumNotificationKindFilter<$PrismaModel> | $Enums.NotificationKind
+}
+
 export type NestedEnumNotificationChannelFilter<$PrismaModel = never> = {
   equals?: $Enums.NotificationChannel | Prisma.EnumNotificationChannelFieldRefInput<$PrismaModel>
   in?: $Enums.NotificationChannel[] | Prisma.ListEnumNotificationChannelFieldRefInput<$PrismaModel>
@@ -503,6 +527,16 @@ export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
   gt?: Date | string | Prisma.DateTimeFieldRefInput<$PrismaModel>
   gte?: Date | string | Prisma.DateTimeFieldRefInput<$PrismaModel>
   not?: Prisma.NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+}
+
+export type NestedEnumNotificationKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.NotificationKind | Prisma.EnumNotificationKindFieldRefInput<$PrismaModel>
+  in?: $Enums.NotificationKind[] | Prisma.ListEnumNotificationKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.NotificationKind[] | Prisma.ListEnumNotificationKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumNotificationKindWithAggregatesFilter<$PrismaModel> | $Enums.NotificationKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumNotificationKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumNotificationKindFilter<$PrismaModel>
 }
 
 export type NestedEnumNotificationChannelWithAggregatesFilter<$PrismaModel = never> = {

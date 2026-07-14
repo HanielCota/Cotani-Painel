@@ -27,6 +27,12 @@ enum NotificationChannel {
   SMS
 }
 
+enum NotificationKind {
+  CONFIRMATION
+  REMINDER_24H
+  REMINDER_2H
+}
+
 enum NotificationStatus {
   PENDING
   SENT
@@ -52,7 +58,7 @@ model Clinic {
 model User {
   id          String       @id @default(uuid())
   clerkUserId String       @unique
-  email       String
+  email       String?
   name        String
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -125,20 +131,29 @@ model Appointment {
 }
 
 model Notification {
-  id            String              @id @default(uuid())
-  channel       NotificationChannel
-  status        NotificationStatus  @default(PENDING)
-  scheduledFor  DateTime
-  sentAt        DateTime?
-  content       String
-  providerRef   String?
-  clinicId      String
-  appointmentId String
-  clinic        Clinic              @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-  appointment   Appointment         @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
+  id             String              @id @default(uuid())
+  kind           NotificationKind
+  channel        NotificationChannel
+  status         NotificationStatus  @default(PENDING)
+  recipient      String
+  content        String
+  idempotencyKey String              @unique
+  scheduledFor   DateTime
+  nextAttemptAt  DateTime
+  sentAt         DateTime?
+  attempts       Int                 @default(0)
+  maxAttempts    Int                 @default(5)
+  lockedAt       DateTime?
+  error          String?
+  providerRef    String?
+  clinicId       String
+  appointmentId  String
+  clinic         Clinic              @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  appointment    Appointment         @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
 
   @@index([status, scheduledFor])
+  @@index([status, nextAttemptAt])
   @@index([clinicId, appointmentId])
 }

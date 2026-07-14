@@ -38,6 +38,15 @@ export const NotificationChannel = {
 export type NotificationChannel = (typeof NotificationChannel)[keyof typeof NotificationChannel]
 
 
+export const NotificationKind = {
+  CONFIRMATION: 'CONFIRMATION',
+  REMINDER_24H: 'REMINDER_24H',
+  REMINDER_2H: 'REMINDER_2H'
+} as const
+
+export type NotificationKind = (typeof NotificationKind)[keyof typeof NotificationKind]
+
+
 export const NotificationStatus = {
   PENDING: 'PENDING',
   SENT: 'SENT',
