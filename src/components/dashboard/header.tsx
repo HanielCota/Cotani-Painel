@@ -15,7 +15,9 @@ export function DashboardHeader() {
           Abrir agenda
         </Button>
         <div className="hidden min-[420px]:block">
-          <OrganizationSwitcher hidePersonal />
+          {/* Modo invite-only: organizações são provisionadas via API após o
+              pagamento — o switcher é estritamente de seleção, sem ações. */}
+          <OrganizationSwitcher hidePersonal appearance={{ elements: { organizationSwitcherPopoverActions: "hidden" } }} />
         </div>
         <UserButton />
       </div>

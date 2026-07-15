@@ -20,11 +20,12 @@ export function EmptyClinicState() {
         </EmptyMedia>
         <h1 className="font-heading text-xl font-semibold tracking-tight">Selecione uma clínica</h1>
         <EmptyDescription>
-          Crie ou selecione uma organização para configurar o painel desta clínica.
+          Selecione a organização da sua clínica. Se ela não aparecer, o acesso ainda não foi provisionado — verifique o e-mail de convite ou contate o suporte.
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
-        <OrganizationSwitcher hidePersonal />
+        {/* Estritamente seleção: criação de organizações não é permitida via UI. */}
+        <OrganizationSwitcher hidePersonal appearance={{ elements: { organizationSwitcherPopoverActions: "hidden" } }} />
       </EmptyContent>
     </Empty>
   );
