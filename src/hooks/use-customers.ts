@@ -2,6 +2,7 @@
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
+import { fetchJson } from "@/lib/fetch-json";
 import type { CustomersPage } from "@/types";
 
 export interface UseCustomersParams {
@@ -20,13 +21,7 @@ async function fetchCustomers({ search, page, pageSize }: UseCustomersParams): P
     params.set("search", search);
   }
 
-  const response = await fetch(`/api/customers?${params.toString()}`);
-
-  if (!response.ok) {
-    throw new Error("Não foi possível carregar os clientes.");
-  }
-
-  return response.json() as Promise<CustomersPage>;
+  return fetchJson<CustomersPage>(`/api/customers?${params.toString()}`);
 }
 
 export function useCustomers(params: UseCustomersParams) {
