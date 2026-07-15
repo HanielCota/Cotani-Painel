@@ -1,8 +1,10 @@
-import { ArrowRightIcon, CalendarDaysIcon } from "lucide-react";
+import { ArrowRightIcon, CalendarDaysIcon, LinkIcon } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 
+import { CopyBookingLink } from "@/components/dashboard/copy-booking-link";
 import { DashboardMetricCards } from "@/components/dashboard/dashboard-metric-cards";
 import { EmptyClinicState } from "@/components/dashboard/empty-clinic-state";
 import { TodayAgendaList } from "@/components/dashboard/today-agenda-list";
@@ -28,6 +30,13 @@ export default async function DashboardPage() {
     prisma.service.count({ where: { clinicId: clinic.id, isActive: true } }),
   ]);
 
+  // URL pública de agendamento montada no servidor a partir dos headers da
+  // requisição — o client component recebe a string pronta, sem window.location.
+  const headersList = await headers();
+  const host = headersList.get("x-forwarded-host") ?? headersList.get("host") ?? "";
+  const protocol = headersList.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  const bookingUrl = `${protocol}://${host}/${clinic.slug}`;
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
@@ -35,6 +44,15 @@ export default async function DashboardPage() {
         <p className="text-sm text-muted-foreground">Acompanhe a operação da {clinic.name} em tempo real.</p>
       </div>
       <DashboardMetricCards />
+      <Card className="border border-border/80 shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><LinkIcon /> Link de agendamento</CardTitle>
+          <CardDescription>Compartilhe este endereço com seus clientes para que agendem sozinhos, sem precisar de login.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CopyBookingLink url={bookingUrl} />
+        </CardContent>
+      </Card>
       <Card className="border border-border/80 shadow-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><CalendarDaysIcon /> Agenda de hoje</CardTitle>
