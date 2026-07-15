@@ -2,14 +2,18 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarCheckIcon, CalendarPlusIcon } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { CalendarCheckIcon, CalendarIcon, CalendarPlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
@@ -39,9 +43,15 @@ export function PublicBookingForm({ slug, clinicName, minDate, services }: Publi
   const [serviceId, setServiceId] = useState("");
   const [date, setDate] = useState("");
   const [slotLabel, setSlotLabel] = useState("");
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   // Sucesso é derivado do estado da action (sem setState em efeito).
   const completed = state.status === "success" && Boolean(state.message);
+
+  // date trafega como "YYYY-MM-DD" (query + fetch); o Calendar trabalha com
+  // Date local — parseISO evita o off-by-one de new Date("YYYY-MM-DD") (UTC).
+  const selectedDate = date ? parseISO(date) : undefined;
+  const minDateValue = parseISO(minDate);
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ["public-availability", slug, serviceId, date],
@@ -147,20 +157,40 @@ export function PublicBookingForm({ slug, clinicName, minDate, services }: Publi
               </NativeSelect>
             </Field>
             <Field>
-              <FieldLabel htmlFor="date">Data</FieldLabel>
-              <Input
-                id="date"
-                name="date"
-                type="date"
-                required
-                min={minDate}
-                disabled={isPending}
-                value={date}
-                onChange={(event) => {
-                  setDate(event.target.value);
-                  setSlotLabel("");
-                }}
-              />
+              <FieldLabel htmlFor="booking-date">Data</FieldLabel>
+              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                <PopoverTrigger
+                  render={
+                    <Button
+                      type="button"
+                      id="booking-date"
+                      variant="outline"
+                      disabled={isPending}
+                      className={`w-full justify-start font-normal ${selectedDate ? "" : "text-muted-foreground"}`}
+                    />
+                  }
+                >
+                  <CalendarIcon aria-hidden="true" />
+                  {selectedDate ? format(selectedDate, "dd/MM/yyyy") : "Selecione uma data"}
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    locale={ptBR}
+                    selected={selectedDate}
+                    onSelect={(day) => {
+                      if (!day) {
+                        return;
+                      }
+
+                      setDate(format(day, "yyyy-MM-dd"));
+                      setSlotLabel("");
+                      setCalendarOpen(false);
+                    }}
+                    disabled={{ before: minDateValue }}
+                  />
+                </PopoverContent>
+              </Popover>
             </Field>
             <fieldset className="flex flex-col gap-2">
               <legend className="text-sm font-medium">Horários disponíveis</legend>
