@@ -204,7 +204,40 @@ Adicionar também `CRON_SECRET=` (seção 5) ao `.env.example` — sem valores r
 ### 4.6 Decisões registradas e pontos em aberto
 
 - **Decidido — modelo de cobrança: assinatura recorrente (Preapproval).** `Subscription.mpPreapprovalId` é a âncora da integração; `Payment` registra cada cobrança gerada pela assinatura. O webhook de topic `subscription_preapproval` mantém o ciclo de vida da assinatura sincronizado com o estado local.
-- Em aberto — política de dunning: quantas tentativas, grace period e bloqueio de features em `PAST_DUE`.
+- Em aberto — política de dunning: quantas tentativas e grace period em `PAST_DUE` (o bloqueio de acesso em si está fechado na seção 4.7).
+
+### 4.7 Fluxo de inadimplência e churn (regras de arquitetura)
+
+**Status desta seção: planejado — nenhuma linha implementada ainda.** Regras que a fase de billing deve seguir.
+
+**1. Transição de estado (fonte de verdade = banco).** O handler do webhook do MP atualiza `Subscription.status` (modelo da seção 4.2) seguindo as premissas da seção 4.1: o webhook é sinal, a API do MP confirma o estado atual, e `WebhookEvent` garante idempotência. Ciclo de vida:
+
+```text
+ACTIVE ──cobrança recusada/expirada──▶ PAST_DUE ──fim do grace period──▶ SUSPENDED
+   ▲                                                                        │
+   └────────────── pagamento confirmado na API do MP ◀──────────────────────┘
+SUSPENDED ──cancelamento definitivo (churn)──▶ CANCELED (terminal)
+```
+
+**2. Revogação no Clerk: `public_metadata` da Organization; membership preservada.**
+
+- O backend grava o status de cobrança no `public_metadata` da Organization via Backend API do Clerk. `public_metadata` é gravável **somente** pelo backend (o cliente não consegue alterá-lo) e legível no client — e pode ser propagado ao session token via template de claims no painel do Clerk, permitindo leitura no middleware sem query ao banco.
+- A `Membership` **não é removida** em `PAST_DUE`/`SUSPENDED`. Removê-la dispararia `organizationMembership.deleted`, cujo handler atual apaga a `Membership` local (`deleteMembership` em `src/app/api/webhooks/clerk/route.ts`) — destruindo o vínculo e exigindo re-provisionamento completo na regularização. Remoção de membership só em churn definitivo (`CANCELED`) ou offboarding explícito.
+- Alternativas rejeitadas: `private_metadata` (não chega ao session token — exigiria query ao banco em toda navegação) e suspensão por remoção de membership (destrutiva, quebra o caminho de reativação).
+
+**3. Enforcement em duas camadas (defesa em profundidade).**
+
+- **Camada de UX — `proxy.ts`:** o guard atual (`pathname.startsWith("/dashboard")` → `auth.protect()`) será estendido para ler o status da assinatura (claim de org metadata) e redirecionar para `/billing` quando diferente de `ACTIVE`. A rota `/billing` e todas as rotas públicas ficam **fora** do guard — obrigatório para não criar loop de redirect.
+- **Camada autoritativa — `getTenantContext()` fail-closed:** o middleware sozinho **não** é garantia de segurança (a doc do Clerk v7 depreca `createRouteMatcher` justamente porque path matching pode divergir do roteamento do Next e deixar recursos expostos). O `getTenantContext()` passará a resolver também o status da assinatura e lançar um erro dedicado (ex.: `SubscriptionSuspendedError`) quando ≠ `ACTIVE`; o layout do grupo `(dashboard)` converte esse erro em redirect para `/billing`. Server Actions e Route Handlers seguem protegidos mesmo que o matcher do middleware deixe algo passar.
+- Semântica do bloqueio: acesso de **leitura** ao `/dashboard` bloqueado em `SUSPENDED` (default fechado). Se `PAST_DUE` dentro do grace period bloqueia ou apenas exibe banner de cobrança é decisão de produto (ver pontos em aberto).
+
+**4. Rota `/billing`.** Nova rota autenticada (exige sessão, **não** exige assinatura ativa) com o status da cobrança e o fluxo de regularização/atualização de pagamento no MP. É o único destino de redirect para tenant inadimplente.
+
+**5. Escopo do bloqueio e agenda pública.** O bloqueio vale para a área autenticada. Recomendação registrada: em `SUSPENDED`, suspender também o agendamento público `/{slug}` — `createPublicAppointment` validaria o status da clínica e a página exibiria aviso de indisponibilidade —, pois uma clínica inadimplente não deve captar novos horários. Decisão final de produto pendente.
+
+**6. Reativação.** Pagamento regularizado confirmado na API do MP → webhook → `Subscription.status = ACTIVE` + atualização do metadata da org → acesso restaurado automaticamente, sem re-provisionamento (membership intacta). A reconciliação diária da seção 4.4 cobre o caso de webhook perdido.
+
+**7. Pontos em aberto.** Tamanho do grace period; se `PAST_DUE` bloqueia ou só avisa; cadência do dunning (reusar o `NotificationKind.BILLING_DUNNING` já previsto na seção 5.3); retenção de dados pós-churn definitivo.
 
 ---
 
@@ -292,6 +325,7 @@ A migração é barata porque o banco continua sendo o registro de estado (outbo
 | ADR-004 | Fila fase 1: outbox no Postgres + Vercel Cron + `SKIP LOCKED`; fase 2: QStash/Inngest por gatilhos objetivos | Fila gerenciada desde o dia 1 | Zero dependências novas; modelo `Notification` já existe; migração barata |
 | ADR-005 | Cobrança SaaS por assinatura recorrente (Preapproval) do Mercado Pago | Checkout pontual (Checkout Pro/Brick) por período | SaaS mensal por clínica exige recorrência automática |
 | ADR-006 | Envio de mensagens atrás da interface `MessageSender` com mock de console no MVP; Evolution API → Meta Cloud API na evolução | Integração direta com um provedor desde o início | Troca de provedor sem tocar fila/dispatcher; MVP sem bloqueio de compliance |
+| ADR-007 | Inadimplência: status no `public_metadata` da org no Clerk + enforcement em duas camadas (`proxy.ts` como UX, `getTenantContext()` fail-closed como autoridade); membership preservada até churn definitivo (seção 4.7) | Remoção de membership; `private_metadata`; guard apenas no middleware | Remoção de membership é destrutiva e quebra a reativação; metadata privada não chega ao session token; middleware sozinho não é garantia (deprecação do `createRouteMatcher`) |
 
 ---
 
@@ -307,6 +341,6 @@ A migração é barata porque o banco continua sendo o registro de estado (outbo
 ### Ordem de implementação sugerida (após validação deste documento)
 
 1. **Fundação de tenant:** `getTenantContext()` memoizado + sincronização de `User`/`Membership` no webhook do Clerk + `requireRole` (corrige achados 1 e 2).
-2. **Billing:** modelos `Subscription`/`Payment`/`WebhookEvent`, endpoint do MP com assinatura e idempotência, reconciliação diária.
+2. **Billing:** modelos `Subscription`/`Payment`/`WebhookEvent`, endpoint do MP com assinatura e idempotência, reconciliação diária, enforcement de inadimplência (seção 4.7) e rota `/billing`.
 3. **Fila fase 1:** evolução do modelo `Notification`, outbox nas actions de agenda, dispatcher via cron, senders de e-mail e WhatsApp.
 4. **Dívidas:** exclusion constraint de horários, testes de integração dos fluxos de webhook e agenda, rate limiting.
