@@ -2,14 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
-import { getClinicDateBounds, parseClinicDateTime } from "@/lib/timezone";
-
-// Horário comercial fixo do MVP: ainda não existe modelagem de expediente por
-// clínica no schema, então os slots são gerados entre 08h e 18h (hora local da
-// clínica) em passos de 30 minutos.
-const BUSINESS_START_HOUR = 8;
-const BUSINESS_END_HOUR = 18;
-const SLOT_STEP_MINUTES = 30;
+import { getAvailableSlots } from "@/server/services/availability";
 
 const querySchema = z.object({
   serviceId: z.uuid(),
@@ -46,44 +39,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ message: "Serviço indisponível." }, { status: 404 });
   }
 
-  const dayStart = parseClinicDateTime(`${parsed.data.date}T00:00`, clinic.timeZone);
-
-  if (!dayStart) {
-    return NextResponse.json({ message: "Data inválida." }, { status: 400 });
-  }
-
-  const { startOfTomorrow: dayEnd } = getClinicDateBounds(clinic.timeZone, dayStart);
-
-  const appointments = await prisma.appointment.findMany({
-    where: {
-      clinicId: clinic.id,
-      status: { not: "CANCELED" },
-      startTime: { lt: dayEnd },
-      endTime: { gt: dayStart },
-    },
-    select: { startTime: true, endTime: true },
+  const slots = await getAvailableSlots({
+    clinicId: clinic.id,
+    timeZone: clinic.timeZone,
+    serviceDuration: service.duration,
+    date: parsed.data.date,
   });
 
-  const now = new Date();
-  const slots: Array<{ startTime: string; label: string }> = [];
-
-  for (let minutes = BUSINESS_START_HOUR * 60; minutes + service.duration <= BUSINESS_END_HOUR * 60; minutes += SLOT_STEP_MINUTES) {
-    const hour = String(Math.floor(minutes / 60)).padStart(2, "0");
-    const minute = String(minutes % 60).padStart(2, "0");
-    const startTime = parseClinicDateTime(`${parsed.data.date}T${hour}:${minute}`, clinic.timeZone);
-
-    if (!startTime || startTime <= now) {
-      continue;
-    }
-
-    const endTime = new Date(startTime.getTime() + service.duration * 60_000);
-    const overlaps = appointments.some((appointment) => startTime < appointment.endTime && endTime > appointment.startTime);
-
-    if (overlaps) {
-      continue;
-    }
-
-    slots.push({ startTime: startTime.toISOString(), label: `${hour}:${minute}` });
+  if (!slots) {
+    return NextResponse.json({ message: "Data inválida." }, { status: 400 });
   }
 
   return NextResponse.json({ slots });
