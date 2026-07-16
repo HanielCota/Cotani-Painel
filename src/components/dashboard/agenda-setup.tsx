@@ -2,9 +2,9 @@
 
 import { useActionState } from "react";
 import { ContactRoundIcon, ScissorsIcon } from "lucide-react";
+import Link from "next/link";
 
 import { createCustomerFromForm } from "@/server/actions/customers";
-import { createServiceFromForm } from "@/server/actions/services";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,9 +59,7 @@ function CustomerSetupForm() {
   );
 }
 
-function ServiceSetupForm() {
-  const [state, formAction, isPending] = useActionState(createServiceFromForm, initialState);
-
+function ServiceSetupHint() {
   return (
     <Card className="border border-border/80 shadow-sm">
       <CardHeader>
@@ -70,35 +68,13 @@ function ServiceSetupForm() {
         <CardDescription>Defina a duração e o valor para calcular o horário de término.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form id="create-service" action={formAction}>
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="service-name">Nome</FieldLabel>
-              <Input id="service-name" name="name" placeholder="Ex.: Consulta inicial" required disabled={isPending} />
-            </Field>
-            <FieldGroup className="sm:grid sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor="service-duration">Duração (minutos)</FieldLabel>
-                <Input id="service-duration" name="duration" type="number" min="5" max="480" step="5" defaultValue="30" required disabled={isPending} />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="service-price">Valor (R$)</FieldLabel>
-                <Input id="service-price" name="price" type="number" min="0" step="0.01" defaultValue="0" required disabled={isPending} />
-              </Field>
-            </FieldGroup>
-          </FieldGroup>
-          {state.message ? (
-            <Alert variant={state.status === "error" ? "destructive" : "default"} className="mt-5">
-              <AlertTitle>{state.status === "error" ? "Não foi possível cadastrar" : "Serviço cadastrado"}</AlertTitle>
-              <AlertDescription>{state.message}</AlertDescription>
-            </Alert>
-          ) : null}
-        </form>
+        <p className="text-sm text-muted-foreground">
+          O cadastro de serviços agora fica em Configurações. Cadastre pelo menos um serviço para liberar a agenda.
+        </p>
       </CardContent>
       <CardFooter>
-        <Button type="submit" form="create-service" disabled={isPending}>
-          {isPending ? <Spinner data-icon="inline-start" /> : <ScissorsIcon data-icon="inline-start" />}
-          {isPending ? "Salvando..." : "Adicionar serviço"}
+        <Button nativeButton={false} render={<Link href="/dashboard/configuracoes" />}>
+          Abrir configurações
         </Button>
       </CardFooter>
     </Card>
@@ -113,7 +89,7 @@ export function AgendaSetup({ needsCustomers, needsServices }: { needsCustomers:
   return (
     <section className="grid gap-4 lg:grid-cols-2" aria-label="Preparar agenda">
       {needsCustomers ? <CustomerSetupForm /> : null}
-      {needsServices ? <ServiceSetupForm /> : null}
+      {needsServices ? <ServiceSetupHint /> : null}
     </section>
   );
 }
