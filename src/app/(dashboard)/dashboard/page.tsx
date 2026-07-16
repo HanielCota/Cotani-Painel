@@ -7,10 +7,12 @@ import Link from "next/link";
 import { CopyBookingLink } from "@/components/dashboard/copy-booking-link";
 import { DashboardMetricCards } from "@/components/dashboard/dashboard-metric-cards";
 import { EmptyBarbershopState } from "@/components/dashboard/empty-barbershop-state";
+import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
 import { TodayAgendaList } from "@/components/dashboard/today-agenda-list";
 import { UpcomingAppointmentsList } from "@/components/dashboard/upcoming-appointments-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import prisma from "@/lib/prisma";
 import { requireActiveClinic } from "@/server/tenant";
 
 export const dynamic = "force-dynamic";
@@ -30,12 +32,25 @@ export default async function DashboardPage() {
   const protocol = headersList.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   const bookingUrl = `${protocol}://${host}/${clinic.slug}`;
 
+  const [servicesCount, businessHoursCount] = await Promise.all([
+    prisma.service.count({ where: { clinicId: clinic.id, isActive: true } }),
+    prisma.businessHour.count({ where: { clinicId: clinic.id, isOpen: true } }),
+  ]);
+
+  const hasServices = servicesCount > 0;
+  const hasBusinessHours = businessHoursCount > 0;
+  const showOnboarding = !hasServices || !hasBusinessHours;
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">Painel de controle</h1>
         <p className="text-sm text-muted-foreground">Acompanhe a operação da {clinic.name} em tempo real.</p>
       </div>
+
+      {showOnboarding ? (
+        <OnboardingChecklist bookingUrl={bookingUrl} hasServices={hasServices} hasBusinessHours={hasBusinessHours} />
+      ) : null}
 
       <DashboardMetricCards />
 
@@ -47,7 +62,10 @@ export default async function DashboardPage() {
               Link de agendamento
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-2">
+            <CardDescription className="text-xs">
+              É por esse endereço que seus clientes acessam o agendamento público.
+            </CardDescription>
             <CopyBookingLink url={bookingUrl} />
           </CardContent>
         </Card>
