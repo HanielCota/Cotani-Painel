@@ -2,8 +2,9 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import prisma from "@/lib/prisma";
-import type { Prisma } from "@/generated/prisma/client";
+import { getMockMetrics } from "@/lib/dashboard-mocks";
 import { getClinicDateBounds } from "@/lib/timezone";
+import type { Prisma } from "@/generated/prisma/client";
 import type { DashboardMetrics } from "@/types";
 
 export async function GET() {
@@ -84,6 +85,10 @@ export async function GET() {
     estimatedRevenueToday,
     customersServedToday,
   };
+
+  if (process.env.ENABLE_DASHBOARD_MOCKS === "true") {
+    return NextResponse.json(getMockMetrics());
+  }
 
   return NextResponse.json(metrics);
 }

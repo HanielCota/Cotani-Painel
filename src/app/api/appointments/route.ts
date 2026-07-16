@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import prisma from "@/lib/prisma";
+import { getMockAppointments } from "@/lib/dashboard-mocks";
 
 export async function GET() {
   const { orgId } = await auth.protect();
@@ -16,6 +17,10 @@ export async function GET() {
 
   if (!clinic) {
     return NextResponse.json({ message: "A barbearia ativa ainda não foi sincronizada." }, { status: 404 });
+  }
+
+  if (process.env.ENABLE_DASHBOARD_MOCKS === "true") {
+    return NextResponse.json(getMockAppointments());
   }
 
   const appointments = await prisma.appointment.findMany({
