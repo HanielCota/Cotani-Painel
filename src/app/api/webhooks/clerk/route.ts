@@ -94,7 +94,7 @@ async function upsertMembership(data: MembershipEventData) {
   const role = mapClerkRole(data.role);
 
   await prisma.$transaction(async (transaction) => {
-    // A clínica é recriada aqui por segurança contra eventos fora de ordem
+    // A barbearia é recriada aqui por segurança contra eventos fora de ordem
     // (organization.created pode não ter sido processado ainda).
     const clinic = await upsertClinic(data.organization, transaction);
 

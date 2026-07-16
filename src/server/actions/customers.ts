@@ -30,7 +30,7 @@ export async function createCustomer(input: unknown): Promise<ActionResult> {
   const clinic = await requireActiveClinic();
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma clínica antes de cadastrar clientes." };
+    return { status: "error", message: "Selecione uma barbearia antes de cadastrar clientes." };
   }
 
   try {
@@ -78,7 +78,7 @@ export async function updateCustomer(input: unknown): Promise<ActionResult> {
   const clinic = await requireActiveClinic();
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma clínica antes de atualizar clientes." };
+    return { status: "error", message: "Selecione uma barbearia antes de atualizar clientes." };
   }
 
   const customer = await prisma.customer.findFirst({
@@ -130,7 +130,7 @@ export async function deleteCustomer(customerId: string): Promise<ActionResult> 
   const clinic = await requireActiveClinic();
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma clínica antes de remover clientes." };
+    return { status: "error", message: "Selecione uma barbearia antes de remover clientes." };
   }
 
   const customer = await prisma.customer.findFirst({

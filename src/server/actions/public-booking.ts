@@ -18,7 +18,7 @@ const publicBookingSchema = z.object({
 
 /**
  * Agendamento público (self-service), sem sessão Clerk. O escopo do tenant é
- * resolvido pelo slug da clínica e todo o restante segue o mesmo núcleo
+ * resolvido pelo slug da barbearia e todo o restante segue o mesmo núcleo
  * transacional do agendamento interno: validação de conflito, exclusion
  * constraint do banco e outbox de notificações na mesma transação.
  */
@@ -42,7 +42,7 @@ export async function createPublicAppointment(_previousState: ActionResult, form
   });
 
   if (!clinic) {
-    return { status: "error", message: "Clínica não encontrada." };
+    return { status: "error", message: "Barbearia não encontrada." };
   }
 
   const service = await prisma.service.findFirst({

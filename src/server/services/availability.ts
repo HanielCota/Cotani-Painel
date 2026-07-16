@@ -8,7 +8,7 @@ const SLOT_STEP_MINUTES = 30;
 export interface AvailabilitySlot {
   /** Instante de início do slot em ISO 8601 (UTC). */
   startTime: string;
-  /** Rótulo no formato HH:mm, na hora local da clínica. */
+  /** Rótulo no formato HH:mm, na hora local da barbearia. */
   label: string;
 }
 
@@ -17,7 +17,7 @@ export interface GetAvailableSlotsParams {
   timeZone: string;
   /** Duração do serviço em minutos. */
   serviceDuration: number;
-  /** Data no formato YYYY-MM-DD, interpretada no fuso da clínica. */
+  /** Data no formato YYYY-MM-DD, interpretada no fuso da barbearia. */
   date: string;
 }
 

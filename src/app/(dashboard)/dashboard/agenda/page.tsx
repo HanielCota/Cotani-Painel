@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import { AgendaAppointmentsList } from "@/components/dashboard/agenda-appointments-list";
 import { AgendaSetup } from "@/components/dashboard/agenda-setup";
 import { AppointmentForm } from "@/components/dashboard/appointment-form";
-import { EmptyClinicState } from "@/components/dashboard/empty-clinic-state";
+import { EmptyBarbershopState } from "@/components/dashboard/empty-barbershop-state";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import prisma from "@/lib/prisma";
 import { formatClinicDateTimeInput } from "@/lib/timezone";
@@ -20,7 +20,7 @@ export default async function AgendaPage() {
   const clinic = await requireActiveClinic();
 
   if (!clinic) {
-    return <EmptyClinicState />;
+    return <EmptyBarbershopState />;
   }
 
   const now = new Date();

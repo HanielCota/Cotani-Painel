@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 
 import { BusinessHoursSettings } from "@/components/dashboard/business-hours-settings";
-import { EmptyClinicState } from "@/components/dashboard/empty-clinic-state";
+import { EmptyBarbershopState } from "@/components/dashboard/empty-barbershop-state";
 import { ServicesSettings } from "@/components/dashboard/services-settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,7 +20,7 @@ export default async function ConfiguracoesPage() {
   const clinic = await requireActiveClinic();
 
   if (!clinic) {
-    return <EmptyClinicState />;
+    return <EmptyBarbershopState />;
   }
 
   const businessHours = await prisma.businessHour.findMany({
@@ -49,7 +49,7 @@ export default async function ConfiguracoesPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <SettingsIcon />
-            Configurações da clínica
+            Configurações da barbearia
           </CardTitle>
           <CardDescription>Ajuste os serviços oferecidos e os horários de funcionamento.</CardDescription>
         </CardHeader>

@@ -36,7 +36,7 @@ export async function createService(input: unknown): Promise<ActionResult> {
   const clinic = await requireActiveClinic();
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma clínica antes de cadastrar serviços." };
+    return { status: "error", message: "Selecione uma barbearia antes de cadastrar serviços." };
   }
 
   try {
@@ -76,7 +76,7 @@ export async function updateService(input: unknown): Promise<ActionResult> {
   const clinic = await requireActiveClinic();
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma clínica antes de atualizar serviços." };
+    return { status: "error", message: "Selecione uma barbearia antes de atualizar serviços." };
   }
 
   const service = await prisma.service.findFirst({
@@ -126,7 +126,7 @@ export async function toggleServiceActive(serviceId: string): Promise<ActionResu
   const clinic = await requireActiveClinic();
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma clínica antes de alterar serviços." };
+    return { status: "error", message: "Selecione uma barbearia antes de alterar serviços." };
   }
 
   const service = await prisma.service.findFirst({

@@ -9,5 +9,5 @@ export const metadata: Metadata = { title: "Cotani AI" };
 export default async function AiPage() {
   await auth.protect();
 
-  return <FeaturePlaceholder title="Cotani AI" description="Uma central inteligente para a operação da sua clínica." icon={BotIcon} />;
+  return <FeaturePlaceholder title="Cotani AI" description="Uma central inteligente para a operação da sua barbearia." icon={BotIcon} />;
 }

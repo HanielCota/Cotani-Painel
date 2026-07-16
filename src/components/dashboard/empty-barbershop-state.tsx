@@ -11,16 +11,16 @@ import {
   EmptyMedia,
 } from "@/components/ui/empty";
 
-export function EmptyClinicState() {
+export function EmptyBarbershopState() {
   return (
     <Empty className="min-h-[60vh] border">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <Building2Icon />
         </EmptyMedia>
-        <h1 className="font-heading text-xl font-semibold tracking-tight">Selecione uma clínica</h1>
+        <h1 className="font-heading text-xl font-semibold tracking-tight">Selecione uma barbearia</h1>
         <EmptyDescription>
-          Selecione a organização da sua clínica. Se ela não aparecer, o acesso ainda não foi provisionado — verifique o e-mail de convite ou contate o suporte.
+          Selecione a organização da sua barbearia. Se ela não aparecer, o acesso ainda não foi provisionado — verifique o e-mail de convite ou contate o suporte.
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>

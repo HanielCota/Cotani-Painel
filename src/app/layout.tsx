@@ -18,11 +18,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   applicationName: "Cotani",
   title: {
-    default: "Cotani — Gestão inteligente para clínicas",
+    default: "Cotani — Gestão inteligente para barbearias",
     template: "%s | Cotani",
   },
   description:
-    "Plataforma de gestão para clínicas: agenda online, clientes, relatórios e agendamento público com lembretes automáticos por WhatsApp.",
+    "Plataforma de gestão para barbearias: agenda online, clientes, relatórios e agendamento público com lembretes automáticos por WhatsApp.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -34,9 +34,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "pt_BR",
     siteName: "Cotani",
-    title: "Cotani — Gestão inteligente para clínicas",
+    title: "Cotani — Gestão inteligente para barbearias",
     description:
-      "Plataforma de gestão para clínicas: agenda online, clientes, relatórios e agendamento público com lembretes automáticos por WhatsApp.",
+      "Plataforma de gestão para barbearias: agenda online, clientes, relatórios e agendamento público com lembretes automáticos por WhatsApp.",
   },
 };
 

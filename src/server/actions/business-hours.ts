@@ -38,7 +38,7 @@ export async function saveBusinessHours(input: unknown): Promise<ActionResult> {
   const clinic = await requireActiveClinic();
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma clínica antes de salvar o expediente." };
+    return { status: "error", message: "Selecione uma barbearia antes de salvar o expediente." };
   }
 
   for (const item of parsed.data) {

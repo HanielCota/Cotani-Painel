@@ -7,7 +7,7 @@ export async function GET() {
   const { orgId } = await auth.protect();
 
   if (!orgId) {
-    return NextResponse.json({ message: "Nenhuma clínica selecionada." }, { status: 400 });
+    return NextResponse.json({ message: "Nenhuma barbearia selecionada." }, { status: 400 });
   }
 
   const clinic = await prisma.clinic.findUnique({
@@ -15,7 +15,7 @@ export async function GET() {
   });
 
   if (!clinic) {
-    return NextResponse.json({ message: "A clínica ativa ainda não foi sincronizada." }, { status: 404 });
+    return NextResponse.json({ message: "A barbearia ativa ainda não foi sincronizada." }, { status: 404 });
   }
 
   const services = await prisma.service.findMany({

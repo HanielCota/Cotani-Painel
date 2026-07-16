@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 
 import { CustomersTable } from "@/components/dashboard/customers-table";
-import { EmptyClinicState } from "@/components/dashboard/empty-clinic-state";
+import { EmptyBarbershopState } from "@/components/dashboard/empty-barbershop-state";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireActiveClinic } from "@/server/tenant";
 
@@ -15,7 +15,7 @@ export default async function ClientesPage() {
   const clinic = await requireActiveClinic();
 
   if (!clinic) {
-    return <EmptyClinicState />;
+    return <EmptyBarbershopState />;
   }
 
   return (
@@ -27,7 +27,7 @@ export default async function ClientesPage() {
       <Card className="border border-border/80 shadow-sm">
         <CardHeader>
           <CardTitle>Base de clientes</CardTitle>
-          <CardDescription>Busque, pagine e gerencie os clientes da clínica.</CardDescription>
+          <CardDescription>Busque, pagine e gerencie os clientes da barbearia.</CardDescription>
         </CardHeader>
         <CardContent>
           <CustomersTable />

@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   });
 
   if (!clinic) {
-    return NextResponse.json({ message: "Clínica não encontrada." }, { status: 404 });
+    return NextResponse.json({ message: "Barbearia não encontrada." }, { status: 404 });
   }
 
   const service = await prisma.service.findFirst({

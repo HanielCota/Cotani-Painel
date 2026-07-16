@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 
-import { EmptyClinicState } from "@/components/dashboard/empty-clinic-state";
+import { EmptyBarbershopState } from "@/components/dashboard/empty-barbershop-state";
 import { ReportsKpiCards } from "@/components/dashboard/reports-kpi-cards";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireActiveClinic } from "@/server/tenant";
@@ -15,7 +15,7 @@ export default async function RelatoriosPage() {
   const clinic = await requireActiveClinic();
 
   if (!clinic) {
-    return <EmptyClinicState />;
+    return <EmptyBarbershopState />;
   }
 
   return (

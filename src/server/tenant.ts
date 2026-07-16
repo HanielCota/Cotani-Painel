@@ -6,7 +6,7 @@ import type { ClinicRole } from "@/generated/prisma/enums";
 import type { ClinicModel } from "@/generated/prisma/models/Clinic";
 import type { MembershipModel } from "@/generated/prisma/models/Membership";
 
-/** Lançado quando não há clínica ativa ou o vínculo do usuário ainda não foi sincronizado. */
+/** Lançado quando não há barbearia ativa ou o vínculo do usuário ainda não foi sincronizado. */
 export class TenantResolutionError extends Error {
   constructor(message: string) {
     super(message);
@@ -36,13 +36,13 @@ export interface TenantContext {
 /**
  * Contexto de tenant da requisição, memoizado por request via `cache()` do React.
  * Fail-closed: lança `TenantResolutionError` quando não há organização ativa
- * ou quando a clínica/vínculo ainda não foi sincronizado pelo webhook do Clerk.
+ * ou quando a barbearia/vínculo ainda não foi sincronizado pelo webhook do Clerk.
  */
 export const getTenantContext = cache(async (): Promise<TenantContext> => {
   const { orgId, userId } = await auth.protect();
 
   if (!orgId) {
-    throw new TenantResolutionError("Nenhuma clínica ativa selecionada.");
+    throw new TenantResolutionError("Nenhuma barbearia ativa selecionada.");
   }
 
   const membership = await prisma.membership.findFirst({
@@ -54,7 +54,7 @@ export const getTenantContext = cache(async (): Promise<TenantContext> => {
   });
 
   if (!membership) {
-    throw new TenantResolutionError("A clínica ativa ou o vínculo do usuário ainda não foi sincronizado.");
+    throw new TenantResolutionError("A barbearia ativa ou o vínculo do usuário ainda não foi sincronizado.");
   }
 
   return { clinic: membership.clinic, membership, role: membership.role };
@@ -74,7 +74,7 @@ export function requireRole(ctx: TenantContext, roles: readonly ClinicRole[]): T
 
 /**
  * Variante legada que retorna `null` em vez de lançar, usada pelas Server Actions
- * atuais que convertem a ausência de clínica em `ActionResult` de erro.
+ * atuais que convertem a ausência de barbearia em `ActionResult` de erro.
  */
 export async function requireActiveClinic() {
   const { orgId } = await auth.protect();

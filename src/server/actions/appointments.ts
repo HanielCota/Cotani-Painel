@@ -72,7 +72,7 @@ export async function createAppointment(input: unknown): Promise<ActionResult> {
   const clinic = await requireActiveClinic();
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma clínica antes de criar agendamentos." };
+    return { status: "error", message: "Selecione uma barbearia antes de criar agendamentos." };
   }
 
   const [customer, service] = await Promise.all([
@@ -81,7 +81,7 @@ export async function createAppointment(input: unknown): Promise<ActionResult> {
   ]);
 
   if (!customer || !service) {
-    return { status: "error", message: "O cliente ou o serviço não pertence à clínica ativa." };
+    return { status: "error", message: "O cliente ou o serviço não pertence à barbearia ativa." };
   }
 
   if (service.duration <= 0) {
@@ -121,7 +121,7 @@ export async function createAppointmentFromForm(_previousState: ActionResult, fo
   const clinic = await requireActiveClinic();
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma clínica antes de criar agendamentos." };
+    return { status: "error", message: "Selecione uma barbearia antes de criar agendamentos." };
   }
 
   const startTime = parseClinicDateTime(String(formData.get("startTime") ?? ""), clinic.timeZone);
@@ -157,7 +157,7 @@ export async function rescheduleAppointmentFromForm(_previousState: ActionResult
   const clinic = await requireActiveClinic();
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma clínica antes de reagendar." };
+    return { status: "error", message: "Selecione uma barbearia antes de reagendar." };
   }
 
   const appointment = await prisma.appointment.findFirst({
@@ -225,7 +225,7 @@ export async function updateAppointmentStatus(appointmentId: string, status: App
   const clinic = await requireActiveClinic();
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma clínica antes de atualizar atendimentos." };
+    return { status: "error", message: "Selecione uma barbearia antes de atualizar atendimentos." };
   }
 
   const appointment = await prisma.appointment.findFirst({
