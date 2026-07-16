@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarCheckIcon, CalendarIcon, CalendarPlusIcon } from "lucide-react";
+import { CalendarIcon, CalendarPlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -21,8 +22,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { createPublicAppointment } from "@/server/actions/public-booking";
 import type { ActionResult } from "@/types";
 
-const initialState: ActionResult = { status: "success", message: "" };
-
 interface AvailabilitySlot {
   startTime: string;
   label: string;
@@ -38,18 +37,15 @@ interface PublicBookingFormProps {
 
 const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
-export function PublicBookingForm({ slug, clinicName, minDate, services }: PublicBookingFormProps) {
-  const [state, formAction, isPending] = useActionState(createPublicAppointment, initialState);
+export function PublicBookingForm({ slug, minDate, services }: PublicBookingFormProps) {
+  const router = useRouter();
+  const [result, setResult] = useState<ActionResult | null>(null);
+  const [isPending, startTransition] = useTransition();
   const [serviceId, setServiceId] = useState("");
   const [date, setDate] = useState("");
   const [slotLabel, setSlotLabel] = useState("");
   const [calendarOpen, setCalendarOpen] = useState(false);
 
-  // Sucesso é derivado do estado da action (sem setState em efeito).
-  const completed = state.status === "success" && Boolean(state.message);
-
-  // date trafega como "YYYY-MM-DD" (query + fetch); o Calendar trabalha com
-  // Date local — parseISO evita o off-by-one de new Date("YYYY-MM-DD") (UTC).
   const selectedDate = date ? parseISO(date) : undefined;
   const minDateValue = parseISO(minDate);
 
@@ -67,59 +63,38 @@ export function PublicBookingForm({ slug, clinicName, minDate, services }: Publi
     enabled: Boolean(serviceId && date),
   });
 
-  useEffect(() => {
-    if (!state.message) {
-      return;
-    }
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
 
-    if (state.status === "error") {
-      toast.error(state.message);
-      // Em caso de conflito (ou qualquer erro), os slots podem ter mudado.
-      void refetch();
-    }
-  }, [state, refetch]);
+    startTransition(async () => {
+      const nextResult = await createPublicAppointment({ status: "success", message: "" }, formData);
 
-  if (completed) {
-    const serviceName = services.find((service) => service.id === serviceId)?.name;
+      if (nextResult.status === "error") {
+        setResult(nextResult);
+        toast.error(nextResult.message);
+        void refetch();
+        return;
+      }
 
-    return (
-      <Card className="border border-border/80 shadow-sm" role="status">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CalendarCheckIcon aria-hidden="true" />
-            Agendamento confirmado
-          </CardTitle>
-          <CardDescription>{state.message}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <dl className="flex flex-col gap-2 text-sm">
-            <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Clínica</dt>
-              <dd className="font-medium">{clinicName}</dd>
-            </div>
-            {serviceName ? (
-              <div className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">Serviço</dt>
-                <dd className="font-medium">{serviceName}</dd>
-              </div>
-            ) : null}
-            <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Data</dt>
-              <dd className="font-medium">{date}</dd>
-            </div>
-            <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Horário</dt>
-              <dd className="font-medium">{slotLabel}</dd>
-            </div>
-          </dl>
-        </CardContent>
-        <CardFooter>
-          <Button type="button" variant="outline" onClick={() => window.location.reload()}>
-            Fazer outro agendamento
-          </Button>
-        </CardFooter>
-      </Card>
-    );
+      const serviceName = services.find((service) => service.id === serviceId)?.name;
+      const params = new URLSearchParams();
+
+      if (serviceName) {
+        params.set("service", serviceName);
+      }
+      if (date) {
+        params.set("date", date);
+      }
+      if (slotLabel) {
+        params.set("time", slotLabel);
+      }
+      if (formData.get("customerName")) {
+        params.set("customer", String(formData.get("customerName")));
+      }
+
+      router.push(`/${slug}/sucesso?${params.toString()}`);
+    });
   }
 
   const slots = data?.slots ?? [];
@@ -131,7 +106,7 @@ export function PublicBookingForm({ slug, clinicName, minDate, services }: Publi
         <CardDescription>Escolha o serviço, a data e um horário disponível.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form id="public-booking" action={formAction}>
+        <form id="public-booking" onSubmit={handleSubmit}>
           <input type="hidden" name="slug" value={slug} />
           <FieldGroup>
             <Field>
@@ -249,10 +224,10 @@ export function PublicBookingForm({ slug, clinicName, minDate, services }: Publi
               <Textarea id="notes" name="notes" maxLength={2000} disabled={isPending} />
             </Field>
           </FieldGroup>
-          {state.message && state.status === "error" ? (
+          {result?.message && result.status === "error" ? (
             <Alert variant="destructive" className="mt-5">
               <AlertTitle>Não foi possível agendar</AlertTitle>
-              <AlertDescription>{state.message}</AlertDescription>
+              <AlertDescription>{result.message}</AlertDescription>
             </Alert>
           ) : null}
         </form>
