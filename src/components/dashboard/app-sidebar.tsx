@@ -42,13 +42,20 @@ const managementItems: NavigationItem[] = [
   { title: "Configurações", href: "/dashboard/configuracoes", icon: SettingsIcon },
 ];
 
+function isActivePath(pathname: string, href: string): boolean {
+  if (pathname === href) return true;
+  // Evita que "/dashboard" conflite com sub-rotas como "/dashboard/agenda".
+  if (href === "/dashboard") return false;
+  return pathname.startsWith(`${href}/`);
+}
+
 function NavItems({ items }: { items: NavigationItem[] }) {
   const pathname = usePathname();
 
   return (
     <SidebarMenu className="gap-1">
       {items.map((item) => {
-        const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const isActive = isActivePath(pathname, item.href);
         const Icon = item.icon;
 
         return (
