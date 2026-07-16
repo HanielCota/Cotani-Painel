@@ -30,6 +30,7 @@ export type ClinicMinAggregateOutputType = {
   name: string | null
   slug: string | null
   timeZone: string | null
+  subscriptionStatus: $Enums.SubscriptionStatus | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -40,6 +41,7 @@ export type ClinicMaxAggregateOutputType = {
   name: string | null
   slug: string | null
   timeZone: string | null
+  subscriptionStatus: $Enums.SubscriptionStatus | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -50,6 +52,7 @@ export type ClinicCountAggregateOutputType = {
   name: number
   slug: number
   timeZone: number
+  subscriptionStatus: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -62,6 +65,7 @@ export type ClinicMinAggregateInputType = {
   name?: true
   slug?: true
   timeZone?: true
+  subscriptionStatus?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -72,6 +76,7 @@ export type ClinicMaxAggregateInputType = {
   name?: true
   slug?: true
   timeZone?: true
+  subscriptionStatus?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -82,6 +87,7 @@ export type ClinicCountAggregateInputType = {
   name?: true
   slug?: true
   timeZone?: true
+  subscriptionStatus?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -165,6 +171,7 @@ export type ClinicGroupByOutputType = {
   name: string
   slug: string
   timeZone: string
+  subscriptionStatus: $Enums.SubscriptionStatus
   createdAt: Date
   updatedAt: Date
   _count: ClinicCountAggregateOutputType | null
@@ -196,6 +203,7 @@ export type ClinicWhereInput = {
   name?: Prisma.StringFilter<"Clinic"> | string
   slug?: Prisma.StringFilter<"Clinic"> | string
   timeZone?: Prisma.StringFilter<"Clinic"> | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFilter<"Clinic"> | $Enums.SubscriptionStatus
   createdAt?: Prisma.DateTimeFilter<"Clinic"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Clinic"> | Date | string
   memberships?: Prisma.MembershipListRelationFilter
@@ -212,6 +220,7 @@ export type ClinicOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   timeZone?: Prisma.SortOrder
+  subscriptionStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   memberships?: Prisma.MembershipOrderByRelationAggregateInput
@@ -231,6 +240,7 @@ export type ClinicWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.ClinicWhereInput | Prisma.ClinicWhereInput[]
   name?: Prisma.StringFilter<"Clinic"> | string
   timeZone?: Prisma.StringFilter<"Clinic"> | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFilter<"Clinic"> | $Enums.SubscriptionStatus
   createdAt?: Prisma.DateTimeFilter<"Clinic"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Clinic"> | Date | string
   memberships?: Prisma.MembershipListRelationFilter
@@ -247,6 +257,7 @@ export type ClinicOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   timeZone?: Prisma.SortOrder
+  subscriptionStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ClinicCountOrderByAggregateInput
@@ -263,6 +274,7 @@ export type ClinicScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"Clinic"> | string
   slug?: Prisma.StringWithAggregatesFilter<"Clinic"> | string
   timeZone?: Prisma.StringWithAggregatesFilter<"Clinic"> | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusWithAggregatesFilter<"Clinic"> | $Enums.SubscriptionStatus
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Clinic"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Clinic"> | Date | string
 }
@@ -273,6 +285,7 @@ export type ClinicCreateInput = {
   name: string
   slug: string
   timeZone?: string
+  subscriptionStatus?: $Enums.SubscriptionStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   memberships?: Prisma.MembershipCreateNestedManyWithoutClinicInput
@@ -289,6 +302,7 @@ export type ClinicUncheckedCreateInput = {
   name: string
   slug: string
   timeZone?: string
+  subscriptionStatus?: $Enums.SubscriptionStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutClinicInput
@@ -305,6 +319,7 @@ export type ClinicUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUpdateManyWithoutClinicNestedInput
@@ -321,6 +336,7 @@ export type ClinicUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutClinicNestedInput
@@ -337,6 +353,7 @@ export type ClinicCreateManyInput = {
   name: string
   slug: string
   timeZone?: string
+  subscriptionStatus?: $Enums.SubscriptionStatus
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -347,6 +364,7 @@ export type ClinicUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -357,6 +375,7 @@ export type ClinicUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -367,6 +386,7 @@ export type ClinicCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   timeZone?: Prisma.SortOrder
+  subscriptionStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -377,6 +397,7 @@ export type ClinicMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   timeZone?: Prisma.SortOrder
+  subscriptionStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -387,6 +408,7 @@ export type ClinicMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   timeZone?: Prisma.SortOrder
+  subscriptionStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -398,6 +420,10 @@ export type ClinicScalarRelationFilter = {
 
 export type StringFieldUpdateOperationsInput = {
   set?: string
+}
+
+export type EnumSubscriptionStatusFieldUpdateOperationsInput = {
+  set?: $Enums.SubscriptionStatus
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -494,6 +520,7 @@ export type ClinicCreateWithoutBusinessHoursInput = {
   name: string
   slug: string
   timeZone?: string
+  subscriptionStatus?: $Enums.SubscriptionStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   memberships?: Prisma.MembershipCreateNestedManyWithoutClinicInput
@@ -509,6 +536,7 @@ export type ClinicUncheckedCreateWithoutBusinessHoursInput = {
   name: string
   slug: string
   timeZone?: string
+  subscriptionStatus?: $Enums.SubscriptionStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutClinicInput
@@ -540,6 +568,7 @@ export type ClinicUpdateWithoutBusinessHoursInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUpdateManyWithoutClinicNestedInput
@@ -555,6 +584,7 @@ export type ClinicUncheckedUpdateWithoutBusinessHoursInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutClinicNestedInput
@@ -570,6 +600,7 @@ export type ClinicCreateWithoutMembershipsInput = {
   name: string
   slug: string
   timeZone?: string
+  subscriptionStatus?: $Enums.SubscriptionStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   customers?: Prisma.CustomerCreateNestedManyWithoutClinicInput
@@ -585,6 +616,7 @@ export type ClinicUncheckedCreateWithoutMembershipsInput = {
   name: string
   slug: string
   timeZone?: string
+  subscriptionStatus?: $Enums.SubscriptionStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutClinicInput
@@ -616,6 +648,7 @@ export type ClinicUpdateWithoutMembershipsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customers?: Prisma.CustomerUpdateManyWithoutClinicNestedInput
@@ -631,6 +664,7 @@ export type ClinicUncheckedUpdateWithoutMembershipsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customers?: Prisma.CustomerUncheckedUpdateManyWithoutClinicNestedInput
@@ -646,6 +680,7 @@ export type ClinicCreateWithoutCustomersInput = {
   name: string
   slug: string
   timeZone?: string
+  subscriptionStatus?: $Enums.SubscriptionStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   memberships?: Prisma.MembershipCreateNestedManyWithoutClinicInput
@@ -661,6 +696,7 @@ export type ClinicUncheckedCreateWithoutCustomersInput = {
   name: string
   slug: string
   timeZone?: string
+  subscriptionStatus?: $Enums.SubscriptionStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutClinicInput
@@ -692,6 +728,7 @@ export type ClinicUpdateWithoutCustomersInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUpdateManyWithoutClinicNestedInput
@@ -707,6 +744,7 @@ export type ClinicUncheckedUpdateWithoutCustomersInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutClinicNestedInput
@@ -722,6 +760,7 @@ export type ClinicCreateWithoutServicesInput = {
   name: string
   slug: string
   timeZone?: string
+  subscriptionStatus?: $Enums.SubscriptionStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   memberships?: Prisma.MembershipCreateNestedManyWithoutClinicInput
@@ -737,6 +776,7 @@ export type ClinicUncheckedCreateWithoutServicesInput = {
   name: string
   slug: string
   timeZone?: string
+  subscriptionStatus?: $Enums.SubscriptionStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutClinicInput
@@ -768,6 +808,7 @@ export type ClinicUpdateWithoutServicesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUpdateManyWithoutClinicNestedInput
@@ -783,6 +824,7 @@ export type ClinicUncheckedUpdateWithoutServicesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutClinicNestedInput
@@ -798,6 +840,7 @@ export type ClinicCreateWithoutAppointmentsInput = {
   name: string
   slug: string
   timeZone?: string
+  subscriptionStatus?: $Enums.SubscriptionStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   memberships?: Prisma.MembershipCreateNestedManyWithoutClinicInput
@@ -813,6 +856,7 @@ export type ClinicUncheckedCreateWithoutAppointmentsInput = {
   name: string
   slug: string
   timeZone?: string
+  subscriptionStatus?: $Enums.SubscriptionStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutClinicInput
@@ -844,6 +888,7 @@ export type ClinicUpdateWithoutAppointmentsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUpdateManyWithoutClinicNestedInput
@@ -859,6 +904,7 @@ export type ClinicUncheckedUpdateWithoutAppointmentsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutClinicNestedInput
@@ -874,6 +920,7 @@ export type ClinicCreateWithoutNotificationsInput = {
   name: string
   slug: string
   timeZone?: string
+  subscriptionStatus?: $Enums.SubscriptionStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   memberships?: Prisma.MembershipCreateNestedManyWithoutClinicInput
@@ -889,6 +936,7 @@ export type ClinicUncheckedCreateWithoutNotificationsInput = {
   name: string
   slug: string
   timeZone?: string
+  subscriptionStatus?: $Enums.SubscriptionStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutClinicInput
@@ -920,6 +968,7 @@ export type ClinicUpdateWithoutNotificationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUpdateManyWithoutClinicNestedInput
@@ -935,6 +984,7 @@ export type ClinicUncheckedUpdateWithoutNotificationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutClinicNestedInput
@@ -1026,6 +1076,7 @@ export type ClinicSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name?: boolean
   slug?: boolean
   timeZone?: boolean
+  subscriptionStatus?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   memberships?: boolean | Prisma.Clinic$membershipsArgs<ExtArgs>
@@ -1043,6 +1094,7 @@ export type ClinicSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   name?: boolean
   slug?: boolean
   timeZone?: boolean
+  subscriptionStatus?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["clinic"]>
@@ -1053,6 +1105,7 @@ export type ClinicSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   name?: boolean
   slug?: boolean
   timeZone?: boolean
+  subscriptionStatus?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["clinic"]>
@@ -1063,11 +1116,12 @@ export type ClinicSelectScalar = {
   name?: boolean
   slug?: boolean
   timeZone?: boolean
+  subscriptionStatus?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ClinicOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerkOrgId" | "name" | "slug" | "timeZone" | "createdAt" | "updatedAt", ExtArgs["result"]["clinic"]>
+export type ClinicOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerkOrgId" | "name" | "slug" | "timeZone" | "subscriptionStatus" | "createdAt" | "updatedAt", ExtArgs["result"]["clinic"]>
 export type ClinicInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   memberships?: boolean | Prisma.Clinic$membershipsArgs<ExtArgs>
   customers?: boolean | Prisma.Clinic$customersArgs<ExtArgs>
@@ -1096,6 +1150,7 @@ export type $ClinicPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     name: string
     slug: string
     timeZone: string
+    subscriptionStatus: $Enums.SubscriptionStatus
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["clinic"]>
@@ -1532,6 +1587,7 @@ export interface ClinicFieldRefs {
   readonly name: Prisma.FieldRef<"Clinic", 'String'>
   readonly slug: Prisma.FieldRef<"Clinic", 'String'>
   readonly timeZone: Prisma.FieldRef<"Clinic", 'String'>
+  readonly subscriptionStatus: Prisma.FieldRef<"Clinic", 'SubscriptionStatus'>
   readonly createdAt: Prisma.FieldRef<"Clinic", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Clinic", 'DateTime'>
 }

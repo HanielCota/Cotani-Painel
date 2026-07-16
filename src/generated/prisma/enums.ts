@@ -18,6 +18,16 @@ export const ClinicRole = {
 export type ClinicRole = (typeof ClinicRole)[keyof typeof ClinicRole]
 
 
+export const SubscriptionStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  PAST_DUE: 'PAST_DUE',
+  CANCELED: 'CANCELED'
+} as const
+
+export type SubscriptionStatus = (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus]
+
+
 export const AppointmentStatus = {
   PENDING: 'PENDING',
   CONFIRMED: 'CONFIRMED',

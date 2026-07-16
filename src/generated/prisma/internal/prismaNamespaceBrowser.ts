@@ -83,6 +83,7 @@ export const ClinicScalarFieldEnum = {
   name: 'name',
   slug: 'slug',
   timeZone: 'timeZone',
+  subscriptionStatus: 'subscriptionStatus',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

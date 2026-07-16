@@ -13,6 +13,13 @@ enum ClinicRole {
   RECEPTIONIST
 }
 
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  PAST_DUE
+  CANCELED
+}
+
 enum AppointmentStatus {
   PENDING
   CONFIRMED
@@ -41,19 +48,20 @@ enum NotificationStatus {
 }
 
 model Clinic {
-  id            String         @id @default(uuid())
-  clerkOrgId    String         @unique
-  name          String
-  slug          String         @unique
-  timeZone      String         @default("America/Sao_Paulo")
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  memberships   Membership[]
-  customers     Customer[]
-  services      Service[]
-  appointments  Appointment[]
-  notifications Notification[]
-  businessHours BusinessHour[]
+  id                 String             @id @default(uuid())
+  clerkOrgId         String             @unique
+  name               String
+  slug               String             @unique
+  timeZone           String             @default("America/Sao_Paulo")
+  subscriptionStatus SubscriptionStatus @default(INACTIVE)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  memberships        Membership[]
+  customers          Customer[]
+  services           Service[]
+  appointments       Appointment[]
+  notifications      Notification[]
+  businessHours      BusinessHour[]
 }
 
 model BusinessHour {

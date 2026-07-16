@@ -1,7 +1,7 @@
 import { verifyWebhook } from "@clerk/nextjs/webhooks";
 import { NextRequest, NextResponse } from "next/server";
 
-import { ClinicRole } from "@/generated/prisma/enums";
+import { ClinicRole, SubscriptionStatus } from "@/generated/prisma/enums";
 import type { Prisma } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 
@@ -29,6 +29,20 @@ function mapClerkRole(clerkRole: string): ClinicRole {
   return clerkRole === "org:admin" ? ClinicRole.ADMIN : ClinicRole.PROVIDER;
 }
 
+function mapSubscriptionStatus(value: unknown): SubscriptionStatus {
+  if (typeof value !== "string") {
+    return SubscriptionStatus.INACTIVE;
+  }
+
+  const normalized = value.toUpperCase();
+
+  if (normalized === "ACTIVE") return SubscriptionStatus.ACTIVE;
+  if (normalized === "PAST_DUE") return SubscriptionStatus.PAST_DUE;
+  if (normalized === "CANCELED") return SubscriptionStatus.CANCELED;
+
+  return SubscriptionStatus.INACTIVE;
+}
+
 function getPrimaryEmail(user: UserEventData) {
   const primary = user.email_addresses.find((address) => address.id === user.primary_email_address_id);
 
@@ -43,6 +57,8 @@ function getDisplayName(user: { first_name: string | null; last_name: string | n
 
 async function upsertClinic(organization: OrganizationEventData, client: Prisma.TransactionClient | typeof prisma = prisma) {
   const slug = `${slugify(organization.name)}-${organization.id.slice(-6).toLowerCase()}`;
+  const metadata = organization.public_metadata as Record<string, unknown> | undefined;
+  const subscriptionStatus = mapSubscriptionStatus(metadata?.subscription_status);
 
   return client.clinic.upsert({
     where: { clerkOrgId: organization.id },
@@ -50,9 +66,11 @@ async function upsertClinic(organization: OrganizationEventData, client: Prisma.
       clerkOrgId: organization.id,
       name: organization.name,
       slug,
+      subscriptionStatus,
     },
     update: {
       name: organization.name,
+      subscriptionStatus,
     },
   });
 }
