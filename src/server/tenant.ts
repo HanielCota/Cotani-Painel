@@ -91,3 +91,10 @@ export async function requireActiveClinic() {
 
   return clinic;
 }
+
+/** Retorna o orgId selecionado no Clerk sem buscar a barbearia no banco. */
+export async function getSelectedOrgId(): Promise<string | null> {
+  const { orgId } = await auth.protect();
+
+  return orgId ?? null;
+}
