@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckIcon, ClockIcon, LinkIcon, ScissorsIcon, SettingsIcon } from "lucide-react";
+import { CheckIcon, ClockIcon, LinkIcon, ScissorsIcon, SettingsIcon, TriangleAlertIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,10 +8,25 @@ interface OnboardingChecklistProps {
   bookingUrl: string;
   hasServices: boolean;
   hasBusinessHours: boolean;
+  isSubscriptionActive: boolean;
 }
 
-export function OnboardingChecklist({ bookingUrl, hasServices, hasBusinessHours }: OnboardingChecklistProps) {
+export function OnboardingChecklist({
+  bookingUrl,
+  hasServices,
+  hasBusinessHours,
+  isSubscriptionActive,
+}: OnboardingChecklistProps) {
   const steps = [
+    {
+      id: "subscription",
+      label: "Assinatura ativa",
+      description: "Renove o plano para liberar agendamentos e configurações.",
+      done: isSubscriptionActive,
+      href: "#",
+      icon: TriangleAlertIcon,
+      external: true,
+    },
     {
       id: "business-hours",
       label: "Definir expediente",

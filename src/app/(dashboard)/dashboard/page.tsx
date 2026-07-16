@@ -13,6 +13,7 @@ import { UpcomingAppointmentsList } from "@/components/dashboard/upcoming-appoin
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import prisma from "@/lib/prisma";
+import { isSubscriptionActive } from "@/server/subscription";
 import { requireActiveClinic } from "@/server/tenant";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +40,8 @@ export default async function DashboardPage() {
 
   const hasServices = servicesCount > 0;
   const hasBusinessHours = businessHoursCount > 0;
-  const showOnboarding = !hasServices || !hasBusinessHours;
+  const subscriptionActive = isSubscriptionActive(clinic);
+  const showOnboarding = !subscriptionActive || !hasServices || !hasBusinessHours;
 
   return (
     <div className="flex flex-col gap-5">
@@ -49,7 +51,12 @@ export default async function DashboardPage() {
       </div>
 
       {showOnboarding ? (
-        <OnboardingChecklist bookingUrl={bookingUrl} hasServices={hasServices} hasBusinessHours={hasBusinessHours} />
+        <OnboardingChecklist
+          bookingUrl={bookingUrl}
+          hasServices={hasServices}
+          hasBusinessHours={hasBusinessHours}
+          isSubscriptionActive={subscriptionActive}
+        />
       ) : null}
 
       <DashboardMetricCards />
