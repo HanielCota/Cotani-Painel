@@ -10,12 +10,14 @@ import type { NotificationKind } from "@/generated/prisma/enums";
 interface AppointmentNotificationParams {
   appointmentId: string;
   clinicId: string;
+  clinicSlug: string;
   clinicName: string;
   timeZone: string;
   customerName: string;
   customerPhone: string;
   serviceName: string;
   startTime: Date;
+  cancellationToken: string;
 }
 
 const REMINDER_OFFSETS = [
@@ -36,12 +38,19 @@ function buildContent(kind: NotificationKind, params: AppointmentNotificationPar
 
   switch (kind) {
     case "CONFIRMATION":
-      return `Olá ${params.customerName}! Seu atendimento de ${params.serviceName} na ${params.clinicName} está agendado para ${when}.`;
+      return `Olá ${params.customerName}! Seu atendimento de ${params.serviceName} na ${params.clinicName} está agendado para ${when}. Precisa cancelar? Acesse: ${buildCancellationUrl(params)}`;
     case "REMINDER_24H":
       return `Olá ${params.customerName}! Lembrete: amanhã às ${when.slice(-5)} você tem ${params.serviceName} na ${params.clinicName}.`;
     case "REMINDER_2H":
       return `Olá ${params.customerName}! Lembrete: em 2 horas, às ${when.slice(-5)}, você tem ${params.serviceName} na ${params.clinicName}.`;
   }
+}
+
+function buildCancellationUrl(params: AppointmentNotificationParams): string {
+  // URL absoluta mínima: o domínio real deve vir de uma variável de ambiente
+  // quando disponível; fallback para path relativo funciona em links clicáveis.
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "";
+  return `${baseUrl}/${params.clinicSlug}/cancelar/${params.cancellationToken}`;
 }
 
 function buildReminderInputs(params: AppointmentNotificationParams, now: Date) {
