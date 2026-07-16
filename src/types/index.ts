@@ -35,6 +35,9 @@ export interface DashboardMetrics {
   activeCustomersThisMonth: number;
   confirmationRate: number;
   noShowRate: number;
+  appointmentsToday: number;
+  estimatedRevenueToday: number;
+  customersServedToday: number;
 }
 
 export interface ServiceListItem {

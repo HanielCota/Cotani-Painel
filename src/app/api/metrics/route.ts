@@ -10,7 +10,7 @@ export async function GET() {
   const { orgId } = await auth.protect();
 
   if (!orgId) {
-    return NextResponse.json({ message: "Nenhuma clínica selecionada." }, { status: 400 });
+    return NextResponse.json({ message: "Nenhuma barbearia selecionada." }, { status: 400 });
   }
 
   const clinic = await prisma.clinic.findUnique({
@@ -18,16 +18,22 @@ export async function GET() {
   });
 
   if (!clinic) {
-    return NextResponse.json({ message: "A clínica ativa ainda não foi sincronizada." }, { status: 404 });
+    return NextResponse.json({ message: "A barbearia ativa ainda não foi sincronizada." }, { status: 404 });
   }
 
   const { startOfToday, startOfTomorrow, startOfMonth, startOfNextMonth } = getClinicDateBounds(clinic.timeZone);
 
-  // Denominador das taxas: atendimentos do mês (calendário, no fuso da clínica), exceto cancelados.
+  // Denominador das taxas: atendimentos do mês (calendário, no fuso da barbearia), exceto cancelados.
   const monthAppointments: Prisma.AppointmentWhereInput = {
     clinicId: clinic.id,
     startTime: { gte: startOfMonth, lt: startOfNextMonth },
     status: { not: "CANCELED" },
+  };
+
+  const todayAppointmentsWhere: Prisma.AppointmentWhereInput = {
+    clinicId: clinic.id,
+    startTime: { gte: startOfToday, lt: startOfTomorrow },
+    status: { in: ["PENDING", "CONFIRMED"] },
   };
 
   const [
@@ -39,6 +45,7 @@ export async function GET() {
     monthAppointmentsTotal,
     confirmedOrCompletedThisMonth,
     activeCustomers,
+    todayAppointments,
   ] = await Promise.all([
     prisma.appointment.count({ where: { clinicId: clinic.id } }),
     prisma.appointment.count({
@@ -50,7 +57,19 @@ export async function GET() {
     prisma.appointment.count({ where: monthAppointments }),
     prisma.appointment.count({ where: { ...monthAppointments, status: { in: ["CONFIRMED", "COMPLETED"] } } }),
     prisma.appointment.findMany({ where: monthAppointments, distinct: ["customerId"], select: { customerId: true } }),
+    prisma.appointment.findMany({
+      where: todayAppointmentsWhere,
+      include: { service: true },
+      orderBy: { startTime: "asc" },
+    }),
   ]);
+
+  const appointmentsToday = todayAppointments.length;
+  const estimatedRevenueToday = todayAppointments.reduce(
+    (sum, appointment) => sum + Number(appointment.service.price),
+    0,
+  );
+  const customersServedToday = new Set(todayAppointments.map((appointment) => appointment.customerId)).size;
 
   const metrics: DashboardMetrics = {
     totalAppointments,
@@ -59,10 +78,11 @@ export async function GET() {
     totalCustomers,
     totalServices,
     activeCustomersThisMonth: activeCustomers.length,
-    // Taxa de confirmação: confirmados + concluídos sobre os atendimentos do mês (exceto cancelados).
     confirmationRate: monthAppointmentsTotal > 0 ? Math.round((confirmedOrCompletedThisMonth / monthAppointmentsTotal) * 100) : 0,
-    // Taxa de falta: não comparecimentos do mês sobre o mesmo denominador.
     noShowRate: monthAppointmentsTotal > 0 ? Math.round((noShowsThisMonth / monthAppointmentsTotal) * 100) : 0,
+    appointmentsToday,
+    estimatedRevenueToday,
+    customersServedToday,
   };
 
   return NextResponse.json(metrics);
