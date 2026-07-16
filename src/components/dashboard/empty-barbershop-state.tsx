@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { OrganizationSwitcher } from "@clerk/nextjs";
-import { Building2Icon, MailIcon, RefreshCwIcon } from "lucide-react";
+import { Building2Icon, RefreshCwIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,30 +23,14 @@ export function EmptyBarbershopState() {
         <EmptyMedia variant="icon">
           <Building2Icon />
         </EmptyMedia>
-        <EmptyTitle>Selecione ou aguarde a sua barbearia</EmptyTitle>
+        <EmptyTitle>Nenhuma barbearia encontrada</EmptyTitle>
         <EmptyDescription className="max-w-md">
-          O acesso ao painel é liberado após a contratação do plano. A barbearia
-          é provisionada automaticamente e você recebe um convite por e-mail.
+          Selecione uma barbearia no seletor abaixo para acessar o painel. Se ela
+          ainda não aparecer, pode ser necessário aguardar a sincronização ou
+          solicitar acesso.
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent className="flex max-w-md flex-col gap-4">
-        <div className="rounded-lg border bg-muted/30 p-4 text-left text-sm text-muted-foreground">
-          <p className="mb-2 font-medium text-foreground">O que fazer agora:</p>
-          <ul className="list-disc space-y-1 pl-4">
-            <li>
-              Se você já contratou: verifique seu e-mail e clique no convite
-              para vincular a conta.
-            </li>
-            <li>
-              Se a barbearia aparece no seletor abaixo, selecione-a e aguarde
-              alguns segundos para a sincronização.
-            </li>
-            <li>
-              Se ainda não contratou: entre em contato para adquirir um plano.
-            </li>
-          </ul>
-        </div>
-
         <div className="flex flex-col items-center gap-3">
           <OrganizationSwitcher
             hidePersonal
@@ -57,11 +41,6 @@ export function EmptyBarbershopState() {
             Verificar sincronização
           </Button>
         </div>
-
-        <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-          <MailIcon className="size-3.5" />
-          Não encontrou o convite? Verifique a caixa de spam.
-        </p>
       </EmptyContent>
     </Empty>
   );
