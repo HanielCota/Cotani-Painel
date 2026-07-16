@@ -36,3 +36,21 @@ export interface DashboardMetrics {
   confirmationRate: number;
   noShowRate: number;
 }
+
+export interface ServiceListItem {
+  id: string;
+  name: string;
+  duration: number;
+  price: number;
+  isActive: boolean;
+}
+
+export interface BusinessHourItem {
+  id: string;
+  dayOfWeek: number;
+  isOpen: boolean;
+  openTime: string;
+  closeTime: string;
+  breakStart: string | null;
+  breakEnd: string | null;
+}

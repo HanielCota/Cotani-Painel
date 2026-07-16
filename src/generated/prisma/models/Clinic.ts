@@ -203,6 +203,7 @@ export type ClinicWhereInput = {
   services?: Prisma.ServiceListRelationFilter
   appointments?: Prisma.AppointmentListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
+  businessHours?: Prisma.BusinessHourListRelationFilter
 }
 
 export type ClinicOrderByWithRelationInput = {
@@ -218,6 +219,7 @@ export type ClinicOrderByWithRelationInput = {
   services?: Prisma.ServiceOrderByRelationAggregateInput
   appointments?: Prisma.AppointmentOrderByRelationAggregateInput
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
+  businessHours?: Prisma.BusinessHourOrderByRelationAggregateInput
 }
 
 export type ClinicWhereUniqueInput = Prisma.AtLeast<{
@@ -236,6 +238,7 @@ export type ClinicWhereUniqueInput = Prisma.AtLeast<{
   services?: Prisma.ServiceListRelationFilter
   appointments?: Prisma.AppointmentListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
+  businessHours?: Prisma.BusinessHourListRelationFilter
 }, "id" | "clerkOrgId" | "slug">
 
 export type ClinicOrderByWithAggregationInput = {
@@ -277,6 +280,7 @@ export type ClinicCreateInput = {
   services?: Prisma.ServiceCreateNestedManyWithoutClinicInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutClinicInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicUncheckedCreateInput = {
@@ -292,6 +296,7 @@ export type ClinicUncheckedCreateInput = {
   services?: Prisma.ServiceUncheckedCreateNestedManyWithoutClinicInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutClinicInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourUncheckedCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicUpdateInput = {
@@ -307,6 +312,7 @@ export type ClinicUpdateInput = {
   services?: Prisma.ServiceUpdateManyWithoutClinicNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutClinicNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicUncheckedUpdateInput = {
@@ -322,6 +328,7 @@ export type ClinicUncheckedUpdateInput = {
   services?: Prisma.ServiceUncheckedUpdateManyWithoutClinicNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutClinicNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUncheckedUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicCreateManyInput = {
@@ -397,6 +404,20 @@ export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
 }
 
+export type ClinicCreateNestedOneWithoutBusinessHoursInput = {
+  create?: Prisma.XOR<Prisma.ClinicCreateWithoutBusinessHoursInput, Prisma.ClinicUncheckedCreateWithoutBusinessHoursInput>
+  connectOrCreate?: Prisma.ClinicCreateOrConnectWithoutBusinessHoursInput
+  connect?: Prisma.ClinicWhereUniqueInput
+}
+
+export type ClinicUpdateOneRequiredWithoutBusinessHoursNestedInput = {
+  create?: Prisma.XOR<Prisma.ClinicCreateWithoutBusinessHoursInput, Prisma.ClinicUncheckedCreateWithoutBusinessHoursInput>
+  connectOrCreate?: Prisma.ClinicCreateOrConnectWithoutBusinessHoursInput
+  upsert?: Prisma.ClinicUpsertWithoutBusinessHoursInput
+  connect?: Prisma.ClinicWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClinicUpdateToOneWithWhereWithoutBusinessHoursInput, Prisma.ClinicUpdateWithoutBusinessHoursInput>, Prisma.ClinicUncheckedUpdateWithoutBusinessHoursInput>
+}
+
 export type ClinicCreateNestedOneWithoutMembershipsInput = {
   create?: Prisma.XOR<Prisma.ClinicCreateWithoutMembershipsInput, Prisma.ClinicUncheckedCreateWithoutMembershipsInput>
   connectOrCreate?: Prisma.ClinicCreateOrConnectWithoutMembershipsInput
@@ -467,6 +488,82 @@ export type ClinicUpdateOneRequiredWithoutNotificationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ClinicUpdateToOneWithWhereWithoutNotificationsInput, Prisma.ClinicUpdateWithoutNotificationsInput>, Prisma.ClinicUncheckedUpdateWithoutNotificationsInput>
 }
 
+export type ClinicCreateWithoutBusinessHoursInput = {
+  id?: string
+  clerkOrgId: string
+  name: string
+  slug: string
+  timeZone?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  memberships?: Prisma.MembershipCreateNestedManyWithoutClinicInput
+  customers?: Prisma.CustomerCreateNestedManyWithoutClinicInput
+  services?: Prisma.ServiceCreateNestedManyWithoutClinicInput
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutClinicInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutClinicInput
+}
+
+export type ClinicUncheckedCreateWithoutBusinessHoursInput = {
+  id?: string
+  clerkOrgId: string
+  name: string
+  slug: string
+  timeZone?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutClinicInput
+  customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutClinicInput
+  services?: Prisma.ServiceUncheckedCreateNestedManyWithoutClinicInput
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutClinicInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutClinicInput
+}
+
+export type ClinicCreateOrConnectWithoutBusinessHoursInput = {
+  where: Prisma.ClinicWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClinicCreateWithoutBusinessHoursInput, Prisma.ClinicUncheckedCreateWithoutBusinessHoursInput>
+}
+
+export type ClinicUpsertWithoutBusinessHoursInput = {
+  update: Prisma.XOR<Prisma.ClinicUpdateWithoutBusinessHoursInput, Prisma.ClinicUncheckedUpdateWithoutBusinessHoursInput>
+  create: Prisma.XOR<Prisma.ClinicCreateWithoutBusinessHoursInput, Prisma.ClinicUncheckedCreateWithoutBusinessHoursInput>
+  where?: Prisma.ClinicWhereInput
+}
+
+export type ClinicUpdateToOneWithWhereWithoutBusinessHoursInput = {
+  where?: Prisma.ClinicWhereInput
+  data: Prisma.XOR<Prisma.ClinicUpdateWithoutBusinessHoursInput, Prisma.ClinicUncheckedUpdateWithoutBusinessHoursInput>
+}
+
+export type ClinicUpdateWithoutBusinessHoursInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerkOrgId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.MembershipUpdateManyWithoutClinicNestedInput
+  customers?: Prisma.CustomerUpdateManyWithoutClinicNestedInput
+  services?: Prisma.ServiceUpdateManyWithoutClinicNestedInput
+  appointments?: Prisma.AppointmentUpdateManyWithoutClinicNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutClinicNestedInput
+}
+
+export type ClinicUncheckedUpdateWithoutBusinessHoursInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerkOrgId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutClinicNestedInput
+  customers?: Prisma.CustomerUncheckedUpdateManyWithoutClinicNestedInput
+  services?: Prisma.ServiceUncheckedUpdateManyWithoutClinicNestedInput
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutClinicNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutClinicNestedInput
+}
+
 export type ClinicCreateWithoutMembershipsInput = {
   id?: string
   clerkOrgId: string
@@ -479,6 +576,7 @@ export type ClinicCreateWithoutMembershipsInput = {
   services?: Prisma.ServiceCreateNestedManyWithoutClinicInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutClinicInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicUncheckedCreateWithoutMembershipsInput = {
@@ -493,6 +591,7 @@ export type ClinicUncheckedCreateWithoutMembershipsInput = {
   services?: Prisma.ServiceUncheckedCreateNestedManyWithoutClinicInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutClinicInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourUncheckedCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicCreateOrConnectWithoutMembershipsInput = {
@@ -523,6 +622,7 @@ export type ClinicUpdateWithoutMembershipsInput = {
   services?: Prisma.ServiceUpdateManyWithoutClinicNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutClinicNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicUncheckedUpdateWithoutMembershipsInput = {
@@ -537,6 +637,7 @@ export type ClinicUncheckedUpdateWithoutMembershipsInput = {
   services?: Prisma.ServiceUncheckedUpdateManyWithoutClinicNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutClinicNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUncheckedUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicCreateWithoutCustomersInput = {
@@ -551,6 +652,7 @@ export type ClinicCreateWithoutCustomersInput = {
   services?: Prisma.ServiceCreateNestedManyWithoutClinicInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutClinicInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicUncheckedCreateWithoutCustomersInput = {
@@ -565,6 +667,7 @@ export type ClinicUncheckedCreateWithoutCustomersInput = {
   services?: Prisma.ServiceUncheckedCreateNestedManyWithoutClinicInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutClinicInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourUncheckedCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicCreateOrConnectWithoutCustomersInput = {
@@ -595,6 +698,7 @@ export type ClinicUpdateWithoutCustomersInput = {
   services?: Prisma.ServiceUpdateManyWithoutClinicNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutClinicNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicUncheckedUpdateWithoutCustomersInput = {
@@ -609,6 +713,7 @@ export type ClinicUncheckedUpdateWithoutCustomersInput = {
   services?: Prisma.ServiceUncheckedUpdateManyWithoutClinicNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutClinicNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUncheckedUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicCreateWithoutServicesInput = {
@@ -623,6 +728,7 @@ export type ClinicCreateWithoutServicesInput = {
   customers?: Prisma.CustomerCreateNestedManyWithoutClinicInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutClinicInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicUncheckedCreateWithoutServicesInput = {
@@ -637,6 +743,7 @@ export type ClinicUncheckedCreateWithoutServicesInput = {
   customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutClinicInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutClinicInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourUncheckedCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicCreateOrConnectWithoutServicesInput = {
@@ -667,6 +774,7 @@ export type ClinicUpdateWithoutServicesInput = {
   customers?: Prisma.CustomerUpdateManyWithoutClinicNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutClinicNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicUncheckedUpdateWithoutServicesInput = {
@@ -681,6 +789,7 @@ export type ClinicUncheckedUpdateWithoutServicesInput = {
   customers?: Prisma.CustomerUncheckedUpdateManyWithoutClinicNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutClinicNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUncheckedUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicCreateWithoutAppointmentsInput = {
@@ -695,6 +804,7 @@ export type ClinicCreateWithoutAppointmentsInput = {
   customers?: Prisma.CustomerCreateNestedManyWithoutClinicInput
   services?: Prisma.ServiceCreateNestedManyWithoutClinicInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicUncheckedCreateWithoutAppointmentsInput = {
@@ -709,6 +819,7 @@ export type ClinicUncheckedCreateWithoutAppointmentsInput = {
   customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutClinicInput
   services?: Prisma.ServiceUncheckedCreateNestedManyWithoutClinicInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourUncheckedCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicCreateOrConnectWithoutAppointmentsInput = {
@@ -739,6 +850,7 @@ export type ClinicUpdateWithoutAppointmentsInput = {
   customers?: Prisma.CustomerUpdateManyWithoutClinicNestedInput
   services?: Prisma.ServiceUpdateManyWithoutClinicNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicUncheckedUpdateWithoutAppointmentsInput = {
@@ -753,6 +865,7 @@ export type ClinicUncheckedUpdateWithoutAppointmentsInput = {
   customers?: Prisma.CustomerUncheckedUpdateManyWithoutClinicNestedInput
   services?: Prisma.ServiceUncheckedUpdateManyWithoutClinicNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUncheckedUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicCreateWithoutNotificationsInput = {
@@ -767,6 +880,7 @@ export type ClinicCreateWithoutNotificationsInput = {
   customers?: Prisma.CustomerCreateNestedManyWithoutClinicInput
   services?: Prisma.ServiceCreateNestedManyWithoutClinicInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicUncheckedCreateWithoutNotificationsInput = {
@@ -781,6 +895,7 @@ export type ClinicUncheckedCreateWithoutNotificationsInput = {
   customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutClinicInput
   services?: Prisma.ServiceUncheckedCreateNestedManyWithoutClinicInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourUncheckedCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicCreateOrConnectWithoutNotificationsInput = {
@@ -811,6 +926,7 @@ export type ClinicUpdateWithoutNotificationsInput = {
   customers?: Prisma.CustomerUpdateManyWithoutClinicNestedInput
   services?: Prisma.ServiceUpdateManyWithoutClinicNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicUncheckedUpdateWithoutNotificationsInput = {
@@ -825,6 +941,7 @@ export type ClinicUncheckedUpdateWithoutNotificationsInput = {
   customers?: Prisma.CustomerUncheckedUpdateManyWithoutClinicNestedInput
   services?: Prisma.ServiceUncheckedUpdateManyWithoutClinicNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUncheckedUpdateManyWithoutClinicNestedInput
 }
 
 
@@ -838,6 +955,7 @@ export type ClinicCountOutputType = {
   services: number
   appointments: number
   notifications: number
+  businessHours: number
 }
 
 export type ClinicCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -846,6 +964,7 @@ export type ClinicCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   services?: boolean | ClinicCountOutputTypeCountServicesArgs
   appointments?: boolean | ClinicCountOutputTypeCountAppointmentsArgs
   notifications?: boolean | ClinicCountOutputTypeCountNotificationsArgs
+  businessHours?: boolean | ClinicCountOutputTypeCountBusinessHoursArgs
 }
 
 /**
@@ -893,6 +1012,13 @@ export type ClinicCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.
   where?: Prisma.NotificationWhereInput
 }
 
+/**
+ * ClinicCountOutputType without action
+ */
+export type ClinicCountOutputTypeCountBusinessHoursArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BusinessHourWhereInput
+}
+
 
 export type ClinicSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -907,6 +1033,7 @@ export type ClinicSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   services?: boolean | Prisma.Clinic$servicesArgs<ExtArgs>
   appointments?: boolean | Prisma.Clinic$appointmentsArgs<ExtArgs>
   notifications?: boolean | Prisma.Clinic$notificationsArgs<ExtArgs>
+  businessHours?: boolean | Prisma.Clinic$businessHoursArgs<ExtArgs>
   _count?: boolean | Prisma.ClinicCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["clinic"]>
 
@@ -947,6 +1074,7 @@ export type ClinicInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   services?: boolean | Prisma.Clinic$servicesArgs<ExtArgs>
   appointments?: boolean | Prisma.Clinic$appointmentsArgs<ExtArgs>
   notifications?: boolean | Prisma.Clinic$notificationsArgs<ExtArgs>
+  businessHours?: boolean | Prisma.Clinic$businessHoursArgs<ExtArgs>
   _count?: boolean | Prisma.ClinicCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ClinicIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -960,6 +1088,7 @@ export type $ClinicPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     services: Prisma.$ServicePayload<ExtArgs>[]
     appointments: Prisma.$AppointmentPayload<ExtArgs>[]
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
+    businessHours: Prisma.$BusinessHourPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1368,6 +1497,7 @@ export interface Prisma__ClinicClient<T, Null = never, ExtArgs extends runtime.T
   services<T extends Prisma.Clinic$servicesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Clinic$servicesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ServicePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   appointments<T extends Prisma.Clinic$appointmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Clinic$appointmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppointmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.Clinic$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Clinic$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  businessHours<T extends Prisma.Clinic$businessHoursArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Clinic$businessHoursArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BusinessHourPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1914,6 +2044,30 @@ export type Clinic$notificationsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[]
+}
+
+/**
+ * Clinic.businessHours
+ */
+export type Clinic$businessHoursArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BusinessHour
+   */
+  select?: Prisma.BusinessHourSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BusinessHour
+   */
+  omit?: Prisma.BusinessHourOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BusinessHourInclude<ExtArgs> | null
+  where?: Prisma.BusinessHourWhereInput
+  orderBy?: Prisma.BusinessHourOrderByWithRelationInput | Prisma.BusinessHourOrderByWithRelationInput[]
+  cursor?: Prisma.BusinessHourWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BusinessHourScalarFieldEnum | Prisma.BusinessHourScalarFieldEnum[]
 }
 
 /**

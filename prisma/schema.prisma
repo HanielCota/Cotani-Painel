@@ -41,18 +41,36 @@ enum NotificationStatus {
 }
 
 model Clinic {
-  id           String        @id @default(uuid())
-  clerkOrgId   String        @unique
-  name         String
-  slug         String        @unique
-  timeZone     String        @default("America/Sao_Paulo")
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  memberships  Membership[]
-  customers    Customer[]
-  services     Service[]
-  appointments Appointment[]
+  id            String         @id @default(uuid())
+  clerkOrgId    String         @unique
+  name          String
+  slug          String         @unique
+  timeZone      String         @default("America/Sao_Paulo")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  memberships   Membership[]
+  customers     Customer[]
+  services      Service[]
+  appointments  Appointment[]
   notifications Notification[]
+  businessHours BusinessHour[]
+}
+
+model BusinessHour {
+  id         String   @id @default(uuid())
+  clinicId   String
+  dayOfWeek  Int // 0 = Domingo, 1 = Segunda, ..., 6 = Sábado
+  isOpen     Boolean  @default(true)
+  openTime   String // "HH:mm"
+  closeTime  String // "HH:mm"
+  breakStart String? // "HH:mm"
+  breakEnd   String? // "HH:mm"
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  clinic     Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@unique([clinicId, dayOfWeek])
+  @@index([clinicId])
 }
 
 model User {

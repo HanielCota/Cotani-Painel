@@ -385,6 +385,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   Clinic: 'Clinic',
+  BusinessHour: 'BusinessHour',
   User: 'User',
   Membership: 'Membership',
   Customer: 'Customer',
@@ -406,7 +407,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "clinic" | "user" | "membership" | "customer" | "service" | "appointment" | "notification"
+    modelProps: "clinic" | "businessHour" | "user" | "membership" | "customer" | "service" | "appointment" | "notification"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -481,6 +482,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ClinicCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ClinicCountAggregateOutputType> | number
+        }
+      }
+    }
+    BusinessHour: {
+      payload: Prisma.$BusinessHourPayload<ExtArgs>
+      fields: Prisma.BusinessHourFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BusinessHourFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessHourPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BusinessHourFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessHourPayload>
+        }
+        findFirst: {
+          args: Prisma.BusinessHourFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessHourPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BusinessHourFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessHourPayload>
+        }
+        findMany: {
+          args: Prisma.BusinessHourFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessHourPayload>[]
+        }
+        create: {
+          args: Prisma.BusinessHourCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessHourPayload>
+        }
+        createMany: {
+          args: Prisma.BusinessHourCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BusinessHourCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessHourPayload>[]
+        }
+        delete: {
+          args: Prisma.BusinessHourDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessHourPayload>
+        }
+        update: {
+          args: Prisma.BusinessHourUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessHourPayload>
+        }
+        deleteMany: {
+          args: Prisma.BusinessHourDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BusinessHourUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BusinessHourUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessHourPayload>[]
+        }
+        upsert: {
+          args: Prisma.BusinessHourUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BusinessHourPayload>
+        }
+        aggregate: {
+          args: Prisma.BusinessHourAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBusinessHour>
+        }
+        groupBy: {
+          args: Prisma.BusinessHourGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BusinessHourGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BusinessHourCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BusinessHourCountAggregateOutputType> | number
         }
       }
     }
@@ -980,6 +1055,22 @@ export const ClinicScalarFieldEnum = {
 export type ClinicScalarFieldEnum = (typeof ClinicScalarFieldEnum)[keyof typeof ClinicScalarFieldEnum]
 
 
+export const BusinessHourScalarFieldEnum = {
+  id: 'id',
+  clinicId: 'clinicId',
+  dayOfWeek: 'dayOfWeek',
+  isOpen: 'isOpen',
+  openTime: 'openTime',
+  closeTime: 'closeTime',
+  breakStart: 'breakStart',
+  breakEnd: 'breakEnd',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BusinessHourScalarFieldEnum = (typeof BusinessHourScalarFieldEnum)[keyof typeof BusinessHourScalarFieldEnum]
+
+
 export const UserScalarFieldEnum = {
   id: 'id',
   clerkUserId: 'clerkUserId',
@@ -1131,20 +1222,6 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
- * Reference to a field of type 'ClinicRole'
- */
-export type EnumClinicRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClinicRole'>
-    
-
-
-/**
- * Reference to a field of type 'ClinicRole[]'
- */
-export type ListEnumClinicRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClinicRole[]'>
-    
-
-
-/**
  * Reference to a field of type 'Int'
  */
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -1159,6 +1236,27 @@ export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
+ * Reference to a field of type 'ClinicRole'
+ */
+export type EnumClinicRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClinicRole'>
+    
+
+
+/**
+ * Reference to a field of type 'ClinicRole[]'
+ */
+export type ListEnumClinicRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClinicRole[]'>
+    
+
+
+/**
  * Reference to a field of type 'Decimal'
  */
 export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
@@ -1169,13 +1267,6 @@ export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
  * Reference to a field of type 'Decimal[]'
  */
 export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -1359,6 +1450,7 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   clinic?: Prisma.ClinicOmit
+  businessHour?: Prisma.BusinessHourOmit
   user?: Prisma.UserOmit
   membership?: Prisma.MembershipOmit
   customer?: Prisma.CustomerOmit
