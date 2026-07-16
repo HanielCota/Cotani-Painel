@@ -73,6 +73,7 @@ export async function createPublicAppointment(_previousState: ActionResult, form
 
   const result = await scheduleAppointment({
     clinicId: clinic.id,
+    clinicSlug: clinic.slug,
     clinicName: clinic.name,
     timeZone: clinic.timeZone,
     customerId: customer.id,

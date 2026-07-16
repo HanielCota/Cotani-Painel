@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import prisma from "@/lib/prisma";
 import { enqueueAppointmentNotifications } from "@/server/services/notifications";
 
@@ -25,6 +27,7 @@ export function isDoubleBookingError(error: unknown): boolean {
 
 export interface ScheduleAppointmentParams {
   clinicId: string;
+  clinicSlug: string;
   clinicName: string;
   timeZone: string;
   customerId: string;
@@ -38,7 +41,7 @@ export interface ScheduleAppointmentParams {
 }
 
 export type ScheduleAppointmentResult =
-  | { status: "success" }
+  | { status: "success"; appointmentId: string; cancellationToken: string }
   | { status: "conflict" }
   | { status: "error" };
 
@@ -51,9 +54,10 @@ export type ScheduleAppointmentResult =
  */
 export async function scheduleAppointment(params: ScheduleAppointmentParams): Promise<ScheduleAppointmentResult> {
   const endTime = new Date(params.startTime.getTime() + params.serviceDuration * 60_000);
+  const cancellationToken = randomUUID();
 
   try {
-    const wasCreated = await prisma.$transaction(async (transaction) => {
+    const appointment = await prisma.$transaction(async (transaction) => {
       const conflictingAppointment = await transaction.appointment.findFirst({
         where: {
           clinicId: params.clinicId,
@@ -66,10 +70,10 @@ export async function scheduleAppointment(params: ScheduleAppointmentParams): Pr
       });
 
       if (conflictingAppointment) {
-        return false;
+        return null;
       }
 
-      const appointment = await transaction.appointment.create({
+      const created = await transaction.appointment.create({
         data: {
           clinicId: params.clinicId,
           customerId: params.customerId,
@@ -77,26 +81,31 @@ export async function scheduleAppointment(params: ScheduleAppointmentParams): Pr
           startTime: params.startTime,
           endTime,
           notes: params.notes,
+          cancellationToken,
         },
       });
 
       await enqueueAppointmentNotifications(transaction, {
-        appointmentId: appointment.id,
+        appointmentId: created.id,
         clinicId: params.clinicId,
+        clinicSlug: params.clinicSlug,
         clinicName: params.clinicName,
         timeZone: params.timeZone,
         customerName: params.customerName,
         customerPhone: params.customerPhone,
         serviceName: params.serviceName,
         startTime: params.startTime,
+        cancellationToken,
       });
 
-      return true;
+      return created;
     });
 
-    if (!wasCreated) {
+    if (!appointment) {
       return { status: "conflict" };
     }
+
+    return { status: "success", appointmentId: appointment.id, cancellationToken: appointment.cancellationToken };
   } catch (error) {
     if (isDoubleBookingError(error)) {
       return { status: "conflict" };
@@ -104,6 +113,4 @@ export async function scheduleAppointment(params: ScheduleAppointmentParams): Pr
 
     return { status: "error" };
   }
-
-  return { status: "success" };
 }

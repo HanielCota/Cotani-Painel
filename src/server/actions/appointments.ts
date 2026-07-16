@@ -90,6 +90,7 @@ export async function createAppointment(input: unknown): Promise<ActionResult> {
 
   const result = await scheduleAppointment({
     clinicId: clinic.id,
+    clinicSlug: clinic.slug,
     clinicName: clinic.name,
     timeZone: clinic.timeZone,
     customerId: customer.id,

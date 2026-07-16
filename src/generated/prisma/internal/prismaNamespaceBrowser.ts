@@ -159,6 +159,7 @@ export type ServiceScalarFieldEnum = (typeof ServiceScalarFieldEnum)[keyof typeo
 
 export const AppointmentScalarFieldEnum = {
   id: 'id',
+  cancellationToken: 'cancellationToken',
   startTime: 'startTime',
   endTime: 'endTime',
   status: 'status',
