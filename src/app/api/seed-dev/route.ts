@@ -37,12 +37,25 @@ export async function POST(request: NextRequest) {
     const users = await clerk.users.getUserList({ emailAddress: [email] });
     let clerkUserId = users.data[0]?.id;
 
+    let emailVerified = false;
+
     if (!clerkUserId) {
       const newUser = await clerk.users.createUser({
         emailAddress: [email],
         password: "cotani-dev-123",
       });
       clerkUserId = newUser.id;
+
+      if (newUser.primaryEmailAddressId) {
+        await clerk.emailAddresses.updateEmailAddress(newUser.primaryEmailAddressId, { verified: true });
+        emailVerified = true;
+      }
+    } else {
+      const existingUser = await clerk.users.getUser(clerkUserId);
+      if (existingUser.primaryEmailAddressId) {
+        await clerk.emailAddresses.updateEmailAddress(existingUser.primaryEmailAddressId, { verified: true });
+        emailVerified = true;
+      }
     }
 
     // 2. Cria organização
@@ -112,6 +125,7 @@ export async function POST(request: NextRequest) {
         email,
         password: "cotani-dev-123",
       },
+      emailVerified,
       note: "Se o usuário já existia, a senha pode não ter sido alterada. Use o fluxo de recuperação se necessário.",
     });
   } catch (error) {
