@@ -1,0 +1,76 @@
+"use client";
+
+import { CalendarX2Icon } from "lucide-react";
+
+import { appointmentStatusLabel } from "@/components/dashboard/agenda-appointments-list";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAppointments } from "@/hooks/use-appointments";
+
+interface UpcomingAppointmentsListProps {
+  timeZone: string;
+  limit?: number;
+}
+
+export function UpcomingAppointmentsList({ timeZone, limit = 10 }: UpcomingAppointmentsListProps) {
+  const { data: appointments, isPending, isError } = useAppointments();
+
+  if (isPending) {
+    return (
+      <div className="flex flex-col gap-3">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Alert variant="destructive">
+        <AlertTitle>Não foi possível carregar os próximos agendamentos</AlertTitle>
+        <AlertDescription>Verifique sua conexão e tente novamente em instantes.</AlertDescription>
+      </Alert>
+    );
+  }
+
+  const upcoming = (appointments ?? []).slice(0, limit);
+
+  if (upcoming.length === 0) {
+    return (
+      <Empty className="min-h-32 border-0 bg-muted/30">
+        <EmptyHeader>
+          <EmptyMedia variant="icon"><CalendarX2Icon /></EmptyMedia>
+          <EmptyTitle>Sem agendamentos próximos</EmptyTitle>
+          <EmptyDescription>Os próximos atendimentos confirmados e pendentes aparecerão aqui.</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
+
+  return (
+    <div className="flex flex-col divide-y">
+      {upcoming.map((appointment) => {
+        const dateTime = new Intl.DateTimeFormat("pt-BR", {
+          dateStyle: "short",
+          timeStyle: "short",
+          timeZone,
+        }).format(new Date(appointment.startTime));
+
+        return (
+          <div key={appointment.id} className="flex items-center justify-between gap-4 py-3">
+            <div className="min-w-0">
+              <p className="font-medium">{appointment.customerName}</p>
+              <p className="text-sm text-muted-foreground">{appointment.serviceName} · {dateTime}</p>
+            </div>
+            <Badge variant={appointment.status === "CONFIRMED" ? "default" : "secondary"}>
+              {appointmentStatusLabel[appointment.status]}
+            </Badge>
+          </div>
+        );
+      })}
+    </div>
+  );
+}

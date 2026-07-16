@@ -1,4 +1,4 @@
-import { ArrowRightIcon, CalendarDaysIcon, LinkIcon } from "lucide-react";
+import { ArrowRightIcon, CalendarDaysIcon, CalendarPlusIcon, LinkIcon, SettingsIcon } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
@@ -6,11 +6,11 @@ import Link from "next/link";
 
 import { CopyBookingLink } from "@/components/dashboard/copy-booking-link";
 import { DashboardMetricCards } from "@/components/dashboard/dashboard-metric-cards";
-import { EmptyClinicState } from "@/components/dashboard/empty-clinic-state";
+import { EmptyBarbershopState } from "@/components/dashboard/empty-barbershop-state";
 import { TodayAgendaList } from "@/components/dashboard/today-agenda-list";
+import { UpcomingAppointmentsList } from "@/components/dashboard/upcoming-appointments-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import prisma from "@/lib/prisma";
 import { requireActiveClinic } from "@/server/tenant";
 
 export const dynamic = "force-dynamic";
@@ -22,67 +22,111 @@ export default async function DashboardPage() {
   const clinic = await requireActiveClinic();
 
   if (!clinic) {
-    return <EmptyClinicState />;
+    return <EmptyBarbershopState />;
   }
 
-  const [totalCustomers, totalServices] = await Promise.all([
-    prisma.customer.count({ where: { clinicId: clinic.id } }),
-    prisma.service.count({ where: { clinicId: clinic.id, isActive: true } }),
-  ]);
-
-  // URL pública de agendamento montada no servidor a partir dos headers da
-  // requisição — o client component recebe a string pronta, sem window.location.
   const headersList = await headers();
   const host = headersList.get("x-forwarded-host") ?? headersList.get("host") ?? "";
   const protocol = headersList.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   const bookingUrl = `${protocol}://${host}/${clinic.slug}`;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-semibold tracking-tight">Visão geral</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Painel de controle</h1>
         <p className="text-sm text-muted-foreground">Acompanhe a operação da {clinic.name} em tempo real.</p>
       </div>
+
       <DashboardMetricCards />
-      <Card className="border border-border/80 shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><LinkIcon /> Link de agendamento</CardTitle>
-          <CardDescription>Compartilhe este endereço com seus clientes para que agendem sozinhos, sem precisar de login.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CopyBookingLink url={bookingUrl} />
-        </CardContent>
-      </Card>
-      <Card className="border border-border/80 shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><CalendarDaysIcon /> Agenda de hoje</CardTitle>
-          <CardDescription>Atendimentos confirmados e pendentes do dia, atualizados automaticamente.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <TodayAgendaList timeZone={clinic.timeZone} />
-        </CardContent>
-        <CardFooter>
-          <Button nativeButton={false} render={<Link href="/dashboard/agenda" />}>
-            Abrir agenda
-            <ArrowRightIcon data-icon="inline-end" />
-          </Button>
-        </CardFooter>
-      </Card>
-      <Card className="border border-border/80 shadow-sm">
-        <CardHeader>
-          <CardTitle>Próximo passo</CardTitle>
-          <CardDescription>Cadastre clientes e serviços, depois agende o próximo atendimento.</CardDescription>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          Você tem {totalCustomers} cliente{totalCustomers === 1 ? "" : "s"} e {totalServices} serviço{totalServices === 1 ? "" : "s"} ativo{totalServices === 1 ? "" : "s"} cadastrados.
-        </CardContent>
-        <CardFooter>
-          <Button nativeButton={false} render={<Link href="/dashboard/agenda" />}>
-            Preparar agenda
-            <ArrowRightIcon data-icon="inline-end" />
-          </Button>
-        </CardFooter>
-      </Card>
+
+      <section className="grid gap-4 md:grid-cols-3">
+        <Card className="border border-border/80 shadow-sm" size="sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium">
+              <LinkIcon className="size-4 text-primary" />
+              Link de agendamento
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CopyBookingLink url={bookingUrl} />
+          </CardContent>
+        </Card>
+
+        <Card className="border border-border/80 shadow-sm" size="sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium">
+              <CalendarPlusIcon className="size-4 text-primary" />
+              Nova venda
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CardDescription className="text-xs">Registre um agendamento ou atendimento rápido.</CardDescription>
+          </CardContent>
+          <CardFooter className="pt-0">
+            <Button nativeButton={false} render={<Link href="/dashboard/agenda" />} size="sm" className="w-full">
+              Abrir agenda
+              <ArrowRightIcon data-icon="inline-end" className="size-3.5" />
+            </Button>
+          </CardFooter>
+        </Card>
+
+        <Card className="border border-border/80 shadow-sm" size="sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium">
+              <SettingsIcon className="size-4 text-primary" />
+              Configurar horários
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CardDescription className="text-xs">Ajuste serviços, expediente e regras de negócio.</CardDescription>
+          </CardContent>
+          <CardFooter className="pt-0">
+            <Button nativeButton={false} render={<Link href="/dashboard/configuracoes" />} size="sm" className="w-full">
+              Abrir configurações
+              <ArrowRightIcon data-icon="inline-end" className="size-3.5" />
+            </Button>
+          </CardFooter>
+        </Card>
+      </section>
+
+      <div className="grid gap-5 xl:grid-cols-2">
+        <Card className="border border-border/80 shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <CalendarDaysIcon className="size-5 text-primary" />
+              Próximos agendamentos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <UpcomingAppointmentsList timeZone={clinic.timeZone} />
+          </CardContent>
+          <CardFooter>
+            <Button nativeButton={false} render={<Link href="/dashboard/agenda" />} variant="outline" size="sm">
+              Ver agenda completa
+              <ArrowRightIcon data-icon="inline-end" className="size-3.5" />
+            </Button>
+          </CardFooter>
+        </Card>
+
+        <Card className="border border-border/80 shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CalendarDaysIcon className="size-5 text-primary" />
+              Agenda de hoje
+            </CardTitle>
+            <CardDescription>Atendimentos confirmados e pendentes do dia.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TodayAgendaList timeZone={clinic.timeZone} />
+          </CardContent>
+          <CardFooter>
+            <Button nativeButton={false} render={<Link href="/dashboard/agenda" />} variant="outline" size="sm">
+              Abrir agenda
+              <ArrowRightIcon data-icon="inline-end" className="size-3.5" />
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 }
