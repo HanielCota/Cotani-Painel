@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { DOUBLE_BOOKING_MESSAGE, scheduleAppointment } from "@/server/services/scheduling";
+import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
 
 const publicBookingSchema = z.object({
@@ -43,6 +44,10 @@ export async function createPublicAppointment(_previousState: ActionResult, form
 
   if (!clinic) {
     return { status: "error", message: "Barbearia não encontrada." };
+  }
+
+  if (!isSubscriptionActive(clinic)) {
+    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
   }
 
   const service = await prisma.service.findFirst({

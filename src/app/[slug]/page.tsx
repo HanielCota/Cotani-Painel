@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { ClinicUnavailable } from "@/components/public/clinic-unavailable";
 import { PublicBookingForm } from "@/components/public/public-booking-form";
+import { isSubscriptionActive } from "@/server/subscription";
 import prisma from "@/lib/prisma";
 import { formatClinicDateTimeInput } from "@/lib/timezone";
 
@@ -25,7 +27,9 @@ export default async function PublicBookingPage({ params }: PublicBookingPagePro
     where: { slug },
     select: {
       name: true,
+      slug: true,
       timeZone: true,
+      subscriptionStatus: true,
       services: {
         where: { isActive: true },
         select: { id: true, name: true, duration: true, price: true },
@@ -36,6 +40,10 @@ export default async function PublicBookingPage({ params }: PublicBookingPagePro
 
   if (!clinic) {
     notFound();
+  }
+
+  if (!isSubscriptionActive(clinic)) {
+    return <ClinicUnavailable clinicName={clinic.name} />;
   }
 
   return (

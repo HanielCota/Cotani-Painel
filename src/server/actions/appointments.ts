@@ -7,7 +7,12 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { parseClinicDateTime } from "@/lib/timezone";
 import { requireActiveClinic } from "@/server/tenant";
-import { DOUBLE_BOOKING_MESSAGE, isDoubleBookingError, scheduleAppointment } from "@/server/services/scheduling";
+import {
+  DOUBLE_BOOKING_MESSAGE,
+  isDoubleBookingError,
+  scheduleAppointment,
+} from "@/server/services/scheduling";
+import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
 
 const appointmentSchema = z.object({
@@ -75,6 +80,10 @@ export async function createAppointment(input: unknown): Promise<ActionResult> {
     return { status: "error", message: "Selecione uma barbearia antes de criar agendamentos." };
   }
 
+  if (!isSubscriptionActive(clinic)) {
+    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
+  }
+
   const [customer, service] = await Promise.all([
     prisma.customer.findFirst({ where: { id: parsed.data.customerId, clinicId: clinic.id } }),
     prisma.service.findFirst({ where: { id: parsed.data.serviceId, clinicId: clinic.id, isActive: true } }),
@@ -124,6 +133,10 @@ export async function createAppointmentFromForm(_previousState: ActionResult, fo
     return { status: "error", message: "Selecione uma barbearia antes de criar agendamentos." };
   }
 
+  if (!isSubscriptionActive(clinic)) {
+    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
+  }
+
   const startTime = parseClinicDateTime(String(formData.get("startTime") ?? ""), clinic.timeZone);
 
   if (!startTime) {
@@ -158,6 +171,10 @@ export async function rescheduleAppointmentFromForm(_previousState: ActionResult
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de reagendar." };
+  }
+
+  if (!isSubscriptionActive(clinic)) {
+    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
   }
 
   const appointment = await prisma.appointment.findFirst({
@@ -226,6 +243,10 @@ export async function updateAppointmentStatus(appointmentId: string, status: App
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de atualizar atendimentos." };
+  }
+
+  if (!isSubscriptionActive(clinic)) {
+    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
   }
 
   const appointment = await prisma.appointment.findFirst({

@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { requireActiveClinic } from "@/server/tenant";
+import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
 
 const customerSchema = z.object({
@@ -31,6 +32,10 @@ export async function createCustomer(input: unknown): Promise<ActionResult> {
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de cadastrar clientes." };
+  }
+
+  if (!isSubscriptionActive(clinic)) {
+    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
   }
 
   try {
@@ -79,6 +84,10 @@ export async function updateCustomer(input: unknown): Promise<ActionResult> {
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de atualizar clientes." };
+  }
+
+  if (!isSubscriptionActive(clinic)) {
+    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
   }
 
   const customer = await prisma.customer.findFirst({
@@ -131,6 +140,10 @@ export async function deleteCustomer(customerId: string): Promise<ActionResult> 
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de remover clientes." };
+  }
+
+  if (!isSubscriptionActive(clinic)) {
+    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
   }
 
   const customer = await prisma.customer.findFirst({

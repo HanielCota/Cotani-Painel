@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { requireActiveClinic } from "@/server/tenant";
+import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
 
 const timeSchema = z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/);
@@ -39,6 +40,10 @@ export async function saveBusinessHours(input: unknown): Promise<ActionResult> {
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de salvar o expediente." };
+  }
+
+  if (!isSubscriptionActive(clinic)) {
+    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
   }
 
   for (const item of parsed.data) {
