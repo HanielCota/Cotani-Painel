@@ -67,10 +67,12 @@ async function upsertClinic(organization: OrganizationEventData, client: Prisma.
       name: organization.name,
       slug,
       subscriptionStatus,
+      hasPaidOnce: subscriptionStatus === SubscriptionStatus.ACTIVE,
     },
     update: {
       name: organization.name,
       subscriptionStatus,
+      hasPaidOnce: subscriptionStatus === SubscriptionStatus.ACTIVE ? true : undefined,
     },
   });
 }

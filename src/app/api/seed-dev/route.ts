@@ -82,10 +82,12 @@ export async function POST(request: NextRequest) {
         name: barbershopName,
         slug,
         subscriptionStatus: SubscriptionStatus.ACTIVE,
+        hasPaidOnce: true,
       },
       update: {
         name: barbershopName,
         subscriptionStatus: SubscriptionStatus.ACTIVE,
+        hasPaidOnce: true,
       },
     });
 
