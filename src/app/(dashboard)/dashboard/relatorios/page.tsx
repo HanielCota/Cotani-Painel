@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { EmptyBarbershopState } from "@/components/dashboard/empty-barbershop-state";
 import { ReportsKpiCards } from "@/components/dashboard/reports-kpi-cards";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { requireActiveClinic } from "@/server/tenant";
+import { getSelectedOrgId, requireActiveClinic } from "@/server/tenant";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Relatórios" };
@@ -12,10 +12,10 @@ export const metadata: Metadata = { title: "Relatórios" };
 export default async function RelatoriosPage() {
   await auth.protect();
 
-  const clinic = await requireActiveClinic();
+  const [clinic, selectedOrgId] = await Promise.all([requireActiveClinic(), getSelectedOrgId()]);
 
   if (!clinic) {
-    return <EmptyBarbershopState />;
+    return <EmptyBarbershopState selectedOrgId={selectedOrgId} />;
   }
 
   return (

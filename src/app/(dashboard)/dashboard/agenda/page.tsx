@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { mockCustomers, mockServices } from "@/lib/dashboard-mocks";
 import prisma from "@/lib/prisma";
 import { formatClinicDateTimeInput } from "@/lib/timezone";
-import { requireActiveClinic } from "@/server/tenant";
+import { getSelectedOrgId, requireActiveClinic } from "@/server/tenant";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Agenda" };
@@ -18,10 +18,10 @@ export const metadata: Metadata = { title: "Agenda" };
 export default async function AgendaPage() {
   await auth.protect();
 
-  const clinic = await requireActiveClinic();
+  const [clinic, selectedOrgId] = await Promise.all([requireActiveClinic(), getSelectedOrgId()]);
 
   if (!clinic) {
-    return <EmptyBarbershopState />;
+    return <EmptyBarbershopState selectedOrgId={selectedOrgId} />;
   }
 
   const now = new Date();

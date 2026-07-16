@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import prisma from "@/lib/prisma";
 import { isSubscriptionActive } from "@/server/subscription";
-import { requireActiveClinic } from "@/server/tenant";
+import { getSelectedOrgId, requireActiveClinic } from "@/server/tenant";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Visão geral" };
@@ -22,10 +22,10 @@ export const metadata: Metadata = { title: "Visão geral" };
 export default async function DashboardPage() {
   await auth.protect();
 
-  const clinic = await requireActiveClinic();
+  const [clinic, selectedOrgId] = await Promise.all([requireActiveClinic(), getSelectedOrgId()]);
 
   if (!clinic) {
-    return <EmptyBarbershopState />;
+    return <EmptyBarbershopState selectedOrgId={selectedOrgId} />;
   }
 
   const headersList = await headers();

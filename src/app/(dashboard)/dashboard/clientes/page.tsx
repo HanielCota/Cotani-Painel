@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { CustomersTable } from "@/components/dashboard/customers-table";
 import { EmptyBarbershopState } from "@/components/dashboard/empty-barbershop-state";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { requireActiveClinic } from "@/server/tenant";
+import { getSelectedOrgId, requireActiveClinic } from "@/server/tenant";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Clientes" };
@@ -12,10 +12,10 @@ export const metadata: Metadata = { title: "Clientes" };
 export default async function ClientesPage() {
   await auth.protect();
 
-  const clinic = await requireActiveClinic();
+  const [clinic, selectedOrgId] = await Promise.all([requireActiveClinic(), getSelectedOrgId()]);
 
   if (!clinic) {
-    return <EmptyBarbershopState />;
+    return <EmptyBarbershopState selectedOrgId={selectedOrgId} />;
   }
 
   return (

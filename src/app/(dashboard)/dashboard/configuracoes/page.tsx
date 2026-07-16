@@ -8,7 +8,7 @@ import { ServicesSettings } from "@/components/dashboard/services-settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import prisma from "@/lib/prisma";
-import { requireActiveClinic } from "@/server/tenant";
+import { getSelectedOrgId, requireActiveClinic } from "@/server/tenant";
 import type { BusinessHourItem } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -17,10 +17,10 @@ export const metadata: Metadata = { title: "Configurações" };
 export default async function ConfiguracoesPage() {
   await auth.protect();
 
-  const clinic = await requireActiveClinic();
+  const [clinic, selectedOrgId] = await Promise.all([requireActiveClinic(), getSelectedOrgId()]);
 
   if (!clinic) {
-    return <EmptyBarbershopState />;
+    return <EmptyBarbershopState selectedOrgId={selectedOrgId} />;
   }
 
   const businessHours = await prisma.businessHour.findMany({
