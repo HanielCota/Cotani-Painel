@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import { OrganizationSwitcher } from "@clerk/nextjs";
 import {
   CalendarDaysIcon,
+  CreditCardIcon,
   LayoutDashboardIcon,
   ScissorsIcon,
   SettingsIcon,
@@ -40,6 +41,7 @@ const operationItems: NavigationItem[] = [
 
 const managementItems: NavigationItem[] = [
   { title: "Configurações", href: "/dashboard/configuracoes", icon: SettingsIcon },
+  { title: "Assinatura", href: "/dashboard/assinatura", icon: CreditCardIcon },
 ];
 
 function isActivePath(pathname: string, href: string): boolean {

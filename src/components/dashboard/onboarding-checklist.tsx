@@ -23,9 +23,8 @@ export function OnboardingChecklist({
       label: "Assinatura ativa",
       description: "Renove o plano para liberar agendamentos e configurações.",
       done: isSubscriptionActive,
-      href: "#",
+      href: "/dashboard/assinatura",
       icon: TriangleAlertIcon,
-      external: true,
     },
     {
       id: "business-hours",

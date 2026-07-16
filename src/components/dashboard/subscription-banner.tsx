@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { AlertTriangleIcon } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { SubscriptionStatus } from "@/generated/prisma/enums";
 
 interface SubscriptionBannerProps {
@@ -34,10 +36,23 @@ export function SubscriptionBanner({ status }: SubscriptionBannerProps) {
   const message = statusMessage[status];
 
   return (
-    <Alert variant="destructive" className="border-destructive/50">
-      <AlertTriangleIcon className="size-4" />
-      <AlertTitle>{message.title}</AlertTitle>
-      <AlertDescription>{message.description}</AlertDescription>
+    <Alert variant="destructive" className="flex flex-col gap-3 border-destructive/50 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-start gap-3">
+        <AlertTriangleIcon className="size-4 shrink-0" />
+        <div>
+          <AlertTitle>{message.title}</AlertTitle>
+          <AlertDescription>{message.description}</AlertDescription>
+        </div>
+      </div>
+      <Button
+        variant="outline"
+        size="sm"
+        className="shrink-0"
+        nativeButton={false}
+        render={<Link href="/dashboard/assinatura" />}
+      >
+        Renovar agora
+      </Button>
     </Alert>
   );
 }
