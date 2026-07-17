@@ -33,7 +33,7 @@
 ### 1.3 Achados da auditoria (ordem de criticidade)
 
 1. **`User` e `Membership` são tabelas mortas.** O webhook do Clerk (`src/app/api/webhooks/clerk/route.ts`) sincroniza apenas `organization.created/updated/deleted`. Nada no código escreve em `User` ou `Membership` — ou seja, roles (`ClinicRole`) nunca são populados nem checados. Qualquer autorização por papel depende de corrigir isso (seção 3).
-2. **Autorização inexistente além de "estar autenticado".** `requireActiveClinic()` (`src/server/tenant.ts`) resolve a clínica pela org ativa, mas não valida que o usuário é membro dela com papel adequado. Hoje o Clerk garante a associação org↔usuário, mas o banco local não sabe disso — risco se o painel expuser ações administrativas (billing, exclusão de dados).
+2. **Autorização inexistente além de "estar autenticado".** `requireActiveClinic()` (`src/server/tenant.ts`) resolve a barbearia pela org ativa, mas não valida que o usuário é membro dela com papel adequado. Hoje o Clerk garante a associação org↔usuário, mas o banco local não sabe disso — risco se o painel expuser ações administrativas (billing, exclusão de dados).
 3. **Race condition em agendamento (retificado — trava já existia).** A auditoria apontou o check-then-insert de `createAppointment` como condição de corrida; porém a migration `20260712150000_appointment_integrity` já continha as exclusion constraints `Appointment_customer_no_overlap` e `Appointment_service_no_overlap` (`btree_gist` + `tsrange` `[)`, ignorando apenas `CANCELED`) — a garantia de banco sempre esteve presente. A lacuna real era o tratamento do erro: violações (SQLSTATE `23P01`, entregues como `DriverAdapterError` pelo driver adapter do Prisma 7) viravam mensagem genérica. **Resolvido:** as actions de criação e reagendamento detectam `23P01` na cadeia de `cause` e retornam "Horário indisponível. Por favor, escolha outro.".
 4. **Sem testes e sem CI.** Não há setup de testes (`vitest`, `playwright`) nem pipeline. Antes de introduzir billing e filas — onde bugs custam dinheiro e mensagens duplicadas — o mínimo é teste de integração das actions críticas e dos handlers de webhook.
 5. **Sem rate limiting nos route handlers.** Os webhooks são protegidos por assinatura (adequado), mas `GET /api/appointments` e futuros endpoints públicos não têm proteção contra abuso.
@@ -46,7 +46,7 @@
 - Validação de entrada com Zod em `input: unknown` nas actions, com contrato de retorno único (`ActionResult`).
 - Índices compostos corretos para o padrão de acesso multi-tenant (`@@index([clinicId, startTime])`, `@@unique([clinicId, phone])` etc.).
 - O modelo `Notification` já existe com `status`, `scheduledFor`, `providerRef` e índice `(status, scheduledFor)` — é a fundação natural da fila (seção 5).
-- Tratamento de fuso por clínica centralizado em `src/lib/timezone.ts`.
+- Tratamento de fuso por barbearia centralizado em `src/lib/timezone.ts`.
 
 ---
 
@@ -83,7 +83,7 @@ As actions atuais não precisam ser reescritas de imediato; a extração acontec
 
 ## 3. Multi-tenancy: design de isolamento por profissional
 
-> Nota de vocabulário: hoje o tenant é a **clínica** (Organization do Clerk). "Dados isolados por profissional" é implementado como isolamento por clínica, com papéis internos (`PROVIDER`, `RECEPTIONIST`, `ADMIN`). Se o produto evoluir para "um profissional = um tenant" independente de clínica, a mudança é de granularidade do tenant, não de modelo — as regras abaixo valem igual.
+> Nota de vocabulário: hoje o tenant é a **barbearia** (Organization do Clerk). "Dados isolados por profissional" é implementado como isolamento por barbearia, com papéis internos (`PROVIDER`, `RECEPTIONIST`, `ADMIN`). Se o produto evoluir para "um profissional = um tenant" independente de barbearia, a mudança é de granularidade do tenant, não de modelo — as regras abaixo valem igual.
 
 ### 3.1 Modelo escolhido: shared-schema com discriminador `clinicId`
 
@@ -93,7 +93,7 @@ Justificativa: schema separado ou banco por tenant multiplicam custo operacional
 
 ### 3.2 Regras de isolamento (fase 1 — camada de aplicação)
 
-1. **Contexto de tenant por request, fail-closed.** Evoluir `requireActiveClinic()` para um `getTenantContext()` memoizado por request (React `cache()`), que retorna `{ clinic, membership, role }` e **lança** quando não há clínica ativa — em vez de retornar `null` e depender de cada chamador checar. O memo elimina a query duplicada que hoje ocorre quando uma action chama `auth.protect()` + `requireActiveClinic()` e a página já resolveu a clínica.
+1. **Contexto de tenant por request, fail-closed.** Evoluir `requireActiveClinic()` para um `getTenantContext()` memoizado por request (React `cache()`), que retorna `{ clinic, membership, role }` e **lança** quando não há barbearia ativa — em vez de retornar `null` e depender de cada chamador checar. O memo elimina a query duplicada que hoje ocorre quando uma action chama `auth.protect()` + `requireActiveClinic()` e a página já resolveu a barbearia.
 2. **Nenhum ID de tenant vindo do cliente.** `clinicId` sempre vem do contexto resolvido no servidor — regra já seguida, formalizada como item de code review.
 3. **Consultas sempre escopadas.** Convenção: toda query Prisma em `src/server/**` sobre tabelas tenant-scoped inclui `clinicId: ctx.clinic.id` no `where`. Um helper de review (ou, futuramente, Prisma extension que injeta o filtro) reduz o risco de omissão.
 4. **Escrita em lote com escopo.** `updateMany`/`deleteMany` sempre com `clinicId` no filtro; `update`/`delete` por `id` precedidos de `findFirst({ where: { id, clinicId } })` — padrão já usado em `updateAppointmentStatus`, generalizar.
@@ -104,10 +104,10 @@ Assinar no Clerk, além dos eventos de organização:
 
 - `organizationMembership.created` → upsert `User` (por `clerkUserId`) + create `Membership` com role mapeada (`org:admin` → `ADMIN`, demais → `PROVIDER` ou conforme custom role).
 - `organizationMembership.updated` → atualizar `role`.
-- `organizationMembership.deleted` → remover `Membership` (não o `User`, que pode pertencer a outras clínicas).
+- `organizationMembership.deleted` → remover `Membership` (não o `User`, que pode pertencer a outras barbearias).
 - `user.created/updated/deleted` → manter `User` sincronizado (e-mail, nome).
 
-Com `Membership` populada, introduzir `requireRole(ctx, ['ADMIN'])` para ações sensíveis: billing, exclusão de clientes, configurações da clínica e gestão de integrações.
+Com `Membership` populada, introduzir `requireRole(ctx, ['ADMIN'])` para ações sensíveis: billing, exclusão de clientes, configurações da barbearia e gestão de integrações.
 
 ### 3.4 Fase 2 — defesa em profundidade com RLS (PostgreSQL)
 
@@ -134,7 +134,7 @@ Quando o time crescer ou o blast radius de um `where` esquecido for inaceitável
 ### 4.2 Modelagem de dados (proposta)
 
 ```prisma
-// Assinatura da clínica (1:1 com Clinic)
+// Assinatura da barbearia (1:1 com Clinic)
 model Subscription {
   id                 String   @id @default(uuid())
   clinicId           String   @unique
@@ -233,7 +233,7 @@ SUSPENDED ──cancelamento definitivo (churn)──▶ CANCELED (terminal)
 
 **4. Rota `/billing`.** Nova rota autenticada (exige sessão, **não** exige assinatura ativa) com o status da cobrança e o fluxo de regularização/atualização de pagamento no MP. É o único destino de redirect para tenant inadimplente.
 
-**5. Escopo do bloqueio e agenda pública.** O bloqueio vale para a área autenticada. Recomendação registrada: em `SUSPENDED`, suspender também o agendamento público `/{slug}` — `createPublicAppointment` validaria o status da clínica e a página exibiria aviso de indisponibilidade —, pois uma clínica inadimplente não deve captar novos horários. Decisão final de produto pendente.
+**5. Escopo do bloqueio e agenda pública.** O bloqueio vale para a área autenticada. Recomendação registrada: em `SUSPENDED`, suspender também o agendamento público `/{slug}` — `createPublicAppointment` validaria o status da barbearia e a página exibiria aviso de indisponibilidade —, pois uma barbearia inadimplente não deve captar novos horários. Decisão final de produto pendente.
 
 **6. Reativação.** Pagamento regularizado confirmado na API do MP → webhook → `Subscription.status = ACTIVE` + atualização do metadata da org → acesso restaurado automaticamente, sem re-provisionamento (membership intacta). A reconciliação diária da seção 4.4 cobre o caso de webhook perdido.
 
@@ -311,7 +311,7 @@ A migração é barata porque o banco continua sendo o registro de estado (outbo
 
 - **LGPD:** `content` e `recipient` contêm dados pessoais; definir retenção (ex.: expurgo de `content` e `rawPayload` após N dias de `SENT`).
 - **Alertas:** notificações em `FAILED` e backlog (`PENDING` vencidos) devem aparecer em métrica no painel ou alerta externo.
-- **Horários respeitam o fuso da clínica:** `scheduledFor` é sempre UTC calculado a partir de `Clinic.timeZone` — reutilizar `src/lib/timezone.ts`.
+- **Horários respeitam o fuso da barbearia:** `scheduledFor` é sempre UTC calculado a partir de `Clinic.timeZone` — reutilizar `src/lib/timezone.ts`.
 
 ---
 
@@ -323,7 +323,7 @@ A migração é barata porque o banco continua sendo o registro de estado (outbo
 | ADR-002 | Server Actions para mutações da UI autenticada; Route Handlers para webhooks, integrações e leituras por polling; regra de negócio em `src/server/services` | REST para tudo; actions para tudo | Cada padrão tem semântica inadequada para o caso oposto |
 | ADR-003 | Webhook do MP validado por HMAC, idempotente por `eventId`, com API do MP como fonte de verdade e reconciliação diária | Confiar no payload do webhook | Entrega fora de ordem, reenvios e payloads defasados |
 | ADR-004 | Fila fase 1: outbox no Postgres + Vercel Cron + `SKIP LOCKED`; fase 2: QStash/Inngest por gatilhos objetivos | Fila gerenciada desde o dia 1 | Zero dependências novas; modelo `Notification` já existe; migração barata |
-| ADR-005 | Cobrança SaaS por assinatura recorrente (Preapproval) do Mercado Pago | Checkout pontual (Checkout Pro/Brick) por período | SaaS mensal por clínica exige recorrência automática |
+| ADR-005 | Cobrança SaaS por assinatura recorrente (Preapproval) do Mercado Pago | Checkout pontual (Checkout Pro/Brick) por período | SaaS mensal por barbearia exige recorrência automática |
 | ADR-006 | Envio de mensagens atrás da interface `MessageSender` com mock de console no MVP; Evolution API → Meta Cloud API na evolução | Integração direta com um provedor desde o início | Troca de provedor sem tocar fila/dispatcher; MVP sem bloqueio de compliance |
 | ADR-007 | Inadimplência: status no `public_metadata` da org no Clerk + enforcement em duas camadas (`proxy.ts` como UX, `getTenantContext()` fail-closed como autoridade); membership preservada até churn definitivo (seção 4.7) | Remoção de membership; `private_metadata`; guard apenas no middleware | Remoção de membership é destrutiva e quebra a reativação; metadata privada não chega ao session token; middleware sozinho não é garantia (deprecação do `createRouteMatcher`) |
 

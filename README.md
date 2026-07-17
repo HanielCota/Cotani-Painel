@@ -1,8 +1,8 @@
 # Cotani
 
-Painel web para organizar a operação de clínicas: clientes, serviços e atendimentos em uma agenda protegida por organização.
+Painel web para organizar a operação de barbearias: clientes, serviços e atendimentos em uma agenda protegida por organização.
 
-Cada clínica corresponde a uma organização do Clerk. O painel usa a organização ativa para isolar dados e ações, permitindo que uma mesma conta trabalhe com mais de uma clínica.
+Cada barbearia corresponde a uma organização do Clerk. O painel usa a organização ativa para isolar dados e ações, permitindo que uma mesma conta trabalhe com mais de uma barbearia.
 
 > [!NOTE]
 > O produto está em evolução. A agenda, a visão geral, clientes e relatórios estão disponíveis; as demais áreas do produto exibem um estado de “Disponível em breve”.
@@ -10,7 +10,7 @@ Cada clínica corresponde a uma organização do Clerk. O painel usa a organiza�
 ## O que já está disponível
 
 - Autenticação, cadastro e troca de organização com Clerk.
-- Sincronização das organizações do Clerk com clínicas locais por webhook.
+- Sincronização das organizações do Clerk com barbearias locais por webhook.
 - Visão geral com totais de clientes, serviços, agendamentos, confirmações e faltas, e **Agenda de hoje** atualizada automaticamente.
 - Listagem de próximos atendimentos com polling a cada 30 segundos (TanStack Query + `GET /api/appointments`) e feedback por toasts em erros de agendamento.
 - Gestão de clientes em tabela interativa: busca com debounce, paginação no servidor (`GET /api/customers`), edição e remoção com proteção de histórico.
@@ -19,7 +19,7 @@ Cada clínica corresponde a uma organização do Clerk. O painel usa a organiza�
 - Criação, confirmação, conclusão, cancelamento, marcação de falta e reagendamento de atendimentos.
 - Proteção contra conflito de horário para o mesmo cliente ou serviço, garantida por exclusion constraints no banco e com mensagem amigável em caso de choque de horários.
 - Fila de notificações: confirmação e lembretes (24h e 2h) criados na mesma transação do agendamento e processados por cron (envio simulado no console nesta fase).
-- Datas e horários tratados no fuso configurado para cada clínica (padrão: `America/Sao_Paulo`).
+- Datas e horários tratados no fuso configurado para cada barbearia (padrão: `America/Sao_Paulo`).
 - Estados de carregamento, erro e página não encontrada.
 
 ## Tecnologias
@@ -97,29 +97,29 @@ Abra [http://localhost:3000](http://localhost:3000). A rota inicial redireciona 
 4. Assine os eventos `organization.created`, `organization.updated`, `organization.deleted`, `organizationMembership.created`, `organizationMembership.updated`, `organizationMembership.deleted`, `user.created`, `user.updated` e `user.deleted`.
 5. Copie o segredo de assinatura do webhook para `CLERK_WEBHOOK_SIGNING_SECRET`.
 
-O webhook cria ou atualiza a clínica local quando uma organização é criada ou alterada. Sem essa sincronização, a organização ativa não terá dados no painel.
+O webhook cria ou atualiza a barbearia local quando uma organização é criada ou alterada. Sem essa sincronização, a organização ativa não terá dados no painel.
 
 > [!TIP]
 > Para desenvolvimento local, exponha a aplicação por um túnel HTTPS antes de registrar o endpoint de webhook no Clerk.
 
 ## Fluxo da Agenda
 
-1. Entre na conta e crie ou selecione uma organização (clínica).
+1. Entre na conta e crie ou selecione uma organização (barbearia).
 2. Cadastre pelo menos um cliente e um serviço na página **Agenda**.
 3. Crie um atendimento em data e horário futuros.
 4. Use as ações do atendimento para confirmar, reagendar, concluir, cancelar ou registrar falta.
 
-Os agendamentos são associados à clínica ativa. A criação e o reagendamento verificam intervalos sobrepostos para evitar que o mesmo cliente ou serviço seja marcado no mesmo horário.
+Os agendamentos são associados à barbearia ativa. A criação e o reagendamento verificam intervalos sobrepostos para evitar que o mesmo cliente ou serviço seja marcado no mesmo horário.
 
 ## Agendamento público (self-service)
 
-Cada clínica tem uma página pública de agendamento em `/{slug}` (o slug é único por clínica). O fluxo não exige login:
+Cada barbearia tem uma página pública de agendamento em `/{slug}` (o slug é único por barbearia). O fluxo não exige login:
 
 1. O cliente escolhe o serviço, a data e um dos horários disponíveis.
 2. Os horários vêm de `GET /api/public/{slug}/availability`, que desconta os atendimentos já marcados.
 3. O envio chama a Server Action `createPublicAppointment`, que faz upsert do cliente pelo telefone e usa o mesmo núcleo transacional do agendamento interno (verificação de conflito, exclusion constraint e fila de notificações).
 
-O horário comercial ainda é fixo no MVP (08h às 18h, em passos de 30 minutos, no fuso da clínica); a modelagem de expediente por clínica fica para uma fase futura.
+O horário comercial ainda é fixo no MVP (08h às 18h, em passos de 30 minutos, no fuso da barbearia); a modelagem de expediente por barbearia fica para uma fase futura.
 
 ## Estrutura do projeto
 
@@ -135,7 +135,7 @@ src/
 ├── server/
 │   ├── actions/            # Server Actions de clientes, serviços e agenda
 │   ├── services/           # Regra de negócio e integrações (ex.: envio de mensagens)
-│   └── tenant.ts           # Resolução da clínica ativa
+│   └── tenant.ts           # Resolução da barbearia ativa
 └── proxy.ts                # Middleware do Clerk
 prisma/
 ├── migrations/             # Histórico de migrações
@@ -146,9 +146,9 @@ prisma/
 
 | Entidade | Responsabilidade |
 | --- | --- |
-| `Clinic` | Clínica sincronizada a uma organização do Clerk e seu fuso horário. |
-| `User` e `Membership` | Usuários locais e seus vínculos com clínicas. |
-| `Customer` | Pacientes/clientes da clínica. O telefone é único por clínica. |
+| `Clinic` | Barbearia sincronizada a uma organização do Clerk e seu fuso horário. |
+| `User` e `Membership` | Usuários locais e seus vínculos com barbearias. |
+| `Customer` | Clientes da barbearia. O telefone é único por barbearia. |
 | `Service` | Serviços com duração, preço e status ativo. |
 | `Appointment` | Atendimento com cliente, serviço, intervalo e status. |
 | `Notification` | Base para lembretes por WhatsApp, e-mail ou SMS. |
@@ -157,19 +157,19 @@ prisma/
 
 ### `GET /api/appointments`
 
-Retorna até 50 atendimentos futuros pendentes ou confirmados da clínica ativa.
+Retorna até 50 atendimentos futuros pendentes ou confirmados da barbearia ativa.
 
 | Resposta | Significado |
 | --- | --- |
 | `200` | Lista de atendimentos da organização ativa. |
-| `400` | Nenhuma clínica/organização foi selecionada. |
-| `404` | A organização ativa ainda não foi sincronizada como clínica. |
+| `400` | Nenhuma barbearia/organização foi selecionada. |
+| `404` | A organização ativa ainda não foi sincronizada como barbearia. |
 
-A rota exige uma sessão Clerk válida; ela nunca retorna dados de outra clínica.
+A rota exige uma sessão Clerk válida; ela nunca retorna dados de outra barbearia.
 
 ### `GET /api/customers`
 
-Lista paginada dos clientes da clínica ativa.
+Lista paginada dos clientes da barbearia ativa.
 
 | Parâmetro | Descrição |
 | --- | --- |
@@ -177,13 +177,13 @@ Lista paginada dos clientes da clínica ativa.
 | `page` | Página (padrão `1`). |
 | `pageSize` | Itens por página (padrão `10`, máximo `50`). |
 
-Resposta `200`: `{ items, total, page, pageSize }`. Erros: `400` (sem clínica selecionada ou parâmetros inválidos), `404` (clínica não sincronizada).
+Resposta `200`: `{ items, total, page, pageSize }`. Erros: `400` (sem barbearia selecionada ou parâmetros inválidos), `404` (barbearia não sincronizada).
 
 ### `GET /api/metrics`
 
-KPIs da clínica ativa: totais de agendamentos, confirmados hoje, no-shows no mês, clientes e serviços, clientes ativos no mês, taxa de confirmação e taxa de falta. As taxas consideram os atendimentos do mês (no fuso da clínica), exceto cancelados.
+KPIs da barbearia ativa: totais de agendamentos, confirmados hoje, no-shows no mês, clientes e serviços, clientes ativos no mês, taxa de confirmação e taxa de falta. As taxas consideram os atendimentos do mês (no fuso da barbearia), exceto cancelados.
 
-Resposta `200`: objeto `DashboardMetrics`. Erros: `400` (sem clínica selecionada), `404` (clínica não sincronizada).
+Resposta `200`: objeto `DashboardMetrics`. Erros: `400` (sem barbearia selecionada), `404` (barbearia não sincronizada).
 
 ### `GET/POST /api/jobs/notifications`
 
@@ -199,14 +199,14 @@ O Vercel Cron (`vercel.json`) dispara essa rota a cada minuto e envia o header d
 
 ### `GET /api/public/{slug}/availability`
 
-Lista os horários livres de um serviço em uma data. Rota pública, sem autenticação, com o escopo resolvido pelo slug da clínica.
+Lista os horários livres de um serviço em uma data. Rota pública, sem autenticação, com o escopo resolvido pelo slug da barbearia.
 
 | Parâmetro | Descrição |
 | --- | --- |
-| `serviceId` | UUID de um serviço ativo da clínica. |
-| `date` | Data no formato `YYYY-MM-DD` (fuso da clínica). |
+| `serviceId` | UUID de um serviço ativo da barbearia. |
+| `date` | Data no formato `YYYY-MM-DD` (fuso da barbearia). |
 
-Resposta `200`: `{ slots: [{ startTime, label }] }`, com `startTime` em ISO 8601 e `label` no formato `HH:mm`. Erros: `400` (parâmetros inválidos), `404` (clínica ou serviço não encontrado).
+Resposta `200`: `{ slots: [{ startTime, label }] }`, com `startTime` em ISO 8601 e `label` no formato `HH:mm`. Erros: `400` (parâmetros inválidos), `404` (barbearia ou serviço não encontrado).
 
 ## Scripts
 
