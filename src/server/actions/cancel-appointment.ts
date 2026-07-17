@@ -22,7 +22,7 @@ export async function cancelAppointmentByToken(input: unknown): Promise<ActionRe
   const { slug, token } = parsed.data;
 
   const clinic = await prisma.clinic.findUnique({
-    where: { slug },
+    where: { slug, deletedAt: null },
     select: { id: true },
   });
 

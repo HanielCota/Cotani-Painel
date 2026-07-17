@@ -39,7 +39,7 @@ export async function createPublicAppointment(_previousState: ActionResult, form
   }
 
   const clinic = await prisma.clinic.findUnique({
-    where: { slug: parsed.data.slug },
+    where: { slug: parsed.data.slug, deletedAt: null },
   });
 
   if (!clinic) {

@@ -22,7 +22,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 
   const clinic = await prisma.clinic.findUnique({
-    where: { slug },
+    where: { slug, deletedAt: null },
     select: { id: true, timeZone: true },
   });
 

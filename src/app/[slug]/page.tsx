@@ -14,7 +14,7 @@ interface PublicBookingPageProps {
 export async function generateMetadata({ params }: PublicBookingPageProps): Promise<Metadata> {
   const { slug } = await params;
   const clinic = await prisma.clinic.findUnique({
-    where: { slug },
+    where: { slug, deletedAt: null },
     select: { name: true },
   });
 
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: PublicBookingPageProps): Prom
 export default async function PublicBookingPage({ params }: PublicBookingPageProps) {
   const { slug } = await params;
   const clinic = await prisma.clinic.findUnique({
-    where: { slug },
+    where: { slug, deletedAt: null },
     select: {
       name: true,
       slug: true,

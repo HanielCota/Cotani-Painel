@@ -15,7 +15,7 @@ export async function GET() {
   }
 
   const clinic = await prisma.clinic.findUnique({
-    where: { clerkOrgId: orgId },
+    where: { clerkOrgId: orgId, deletedAt: null },
   });
 
   if (!clinic) {
