@@ -773,10 +773,6 @@ export type EnumNotificationStatusFieldUpdateOperationsInput = {
   set?: $Enums.NotificationStatus
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type NotificationCreateWithoutClinicInput = {
   id?: string
   kind: $Enums.NotificationKind

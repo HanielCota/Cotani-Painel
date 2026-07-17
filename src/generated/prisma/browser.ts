@@ -57,3 +57,8 @@ export type Appointment = Prisma.AppointmentModel
  * 
  */
 export type Notification = Prisma.NotificationModel
+/**
+ * Model WebhookEvent
+ * 
+ */
+export type WebhookEvent = Prisma.WebhookEventModel
