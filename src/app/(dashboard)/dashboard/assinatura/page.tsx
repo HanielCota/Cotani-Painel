@@ -1,15 +1,12 @@
-import { auth } from "@clerk/nextjs/server";
-import { CheckIcon, CreditCardIcon, MessageCircleIcon, XIcon } from "lucide-react";
+import { CheckIcon, CreditCardIcon, ExternalLinkIcon, XIcon } from "lucide-react";
 import type { Metadata } from "next";
 
-import { EmptyBarbershopState } from "@/components/dashboard/empty-barbershop-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SubscriptionStatus } from "@/generated/prisma/enums";
 import { isSubscriptionActive } from "@/server/subscription";
-import { getSelectedOrgId, requireActiveClinic } from "@/server/tenant";
+import { withTenant } from "@/server/with-tenant";
 
-export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Assinatura" };
 
 const statusLabel: Record<SubscriptionStatus, string> = {
@@ -26,15 +23,9 @@ const statusDescription: Record<SubscriptionStatus, string> = {
   CANCELED: "A assinatura foi cancelada. Renove para voltar a operar.",
 };
 
-export default async function AssinaturaPage() {
-  await auth.protect();
+const checkoutUrl = process.env.NEXT_PUBLIC_CHECKOUT_URL?.trim() || null;
 
-  const [clinic, selectedOrgId] = await Promise.all([requireActiveClinic(), getSelectedOrgId()]);
-
-  if (!clinic) {
-    return <EmptyBarbershopState selectedOrgId={selectedOrgId} />;
-  }
-
+export default withTenant(async ({ clinic }) => {
   const active = isSubscriptionActive(clinic);
 
   return (
@@ -76,7 +67,8 @@ export default async function AssinaturaPage() {
           <CardHeader>
             <CardTitle className="text-base">Renovar assinatura</CardTitle>
             <CardDescription>
-              Escolha uma opção abaixo. Assim que o pagamento for confirmado, o painel e o link público são reativados automaticamente.
+              Escolha uma opção abaixo. Assim que o pagamento for confirmado, o painel e o link público são
+              reativados automaticamente.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
@@ -93,35 +85,21 @@ export default async function AssinaturaPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              <Button
-                nativeButton={false}
-                render={
-                  <a
-                    href="https://wa.me/5511999999999?text=Olá,%20quero%20renovar%20minha%20assinatura%20do%20Cotani"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  />
-                }
-              >
-                <MessageCircleIcon className="mr-2 size-4" />
-                Renovar pelo WhatsApp
+            {checkoutUrl ? (
+              <Button nativeButton={false} render={<a href={checkoutUrl} target="_blank" rel="noopener noreferrer" />}>
+                <ExternalLinkIcon className="mr-2 size-4" />
+                Ir para o checkout
               </Button>
-              <Button
-                variant="outline"
-                nativeButton={false}
-                render={<a href="mailto:suporte@cotani.com.br?subject=Renovação%20Cotani" />}
-              >
-                Falar com suporte
-              </Button>
-            </div>
-
-            <p className="text-xs text-muted-foreground">
-              A integração automática com Mercado Pago está em desenvolvimento. Por enquanto a renovação é processada via WhatsApp ou e-mail.
-            </p>
+            ) : (
+              <div className="rounded-lg border bg-muted/50 p-4 text-sm text-muted-foreground">
+                O checkout automático ainda não está configurado. Configure a variável{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-xs">NEXT_PUBLIC_CHECKOUT_URL</code> para ativar o
+                botão de redirecionamento.
+              </div>
+            )}
           </CardContent>
         </Card>
       ) : null}
     </div>
   );
-}
+});

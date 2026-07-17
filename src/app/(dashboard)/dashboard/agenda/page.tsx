@@ -1,28 +1,18 @@
 import { CalendarDaysIcon } from "lucide-react";
-import { auth } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 
 import { AgendaAppointmentsList } from "@/components/dashboard/agenda-appointments-list";
 import { AgendaSetup } from "@/components/dashboard/agenda-setup";
 import { AppointmentForm } from "@/components/dashboard/appointment-form";
-import { EmptyBarbershopState } from "@/components/dashboard/empty-barbershop-state";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { mockCustomers, mockServices } from "@/lib/dashboard-mocks";
 import prisma from "@/lib/prisma";
 import { formatClinicDateTimeInput } from "@/lib/timezone";
-import { getSelectedOrgId, requireActiveClinic } from "@/server/tenant";
+import { withTenant } from "@/server/with-tenant";
 
-export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Agenda" };
 
-export default async function AgendaPage() {
-  await auth.protect();
-
-  const [clinic, selectedOrgId] = await Promise.all([requireActiveClinic(), getSelectedOrgId()]);
-
-  if (!clinic) {
-    return <EmptyBarbershopState selectedOrgId={selectedOrgId} />;
-  }
+export default withTenant(async ({ clinic }) => {
 
   const now = new Date();
   const [customers, services] =
@@ -67,4 +57,4 @@ export default async function AgendaPage() {
       </Card>
     </div>
   );
-}
+});

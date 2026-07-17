@@ -1,22 +1,12 @@
-import { auth } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 
-import { EmptyBarbershopState } from "@/components/dashboard/empty-barbershop-state";
 import { ReportsKpiCards } from "@/components/dashboard/reports-kpi-cards";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getSelectedOrgId, requireActiveClinic } from "@/server/tenant";
+import { withTenant } from "@/server/with-tenant";
 
-export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Relatórios" };
 
-export default async function RelatoriosPage() {
-  await auth.protect();
-
-  const [clinic, selectedOrgId] = await Promise.all([requireActiveClinic(), getSelectedOrgId()]);
-
-  if (!clinic) {
-    return <EmptyBarbershopState selectedOrgId={selectedOrgId} />;
-  }
+export default withTenant(async ({ clinic }) => {
 
   return (
     <div className="flex flex-col gap-6">
@@ -38,4 +28,4 @@ export default async function RelatoriosPage() {
       </Card>
     </div>
   );
-}
+});

@@ -47,7 +47,7 @@ export const getTenantContext = cache(async (): Promise<TenantContext> => {
 
   const membership = await prisma.membership.findFirst({
     where: {
-      clinic: { clerkOrgId: orgId },
+      clinic: { clerkOrgId: orgId, deletedAt: null },
       user: { clerkUserId: userId },
     },
     include: { clinic: true },
@@ -86,6 +86,7 @@ export async function requireActiveClinic() {
   const clinic = await prisma.clinic.findUnique({
     where: {
       clerkOrgId: orgId,
+      deletedAt: null,
     },
   });
 

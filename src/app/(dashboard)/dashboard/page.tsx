@@ -1,37 +1,41 @@
-import { ArrowRightIcon, CalendarDaysIcon, CalendarPlusIcon, LinkIcon, SettingsIcon } from "lucide-react";
-import { auth } from "@clerk/nextjs/server";
+import { Suspense } from "react";
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import Link from "next/link";
+import {
+  ArrowRightIcon,
+  CalendarDaysIcon,
+  CalendarPlusIcon,
+  LinkIcon,
+  ScissorsIcon,
+  SettingsIcon,
+} from "lucide-react";
 
 import { CopyBookingLink } from "@/components/dashboard/copy-booking-link";
-import { DashboardMetricCards } from "@/components/dashboard/dashboard-metric-cards";
-import { EmptyBarbershopState } from "@/components/dashboard/empty-barbershop-state";
+import { DashboardCard } from "@/components/dashboard/dashboard-card";
+import {
+  DashboardMetricCards,
+  DashboardMetricCardsSkeleton,
+} from "@/components/dashboard/dashboard-metric-cards";
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
-import { TodayAgendaList } from "@/components/dashboard/today-agenda-list";
-import { UpcomingAppointmentsList } from "@/components/dashboard/upcoming-appointments-list";
+import {
+  TodayAgendaList,
+  TodayAgendaListSkeleton,
+} from "@/components/dashboard/today-agenda-list";
+import {
+  UpcomingAppointmentsList,
+  UpcomingAppointmentsListSkeleton,
+} from "@/components/dashboard/upcoming-appointments-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import prisma from "@/lib/prisma";
+import { getPublicBookingUrl } from "@/lib/url";
 import { isSubscriptionActive } from "@/server/subscription";
-import { getSelectedOrgId, requireActiveClinic } from "@/server/tenant";
+import { withTenant } from "@/server/with-tenant";
 
-export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Visão geral" };
 
-export default async function DashboardPage() {
-  await auth.protect();
-
-  const [clinic, selectedOrgId] = await Promise.all([requireActiveClinic(), getSelectedOrgId()]);
-
-  if (!clinic) {
-    return <EmptyBarbershopState selectedOrgId={selectedOrgId} />;
-  }
-
-  const headersList = await headers();
-  const host = headersList.get("x-forwarded-host") ?? headersList.get("host") ?? "";
-  const protocol = headersList.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  const bookingUrl = `${protocol}://${host}/${clinic.slug}`;
+export default withTenant(async ({ clinic }) => {
+  const bookingUrl = await getPublicBookingUrl(clinic.slug);
 
   const [servicesCount, businessHoursCount] = await Promise.all([
     prisma.service.count({ where: { clinicId: clinic.id, isActive: true } }),
@@ -44,7 +48,7 @@ export default async function DashboardPage() {
   const showOnboarding = !subscriptionActive || !hasServices || !hasBusinessHours;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6 pt-8">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">Painel de controle</h1>
         <p className="text-sm text-muted-foreground">Acompanhe a operação da {clinic.name} em tempo real.</p>
@@ -59,62 +63,60 @@ export default async function DashboardPage() {
         />
       ) : null}
 
-      <DashboardMetricCards />
+      <Suspense fallback={<DashboardMetricCardsSkeleton />}>
+        <DashboardMetricCards clinic={clinic} />
+      </Suspense>
 
-      <section className="grid gap-4 md:grid-cols-3">
-        <Card className="border border-border/80 shadow-sm" size="sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <LinkIcon className="size-4 text-primary" />
-              Link de agendamento
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <CardDescription className="text-xs">
-              É por esse endereço que seus clientes acessam o agendamento público.
-            </CardDescription>
-            <CopyBookingLink url={bookingUrl} />
-          </CardContent>
-        </Card>
+      <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <DashboardCard
+          icon={LinkIcon}
+          title="Link de agendamento"
+          description="Endereço público que seus clientes usam para agendar."
+        >
+          <CopyBookingLink url={bookingUrl} />
+        </DashboardCard>
 
-        <Card className="border border-border/80 shadow-sm" size="sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <CalendarPlusIcon className="size-4 text-primary" />
-              Nova venda
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CardDescription className="text-xs">Registre um agendamento ou atendimento rápido.</CardDescription>
-          </CardContent>
-          <CardFooter className="pt-0">
-            <Button nativeButton={false} render={<Link href="/dashboard/agenda" />} size="sm" className="w-full">
-              Abrir agenda
-              <ArrowRightIcon data-icon="inline-end" className="size-3.5" />
-            </Button>
-          </CardFooter>
-        </Card>
+        <DashboardCard
+          icon={CalendarPlusIcon}
+          title="Nova venda"
+          description="Registre um agendamento ou atendimento rápido."
+        >
+          <Button nativeButton={false} render={<Link href="/dashboard/agenda" />} size="sm" className="w-full">
+            Abrir agenda
+            <ArrowRightIcon data-icon="inline-end" className="size-3.5" />
+          </Button>
+        </DashboardCard>
 
-        <Card className="border border-border/80 shadow-sm" size="sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <SettingsIcon className="size-4 text-primary" />
-              Configurar horários
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CardDescription className="text-xs">Ajuste serviços, expediente e regras de negócio.</CardDescription>
-          </CardContent>
-          <CardFooter className="pt-0">
-            <Button nativeButton={false} render={<Link href="/dashboard/configuracoes" />} size="sm" className="w-full">
-              Abrir configurações
-              <ArrowRightIcon data-icon="inline-end" className="size-3.5" />
-            </Button>
-          </CardFooter>
-        </Card>
+        <DashboardCard
+          icon={SettingsIcon}
+          title="Configurar horários"
+          description="Ajuste serviços, expediente e regras de negócio."
+        >
+          <Button nativeButton={false} render={<Link href="/dashboard/configuracoes" />} size="sm" className="w-full">
+            Abrir configurações
+            <ArrowRightIcon data-icon="inline-end" className="size-3.5" />
+          </Button>
+        </DashboardCard>
+
+        <DashboardCard
+          icon={ScissorsIcon}
+          title="Serviços"
+          description={`${servicesCount} serviço${servicesCount === 1 ? "" : "s"} ativo${servicesCount === 1 ? "" : "s"} cadastrado${servicesCount === 1 ? "" : "s"}.`}
+        >
+          <Button
+            nativeButton={false}
+            render={<Link href="/dashboard/configuracoes" />}
+            variant="outline"
+            size="sm"
+            className="w-full"
+          >
+            Gerenciar
+            <ArrowRightIcon data-icon="inline-end" className="size-3.5" />
+          </Button>
+        </DashboardCard>
       </section>
 
-      <div className="grid gap-5 xl:grid-cols-2">
+      <div className="grid gap-6 xl:grid-cols-2">
         <Card className="border border-border/80 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
@@ -123,7 +125,9 @@ export default async function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <UpcomingAppointmentsList timeZone={clinic.timeZone} />
+            <Suspense fallback={<UpcomingAppointmentsListSkeleton />}>
+              <UpcomingAppointmentsList clinic={clinic} />
+            </Suspense>
           </CardContent>
           <CardFooter>
             <Button nativeButton={false} render={<Link href="/dashboard/agenda" />} variant="outline" size="sm">
@@ -142,7 +146,9 @@ export default async function DashboardPage() {
             <CardDescription>Atendimentos confirmados e pendentes do dia.</CardDescription>
           </CardHeader>
           <CardContent>
-            <TodayAgendaList timeZone={clinic.timeZone} />
+            <Suspense fallback={<TodayAgendaListSkeleton />}>
+              <TodayAgendaList clinic={clinic} />
+            </Suspense>
           </CardContent>
           <CardFooter>
             <Button nativeButton={false} render={<Link href="/dashboard/agenda" />} variant="outline" size="sm">
@@ -154,4 +160,4 @@ export default async function DashboardPage() {
       </div>
     </div>
   );
-}
+});

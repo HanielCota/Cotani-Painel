@@ -1,27 +1,17 @@
 import { SettingsIcon } from "lucide-react";
-import { auth } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 
 import { BusinessHoursSettings } from "@/components/dashboard/business-hours-settings";
-import { EmptyBarbershopState } from "@/components/dashboard/empty-barbershop-state";
 import { ServicesSettings } from "@/components/dashboard/services-settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import prisma from "@/lib/prisma";
-import { getSelectedOrgId, requireActiveClinic } from "@/server/tenant";
+import { withTenant } from "@/server/with-tenant";
 import type { BusinessHourItem } from "@/types";
 
-export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Configurações" };
 
-export default async function ConfiguracoesPage() {
-  await auth.protect();
-
-  const [clinic, selectedOrgId] = await Promise.all([requireActiveClinic(), getSelectedOrgId()]);
-
-  if (!clinic) {
-    return <EmptyBarbershopState selectedOrgId={selectedOrgId} />;
-  }
+export default withTenant(async ({ clinic }) => {
 
   const businessHours = await prisma.businessHour.findMany({
     where: { clinicId: clinic.id },
@@ -73,4 +63,4 @@ export default async function ConfiguracoesPage() {
       </Card>
     </div>
   );
-}
+});
