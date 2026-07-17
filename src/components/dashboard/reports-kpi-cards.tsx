@@ -13,10 +13,10 @@ export function ReportsKpiCards() {
 
   if (isPending) {
     return (
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
         {[0, 1, 2].map((card) => (
           <Card key={card} className="border border-border/80 shadow-sm">
-            <CardContent className="flex flex-col gap-3 pt-6">
+            <CardContent className="flex flex-col gap-3">
               <Skeleton className="h-4 w-28" />
               <Skeleton className="h-9 w-16" />
               <Skeleton className="h-3 w-36" />
@@ -37,7 +37,7 @@ export function ReportsKpiCards() {
   }
 
   return (
-    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
       <MetricCard
         title="Taxa de confirmação"
         value={`${metrics.confirmationRate}%`}
