@@ -18,6 +18,55 @@ function slugify(value: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+/**
+ * Garante que o e-mail do usuário esteja verified no Clerk.
+ * Estratégia:
+ * 1. Se o usuário não existe, cria sem e-mail e depois cria o e-mail já verificado.
+ * 2. Se o usuário existe, verifica o e-mail primário existente.
+ */
+async function ensureVerifiedClerkUser(clerk: Awaited<ReturnType<typeof clerkClient>>, email: string) {
+  const users = await clerk.users.getUserList({ emailAddress: [email] });
+  const existing = users.data[0];
+
+  if (existing) {
+    const primaryEmailId = existing.primaryEmailAddressId;
+
+    if (!primaryEmailId) {
+      // Usuário existe sem e-mail primário — cria um verificado.
+      const created = await clerk.emailAddresses.createEmailAddress({
+        emailAddress: email,
+        userId: existing.id,
+        verified: true,
+        primary: true,
+      });
+      return { clerkUserId: existing.id, emailVerified: created.verification?.status === "verified" };
+    }
+
+    const primaryEmail = existing.emailAddresses.find((item) => item.id === primaryEmailId);
+
+    if (primaryEmail?.verification?.status === "verified") {
+      return { clerkUserId: existing.id, emailVerified: true };
+    }
+
+    await clerk.emailAddresses.updateEmailAddress(primaryEmailId, { verified: true });
+    return { clerkUserId: existing.id, emailVerified: true };
+  }
+
+  // Cria usuário sem e-mail para depois adicionar o e-mail já verificado.
+  const newUser = await clerk.users.createUser({
+    password: "cotani-dev-123",
+  });
+
+  const createdEmail = await clerk.emailAddresses.createEmailAddress({
+    emailAddress: email,
+    userId: newUser.id,
+    verified: true,
+    primary: true,
+  });
+
+  return { clerkUserId: newUser.id, emailVerified: createdEmail.verification?.status === "verified" };
+}
+
 export async function POST(request: NextRequest) {
   if (process.env.NODE_ENV !== "development") {
     return NextResponse.json({ message: "Disponível apenas em desenvolvimento." }, { status: 403 });
@@ -33,30 +82,8 @@ export async function POST(request: NextRequest) {
   try {
     const clerk = await getClerk();
 
-    // 1. Cria ou encontra usuário no Clerk
-    const users = await clerk.users.getUserList({ emailAddress: [email] });
-    let clerkUserId = users.data[0]?.id;
-
-    let emailVerified = false;
-
-    if (!clerkUserId) {
-      const newUser = await clerk.users.createUser({
-        emailAddress: [email],
-        password: "cotani-dev-123",
-      });
-      clerkUserId = newUser.id;
-
-      if (newUser.primaryEmailAddressId) {
-        await clerk.emailAddresses.updateEmailAddress(newUser.primaryEmailAddressId, { verified: true });
-        emailVerified = true;
-      }
-    } else {
-      const existingUser = await clerk.users.getUser(clerkUserId);
-      if (existingUser.primaryEmailAddressId) {
-        await clerk.emailAddresses.updateEmailAddress(existingUser.primaryEmailAddressId, { verified: true });
-        emailVerified = true;
-      }
-    }
+    // 1. Cria ou encontra usuário no Clerk com e-mail verificado
+    const { clerkUserId, emailVerified } = await ensureVerifiedClerkUser(clerk, email);
 
     // 2. Cria organização
     const organization = await clerk.organizations.createOrganization({
@@ -65,12 +92,8 @@ export async function POST(request: NextRequest) {
       publicMetadata: { subscription_status: "active" },
     });
 
-    // 3. Adiciona usuário como admin da organização
-    await clerk.organizations.createOrganizationMembership({
-      organizationId: organization.id,
-      userId: clerkUserId,
-      role: "org:admin",
-    });
+    // 3. O usuário criador já é adicionado como admin da organização pelo Clerk
+    //    quando usamos createdBy, então não precisamos chamar createOrganizationMembership.
 
     // 4. Sincroniza no banco
     const slug = `${slugify(barbershopName)}-${organization.id.slice(-6).toLowerCase()}`;
@@ -132,7 +155,13 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erro desconhecido";
+    const stack = error instanceof Error ? error.stack : undefined;
 
-    return NextResponse.json({ message: "Falha ao provisionar barbearia de teste.", error: message }, { status: 500 });
+    console.error("[seed-dev] Falha ao provisionar barbearia de teste:", error);
+
+    return NextResponse.json(
+      { message: "Falha ao provisionar barbearia de teste.", error: message, stack },
+      { status: 500 },
+    );
   }
 }
