@@ -23,8 +23,7 @@ const statusMessage: Record<SubscriptionStatus, { title: string; description: st
   },
   CANCELED: {
     title: "Assinatura cancelada",
-    description:
-      "O agendamento público está desativado. Entre em contato para reativar a barbearia.",
+    description: "O agendamento público está desativado. Renove o plano para voltar a operar.",
   },
 };
 

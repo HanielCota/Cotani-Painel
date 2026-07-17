@@ -19,6 +19,14 @@ export const appointmentStatusLabel = {
   NO_SHOW: "Não compareceu",
 } as const;
 
+const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  CONFIRMED: "default",
+  PENDING: "secondary",
+  COMPLETED: "outline",
+  CANCELED: "destructive",
+  NO_SHOW: "destructive",
+};
+
 interface AgendaAppointmentsListProps {
   timeZone: string;
   minStartTime: string;
@@ -72,20 +80,33 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule }: 
         }).format(startTime);
 
         return (
-          <div key={appointment.id} className="flex flex-col gap-4 py-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="min-w-0">
-              <p className="font-medium">{appointment.customerName}</p>
-              <p className="text-sm text-muted-foreground">{appointment.serviceName} · {dateTime}</p>
+          <div
+            key={appointment.id}
+            className="flex flex-col gap-3 py-3 xl:flex-row xl:items-center xl:justify-between"
+          >
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex size-10 shrink-0 flex-col items-center justify-center rounded-md border bg-muted text-xs font-medium">
+                <span>{startTime.toLocaleDateString("pt-BR", { day: "2-digit", timeZone })}</span>
+                <span className="text-[10px] text-muted-foreground">
+                  {startTime.toLocaleDateString("pt-BR", { month: "short", timeZone })}
+                </span>
+              </div>
+              <div className="min-w-0">
+                <p className="font-medium">{appointment.customerName}</p>
+                <p className="text-sm text-muted-foreground">{appointment.serviceName} · {dateTime}</p>
+              </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 xl:justify-end">
-              <Badge variant={appointment.status === "CONFIRMED" ? "default" : "secondary"}>
+              <Badge variant={statusVariant[appointment.status] ?? "secondary"}>
                 {appointmentStatusLabel[appointment.status]}
               </Badge>
-              <RescheduleAppointmentDialog
-                appointmentId={appointment.id}
-                currentStartTime={formatClinicDateTimeInput(startTime, timeZone)}
-                minStartTime={minStartTime}
-              />
+              {appointment.status !== "CANCELED" && appointment.status !== "NO_SHOW" && appointment.status !== "COMPLETED" ? (
+                <RescheduleAppointmentDialog
+                  appointmentId={appointment.id}
+                  currentStartTime={formatClinicDateTimeInput(startTime, timeZone)}
+                  minStartTime={minStartTime}
+                />
+              ) : null}
               <AppointmentActions appointmentId={appointment.id} status={appointment.status} />
             </div>
           </div>

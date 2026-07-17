@@ -1,48 +1,47 @@
-"use client";
-
 import { CalendarX2Icon } from "lucide-react";
 
 import { appointmentStatusLabel } from "@/components/dashboard/agenda-appointments-list";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAppointments } from "@/hooks/use-appointments";
-import { getClinicDateBounds } from "@/lib/timezone";
+import type { ClinicModel } from "@/generated/prisma/models/Clinic";
+import { getTodayAppointments } from "@/server/services/appointments";
 
 interface TodayAgendaListProps {
-  timeZone: string;
+  clinic: ClinicModel;
 }
 
-export function TodayAgendaList({ timeZone }: TodayAgendaListProps) {
-  const { data: appointments, isPending, isError } = useAppointments();
+const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  CONFIRMED: "default",
+  PENDING: "secondary",
+  COMPLETED: "outline",
+  CANCELED: "destructive",
+  NO_SHOW: "destructive",
+};
 
-  if (isPending) {
-    return (
-      <div className="flex flex-col gap-3">
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-      </div>
-    );
-  }
+export function TodayAgendaListSkeleton() {
+  return (
+    <div className="flex flex-col">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <div key={index} className="flex items-center justify-between gap-4 border-b py-2 last:border-b-0">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-5 w-10 rounded-md" />
+            <div className="flex flex-col gap-1">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-3 w-36" />
+            </div>
+          </div>
+          <Skeleton className="h-5 w-16" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
-  if (isError) {
-    return (
-      <Alert variant="destructive">
-        <AlertTitle>Não foi possível carregar a agenda de hoje</AlertTitle>
-        <AlertDescription>Verifique sua conexão e tente novamente em instantes.</AlertDescription>
-      </Alert>
-    );
-  }
+export async function TodayAgendaList({ clinic }: TodayAgendaListProps) {
+  const appointments = await getTodayAppointments(clinic);
 
-  const { startOfToday, startOfTomorrow } = getClinicDateBounds(timeZone);
-  const todayAppointments = (appointments ?? []).filter((appointment) => {
-    const startTime = new Date(appointment.startTime);
-
-    return startTime >= startOfToday && startTime < startOfTomorrow;
-  });
-
-  if (todayAppointments.length === 0) {
+  if (appointments.length === 0) {
     return (
       <Empty className="min-h-32 border-0 bg-muted/30">
         <EmptyHeader>
@@ -55,21 +54,29 @@ export function TodayAgendaList({ timeZone }: TodayAgendaListProps) {
   }
 
   return (
-    <div className="flex flex-col divide-y">
-      {todayAppointments.map((appointment) => {
+    <div className="flex flex-col">
+      {appointments.map((appointment) => {
         const time = new Intl.DateTimeFormat("pt-BR", {
           timeStyle: "short",
-          timeZone,
-        }).format(new Date(appointment.startTime));
+          timeZone: clinic.timeZone,
+        }).format(appointment.startTime);
 
         return (
-          <div key={appointment.id} className="flex items-center justify-between gap-4 py-3">
-            <div className="min-w-0">
-              <p className="font-medium">{appointment.customerName}</p>
-              <p className="text-sm text-muted-foreground">{appointment.serviceName} · {time}</p>
+          <div
+            key={appointment.id}
+            className="flex items-center justify-between gap-4 border-b py-2 last:border-b-0"
+          >
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-5 w-10 shrink-0 items-center justify-center rounded-md border bg-muted text-xs font-medium">
+                {time}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate font-medium">{appointment.customerName}</p>
+                <p className="truncate text-xs text-muted-foreground">{appointment.serviceName}</p>
+              </div>
             </div>
-            <Badge variant={appointment.status === "CONFIRMED" ? "default" : "secondary"}>
-              {appointmentStatusLabel[appointment.status]}
+            <Badge variant={statusVariant[appointment.status] ?? "secondary"}>
+              {appointmentStatusLabel[appointment.status as keyof typeof appointmentStatusLabel]}
             </Badge>
           </div>
         );

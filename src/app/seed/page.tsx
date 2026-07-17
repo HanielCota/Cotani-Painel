@@ -39,10 +39,11 @@ export default function SeedPage() {
         body: JSON.stringify({ email, name }),
       });
 
-      const data = (await response.json()) as SeedResult & { message?: string; error?: string };
+      const data = (await response.json()) as SeedResult & { message?: string; error?: string; stack?: string };
 
       if (!response.ok) {
-        setError(data.message ?? data.error ?? "Erro ao provisionar conta de teste.");
+        const detail = data.error ?? data.stack ?? data.message ?? "Erro ao provisionar conta de teste.";
+        setError(detail);
         return;
       }
 

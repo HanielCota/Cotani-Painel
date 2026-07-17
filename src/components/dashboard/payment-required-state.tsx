@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CreditCardIcon, MessageCircleIcon } from "lucide-react";
+import { CreditCardIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,20 +30,7 @@ export function PaymentRequiredState({ barbershopName }: PaymentRequiredStatePro
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent className="flex max-w-md flex-col gap-3">
-        <Button
-          nativeButton={false}
-          render={
-            <a
-              href="https://wa.me/5511999999999?text=Olá,%20quero%20contratar%20o%20Cotani"
-              target="_blank"
-              rel="noopener noreferrer"
-            />
-          }
-        >
-          <MessageCircleIcon className="mr-2 size-4" />
-          Contratar pelo WhatsApp
-        </Button>
-        <Button variant="outline" nativeButton={false} render={<Link href="/dashboard/assinatura" />}>
+        <Button nativeButton={false} render={<Link href="/dashboard/assinatura" />}>
           Ver opções de assinatura
         </Button>
       </EmptyContent>

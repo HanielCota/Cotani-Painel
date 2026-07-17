@@ -24,13 +24,24 @@ const actionLabels = {
   NO_SHOW: { label: "Não compareceu", icon: UserRoundXIcon, variant: "outline" as const },
 };
 
+const actionConfirmations: Partial<Record<keyof typeof actionLabels, string>> = {
+  CANCELED: "Tem certeza que deseja cancelar este atendimento? O horário será liberado.",
+  NO_SHOW: "Deseja marcar este atendimento como falta?",
+};
+
 export function AppointmentActions({ appointmentId, status }: AppointmentActionsProps) {
   const [result, setResult] = useState<ActionResult | null>(null);
   const [isPending, startTransition] = useTransition();
   const queryClient = useQueryClient();
-  const actions = status === "PENDING" ? ["CONFIRMED", "CANCELED", "NO_SHOW"] as const : ["COMPLETED", "CANCELED", "NO_SHOW"] as const;
+  const actions = status === "PENDING" ? (["CONFIRMED", "CANCELED", "NO_SHOW"] as const) : (["COMPLETED", "CANCELED", "NO_SHOW"] as const);
 
   function handleStatusChange(nextStatus: (typeof actions)[number]) {
+    const confirmation = actionConfirmations[nextStatus];
+
+    if (confirmation && !window.confirm(confirmation)) {
+      return;
+    }
+
     startTransition(async () => {
       const nextResult = await updateAppointmentStatus(appointmentId, nextStatus);
 
@@ -50,7 +61,14 @@ export function AppointmentActions({ appointmentId, status }: AppointmentActions
           const Icon = action.icon;
 
           return (
-            <Button key={nextStatus} type="button" size="sm" variant={action.variant} disabled={isPending} onClick={() => handleStatusChange(nextStatus)}>
+            <Button
+              key={nextStatus}
+              type="button"
+              size="sm"
+              variant={action.variant}
+              disabled={isPending}
+              onClick={() => handleStatusChange(nextStatus)}
+            >
               {isPending ? <Spinner data-icon="inline-start" /> : <Icon data-icon="inline-start" />}
               {action.label}
             </Button>

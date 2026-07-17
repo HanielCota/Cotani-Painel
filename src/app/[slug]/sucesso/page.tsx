@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { CalendarCheckIcon, CalendarIcon, ClockIcon, MapPinIcon, ScissorsIcon } from "lucide-react";
 import Link from "next/link";
-import { CalendarCheckIcon, ClockIcon, MapPinIcon, ScissorsIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +37,8 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
     notFound();
   }
 
+  const formattedDate = date ? format(parseISO(date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : null;
+
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 px-4 py-10">
       <Card className="border border-border/80 shadow-sm" role="status">
@@ -65,13 +69,13 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
                 <dd className="font-medium">{service}</dd>
               </div>
             ) : null}
-            {date ? (
+            {formattedDate ? (
               <div className="flex items-center justify-between gap-4 border-b pb-3">
                 <dt className="flex items-center gap-2 text-muted-foreground">
-                  <CalendarCheckIcon aria-hidden="true" className="size-4" />
+                  <CalendarIcon aria-hidden="true" className="size-4" />
                   Data
                 </dt>
-                <dd className="font-medium">{date}</dd>
+                <dd className="font-medium">{formattedDate}</dd>
               </div>
             ) : null}
             {time ? (

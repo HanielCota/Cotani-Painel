@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { CalendarXIcon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -35,11 +36,16 @@ export function CancelAppointmentForm({ slug, token }: CancelAppointmentFormProp
 
   if (result?.status === "success") {
     return (
-      <Alert variant="default">
-        <CalendarXIcon aria-hidden="true" />
-        <AlertTitle>Agendamento cancelado</AlertTitle>
-        <AlertDescription>{result.message}</AlertDescription>
-      </Alert>
+      <div className="flex flex-col gap-4 rounded-lg border p-4">
+        <Alert variant="default">
+          <CalendarXIcon aria-hidden="true" />
+          <AlertTitle>Agendamento cancelado</AlertTitle>
+          <AlertDescription>{result.message}</AlertDescription>
+        </Alert>
+        <Button nativeButton={false} render={<Link href={`/${slug}`} />} variant="outline">
+          Fazer novo agendamento
+        </Button>
+      </div>
     );
   }
 

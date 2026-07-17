@@ -44,15 +44,20 @@ const managementItems: NavigationItem[] = [
   { title: "Assinatura", href: "/dashboard/assinatura", icon: CreditCardIcon },
 ];
 
+/**
+ * Determina se um item de navegação está ativo.
+ * - Match exato do pathname com o href.
+ * - Para itens de sub-rota, ativa também quando pathname começa com "href/".
+ * - A rota raiz "/dashboard" nunca é ativada por sub-rotas.
+ */
 function isActivePath(pathname: string, href: string): boolean {
   if (pathname === href) return true;
-  // Evita que "/dashboard" conflite com sub-rotas como "/dashboard/agenda".
   if (href === "/dashboard") return false;
   return pathname.startsWith(`${href}/`);
 }
 
 function NavItems({ items }: { items: NavigationItem[] }) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
 
   return (
     <SidebarMenu className="gap-1">
@@ -66,7 +71,7 @@ function NavItems({ items }: { items: NavigationItem[] }) {
               render={<Link href={item.href} />}
               isActive={isActive}
               tooltip={item.title}
-              className="h-10 rounded-lg px-3 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-sm"
+              className="h-10 rounded-lg px-3 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-sm"
             >
               <Icon className="size-4" />
               <span>{item.title}</span>
