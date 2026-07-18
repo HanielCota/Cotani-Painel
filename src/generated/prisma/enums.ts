@@ -28,6 +28,14 @@ export const SubscriptionStatus = {
 export type SubscriptionStatus = (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus]
 
 
+export const SubscriptionPlan = {
+  MONTHLY: 'MONTHLY',
+  ANNUAL: 'ANNUAL'
+} as const
+
+export type SubscriptionPlan = (typeof SubscriptionPlan)[keyof typeof SubscriptionPlan]
+
+
 export const AppointmentStatus = {
   PENDING: 'PENDING',
   CONFIRMED: 'CONFIRMED',

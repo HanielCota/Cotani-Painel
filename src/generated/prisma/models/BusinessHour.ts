@@ -527,10 +527,6 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type BusinessHourCreateWithoutClinicInput = {
   id?: string
   dayOfWeek: number

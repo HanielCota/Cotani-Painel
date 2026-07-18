@@ -31,7 +31,10 @@ export type ClinicMinAggregateOutputType = {
   slug: string | null
   timeZone: string | null
   subscriptionStatus: $Enums.SubscriptionStatus | null
+  subscriptionPlan: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt: Date | null
   hasPaidOnce: boolean | null
+  mercadoPagoSubscriptionId: string | null
   deletedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -44,7 +47,10 @@ export type ClinicMaxAggregateOutputType = {
   slug: string | null
   timeZone: string | null
   subscriptionStatus: $Enums.SubscriptionStatus | null
+  subscriptionPlan: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt: Date | null
   hasPaidOnce: boolean | null
+  mercadoPagoSubscriptionId: string | null
   deletedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -57,7 +63,10 @@ export type ClinicCountAggregateOutputType = {
   slug: number
   timeZone: number
   subscriptionStatus: number
+  subscriptionPlan: number
+  subscriptionExpiresAt: number
   hasPaidOnce: number
+  mercadoPagoSubscriptionId: number
   deletedAt: number
   createdAt: number
   updatedAt: number
@@ -72,7 +81,10 @@ export type ClinicMinAggregateInputType = {
   slug?: true
   timeZone?: true
   subscriptionStatus?: true
+  subscriptionPlan?: true
+  subscriptionExpiresAt?: true
   hasPaidOnce?: true
+  mercadoPagoSubscriptionId?: true
   deletedAt?: true
   createdAt?: true
   updatedAt?: true
@@ -85,7 +97,10 @@ export type ClinicMaxAggregateInputType = {
   slug?: true
   timeZone?: true
   subscriptionStatus?: true
+  subscriptionPlan?: true
+  subscriptionExpiresAt?: true
   hasPaidOnce?: true
+  mercadoPagoSubscriptionId?: true
   deletedAt?: true
   createdAt?: true
   updatedAt?: true
@@ -98,7 +113,10 @@ export type ClinicCountAggregateInputType = {
   slug?: true
   timeZone?: true
   subscriptionStatus?: true
+  subscriptionPlan?: true
+  subscriptionExpiresAt?: true
   hasPaidOnce?: true
+  mercadoPagoSubscriptionId?: true
   deletedAt?: true
   createdAt?: true
   updatedAt?: true
@@ -184,7 +202,10 @@ export type ClinicGroupByOutputType = {
   slug: string
   timeZone: string
   subscriptionStatus: $Enums.SubscriptionStatus
+  subscriptionPlan: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt: Date | null
   hasPaidOnce: boolean
+  mercadoPagoSubscriptionId: string | null
   deletedAt: Date | null
   createdAt: Date
   updatedAt: Date
@@ -218,7 +239,10 @@ export type ClinicWhereInput = {
   slug?: Prisma.StringFilter<"Clinic"> | string
   timeZone?: Prisma.StringFilter<"Clinic"> | string
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFilter<"Clinic"> | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.EnumSubscriptionPlanNullableFilter<"Clinic"> | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.DateTimeNullableFilter<"Clinic"> | Date | string | null
   hasPaidOnce?: Prisma.BoolFilter<"Clinic"> | boolean
+  mercadoPagoSubscriptionId?: Prisma.StringNullableFilter<"Clinic"> | string | null
   deletedAt?: Prisma.DateTimeNullableFilter<"Clinic"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Clinic"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Clinic"> | Date | string
@@ -237,7 +261,10 @@ export type ClinicOrderByWithRelationInput = {
   slug?: Prisma.SortOrder
   timeZone?: Prisma.SortOrder
   subscriptionStatus?: Prisma.SortOrder
+  subscriptionPlan?: Prisma.SortOrderInput | Prisma.SortOrder
+  subscriptionExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   hasPaidOnce?: Prisma.SortOrder
+  mercadoPagoSubscriptionId?: Prisma.SortOrderInput | Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -253,12 +280,15 @@ export type ClinicWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   clerkOrgId?: string
   slug?: string
+  mercadoPagoSubscriptionId?: string
   AND?: Prisma.ClinicWhereInput | Prisma.ClinicWhereInput[]
   OR?: Prisma.ClinicWhereInput[]
   NOT?: Prisma.ClinicWhereInput | Prisma.ClinicWhereInput[]
   name?: Prisma.StringFilter<"Clinic"> | string
   timeZone?: Prisma.StringFilter<"Clinic"> | string
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFilter<"Clinic"> | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.EnumSubscriptionPlanNullableFilter<"Clinic"> | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.DateTimeNullableFilter<"Clinic"> | Date | string | null
   hasPaidOnce?: Prisma.BoolFilter<"Clinic"> | boolean
   deletedAt?: Prisma.DateTimeNullableFilter<"Clinic"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Clinic"> | Date | string
@@ -269,7 +299,7 @@ export type ClinicWhereUniqueInput = Prisma.AtLeast<{
   appointments?: Prisma.AppointmentListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
   businessHours?: Prisma.BusinessHourListRelationFilter
-}, "id" | "clerkOrgId" | "slug">
+}, "id" | "clerkOrgId" | "slug" | "mercadoPagoSubscriptionId">
 
 export type ClinicOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -278,7 +308,10 @@ export type ClinicOrderByWithAggregationInput = {
   slug?: Prisma.SortOrder
   timeZone?: Prisma.SortOrder
   subscriptionStatus?: Prisma.SortOrder
+  subscriptionPlan?: Prisma.SortOrderInput | Prisma.SortOrder
+  subscriptionExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   hasPaidOnce?: Prisma.SortOrder
+  mercadoPagoSubscriptionId?: Prisma.SortOrderInput | Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -297,7 +330,10 @@ export type ClinicScalarWhereWithAggregatesInput = {
   slug?: Prisma.StringWithAggregatesFilter<"Clinic"> | string
   timeZone?: Prisma.StringWithAggregatesFilter<"Clinic"> | string
   subscriptionStatus?: Prisma.EnumSubscriptionStatusWithAggregatesFilter<"Clinic"> | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.EnumSubscriptionPlanNullableWithAggregatesFilter<"Clinic"> | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Clinic"> | Date | string | null
   hasPaidOnce?: Prisma.BoolWithAggregatesFilter<"Clinic"> | boolean
+  mercadoPagoSubscriptionId?: Prisma.StringNullableWithAggregatesFilter<"Clinic"> | string | null
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Clinic"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Clinic"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Clinic"> | Date | string
@@ -310,7 +346,10 @@ export type ClinicCreateInput = {
   slug: string
   timeZone?: string
   subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -329,7 +368,10 @@ export type ClinicUncheckedCreateInput = {
   slug: string
   timeZone?: string
   subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -348,7 +390,10 @@ export type ClinicUpdateInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -367,7 +412,10 @@ export type ClinicUncheckedUpdateInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -386,7 +434,10 @@ export type ClinicCreateManyInput = {
   slug: string
   timeZone?: string
   subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -399,7 +450,10 @@ export type ClinicUpdateManyMutationInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -412,7 +466,10 @@ export type ClinicUncheckedUpdateManyInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -425,7 +482,10 @@ export type ClinicCountOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   timeZone?: Prisma.SortOrder
   subscriptionStatus?: Prisma.SortOrder
+  subscriptionPlan?: Prisma.SortOrder
+  subscriptionExpiresAt?: Prisma.SortOrder
   hasPaidOnce?: Prisma.SortOrder
+  mercadoPagoSubscriptionId?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -438,7 +498,10 @@ export type ClinicMaxOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   timeZone?: Prisma.SortOrder
   subscriptionStatus?: Prisma.SortOrder
+  subscriptionPlan?: Prisma.SortOrder
+  subscriptionExpiresAt?: Prisma.SortOrder
   hasPaidOnce?: Prisma.SortOrder
+  mercadoPagoSubscriptionId?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -451,7 +514,10 @@ export type ClinicMinOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   timeZone?: Prisma.SortOrder
   subscriptionStatus?: Prisma.SortOrder
+  subscriptionPlan?: Prisma.SortOrder
+  subscriptionExpiresAt?: Prisma.SortOrder
   hasPaidOnce?: Prisma.SortOrder
+  mercadoPagoSubscriptionId?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -470,12 +536,20 @@ export type EnumSubscriptionStatusFieldUpdateOperationsInput = {
   set?: $Enums.SubscriptionStatus
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
+export type NullableEnumSubscriptionPlanFieldUpdateOperationsInput = {
+  set?: $Enums.SubscriptionPlan | null
 }
 
 export type NullableDateTimeFieldUpdateOperationsInput = {
   set?: Date | string | null
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -573,7 +647,10 @@ export type ClinicCreateWithoutBusinessHoursInput = {
   slug: string
   timeZone?: string
   subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -591,7 +668,10 @@ export type ClinicUncheckedCreateWithoutBusinessHoursInput = {
   slug: string
   timeZone?: string
   subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -625,7 +705,10 @@ export type ClinicUpdateWithoutBusinessHoursInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -643,7 +726,10 @@ export type ClinicUncheckedUpdateWithoutBusinessHoursInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -661,7 +747,10 @@ export type ClinicCreateWithoutMembershipsInput = {
   slug: string
   timeZone?: string
   subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -679,7 +768,10 @@ export type ClinicUncheckedCreateWithoutMembershipsInput = {
   slug: string
   timeZone?: string
   subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -713,7 +805,10 @@ export type ClinicUpdateWithoutMembershipsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -731,7 +826,10 @@ export type ClinicUncheckedUpdateWithoutMembershipsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -749,7 +847,10 @@ export type ClinicCreateWithoutCustomersInput = {
   slug: string
   timeZone?: string
   subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -767,7 +868,10 @@ export type ClinicUncheckedCreateWithoutCustomersInput = {
   slug: string
   timeZone?: string
   subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -801,7 +905,10 @@ export type ClinicUpdateWithoutCustomersInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -819,7 +926,10 @@ export type ClinicUncheckedUpdateWithoutCustomersInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -837,7 +947,10 @@ export type ClinicCreateWithoutServicesInput = {
   slug: string
   timeZone?: string
   subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -855,7 +968,10 @@ export type ClinicUncheckedCreateWithoutServicesInput = {
   slug: string
   timeZone?: string
   subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -889,7 +1005,10 @@ export type ClinicUpdateWithoutServicesInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -907,7 +1026,10 @@ export type ClinicUncheckedUpdateWithoutServicesInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -925,7 +1047,10 @@ export type ClinicCreateWithoutAppointmentsInput = {
   slug: string
   timeZone?: string
   subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -943,7 +1068,10 @@ export type ClinicUncheckedCreateWithoutAppointmentsInput = {
   slug: string
   timeZone?: string
   subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -977,7 +1105,10 @@ export type ClinicUpdateWithoutAppointmentsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -995,7 +1126,10 @@ export type ClinicUncheckedUpdateWithoutAppointmentsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1013,7 +1147,10 @@ export type ClinicCreateWithoutNotificationsInput = {
   slug: string
   timeZone?: string
   subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1031,7 +1168,10 @@ export type ClinicUncheckedCreateWithoutNotificationsInput = {
   slug: string
   timeZone?: string
   subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1065,7 +1205,10 @@ export type ClinicUpdateWithoutNotificationsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1083,7 +1226,10 @@ export type ClinicUncheckedUpdateWithoutNotificationsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1177,7 +1323,10 @@ export type ClinicSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   slug?: boolean
   timeZone?: boolean
   subscriptionStatus?: boolean
+  subscriptionPlan?: boolean
+  subscriptionExpiresAt?: boolean
   hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: boolean
   deletedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1197,7 +1346,10 @@ export type ClinicSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   slug?: boolean
   timeZone?: boolean
   subscriptionStatus?: boolean
+  subscriptionPlan?: boolean
+  subscriptionExpiresAt?: boolean
   hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: boolean
   deletedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1210,7 +1362,10 @@ export type ClinicSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   slug?: boolean
   timeZone?: boolean
   subscriptionStatus?: boolean
+  subscriptionPlan?: boolean
+  subscriptionExpiresAt?: boolean
   hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: boolean
   deletedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1223,13 +1378,16 @@ export type ClinicSelectScalar = {
   slug?: boolean
   timeZone?: boolean
   subscriptionStatus?: boolean
+  subscriptionPlan?: boolean
+  subscriptionExpiresAt?: boolean
   hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: boolean
   deletedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ClinicOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerkOrgId" | "name" | "slug" | "timeZone" | "subscriptionStatus" | "hasPaidOnce" | "deletedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["clinic"]>
+export type ClinicOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerkOrgId" | "name" | "slug" | "timeZone" | "subscriptionStatus" | "subscriptionPlan" | "subscriptionExpiresAt" | "hasPaidOnce" | "mercadoPagoSubscriptionId" | "deletedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["clinic"]>
 export type ClinicInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   memberships?: boolean | Prisma.Clinic$membershipsArgs<ExtArgs>
   customers?: boolean | Prisma.Clinic$customersArgs<ExtArgs>
@@ -1259,7 +1417,10 @@ export type $ClinicPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     slug: string
     timeZone: string
     subscriptionStatus: $Enums.SubscriptionStatus
+    subscriptionPlan: $Enums.SubscriptionPlan | null
+    subscriptionExpiresAt: Date | null
     hasPaidOnce: boolean
+    mercadoPagoSubscriptionId: string | null
     deletedAt: Date | null
     createdAt: Date
     updatedAt: Date
@@ -1698,7 +1859,10 @@ export interface ClinicFieldRefs {
   readonly slug: Prisma.FieldRef<"Clinic", 'String'>
   readonly timeZone: Prisma.FieldRef<"Clinic", 'String'>
   readonly subscriptionStatus: Prisma.FieldRef<"Clinic", 'SubscriptionStatus'>
+  readonly subscriptionPlan: Prisma.FieldRef<"Clinic", 'SubscriptionPlan'>
+  readonly subscriptionExpiresAt: Prisma.FieldRef<"Clinic", 'DateTime'>
   readonly hasPaidOnce: Prisma.FieldRef<"Clinic", 'Boolean'>
+  readonly mercadoPagoSubscriptionId: Prisma.FieldRef<"Clinic", 'String'>
   readonly deletedAt: Prisma.FieldRef<"Clinic", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Clinic", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Clinic", 'DateTime'>

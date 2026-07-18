@@ -20,6 +20,11 @@ enum SubscriptionStatus {
   CANCELED
 }
 
+enum SubscriptionPlan {
+  MONTHLY
+  ANNUAL
+}
+
 enum AppointmentStatus {
   PENDING
   CONFIRMED
@@ -48,22 +53,25 @@ enum NotificationStatus {
 }
 
 model Clinic {
-  id                 String             @id @default(uuid())
-  clerkOrgId         String             @unique
-  name               String
-  slug               String             @unique
-  timeZone           String             @default("America/Sao_Paulo")
-  subscriptionStatus SubscriptionStatus @default(INACTIVE)
-  hasPaidOnce        Boolean            @default(false)
-  deletedAt          DateTime?
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  memberships        Membership[]
-  customers          Customer[]
-  services           Service[]
-  appointments       Appointment[]
-  notifications      Notification[]
-  businessHours      BusinessHour[]
+  id                        String             @id @default(uuid())
+  clerkOrgId                String             @unique
+  name                      String
+  slug                      String             @unique
+  timeZone                  String             @default("America/Sao_Paulo")
+  subscriptionStatus        SubscriptionStatus @default(INACTIVE)
+  subscriptionPlan          SubscriptionPlan?
+  subscriptionExpiresAt     DateTime?
+  hasPaidOnce               Boolean            @default(false)
+  mercadoPagoSubscriptionId String?            @unique
+  deletedAt                 DateTime?
+  createdAt                 DateTime           @default(now())
+  updatedAt                 DateTime           @updatedAt
+  memberships               Membership[]
+  customers                 Customer[]
+  services                  Service[]
+  appointments              Appointment[]
+  notifications             Notification[]
+  businessHours             BusinessHour[]
 }
 
 model BusinessHour {
