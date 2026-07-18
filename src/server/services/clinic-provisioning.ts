@@ -49,19 +49,36 @@ export async function upsertClinic(
   const slug = generateClinicSlug(input.name, input.clerkOrgId);
   const subscriptionStatus = mapSubscriptionStatus(input.publicMetadata?.subscription_status);
 
-  return client.clinic.upsert({
+  const existing = await client.clinic.findUnique({
     where: { clerkOrgId: input.clerkOrgId },
-    create: {
+  });
+
+  if (existing) {
+    // Protege o slug (link de agendamento público) e os dados financeiros:
+    // se a barbearia já pagou ou já tem vínculo com Mercado Pago, o Clerk
+    // não deve sobrescrever o status da assinatura.
+    const shouldInheritSubscription =
+      existing.mercadoPagoSubscriptionId || existing.hasPaidOnce;
+
+    return client.clinic.update({
+      where: { clerkOrgId: input.clerkOrgId },
+      data: {
+        name: input.name,
+        subscriptionStatus: shouldInheritSubscription ? undefined : subscriptionStatus,
+        hasPaidOnce: shouldInheritSubscription
+          ? existing.hasPaidOnce || subscriptionStatus === SubscriptionStatus.ACTIVE
+          : subscriptionStatus === SubscriptionStatus.ACTIVE,
+      },
+    });
+  }
+
+  return client.clinic.create({
+    data: {
       clerkOrgId: input.clerkOrgId,
       name: input.name,
       slug,
       subscriptionStatus,
       hasPaidOnce: subscriptionStatus === SubscriptionStatus.ACTIVE,
-    },
-    update: {
-      name: input.name,
-      subscriptionStatus,
-      hasPaidOnce: subscriptionStatus === SubscriptionStatus.ACTIVE ? true : undefined,
     },
   });
 }
