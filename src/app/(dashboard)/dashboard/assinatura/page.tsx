@@ -1,7 +1,7 @@
-import { CheckIcon, CreditCardIcon, ExternalLinkIcon, XIcon } from "lucide-react";
+import { CheckIcon, CreditCardIcon, XIcon } from "lucide-react";
 import type { Metadata } from "next";
 
-import { Button } from "@/components/ui/button";
+import { SubscriptionCheckout } from "@/components/dashboard/subscription-checkout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SubscriptionStatus } from "@/generated/prisma/enums";
 import { isSubscriptionActive } from "@/server/subscription";
@@ -23,10 +23,11 @@ const statusDescription: Record<SubscriptionStatus, string> = {
   CANCELED: "A assinatura foi cancelada. Renove para voltar a operar.",
 };
 
-const checkoutUrl = process.env.NEXT_PUBLIC_CHECKOUT_URL?.trim() || null;
-
 export default withTenant(async ({ clinic }) => {
   const active = isSubscriptionActive(clinic);
+
+  const monthlyPlanId = process.env.MERCADO_PAGO_MONTHLY_PLAN_ID?.trim();
+  const annualPlanId = process.env.MERCADO_PAGO_ANNUAL_PLAN_ID?.trim();
 
   return (
     <div className="flex flex-col gap-6">
@@ -72,31 +73,7 @@ export default withTenant(async ({ clinic }) => {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-lg border bg-card p-4">
-                <p className="font-medium">Plano Mensal</p>
-                <p className="text-2xl font-semibold">R$ 97,00</p>
-                <p className="text-xs text-muted-foreground">Renovação automática todo mês</p>
-              </div>
-              <div className="rounded-lg border bg-card p-4">
-                <p className="font-medium">Plano Anual</p>
-                <p className="text-2xl font-semibold">R$ 970,00</p>
-                <p className="text-xs text-muted-foreground">2 meses grátis no ano</p>
-              </div>
-            </div>
-
-            {checkoutUrl ? (
-              <Button nativeButton={false} render={<a href={checkoutUrl} target="_blank" rel="noopener noreferrer" />}>
-                <ExternalLinkIcon className="mr-2 size-4" />
-                Ir para o checkout
-              </Button>
-            ) : (
-              <div className="rounded-lg border bg-muted/50 p-4 text-sm text-muted-foreground">
-                O checkout automático ainda não está configurado. Configure a variável{" "}
-                <code className="rounded bg-muted px-1 py-0.5 text-xs">NEXT_PUBLIC_CHECKOUT_URL</code> para ativar o
-                botão de redirecionamento.
-              </div>
-            )}
+            <SubscriptionCheckout monthlyPlanId={monthlyPlanId} annualPlanId={annualPlanId} />
           </CardContent>
         </Card>
       ) : null}
