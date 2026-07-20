@@ -45,6 +45,7 @@ export interface ServiceListItem {
   name: string;
   duration: number;
   price: number;
+  imageUrl: string | null;
   isActive: boolean;
 }
 

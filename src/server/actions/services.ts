@@ -9,10 +9,29 @@ import { requireActiveClinic } from "@/server/tenant";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
 
+const MAX_IMAGE_SIZE_CHARS = 2_000_000;
+
+const imageUrlSchema = z
+  .union([z.string().trim().max(MAX_IMAGE_SIZE_CHARS), z.null(), z.literal("")])
+  .optional()
+  .transform((value) => {
+    if (!value || value === "") return null;
+    return value;
+  })
+  .refine(
+    (value) =>
+      value === null ||
+      value.startsWith("data:image/") ||
+      value.startsWith("http://") ||
+      value.startsWith("https://"),
+    { message: "A imagem deve ser um arquivo de imagem válido ou uma URL." },
+  );
+
 const serviceSchema = z.object({
   name: z.string().trim().min(2).max(120),
   duration: z.coerce.number().int().min(5).max(480),
   price: z.coerce.number().min(0).max(100_000),
+  imageUrl: imageUrlSchema,
 });
 
 const updateServiceSchema = serviceSchema.extend({
@@ -51,6 +70,7 @@ export async function createService(input: unknown): Promise<ActionResult> {
         name: parsed.data.name,
         duration: parsed.data.duration,
         price: parsed.data.price,
+        imageUrl: parsed.data.imageUrl,
       },
     });
   } catch {
@@ -66,6 +86,7 @@ export async function createServiceFromForm(_previousState: ActionResult, formDa
     name: formData.get("name"),
     duration: formData.get("duration"),
     price: formData.get("price"),
+    imageUrl: formData.get("imageUrl") || null,
   });
 }
 
@@ -104,6 +125,7 @@ export async function updateService(input: unknown): Promise<ActionResult> {
         name: parsed.data.name,
         duration: parsed.data.duration,
         price: parsed.data.price,
+        imageUrl: parsed.data.imageUrl,
       },
     });
   } catch {
@@ -120,6 +142,7 @@ export async function updateServiceFromForm(_previousState: ActionResult, formDa
     name: formData.get("name"),
     duration: formData.get("duration"),
     price: formData.get("price"),
+    imageUrl: formData.get("imageUrl") || null,
   });
 }
 
