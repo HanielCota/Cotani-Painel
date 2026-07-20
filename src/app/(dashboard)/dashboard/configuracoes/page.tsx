@@ -45,10 +45,12 @@ export default withTenant(async ({ clinic }) => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="services">
-            <TabsList>
-              <TabsTrigger value="services">Serviços</TabsTrigger>
-              <TabsTrigger value="business-hours">Expediente</TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto pb-1">
+              <TabsList className="w-full sm:w-fit">
+                <TabsTrigger value="services">Serviços</TabsTrigger>
+                <TabsTrigger value="business-hours">Expediente</TabsTrigger>
+              </TabsList>
+            </div>
             <TabsContent value="services" className="pt-4">
               <ServicesSettings />
             </TabsContent>

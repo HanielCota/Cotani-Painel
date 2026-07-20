@@ -64,7 +64,7 @@ export async function TodayAgendaList({ clinic }: TodayAgendaListProps) {
         return (
           <div
             key={appointment.id}
-            className="flex items-center justify-between gap-4 border-b py-2 last:border-b-0"
+            className="flex flex-col gap-2 border-b py-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
           >
             <div className="flex min-w-0 items-center gap-3">
               <div className="flex h-5 w-10 shrink-0 items-center justify-center rounded-md border bg-muted text-xs font-medium">
@@ -75,7 +75,7 @@ export async function TodayAgendaList({ clinic }: TodayAgendaListProps) {
                 <p className="truncate text-xs text-muted-foreground">{appointment.serviceName}</p>
               </div>
             </div>
-            <Badge variant={statusVariant[appointment.status] ?? "secondary"}>
+            <Badge variant={statusVariant[appointment.status] ?? "secondary"} className="w-fit">
               {appointmentStatusLabel[appointment.status as keyof typeof appointmentStatusLabel]}
             </Badge>
           </div>
