@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { PencilIcon, PlusIcon, ScissorsIcon } from "lucide-react";
+import { PencilIcon, PlusIcon, TagIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { createServiceFromForm, updateServiceFromForm } from "@/server/actions/services";
@@ -61,7 +61,7 @@ export function ServiceFormDialog({ service }: ServiceFormDialogProps) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <ScissorsIcon aria-hidden="true" />
+            <TagIcon aria-hidden="true" />
             {isEditing ? "Editar serviço" : "Novo serviço"}
           </DialogTitle>
           <DialogDescription>
@@ -129,7 +129,7 @@ export function ServiceFormDialog({ service }: ServiceFormDialogProps) {
           <DialogFooter className="mt-5">
             <DialogClose render={<Button type="button" variant="outline" disabled={isPending} />}>Cancelar</DialogClose>
             <Button type="submit" disabled={isPending}>
-              {isPending ? <Spinner data-icon="inline-start" /> : <ScissorsIcon data-icon="inline-start" />}
+              {isPending ? <Spinner data-icon="inline-start" /> : <TagIcon data-icon="inline-start" />}
               {isPending ? "Salvando..." : isEditing ? "Salvar alterações" : "Cadastrar serviço"}
             </Button>
           </DialogFooter>

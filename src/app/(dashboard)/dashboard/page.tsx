@@ -6,8 +6,8 @@ import {
   CalendarDaysIcon,
   CalendarPlusIcon,
   LinkIcon,
-  ScissorsIcon,
   SettingsIcon,
+  TagIcon,
 } from "lucide-react";
 
 import { CopyBookingLink } from "@/components/dashboard/copy-booking-link";
@@ -99,7 +99,7 @@ export default withTenant(async ({ clinic }) => {
         </DashboardCard>
 
         <DashboardCard
-          icon={ScissorsIcon}
+          icon={TagIcon}
           title="Serviços"
           description={`${servicesCount} serviço${servicesCount === 1 ? "" : "s"} ativo${servicesCount === 1 ? "" : "s"} cadastrado${servicesCount === 1 ? "" : "s"}.`}
         >

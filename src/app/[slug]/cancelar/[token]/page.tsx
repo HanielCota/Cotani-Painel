@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CalendarXIcon, ClockIcon, ScissorsIcon } from "lucide-react";
+import { CalendarXIcon, ClockIcon, TagIcon } from "lucide-react";
 
 import { CancelAppointmentForm } from "@/components/public/cancel-appointment-form";
 import prisma from "@/lib/prisma";
@@ -64,7 +64,7 @@ export default async function CancelPage({ params }: CancelPageProps) {
         <dl className="flex flex-col gap-3 text-sm">
           <div className="flex items-center justify-between gap-4">
             <dt className="flex items-center gap-2 text-muted-foreground">
-              <ScissorsIcon aria-hidden="true" className="size-4" />
+              <TagIcon aria-hidden="true" className="size-4" />
               Serviço
             </dt>
             <dd className="font-medium">{appointment.service.name}</dd>

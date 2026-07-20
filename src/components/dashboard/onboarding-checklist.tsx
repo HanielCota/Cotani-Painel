@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckIcon, ClockIcon, LinkIcon, ScissorsIcon, SettingsIcon, TriangleAlertIcon } from "lucide-react";
+import { CheckIcon, ClockIcon, LinkIcon, SettingsIcon, TagIcon, TriangleAlertIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,7 +40,7 @@ export function OnboardingChecklist({
       description: "Adicione cortes, barba e outros serviços com preço e duração.",
       done: hasServices,
       href: "/dashboard/configuracoes",
-      icon: ScissorsIcon,
+      icon: TagIcon,
     },
     {
       id: "link",

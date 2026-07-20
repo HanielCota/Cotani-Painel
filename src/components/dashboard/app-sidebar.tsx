@@ -7,7 +7,6 @@ import {
   CreditCardIcon,
   DollarSignIcon,
   LayoutDashboardIcon,
-  ScissorsIcon,
   SettingsIcon,
   UsersIcon,
 } from "lucide-react";
@@ -92,8 +91,8 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton render={<Link href="/dashboard" />} size="lg" tooltip="Cotani" className="h-11 rounded-xl px-3 hover:bg-transparent">
-              <span className="flex size-7 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-                <ScissorsIcon />
+              <span className="flex size-7 items-center justify-center rounded-md bg-sidebar-primary text-sm font-bold text-sidebar-primary-foreground">
+                C
               </span>
               <span className="font-semibold tracking-tight">Cotani</span>
             </SidebarMenuButton>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarCheckIcon, CalendarIcon, ClockIcon, MapPinIcon, ScissorsIcon } from "lucide-react";
+import { CalendarCheckIcon, CalendarIcon, ClockIcon, MapPinIcon, TagIcon } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -63,7 +63,7 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
             {service ? (
               <div className="flex items-center justify-between gap-4 border-b pb-3">
                 <dt className="flex items-center gap-2 text-muted-foreground">
-                  <ScissorsIcon aria-hidden="true" className="size-4" />
+                  <TagIcon aria-hidden="true" className="size-4" />
                   Serviço
                 </dt>
                 <dd className="font-medium">{service}</dd>

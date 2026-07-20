@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { ContactRoundIcon, ScissorsIcon } from "lucide-react";
+import { ContactRoundIcon, TagIcon } from "lucide-react";
 import Link from "next/link";
 
 import { createCustomerFromForm } from "@/server/actions/customers";
@@ -63,7 +63,7 @@ function ServiceSetupHint() {
   return (
     <Card className="border border-border/80 shadow-sm">
       <CardHeader>
-        <ScissorsIcon />
+        <TagIcon />
         <CardTitle>Cadastre um serviço</CardTitle>
         <CardDescription>Defina a duração e o valor para calcular o horário de término.</CardDescription>
       </CardHeader>

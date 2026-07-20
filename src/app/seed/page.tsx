@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckIcon, CopyIcon, Loader2Icon, ScissorsIcon } from "lucide-react";
+import { Building2Icon, CheckIcon, CopyIcon, Loader2Icon } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -68,7 +68,7 @@ export default function SeedPage() {
       <Card className="w-full max-w-md border-border/80 shadow-sm">
         <CardHeader className="text-center">
           <div className="mx-auto flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <ScissorsIcon className="size-5" />
+            <Building2Icon className="size-5" />
           </div>
           <CardTitle className="text-xl">Criar conta de teste</CardTitle>
           <CardDescription>
