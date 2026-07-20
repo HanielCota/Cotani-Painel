@@ -1,31 +1,43 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { OrganizationSwitcher } from "@clerk/nextjs";
 import {
   CalendarDaysIcon,
   CreditCardIcon,
   DollarSignIcon,
   LayoutDashboardIcon,
+  LinkIcon,
+  PlusIcon,
+  ScissorsIcon,
   SettingsIcon,
+  StoreIcon,
   UsersIcon,
+  Users2Icon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
+import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 
 interface NavigationItem {
   title: string;
@@ -33,20 +45,28 @@ interface NavigationItem {
   icon: LucideIcon;
 }
 
+const dashboardItem: NavigationItem = {
+  title: "Visão geral",
+  href: "/dashboard",
+  icon: LayoutDashboardIcon,
+};
+
 const operationItems: NavigationItem[] = [
-  { title: "Visão geral", href: "/dashboard", icon: LayoutDashboardIcon },
   { title: "Agenda", href: "/dashboard/agenda", icon: CalendarDaysIcon },
   { title: "Clientes", href: "/dashboard/clientes", icon: UsersIcon },
   { title: "Financeiro", href: "/dashboard/financeiro", icon: DollarSignIcon },
 ];
 
-const managementItems: NavigationItem[] = [
-  { title: "Configurações", href: "/dashboard/configuracoes", icon: SettingsIcon },
-  { title: "Assinatura", href: "/dashboard/assinatura", icon: CreditCardIcon },
+const storeItems: NavigationItem[] = [
+  { title: "Serviços", href: "/dashboard/configuracoes", icon: ScissorsIcon },
+  { title: "Profissionais", href: "/dashboard/profissionais", icon: Users2Icon },
+  { title: "Horários", href: "/dashboard/configuracoes", icon: CalendarDaysIcon },
+  { title: "Link de agendamento", href: "/dashboard/configuracoes", icon: LinkIcon },
 ];
 
-const quickActionItems: NavigationItem[] = [
-  { title: "Abrir agenda", href: "/dashboard/agenda", icon: CalendarDaysIcon },
+const managementItems: NavigationItem[] = [
+  { title: "Assinatura", href: "/dashboard/assinatura", icon: CreditCardIcon },
+  { title: "Configurações", href: "/dashboard/configuracoes", icon: SettingsIcon },
 ];
 
 /**
@@ -61,74 +81,161 @@ function isActivePath(pathname: string, href: string): boolean {
   return pathname.startsWith(`${href}/`);
 }
 
-function NavItems({ items }: { items: NavigationItem[] }) {
+function NavLink({ item }: { item: NavigationItem }) {
   const pathname = usePathname() ?? "";
+  const isActive = isActivePath(pathname, item.href);
+  const Icon = item.icon;
 
   return (
-    <SidebarMenu className="gap-1">
-      {items.map((item) => {
-        const isActive = isActivePath(pathname, item.href);
-        const Icon = item.icon;
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        render={<Link href={item.href} />}
+        isActive={isActive}
+        tooltip={item.title}
+        className={cn(
+          "h-10 rounded-lg px-3 text-sm transition-colors",
+          "hover:bg-muted hover:text-foreground",
+          "data-active:bg-[#82D951] data-active:text-white data-active:shadow-sm",
+          "data-active:hover:bg-[#75c448]"
+        )}
+      >
+        <Icon className="size-4 shrink-0" />
+        <span className="truncate">{item.title}</span>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+}
 
-        return (
-          <SidebarMenuItem key={item.href}>
-            <SidebarMenuButton
-              render={<Link href={item.href} />}
-              isActive={isActive}
-              tooltip={item.title}
-              className="h-10 rounded-lg px-3 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-sm"
-            >
-              <Icon className="size-4" />
-              <span>{item.title}</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        );
-      })}
-    </SidebarMenu>
+function AccountCard() {
+  const { state } = useSidebar();
+
+  if (state === "collapsed") {
+    return (
+      <div className="mt-4 flex justify-center">
+        <div className="flex size-9 items-center justify-center rounded-lg border border-border/60 bg-card shadow-sm">
+          <span className="text-sm font-semibold">B</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 rounded-xl border border-border/60 bg-card p-3 shadow-sm">
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-foreground">Barbearia Exemplo</p>
+          <p className="truncate text-xs text-muted-foreground">CNPJ: 00.000.000/0000-00</p>
+        </div>
+        <Button variant="ghost" size="icon-sm" className="shrink-0 text-muted-foreground hover:text-foreground">
+          <PlusIcon className="size-4" />
+          <span className="sr-only">Adicionar conta</span>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function StoreAccordion() {
+  return (
+    <Accordion defaultValue={["store"]} className="w-full">
+      <AccordionItem value="store" className="border-0">
+        <AccordionTrigger className="h-10 rounded-lg px-3 py-0 text-sm font-normal text-foreground hover:bg-muted hover:no-underline">
+          <span className="flex items-center gap-3">
+            <StoreIcon className="size-4 shrink-0" />
+            <span className="truncate">Sua Loja</span>
+          </span>
+        </AccordionTrigger>
+        <AccordionContent className="pb-0 pt-1">
+          <SidebarMenu className="gap-1 pl-4">
+            {storeItems.map((item) => (
+              <NavLink key={item.href + item.title} item={item} />
+            ))}
+          </SidebarMenu>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  );
+}
+
+function IntegrationAccordion() {
+  const { state } = useSidebar();
+
+  if (state === "collapsed") {
+    return (
+      <div className="flex justify-center">
+        <div className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground">
+          <StoreIcon className="size-4" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Accordion className="w-full">
+      <AccordionItem value="integration" className="border-0">
+        <AccordionTrigger className="h-10 rounded-lg px-3 py-0 text-sm font-normal text-foreground hover:bg-muted hover:no-underline">
+          <span className="truncate">Integração</span>
+        </AccordionTrigger>
+        <AccordionContent className="pb-2 pt-1">
+          <p className="px-3 text-xs text-muted-foreground">Conecte seu WhatsApp e outras ferramentas em breve.</p>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  );
+}
+
+function SandboxToggle() {
+  const { state } = useSidebar();
+
+  if (state === "collapsed") {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-2 rounded-xl border border-border/60 bg-card p-3 shadow-sm">
+      <span className="text-sm font-medium text-foreground">Modo Teste (Sandbox)</span>
+      <Switch defaultChecked className="data-checked:bg-[#82D951] shrink-0" />
+    </div>
   );
 }
 
 export function AppSidebar() {
   return (
-    <Sidebar collapsible="icon" variant="inset" className="bg-sidebar/95 top-16 h-[calc(100vh-4rem)]">
-      <SidebarHeader className="px-5 pt-5 pb-3">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton render={<Link href="/dashboard" />} size="lg" tooltip="Cotani" className="h-11 rounded-xl px-3 hover:bg-transparent">
-              <span className="flex size-7 items-center justify-center rounded-md bg-sidebar-primary text-sm font-bold text-sidebar-primary-foreground">
-                C
-              </span>
-              <span className="font-semibold tracking-tight">Cotani</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+    <Sidebar collapsible="icon" variant="inset" className="top-16 h-[calc(100vh-4rem)] border-r border-border/60 bg-white">
+      <SidebarHeader className="px-4 pt-5 pb-3">
+        <div className="flex items-center justify-between group-data-[collapsible=icon]:justify-center">
+          <div className="flex items-center gap-2">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-[#82D951] text-white shadow-sm">
+              <ScissorsIcon className="size-5" />
+            </div>
+            <span className="text-lg font-bold tracking-tight text-foreground group-data-[collapsible=icon]:hidden">
+              Cotani
+            </span>
+          </div>
+          <SidebarTrigger className="size-8 text-muted-foreground hover:text-foreground group-data-[collapsible=icon]:hidden" />
+        </div>
+        <AccountCard />
       </SidebarHeader>
-      <SidebarContent className="px-4 pt-4">
-        <SidebarGroup className="mx-auto w-full max-w-56 p-0 md:hidden">
-          <SidebarGroupLabel className="text-xs text-sidebar-foreground/50">Ações rápidas</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <NavItems items={quickActionItems} />
-          </SidebarGroupContent>
-        </SidebarGroup>
 
-        <SidebarGroup className="mx-auto w-full max-w-56 p-0 md:mt-0">
-          <SidebarGroupLabel className="text-xs text-sidebar-foreground/50">Operação</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <NavItems items={operationItems} />
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup className="mx-auto mt-4 w-full max-w-56 p-0">
-          <SidebarGroupLabel className="text-xs text-sidebar-foreground/50">Gestão</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <NavItems items={managementItems} />
-          </SidebarGroupContent>
-        </SidebarGroup>
+      <SidebarContent className="px-3 py-4">
+        <SidebarMenu className="gap-1">
+          <NavLink item={dashboardItem} />
+          {operationItems.map((item) => (
+            <NavLink key={item.href} item={item} />
+          ))}
+          <li>
+            <StoreAccordion />
+          </li>
+          {managementItems.map((item) => (
+            <NavLink key={item.href} item={item} />
+          ))}
+        </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="px-4 pb-5">
-        <div className="flex flex-col gap-2 group-data-[collapsible=icon]:hidden">
-          <p className="px-3 text-xs font-medium text-sidebar-foreground/60">Barbearia ativa</p>
-          <OrganizationSwitcher hidePersonal />
+
+      <SidebarFooter className="mt-auto px-3 pb-5 pt-2">
+        <IntegrationAccordion />
+        <div className="mt-3">
+          <SandboxToggle />
         </div>
       </SidebarFooter>
       <SidebarRail />
