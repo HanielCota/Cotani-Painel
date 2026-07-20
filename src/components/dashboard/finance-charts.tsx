@@ -48,6 +48,16 @@ const paymentStatusData = [
   { name: "Cancelado", value: 10, color: "#EF4444" },
 ];
 
+const calendarData = [
+  { day: "Dom", values: [12, 18, 24, 8, 15, 30, 22] },
+  { day: "Seg", values: [20, 28, 35, 15, 22, 40, 32] },
+  { day: "Ter", values: [18, 25, 42, 20, 28, 38, 26] },
+  { day: "Qua", values: [22, 32, 48, 25, 35, 45, 30] },
+  { day: "Qui", values: [28, 38, 55, 30, 42, 52, 36] },
+  { day: "Sex", values: [35, 45, 62, 38, 48, 58, 42] },
+  { day: "Sáb", values: [40, 52, 70, 45, 55, 65, 48] },
+];
+
 function Card({ children, title, className = "" }: { children: React.ReactNode; title: string; className?: string }) {
   return (
     <div className={`rounded-2xl border border-[#F3F4F6] bg-white p-5 shadow-sm ${className}`}>
@@ -176,4 +186,42 @@ export function PaymentStatusChart() {
   );
 }
 
+function getHeatmapColor(value: number) {
+  if (value >= 60) return "bg-lime-600";
+  if (value >= 45) return "bg-lime-500";
+  if (value >= 30) return "bg-lime-400";
+  if (value >= 20) return "bg-lime-300";
+  if (value >= 10) return "bg-lime-200";
+  return "bg-lime-100";
+}
 
+export function SalesCalendarHeatmap() {
+  return (
+    <Card title="Calendário de vendas" className="lg:col-span-3">
+      <div className="overflow-x-auto">
+        <div className="flex min-w-[600px] flex-col gap-2">
+          <div className="grid grid-cols-8 gap-1 text-xs text-gray-400">
+            <div />
+            {Array.from({ length: 7 }, (_, i) => (
+              <div key={i} className="text-center">
+                {i + 1}ª
+              </div>
+            ))}
+          </div>
+          {calendarData.map((row) => (
+            <div key={row.day} className="grid grid-cols-8 items-center gap-1">
+              <span className="text-xs font-medium text-gray-500">{row.day}</span>
+              {row.values.map((value, index) => (
+                <div
+                  key={index}
+                  className={`aspect-square rounded-md ${getHeatmapColor(value)} transition-colors`}
+                  title={`R$ ${value * 100}`}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </Card>
+  );
+}
