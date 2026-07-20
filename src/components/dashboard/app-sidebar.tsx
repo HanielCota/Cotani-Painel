@@ -45,6 +45,10 @@ const managementItems: NavigationItem[] = [
   { title: "Assinatura", href: "/dashboard/assinatura", icon: CreditCardIcon },
 ];
 
+const quickActionItems: NavigationItem[] = [
+  { title: "Abrir agenda", href: "/dashboard/agenda", icon: CalendarDaysIcon },
+];
+
 /**
  * Determina se um item de navegação está ativo.
  * - Match exato do pathname com o href.
@@ -100,7 +104,14 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent className="px-4 pt-4">
-        <SidebarGroup className="mx-auto w-full max-w-56 p-0">
+        <SidebarGroup className="mx-auto w-full max-w-56 p-0 md:hidden">
+          <SidebarGroupLabel className="text-xs text-sidebar-foreground/50">Ações rápidas</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <NavItems items={quickActionItems} />
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup className="mx-auto w-full max-w-56 p-0 md:mt-0">
           <SidebarGroupLabel className="text-xs text-sidebar-foreground/50">Operação</SidebarGroupLabel>
           <SidebarGroupContent>
             <NavItems items={operationItems} />

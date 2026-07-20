@@ -39,7 +39,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
         <AppSidebar />
         <SidebarInset className="bg-muted/30">
           <DashboardHeader />
-          <div className="flex flex-1 flex-col gap-6 p-6 lg:p-8">
+          <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
             <UnprovisionedAccountState />
           </div>
         </SidebarInset>
@@ -68,7 +68,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
         <AppSidebar />
         <SidebarInset className="bg-muted/30">
           <DashboardHeader />
-          <div className="flex flex-1 flex-col gap-6 p-6 lg:p-8">
+          <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
             <EmptyBarbershopState selectedOrgId={selectedOrgId} />
           </div>
         </SidebarInset>
@@ -84,7 +84,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
         <AppSidebar />
         <SidebarInset className="bg-muted/30">
           <DashboardHeader />
-          <div className="flex flex-1 flex-col gap-6 p-6 lg:p-8">
+          <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
             <PaymentRequiredState barbershopName={clinic.name} />
           </div>
         </SidebarInset>
@@ -97,7 +97,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
       <AppSidebar />
       <SidebarInset className="bg-muted/30">
         <DashboardHeader />
-        <div className="flex flex-1 flex-col gap-6 p-6 lg:p-8">
+        <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
           <SubscriptionBanner status={clinic.subscriptionStatus} />
           {children}
         </div>
