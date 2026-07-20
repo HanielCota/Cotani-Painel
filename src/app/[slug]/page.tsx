@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { ClinicUnavailable } from "@/components/public/clinic-unavailable";
-import { PublicBookingForm } from "@/components/public/public-booking-form";
+import { BookingSteps } from "@/components/public/booking-steps";
 import { isSubscriptionActive } from "@/server/subscription";
 import prisma from "@/lib/prisma";
 import { formatClinicDateTimeInput } from "@/lib/timezone";
@@ -52,10 +52,9 @@ export default async function PublicBookingPage({ params }: PublicBookingPagePro
         <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{clinic.name}</h1>
         <p className="text-muted-foreground text-sm">Agende seu atendimento em poucos passos. Os horários são exibidos no fuso {clinic.timeZone}.</p>
       </header>
-      <PublicBookingForm
+      <BookingSteps
         slug={slug}
         clinicName={clinic.name}
-        timeZone={clinic.timeZone}
         minDate={formatClinicDateTimeInput(new Date(), clinic.timeZone).slice(0, 10)}
         services={clinic.services.map((service) => ({
           id: service.id,
