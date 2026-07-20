@@ -18,6 +18,7 @@ import type { ActionResult } from "@/types";
 const appointmentSchema = z.object({
   customerId: z.uuid(),
   serviceId: z.uuid(),
+  professionalId: z.uuid().optional(),
   startTime: z.date(),
   notes: z.string().trim().max(2_000).optional(),
 });
@@ -35,6 +36,7 @@ async function hasSchedulingConflict({
   clinicId,
   customerId,
   serviceId,
+  professionalId,
   startTime,
   endTime,
   appointmentId,
@@ -42,10 +44,19 @@ async function hasSchedulingConflict({
   clinicId: string;
   customerId: string;
   serviceId: string;
+  professionalId?: string | null;
   startTime: Date;
   endTime: Date;
   appointmentId?: string;
 }) {
+  const conflictConditions: Array<Record<string, unknown>> = [{ customerId }];
+
+  if (professionalId) {
+    conflictConditions.push({ professionalId });
+  } else {
+    conflictConditions.push({ serviceId });
+  }
+
   return prisma.appointment.findFirst({
     where: {
       clinicId,
@@ -53,7 +64,7 @@ async function hasSchedulingConflict({
       status: { not: "CANCELED" },
       startTime: { lt: endTime },
       endTime: { gt: startTime },
-      OR: [{ customerId }, { serviceId }],
+      OR: conflictConditions,
     },
     select: { id: true },
   });
@@ -84,13 +95,27 @@ export async function createAppointment(input: unknown): Promise<ActionResult> {
     return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
   }
 
-  const [customer, service] = await Promise.all([
+  const [customer, service, professional] = await Promise.all([
     prisma.customer.findFirst({ where: { id: parsed.data.customerId, clinicId: clinic.id } }),
     prisma.service.findFirst({ where: { id: parsed.data.serviceId, clinicId: clinic.id, isActive: true } }),
+    parsed.data.professionalId
+      ? prisma.professional.findFirst({
+          where: {
+            id: parsed.data.professionalId,
+            clinicId: clinic.id,
+            isActive: true,
+            services: { some: { serviceId: parsed.data.serviceId } },
+          },
+        })
+      : Promise.resolve(null),
   ]);
 
   if (!customer || !service) {
     return { status: "error", message: "O cliente ou o serviço não pertence à barbearia ativa." };
+  }
+
+  if (parsed.data.professionalId && !professional) {
+    return { status: "error", message: "Profissional indisponível para este serviço." };
   }
 
   if (service.duration <= 0) {
@@ -110,6 +135,7 @@ export async function createAppointment(input: unknown): Promise<ActionResult> {
     serviceDuration: service.duration,
     startTime: parsed.data.startTime,
     notes: parsed.data.notes,
+    professionalId: parsed.data.professionalId,
   });
 
   if (result.status === "conflict") {
@@ -150,6 +176,7 @@ export async function createAppointmentFromForm(_previousState: ActionResult, fo
   return createAppointment({
     customerId: formData.get("customerId"),
     serviceId: formData.get("serviceId"),
+    professionalId: formData.get("professionalId") || undefined,
     startTime,
     notes: String(formData.get("notes") ?? "").trim() || undefined,
   });
@@ -201,6 +228,7 @@ export async function rescheduleAppointmentFromForm(_previousState: ActionResult
     clinicId: clinic.id,
     customerId: appointment.customerId,
     serviceId: appointment.serviceId,
+    professionalId: appointment.professionalId,
     startTime,
     endTime,
     appointmentId: appointment.id,

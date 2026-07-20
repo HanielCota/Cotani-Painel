@@ -32,6 +32,7 @@ export async function GET() {
     include: {
       customer: true,
       service: true,
+      professional: true,
     },
     orderBy: { startTime: "asc" },
     take: 50,
@@ -42,6 +43,7 @@ export async function GET() {
       id: appointment.id,
       customerName: appointment.customer.name,
       serviceName: appointment.service.name,
+      professionalName: appointment.professional?.name ?? null,
       startTime: appointment.startTime.toISOString(),
       endTime: appointment.endTime.toISOString(),
       status: appointment.status,

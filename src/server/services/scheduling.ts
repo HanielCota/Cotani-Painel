@@ -38,6 +38,7 @@ export interface ScheduleAppointmentParams {
   serviceDuration: number;
   startTime: Date;
   notes?: string;
+  professionalId?: string;
 }
 
 export type ScheduleAppointmentResult =
@@ -58,13 +59,21 @@ export async function scheduleAppointment(params: ScheduleAppointmentParams): Pr
 
   try {
     const appointment = await prisma.$transaction(async (transaction) => {
+      const conflictConditions: Array<Record<string, unknown>> = [{ customerId: params.customerId }];
+
+      if (params.professionalId) {
+        conflictConditions.push({ professionalId: params.professionalId });
+      } else {
+        conflictConditions.push({ serviceId: params.serviceId });
+      }
+
       const conflictingAppointment = await transaction.appointment.findFirst({
         where: {
           clinicId: params.clinicId,
           status: { not: "CANCELED" },
           startTime: { lt: endTime },
           endTime: { gt: params.startTime },
-          OR: [{ customerId: params.customerId }, { serviceId: params.serviceId }],
+          OR: conflictConditions,
         },
         select: { id: true },
       });
@@ -78,6 +87,7 @@ export async function scheduleAppointment(params: ScheduleAppointmentParams): Pr
           clinicId: params.clinicId,
           customerId: params.customerId,
           serviceId: params.serviceId,
+          professionalId: params.professionalId,
           startTime: params.startTime,
           endTime,
           notes: params.notes,

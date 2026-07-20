@@ -32,7 +32,7 @@ export async function getFinanceMetrics(clinic: ClinicModel): Promise<FinanceMet
         clinicId: clinic.id,
         startTime: { gte: startOfMonth, lt: startOfNextMonth },
       },
-      include: { service: true, customer: true },
+      include: { service: true, customer: true, professional: true },
       orderBy: { startTime: "asc" },
     }),
     prisma.appointment.findMany({
@@ -77,6 +77,7 @@ export async function getFinanceMetrics(clinic: ClinicModel): Promise<FinanceMet
       id: appointment.id,
       customerName: appointment.customer.name,
       serviceName: appointment.service.name,
+      professionalName: appointment.professional?.name ?? null,
       servicePrice: Number(appointment.service.price),
       startTime: appointment.startTime.toISOString(),
       endTime: appointment.endTime.toISOString(),

@@ -10,6 +10,7 @@ import type { ActionResult } from "@/types";
 const publicBookingSchema = z.object({
   slug: z.string().trim().min(1).max(120),
   serviceId: z.uuid(),
+  professionalId: z.uuid().optional(),
   customerName: z.string().trim().min(2).max(120),
   customerPhone: z.string().trim().min(8).max(32),
   customerEmail: z.email().trim().toLowerCase().optional(),
@@ -27,6 +28,7 @@ export async function createPublicAppointment(_previousState: ActionResult, form
   const parsed = publicBookingSchema.safeParse({
     slug: formData.get("slug"),
     serviceId: formData.get("serviceId"),
+    professionalId: formData.get("professionalId") || undefined,
     customerName: formData.get("customerName"),
     customerPhone: formData.get("customerPhone"),
     customerEmail: formData.get("customerEmail") || undefined,
@@ -56,6 +58,21 @@ export async function createPublicAppointment(_previousState: ActionResult, form
 
   if (!service || service.duration <= 0) {
     return { status: "error", message: "Serviço indisponível para agendamento." };
+  }
+
+  if (parsed.data.professionalId) {
+    const professional = await prisma.professional.findFirst({
+      where: {
+        id: parsed.data.professionalId,
+        clinicId: clinic.id,
+        isActive: true,
+        services: { some: { serviceId: parsed.data.serviceId } },
+      },
+    });
+
+    if (!professional) {
+      return { status: "error", message: "Profissional indisponível para este serviço." };
+    }
   }
 
   if (parsed.data.startTime <= new Date()) {
@@ -89,6 +106,7 @@ export async function createPublicAppointment(_previousState: ActionResult, form
     serviceDuration: service.duration,
     startTime: parsed.data.startTime,
     notes: parsed.data.notes,
+    professionalId: parsed.data.professionalId,
   });
 
   if (result.status === "conflict") {

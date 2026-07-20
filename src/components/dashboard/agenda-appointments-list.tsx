@@ -93,7 +93,10 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule }: 
               </div>
               <div className="min-w-0">
                 <p className="font-medium">{appointment.customerName}</p>
-                <p className="text-sm text-muted-foreground">{appointment.serviceName} · {dateTime}</p>
+                <p className="text-sm text-muted-foreground">
+                  {appointment.serviceName}
+                  {appointment.professionalName ? ` · ${appointment.professionalName}` : ""} · {dateTime}
+                </p>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 xl:justify-end">
