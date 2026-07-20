@@ -6,6 +6,7 @@ export interface AgendaAppointment {
   id: string;
   customerName: string;
   serviceName: string;
+  professionalName: string | null;
   startTime: string;
   endTime: string;
   status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELED" | "NO_SHOW";
@@ -47,6 +48,14 @@ export interface ServiceListItem {
   price: number;
   imageUrl: string | null;
   isActive: boolean;
+}
+
+export interface ProfessionalListItem {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  isActive: boolean;
+  serviceIds: string[];
 }
 
 export interface BusinessHourItem {
