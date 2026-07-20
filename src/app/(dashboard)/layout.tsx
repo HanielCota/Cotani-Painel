@@ -35,14 +35,16 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
 
   if (!hasMembership) {
     return (
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset className="bg-background">
-          <DashboardHeader />
-          <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
-            <UnprovisionedAccountState />
-          </div>
-        </SidebarInset>
+      <SidebarProvider className="min-h-svh flex-col">
+        <DashboardHeader />
+        <div className="flex flex-1">
+          <AppSidebar />
+          <SidebarInset className="bg-background">
+            <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
+              <UnprovisionedAccountState />
+            </div>
+          </SidebarInset>
+        </div>
       </SidebarProvider>
     );
   }
@@ -64,14 +66,16 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
     const selectedOrgId = await getSelectedOrgId();
 
     return (
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset className="bg-background">
-          <DashboardHeader />
-          <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
-            <EmptyBarbershopState selectedOrgId={selectedOrgId} />
-          </div>
-        </SidebarInset>
+      <SidebarProvider className="min-h-svh flex-col">
+        <DashboardHeader />
+        <div className="flex flex-1">
+          <AppSidebar />
+          <SidebarInset className="bg-background">
+            <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
+              <EmptyBarbershopState selectedOrgId={selectedOrgId} />
+            </div>
+          </SidebarInset>
+        </div>
       </SidebarProvider>
     );
   }
@@ -80,28 +84,32 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
 
   if (!clinic.hasPaidOnce) {
     return (
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset className="bg-background">
-          <DashboardHeader />
-          <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
-            <PaymentRequiredState barbershopName={clinic.name} />
-          </div>
-        </SidebarInset>
+      <SidebarProvider className="min-h-svh flex-col">
+        <DashboardHeader />
+        <div className="flex flex-1">
+          <AppSidebar />
+          <SidebarInset className="bg-background">
+            <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
+              <PaymentRequiredState barbershopName={clinic.name} />
+            </div>
+          </SidebarInset>
+        </div>
       </SidebarProvider>
     );
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="bg-muted/30">
-        <DashboardHeader />
-        <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
-          <SubscriptionBanner status={clinic.subscriptionStatus} />
-          {children}
-        </div>
-      </SidebarInset>
+    <SidebarProvider className="min-h-svh flex-col">
+      <DashboardHeader />
+      <div className="flex flex-1">
+        <AppSidebar />
+        <SidebarInset className="bg-muted/30">
+          <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
+            <SubscriptionBanner status={clinic.subscriptionStatus} />
+            {children}
+          </div>
+        </SidebarInset>
+      </div>
     </SidebarProvider>
   );
 }

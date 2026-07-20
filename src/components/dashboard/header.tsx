@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Visão geral",
@@ -34,11 +35,11 @@ function usePageTitle() {
   return matchingPrefix ? pageTitles[matchingPrefix] : "Painel";
 }
 
-export function DashboardHeader() {
+export function DashboardHeader({ className }: { className?: string }) {
   const pageTitle = usePageTitle();
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border/60 bg-card px-4 shadow-sm sm:h-16 sm:px-6 lg:px-8">
+    <header className={cn("flex h-14 w-full shrink-0 items-center gap-3 border-b border-border/60 bg-card px-4 shadow-sm sm:h-16 sm:px-6 lg:px-8", className)}>
       <SidebarTrigger className="size-9 md:hidden" />
 
       <div className="flex min-w-0 flex-1 items-center md:hidden">

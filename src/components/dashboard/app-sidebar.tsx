@@ -90,7 +90,7 @@ function NavItems({ items }: { items: NavigationItem[] }) {
 
 export function AppSidebar() {
   return (
-    <Sidebar collapsible="icon" variant="inset" className="bg-sidebar/95">
+    <Sidebar collapsible="icon" variant="inset" className="bg-sidebar/95 top-16 h-[calc(100vh-4rem)]">
       <SidebarHeader className="px-5 pt-5 pb-3">
         <SidebarMenu>
           <SidebarMenuItem>
