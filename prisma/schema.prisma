@@ -135,6 +135,7 @@ model Service {
   name         String
   duration     Int
   price        Decimal       @db.Decimal(10, 2)
+  imageUrl     String?
   isActive     Boolean       @default(true)
   clinicId     String
   clinic       Clinic        @relation(fields: [clinicId], references: [id], onDelete: Cascade)
