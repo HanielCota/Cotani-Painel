@@ -1,5 +1,6 @@
 "use client";
 
+import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
 import type { LucideIcon } from "lucide-react";
 import {
   CalendarDaysIcon,
@@ -7,7 +8,6 @@ import {
   DollarSignIcon,
   LayoutDashboardIcon,
   LinkIcon,
-  PlusIcon,
   ScissorsIcon,
   SettingsIcon,
   StoreIcon,
@@ -106,31 +106,52 @@ function NavLink({ item }: { item: NavigationItem }) {
   );
 }
 
-function AccountCard() {
+function ProfileCompanyCard() {
   const { state } = useSidebar();
 
   if (state === "collapsed") {
     return (
       <div className="mt-4 flex justify-center">
-        <div className="flex size-9 items-center justify-center rounded-lg border border-border/60 bg-card shadow-sm">
-          <span className="text-sm font-semibold">B</span>
-        </div>
+        <UserButton
+          appearance={{
+            elements: {
+              userButtonTrigger: "size-9 rounded-lg border border-input bg-card hover:bg-muted",
+            },
+          }}
+        />
       </div>
     );
   }
 
   return (
-    <div className="mt-4 rounded-xl border border-border/60 bg-card p-3 shadow-sm">
+    <div className="mt-4 flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-3 shadow-sm">
       <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-foreground">Barbearia Exemplo</p>
-          <p className="truncate text-xs text-muted-foreground">CNPJ: 00.000.000/0000-00</p>
-        </div>
-        <Button variant="ghost" size="icon-sm" className="shrink-0 text-muted-foreground hover:text-foreground">
-          <PlusIcon className="size-4" />
-          <span className="sr-only">Adicionar conta</span>
-        </Button>
+        <UserButton
+          appearance={{
+            elements: {
+              userButtonTrigger: "size-9 rounded-lg border border-input bg-card hover:bg-muted",
+            },
+          }}
+        />
+        <OrganizationSwitcher
+          hidePersonal
+          appearance={{
+            elements: {
+              organizationSwitcherPopoverActions: "hidden",
+              organizationSwitcherTrigger: "h-9 px-3 rounded-lg border border-input bg-card hover:bg-muted text-sm",
+            },
+          }}
+        />
       </div>
+
+      <Button
+        nativeButton={false}
+        render={<Link href="/dashboard/agenda" />}
+        className="w-full justify-center bg-[#82D951] text-white hover:bg-[#75c448]"
+      >
+        <CalendarDaysIcon className="mr-2 size-4" />
+        Abrir agenda
+      </Button>
     </div>
   );
 }
@@ -214,7 +235,7 @@ export function AppSidebar() {
           </div>
           <SidebarTrigger className="size-8 text-muted-foreground hover:text-foreground group-data-[collapsible=icon]:hidden" />
         </div>
-        <AccountCard />
+        <ProfileCompanyCard />
       </SidebarHeader>
 
       <SidebarContent className="px-3 py-4">
