@@ -5,7 +5,6 @@ import { AgendaAppointmentsList } from "@/components/dashboard/agenda-appointmen
 import { AgendaSetup } from "@/components/dashboard/agenda-setup";
 import { AppointmentForm } from "@/components/dashboard/appointment-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockCustomers, mockServices } from "@/lib/dashboard-mocks";
 import prisma from "@/lib/prisma";
 import { formatClinicDateTimeInput } from "@/lib/timezone";
 import { withTenant } from "@/server/with-tenant";
@@ -13,23 +12,19 @@ import { withTenant } from "@/server/with-tenant";
 export const metadata: Metadata = { title: "Agenda" };
 
 export default withTenant(async ({ clinic }) => {
-
   const now = new Date();
-  const [customers, services] =
-    process.env.ENABLE_DASHBOARD_MOCKS === "true"
-      ? [mockCustomers, mockServices]
-      : await Promise.all([
-          prisma.customer.findMany({
-            where: { clinicId: clinic.id },
-            select: { id: true, name: true },
-            orderBy: { name: "asc" },
-          }),
-          prisma.service.findMany({
-            where: { clinicId: clinic.id, isActive: true },
-            select: { id: true, name: true, duration: true },
-            orderBy: { name: "asc" },
-          }),
-        ]);
+  const [customers, services] = await Promise.all([
+    prisma.customer.findMany({
+      where: { clinicId: clinic.id },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.service.findMany({
+      where: { clinicId: clinic.id, isActive: true },
+      select: { id: true, name: true, duration: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
   const minStartTime = formatClinicDateTimeInput(now, clinic.timeZone);
   const canSchedule = customers.length > 0 && services.length > 0;
 
