@@ -38,11 +38,11 @@ export function DashboardHeader() {
   const pageTitle = usePageTitle();
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-3 border-b px-4 sm:h-16 sm:px-6 lg:px-8">
+    <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border/60 bg-card px-4 shadow-sm sm:h-16 sm:px-6 lg:px-8">
       <SidebarTrigger className="size-9 md:hidden" />
 
       <div className="flex min-w-0 flex-1 items-center md:hidden">
-        <span className="truncate text-sm font-semibold">{pageTitle}</span>
+        <span className="truncate text-sm font-semibold text-foreground">{pageTitle}</span>
       </div>
 
       <div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-3">

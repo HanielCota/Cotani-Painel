@@ -37,7 +37,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
     return (
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset className="bg-muted/30">
+        <SidebarInset className="bg-background">
           <DashboardHeader />
           <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
             <UnprovisionedAccountState />
@@ -66,7 +66,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
     return (
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset className="bg-muted/30">
+        <SidebarInset className="bg-background">
           <DashboardHeader />
           <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
             <EmptyBarbershopState selectedOrgId={selectedOrgId} />
@@ -82,7 +82,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
     return (
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset className="bg-muted/30">
+        <SidebarInset className="bg-background">
           <DashboardHeader />
           <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
             <PaymentRequiredState barbershopName={clinic.name} />

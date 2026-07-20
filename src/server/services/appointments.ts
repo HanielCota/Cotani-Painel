@@ -1,3 +1,5 @@
+import { unstable_cache } from "next/cache";
+
 import type { ClinicModel } from "@/generated/prisma/models/Clinic";
 import prisma from "@/lib/prisma";
 import { getClinicDateBounds } from "@/lib/timezone";
@@ -26,33 +28,44 @@ function mapAppointmentListItem(appointment: {
   };
 }
 
-export async function getUpcomingAppointments(clinic: ClinicModel, limit = 10): Promise<AppointmentListItem[]> {
-  const now = new Date();
-  const appointments = await prisma.appointment.findMany({
-    where: {
-      clinicId: clinic.id,
-      startTime: { gte: now },
-      status: { in: ["PENDING", "CONFIRMED"] },
-    },
-    include: { customer: true, service: true },
-    orderBy: { startTime: "asc" },
-    take: limit,
-  });
+export const getUpcomingAppointments = unstable_cache(
+  async function getUpcomingAppointments(
+    clinic: ClinicModel,
+    limit = 10,
+  ): Promise<AppointmentListItem[]> {
+    const now = new Date();
+    const appointments = await prisma.appointment.findMany({
+      where: {
+        clinicId: clinic.id,
+        startTime: { gte: now },
+        status: { in: ["PENDING", "CONFIRMED"] },
+      },
+      include: { customer: true, service: true },
+      orderBy: { startTime: "asc" },
+      take: limit,
+    });
 
-  return appointments.map(mapAppointmentListItem);
-}
+    return appointments.map(mapAppointmentListItem);
+  },
+  ["upcoming-appointments"],
+  { tags: ["upcoming-appointments"], revalidate: 60 },
+);
 
-export async function getTodayAppointments(clinic: ClinicModel): Promise<AppointmentListItem[]> {
-  const { startOfToday, startOfTomorrow } = getClinicDateBounds(clinic.timeZone);
+export const getTodayAppointments = unstable_cache(
+  async function getTodayAppointments(clinic: ClinicModel): Promise<AppointmentListItem[]> {
+    const { startOfToday, startOfTomorrow } = getClinicDateBounds(clinic.timeZone);
 
-  const appointments = await prisma.appointment.findMany({
-    where: {
-      clinicId: clinic.id,
-      startTime: { gte: startOfToday, lt: startOfTomorrow },
-    },
-    include: { customer: true, service: true },
-    orderBy: { startTime: "asc" },
-  });
+    const appointments = await prisma.appointment.findMany({
+      where: {
+        clinicId: clinic.id,
+        startTime: { gte: startOfToday, lt: startOfTomorrow },
+      },
+      include: { customer: true, service: true },
+      orderBy: { startTime: "asc" },
+    });
 
-  return appointments.map(mapAppointmentListItem);
-}
+    return appointments.map(mapAppointmentListItem);
+  },
+  ["today-appointments"],
+  { tags: ["today-appointments"], revalidate: 60 },
+);
