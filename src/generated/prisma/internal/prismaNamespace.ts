@@ -390,6 +390,8 @@ export const ModelName = {
   Membership: 'Membership',
   Customer: 'Customer',
   Service: 'Service',
+  Professional: 'Professional',
+  ProfessionalService: 'ProfessionalService',
   Appointment: 'Appointment',
   Notification: 'Notification',
   WebhookEvent: 'WebhookEvent'
@@ -408,7 +410,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "clinic" | "businessHour" | "user" | "membership" | "customer" | "service" | "appointment" | "notification" | "webhookEvent"
+    modelProps: "clinic" | "businessHour" | "user" | "membership" | "customer" | "service" | "professional" | "professionalService" | "appointment" | "notification" | "webhookEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -856,6 +858,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Professional: {
+      payload: Prisma.$ProfessionalPayload<ExtArgs>
+      fields: Prisma.ProfessionalFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProfessionalFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProfessionalFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalPayload>
+        }
+        findFirst: {
+          args: Prisma.ProfessionalFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProfessionalFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalPayload>
+        }
+        findMany: {
+          args: Prisma.ProfessionalFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalPayload>[]
+        }
+        create: {
+          args: Prisma.ProfessionalCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalPayload>
+        }
+        createMany: {
+          args: Prisma.ProfessionalCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProfessionalCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalPayload>[]
+        }
+        delete: {
+          args: Prisma.ProfessionalDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalPayload>
+        }
+        update: {
+          args: Prisma.ProfessionalUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProfessionalDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProfessionalUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProfessionalUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProfessionalUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalPayload>
+        }
+        aggregate: {
+          args: Prisma.ProfessionalAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProfessional>
+        }
+        groupBy: {
+          args: Prisma.ProfessionalGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProfessionalGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProfessionalCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProfessionalCountAggregateOutputType> | number
+        }
+      }
+    }
+    ProfessionalService: {
+      payload: Prisma.$ProfessionalServicePayload<ExtArgs>
+      fields: Prisma.ProfessionalServiceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProfessionalServiceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalServicePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProfessionalServiceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalServicePayload>
+        }
+        findFirst: {
+          args: Prisma.ProfessionalServiceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalServicePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProfessionalServiceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalServicePayload>
+        }
+        findMany: {
+          args: Prisma.ProfessionalServiceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalServicePayload>[]
+        }
+        create: {
+          args: Prisma.ProfessionalServiceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalServicePayload>
+        }
+        createMany: {
+          args: Prisma.ProfessionalServiceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProfessionalServiceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalServicePayload>[]
+        }
+        delete: {
+          args: Prisma.ProfessionalServiceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalServicePayload>
+        }
+        update: {
+          args: Prisma.ProfessionalServiceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalServicePayload>
+        }
+        deleteMany: {
+          args: Prisma.ProfessionalServiceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProfessionalServiceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProfessionalServiceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalServicePayload>[]
+        }
+        upsert: {
+          args: Prisma.ProfessionalServiceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalServicePayload>
+        }
+        aggregate: {
+          args: Prisma.ProfessionalServiceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProfessionalService>
+        }
+        groupBy: {
+          args: Prisma.ProfessionalServiceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProfessionalServiceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProfessionalServiceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProfessionalServiceCountAggregateOutputType> | number
+        }
+      }
+    }
     Appointment: {
       payload: Prisma.$AppointmentPayload<ExtArgs>
       fields: Prisma.AppointmentFieldRefs
@@ -1204,6 +1354,27 @@ export const ServiceScalarFieldEnum = {
 export type ServiceScalarFieldEnum = (typeof ServiceScalarFieldEnum)[keyof typeof ServiceScalarFieldEnum]
 
 
+export const ProfessionalScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  imageUrl: 'imageUrl',
+  isActive: 'isActive',
+  clinicId: 'clinicId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProfessionalScalarFieldEnum = (typeof ProfessionalScalarFieldEnum)[keyof typeof ProfessionalScalarFieldEnum]
+
+
+export const ProfessionalServiceScalarFieldEnum = {
+  professionalId: 'professionalId',
+  serviceId: 'serviceId'
+} as const
+
+export type ProfessionalServiceScalarFieldEnum = (typeof ProfessionalServiceScalarFieldEnum)[keyof typeof ProfessionalServiceScalarFieldEnum]
+
+
 export const AppointmentScalarFieldEnum = {
   id: 'id',
   cancellationToken: 'cancellationToken',
@@ -1214,6 +1385,7 @@ export const AppointmentScalarFieldEnum = {
   clinicId: 'clinicId',
   customerId: 'customerId',
   serviceId: 'serviceId',
+  professionalId: 'professionalId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1609,6 +1781,8 @@ export type GlobalOmitConfig = {
   membership?: Prisma.MembershipOmit
   customer?: Prisma.CustomerOmit
   service?: Prisma.ServiceOmit
+  professional?: Prisma.ProfessionalOmit
+  professionalService?: Prisma.ProfessionalServiceOmit
   appointment?: Prisma.AppointmentOmit
   notification?: Prisma.NotificationOmit
   webhookEvent?: Prisma.WebhookEventOmit

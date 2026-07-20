@@ -48,6 +48,16 @@ export type Customer = Prisma.CustomerModel
  */
 export type Service = Prisma.ServiceModel
 /**
+ * Model Professional
+ * 
+ */
+export type Professional = Prisma.ProfessionalModel
+/**
+ * Model ProfessionalService
+ * 
+ */
+export type ProfessionalService = Prisma.ProfessionalServiceModel
+/**
  * Model Appointment
  * 
  */

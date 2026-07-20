@@ -57,6 +57,8 @@ export const ModelName = {
   Membership: 'Membership',
   Customer: 'Customer',
   Service: 'Service',
+  Professional: 'Professional',
+  ProfessionalService: 'ProfessionalService',
   Appointment: 'Appointment',
   Notification: 'Notification',
   WebhookEvent: 'WebhookEvent'
@@ -165,6 +167,27 @@ export const ServiceScalarFieldEnum = {
 export type ServiceScalarFieldEnum = (typeof ServiceScalarFieldEnum)[keyof typeof ServiceScalarFieldEnum]
 
 
+export const ProfessionalScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  imageUrl: 'imageUrl',
+  isActive: 'isActive',
+  clinicId: 'clinicId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProfessionalScalarFieldEnum = (typeof ProfessionalScalarFieldEnum)[keyof typeof ProfessionalScalarFieldEnum]
+
+
+export const ProfessionalServiceScalarFieldEnum = {
+  professionalId: 'professionalId',
+  serviceId: 'serviceId'
+} as const
+
+export type ProfessionalServiceScalarFieldEnum = (typeof ProfessionalServiceScalarFieldEnum)[keyof typeof ProfessionalServiceScalarFieldEnum]
+
+
 export const AppointmentScalarFieldEnum = {
   id: 'id',
   cancellationToken: 'cancellationToken',
@@ -175,6 +198,7 @@ export const AppointmentScalarFieldEnum = {
   clinicId: 'clinicId',
   customerId: 'customerId',
   serviceId: 'serviceId',
+  professionalId: 'professionalId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
