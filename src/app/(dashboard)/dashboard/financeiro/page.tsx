@@ -13,7 +13,7 @@ export default withTenant(async ({ clinic }) => {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-semibold tracking-tight">Financeiro</h1>
+        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl lg:text-3xl">Financeiro</h1>
         <p className="text-sm text-muted-foreground">Acompanhe receitas e movimentação do mês da {clinic.name}.</p>
       </div>
 

@@ -11,7 +11,7 @@ export default withTenant(async ({ clinic }) => {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-semibold tracking-tight">Relatórios</h1>
+        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl lg:text-3xl">Relatórios</h1>
         <p className="text-sm text-muted-foreground">Transforme a rotina da {clinic.name} em decisões claras.</p>
       </div>
       <ReportsKpiCards />

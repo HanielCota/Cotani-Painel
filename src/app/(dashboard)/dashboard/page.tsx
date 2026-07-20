@@ -48,9 +48,9 @@ export default withTenant(async ({ clinic }) => {
   const showOnboarding = !subscriptionActive || !hasServices || !hasBusinessHours;
 
   return (
-    <div className="flex flex-col gap-6 pt-8">
+    <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Painel de controle</h1>
+        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Painel de controle</h1>
         <p className="text-sm text-muted-foreground">Acompanhe a operação da {clinic.name} em tempo real.</p>
       </div>
 
