@@ -54,9 +54,8 @@ export async function upsertClinic(
   });
 
   if (existing) {
-    // Protege o slug (link de agendamento público) e os dados financeiros:
-    // se a barbearia já pagou ou já tem vínculo com Mercado Pago, o Clerk
-    // não deve sobrescrever o status da assinatura.
+    // O slug é imutável: ele é o link público de agendamento da barbearia.
+    // Nunca sobrescrevemos o slug em updates, mesmo que o nome mude no Clerk.
     const shouldInheritSubscription =
       existing.mercadoPagoSubscriptionId || existing.hasPaidOnce;
 
