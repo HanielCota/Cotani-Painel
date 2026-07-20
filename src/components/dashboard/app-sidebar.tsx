@@ -3,6 +3,11 @@
 import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
 import type { LucideIcon } from "lucide-react";
 import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
   CalendarDaysIcon,
   CreditCardIcon,
   DollarSignIcon,
@@ -177,6 +182,39 @@ function StoreAccordion() {
   );
 }
 
+function useBottomShadow<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [isAtBottom, setIsAtBottom] = useState(true);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    const sentinel = document.createElement("div");
+    sentinel.setAttribute("data-scroll-sentinel", "");
+    sentinel.className = "absolute bottom-0 left-0 h-px w-px";
+    element.appendChild(sentinel);
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsAtBottom(entry.isIntersecting);
+      },
+      { root: element, threshold: 0 },
+    );
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.disconnect();
+      if (sentinel.parentNode === element) {
+        element.removeChild(sentinel);
+      }
+    };
+  }, []);
+
+  return { ref, isAtBottom };
+}
+
 function IntegrationAccordion() {
   const { state } = useSidebar();
 
@@ -220,6 +258,9 @@ function SandboxToggle() {
 }
 
 export function AppSidebar() {
+  const { ref: contentRef, isAtBottom } = useBottomShadow<HTMLDivElement>();
+  const showShadow = !isAtBottom;
+
   return (
     <Sidebar collapsible="icon" variant="inset" className="top-16 h-[calc(100vh-4rem)] border-r border-border/60 bg-white">
       <SidebarHeader className="px-4 pt-5 pb-3">
@@ -237,7 +278,7 @@ export function AppSidebar() {
         <ProfileCompanyCard />
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-4">
+      <SidebarContent ref={contentRef} className="relative px-3 py-4">
         <SidebarMenu className="gap-1">
           <NavLink item={dashboardItem} />
           {operationItems.map((item) => (
@@ -250,6 +291,12 @@ export function AppSidebar() {
             <NavLink key={item.href} item={item} />
           ))}
         </SidebarMenu>
+
+        <div
+          aria-hidden
+          data-visible={showShadow}
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-10 bg-gradient-to-t from-black/8 to-transparent opacity-0 transition-opacity data-[visible=true]:opacity-100"
+        />
       </SidebarContent>
 
       <SidebarFooter className="mt-auto px-3 pb-5 pt-2">
