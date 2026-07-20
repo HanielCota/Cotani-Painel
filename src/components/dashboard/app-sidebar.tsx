@@ -95,8 +95,7 @@ function NavLink({ item }: { item: NavigationItem }) {
         className={cn(
           "h-10 rounded-lg px-3 text-sm transition-colors",
           "hover:bg-muted hover:text-foreground",
-          "data-active:bg-[#82D951] data-active:text-white data-active:shadow-sm",
-          "data-active:hover:bg-[#75c448]"
+          isActive && "bg-[#82D951] text-white shadow-sm hover:bg-[#75c448] hover:text-white"
         )}
       >
         <Icon className="size-4 shrink-0" />
