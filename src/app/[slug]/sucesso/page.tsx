@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarCheckIcon, CalendarIcon, ClockIcon, MapPinIcon, TagIcon } from "lucide-react";
+import { CalendarCheckIcon, CalendarIcon, ClockIcon, MapPinIcon, TagIcon, UserIcon } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: SuccessPageProps): Promise<Me
 
 export default async function SuccessPage({ params, searchParams }: SuccessPageProps) {
   const { slug } = await params;
-  const { service, date, time, customer } = await searchParams;
+  const { service, professional, date, time, customer } = await searchParams;
 
   const clinic = await prisma.clinic.findUnique({
     where: { slug },
@@ -67,6 +67,15 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
                   Serviço
                 </dt>
                 <dd className="font-medium">{service}</dd>
+              </div>
+            ) : null}
+            {professional ? (
+              <div className="flex items-center justify-between gap-4 border-b pb-3">
+                <dt className="flex items-center gap-2 text-muted-foreground">
+                  <UserIcon aria-hidden="true" className="size-4" />
+                  Profissional
+                </dt>
+                <dd className="font-medium">{professional}</dd>
               </div>
             ) : null}
             {formattedDate ? (

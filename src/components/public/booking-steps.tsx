@@ -29,6 +29,13 @@ interface Service {
   imageUrl: string | null;
 }
 
+interface Professional {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  serviceIds: string[];
+}
+
 interface AvailabilitySlot {
   startTime: string;
   label: string;
@@ -38,16 +45,18 @@ interface BookingStepsProps {
   slug: string;
   clinicName: string;
   services: Service[];
+  professionals: Professional[];
   minDate: string;
 }
 
 const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
-type Step = "service" | "datetime" | "customer";
+type Step = "service" | "professional" | "datetime" | "customer";
 
 function StepIndicator({ current }: { current: Step }) {
   const steps: { id: Step; label: string }[] = [
     { id: "service", label: "Serviço" },
+    { id: "professional", label: "Profissional" },
     { id: "datetime", label: "Data e hora" },
     { id: "customer", label: "Seus dados" },
   ];
@@ -134,6 +143,66 @@ function ServiceStep({
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function ProfessionalStep({
+  professionals,
+  selectedId,
+  onSelect,
+  onBack,
+}: {
+  professionals: Professional[];
+  selectedId: string;
+  onSelect: (professional: Professional) => void;
+  onBack: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-2 text-primary">
+        <UserIcon className="size-5" />
+        <h2 className="text-lg font-semibold">Escolha o profissional</h2>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {professionals.map((professional) => {
+          const selected = selectedId === professional.id;
+
+          return (
+            <button
+              key={professional.id}
+              type="button"
+              onClick={() => onSelect(professional)}
+              className={`flex items-center gap-4 rounded-xl border p-4 text-left transition-all ${
+                selected
+                  ? "border-primary bg-primary/5 ring-1 ring-primary"
+                  : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"
+              }`}
+            >
+              {professional.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={professional.imageUrl}
+                  alt=""
+                  className="size-16 shrink-0 rounded-lg object-cover ring-1 ring-border"
+                />
+              ) : (
+                <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <UserIcon className="size-6" />
+                </div>
+              )}
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <span className="font-medium">{professional.name}</span>
+                <span className="text-sm text-muted-foreground">Profissional</span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+      <Button type="button" variant="outline" onClick={onBack} className="w-full sm:w-auto">
+        <ArrowLeftIcon data-icon="inline-start" />
+        Voltar
+      </Button>
     </div>
   );
 }
@@ -298,20 +367,27 @@ function CustomerStep({ isPending }: { isPending: boolean }) {
   );
 }
 
-export function BookingSteps({ slug, clinicName, services, minDate }: BookingStepsProps) {
+export function BookingSteps({ slug, clinicName, services, professionals, minDate }: BookingStepsProps) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("service");
   const [serviceId, setServiceId] = useState("");
   const [serviceName, setServiceName] = useState("");
+  const [professionalId, setProfessionalId] = useState("");
+  const [professionalName, setProfessionalName] = useState("");
   const [date, setDate] = useState("");
   const [slot, setSlot] = useState<AvailabilitySlot | null>(null);
   const [result, setResult] = useState<ActionResult | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const availableProfessionals = professionals.filter((professional) => professional.serviceIds.includes(serviceId));
+  const shouldChooseProfessional = availableProfessionals.length > 0;
+
   const { data, isFetching, refetch } = useQuery({
-    queryKey: ["public-availability", slug, serviceId, date],
+    queryKey: ["public-availability", slug, serviceId, professionalId, date],
     queryFn: async (): Promise<{ slots: AvailabilitySlot[] }> => {
-      const response = await fetch(`/api/public/${slug}/availability?serviceId=${serviceId}&date=${date}`);
+      const searchParams = new URLSearchParams({ serviceId, date });
+      if (professionalId) searchParams.set("professionalId", professionalId);
+      const response = await fetch(`/api/public/${slug}/availability?${searchParams.toString()}`);
 
       if (!response.ok) {
         throw new Error("Não foi possível carregar os horários.");
@@ -319,12 +395,34 @@ export function BookingSteps({ slug, clinicName, services, minDate }: BookingSte
 
       return response.json();
     },
-    enabled: Boolean(serviceId && date),
+    enabled: Boolean(serviceId && date && (!shouldChooseProfessional || professionalId)),
   });
 
   function handleServiceSelect(selectedService: Service) {
+    const serviceProfessionals = professionals.filter((professional) =>
+      professional.serviceIds.includes(selectedService.id),
+    );
+
     setServiceId(selectedService.id);
     setServiceName(selectedService.name);
+    setProfessionalId("");
+    setProfessionalName("");
+    setDate("");
+    setSlot(null);
+
+    if (serviceProfessionals.length === 1) {
+      setProfessionalId(serviceProfessionals[0].id);
+      setProfessionalName(serviceProfessionals[0].name);
+      setStep("datetime");
+      return;
+    }
+
+    setStep(serviceProfessionals.length > 0 ? "professional" : "datetime");
+  }
+
+  function handleProfessionalSelect(selectedProfessional: Professional) {
+    setProfessionalId(selectedProfessional.id);
+    setProfessionalName(selectedProfessional.name);
     setDate("");
     setSlot(null);
     setStep("datetime");
@@ -346,6 +444,7 @@ export function BookingSteps({ slug, clinicName, services, minDate }: BookingSte
     const formData = new FormData(event.currentTarget);
     formData.set("slug", slug);
     formData.set("serviceId", serviceId);
+    formData.set("professionalId", professionalId);
     formData.set("startTime", slot.startTime);
 
     startTransition(async () => {
@@ -360,6 +459,7 @@ export function BookingSteps({ slug, clinicName, services, minDate }: BookingSte
 
       const params = new URLSearchParams();
       if (serviceName) params.set("service", serviceName);
+      if (professionalName) params.set("professional", professionalName);
       if (date) params.set("date", date);
       if (slot) params.set("time", slot.label);
       params.set("customer", String(formData.get("customerName")));
@@ -382,6 +482,15 @@ export function BookingSteps({ slug, clinicName, services, minDate }: BookingSte
         <form id="public-booking" onSubmit={handleSubmit}>
           {step === "service" ? (
             <ServiceStep services={services} selectedId={serviceId} onSelect={handleServiceSelect} />
+          ) : null}
+
+          {step === "professional" ? (
+            <ProfessionalStep
+              professionals={availableProfessionals}
+              selectedId={professionalId}
+              onSelect={handleProfessionalSelect}
+              onBack={() => setStep("service")}
+            />
           ) : null}
 
           {step === "datetime" ? (
@@ -413,7 +522,8 @@ export function BookingSteps({ slug, clinicName, services, minDate }: BookingSte
             variant="outline"
             onClick={() => {
               if (step === "customer") setStep("datetime");
-              else if (step === "datetime") setStep("service");
+              else if (step === "datetime") setStep(shouldChooseProfessional ? "professional" : "service");
+              else if (step === "professional") setStep("service");
             }}
             disabled={isPending}
             className="w-full sm:w-auto"

@@ -35,6 +35,11 @@ export default async function PublicBookingPage({ params }: PublicBookingPagePro
         select: { id: true, name: true, duration: true, price: true, imageUrl: true },
         orderBy: { name: "asc" },
       },
+      professionals: {
+        where: { isActive: true },
+        select: { id: true, name: true, imageUrl: true, services: { select: { serviceId: true } } },
+        orderBy: { name: "asc" },
+      },
     },
   });
 
@@ -62,6 +67,12 @@ export default async function PublicBookingPage({ params }: PublicBookingPagePro
           duration: service.duration,
           price: Number(service.price),
           imageUrl: service.imageUrl,
+        }))}
+        professionals={clinic.professionals.map((professional) => ({
+          id: professional.id,
+          name: professional.name,
+          imageUrl: professional.imageUrl,
+          serviceIds: professional.services.map((relation) => relation.serviceId),
         }))}
       />
     </main>
