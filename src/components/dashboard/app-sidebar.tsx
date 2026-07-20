@@ -5,6 +5,7 @@ import { OrganizationSwitcher } from "@clerk/nextjs";
 import {
   CalendarDaysIcon,
   CreditCardIcon,
+  DollarSignIcon,
   LayoutDashboardIcon,
   ScissorsIcon,
   SettingsIcon,
@@ -37,6 +38,7 @@ const operationItems: NavigationItem[] = [
   { title: "Visão geral", href: "/dashboard", icon: LayoutDashboardIcon },
   { title: "Agenda", href: "/dashboard/agenda", icon: CalendarDaysIcon },
   { title: "Clientes", href: "/dashboard/clientes", icon: UsersIcon },
+  { title: "Financeiro", href: "/dashboard/financeiro", icon: DollarSignIcon },
 ];
 
 const managementItems: NavigationItem[] = [
