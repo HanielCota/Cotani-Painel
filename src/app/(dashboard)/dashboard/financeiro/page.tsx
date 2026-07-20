@@ -43,13 +43,16 @@ export default withTenant(async ({ clinic }) => {
 
       <section className="grid gap-4 lg:grid-cols-3">
         <SalesPerformanceChart />
-        <MrrEvolutionChart />
       </section>
 
       <section className="grid gap-4 lg:grid-cols-3">
+        <SalesCalendarHeatmap />
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-3">
+        <MrrEvolutionChart />
         <PaymentMethodsChart />
         <PaymentStatusChart />
-        <SalesCalendarHeatmap />
       </section>
 
       <FinanceTransactionsTable appointments={metrics.monthAppointments} />

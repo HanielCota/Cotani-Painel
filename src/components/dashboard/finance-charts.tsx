@@ -23,7 +23,7 @@ function EmptyState({ label }: { label: string }) {
 
 export function SalesPerformanceChart() {
   return (
-    <Card title="Desempenho de vendas" className="lg:col-span-2">
+    <Card title="Desempenho de vendas" className="lg:col-span-3">
       <EmptyState label="O gráfico de vendas será preenchido automaticamente conforme os agendamentos forem concluídos." />
     </Card>
   );
@@ -40,11 +40,7 @@ export function MrrEvolutionChart() {
 export function PaymentMethodsChart() {
   return (
     <Card title="Métodos de pagamento">
-      <div className="flex h-48 flex-col items-center justify-center gap-2 text-center text-sm text-gray-400 sm:h-64">
-        <TrendingUpIcon className="h-8 w-8 text-gray-300" />
-        <p>Nenhum pagamento processado</p>
-        <p className="max-w-xs text-xs">Os métodos de pagamento mais utilizados serão exibidos aqui.</p>
-      </div>
+      <EmptyState label="Os métodos de pagamento mais utilizados serão exibidos aqui." />
     </Card>
   );
 }
@@ -59,7 +55,7 @@ export function PaymentStatusChart() {
 
 export function SalesCalendarHeatmap() {
   return (
-    <Card title="Calendário de vendas" className="lg:col-span-2">
+    <Card title="Calendário de vendas" className="lg:col-span-3">
       <EmptyState label="O heatmap de vendas será gerado automaticamente com base nos agendamentos confirmados." />
     </Card>
   );
