@@ -51,12 +51,11 @@ interface BookingStepsProps {
 
 const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
-type Step = "service" | "professional" | "datetime" | "customer";
+type Step = "service-professional" | "datetime" | "customer";
 
 function StepIndicator({ current }: { current: Step }) {
   const steps: { id: Step; label: string }[] = [
-    { id: "service", label: "Serviço" },
-    { id: "professional", label: "Profissional" },
+    { id: "service-professional", label: "Serviço" },
     { id: "datetime", label: "Data e hora" },
     { id: "customer", label: "Seus dados" },
   ];
@@ -92,30 +91,42 @@ function StepIndicator({ current }: { current: Step }) {
   );
 }
 
-function ServiceStep({
+function ServiceProfessionalStep({
   services,
-  selectedId,
-  onSelect,
+  professionals,
+  selectedServiceId,
+  selectedProfessionalId,
+  onServiceSelect,
+  onProfessionalSelect,
 }: {
   services: Service[];
-  selectedId: string;
-  onSelect: (service: Service) => void;
+  professionals: Professional[];
+  selectedServiceId: string;
+  selectedProfessionalId: string;
+  onServiceSelect: (service: Service) => void;
+  onProfessionalSelect: (professional: Professional) => void;
 }) {
+  const selectedService = services.find((service) => service.id === selectedServiceId);
+  const availableProfessionals = selectedService
+    ? professionals.filter((professional) => professional.serviceIds.includes(selectedService.id))
+    : [];
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <div className="flex items-center gap-2 text-primary">
         <CalendarPlusIcon className="size-5" />
-        <h2 className="text-lg font-semibold">Escolha o serviço</h2>
+        <h2 className="text-lg font-semibold">Escolha o serviço e o profissional</h2>
       </div>
+
       <div className="grid gap-3 sm:grid-cols-2">
         {services.map((service) => {
-          const selected = selectedId === service.id;
+          const selected = selectedServiceId === service.id;
 
           return (
             <button
               key={service.id}
               type="button"
-              onClick={() => onSelect(service)}
+              onClick={() => onServiceSelect(service)}
               className={`flex items-center gap-4 rounded-xl border p-4 text-left transition-all ${
                 selected
                   ? "border-primary bg-primary/5 ring-1 ring-primary"
@@ -143,66 +154,57 @@ function ServiceStep({
           );
         })}
       </div>
-    </div>
-  );
-}
 
-function ProfessionalStep({
-  professionals,
-  selectedId,
-  onSelect,
-  onBack,
-}: {
-  professionals: Professional[];
-  selectedId: string;
-  onSelect: (professional: Professional) => void;
-  onBack: () => void;
-}) {
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2 text-primary">
-        <UserIcon className="size-5" />
-        <h2 className="text-lg font-semibold">Escolha o profissional</h2>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {professionals.map((professional) => {
-          const selected = selectedId === professional.id;
+      {selectedService ? (
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2 text-primary">
+            <UserIcon className="size-5" />
+            <h3 className="text-base font-semibold">Profissional para {selectedService.name}</h3>
+          </div>
 
-          return (
-            <button
-              key={professional.id}
-              type="button"
-              onClick={() => onSelect(professional)}
-              className={`flex items-center gap-4 rounded-xl border p-4 text-left transition-all ${
-                selected
-                  ? "border-primary bg-primary/5 ring-1 ring-primary"
-                  : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"
-              }`}
-            >
-              {professional.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={professional.imageUrl}
-                  alt=""
-                  className="size-16 shrink-0 rounded-lg object-cover ring-1 ring-border"
-                />
-              ) : (
-                <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                  <UserIcon className="size-6" />
-                </div>
-              )}
-              <div className="flex min-w-0 flex-col gap-0.5">
-                <span className="font-medium">{professional.name}</span>
-                <span className="text-sm text-muted-foreground">Profissional</span>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-      <Button type="button" variant="outline" onClick={onBack} className="w-full sm:w-auto">
-        <ArrowLeftIcon data-icon="inline-start" />
-        Voltar
-      </Button>
+          {availableProfessionals.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Nenhum profissional disponível para este serviço no momento.
+            </p>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {availableProfessionals.map((professional) => {
+                const selected = selectedProfessionalId === professional.id;
+
+                return (
+                  <button
+                    key={professional.id}
+                    type="button"
+                    onClick={() => onProfessionalSelect(professional)}
+                    className={`flex items-center gap-4 rounded-xl border p-4 text-left transition-all ${
+                      selected
+                        ? "border-primary bg-primary/5 ring-1 ring-primary"
+                        : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"
+                    }`}
+                  >
+                    {professional.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={professional.imageUrl}
+                        alt=""
+                        className="size-14 shrink-0 rounded-lg object-cover ring-1 ring-border"
+                      />
+                    ) : (
+                      <div className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                        <UserIcon className="size-6" />
+                      </div>
+                    )}
+                    <div className="flex min-w-0 flex-col gap-0.5">
+                      <span className="font-medium">{professional.name}</span>
+                      <span className="text-sm text-muted-foreground">Profissional</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -369,7 +371,7 @@ function CustomerStep({ isPending }: { isPending: boolean }) {
 
 export function BookingSteps({ slug, clinicName, services, professionals, minDate }: BookingStepsProps) {
   const router = useRouter();
-  const [step, setStep] = useState<Step>("service");
+  const [step, setStep] = useState<Step>("service-professional");
   const [serviceId, setServiceId] = useState("");
   const [serviceName, setServiceName] = useState("");
   const [professionalId, setProfessionalId] = useState("");
@@ -379,8 +381,12 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
   const [result, setResult] = useState<ActionResult | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const availableProfessionals = professionals.filter((professional) => professional.serviceIds.includes(serviceId));
-  const shouldChooseProfessional = availableProfessionals.length > 0;
+  const selectedService = services.find((service) => service.id === serviceId);
+  const availableProfessionals = selectedService
+    ? professionals.filter((professional) => professional.serviceIds.includes(selectedService.id))
+    : [];
+  const hasProfessionals = availableProfessionals.length > 0;
+  const canProceedFromService = serviceId && (!hasProfessionals || professionalId);
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ["public-availability", slug, serviceId, professionalId, date],
@@ -395,7 +401,7 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
 
       return response.json();
     },
-    enabled: Boolean(serviceId && date && (!shouldChooseProfessional || professionalId)),
+    enabled: Boolean(serviceId && date && (!hasProfessionals || professionalId)),
   });
 
   function handleServiceSelect(selectedService: Service) {
@@ -413,19 +419,12 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
     if (serviceProfessionals.length === 1) {
       setProfessionalId(serviceProfessionals[0].id);
       setProfessionalName(serviceProfessionals[0].name);
-      setStep("datetime");
-      return;
     }
-
-    setStep(serviceProfessionals.length > 0 ? "professional" : "datetime");
   }
 
   function handleProfessionalSelect(selectedProfessional: Professional) {
     setProfessionalId(selectedProfessional.id);
     setProfessionalName(selectedProfessional.name);
-    setDate("");
-    setSlot(null);
-    setStep("datetime");
   }
 
   function handleDateChange(newDate: string) {
@@ -480,16 +479,14 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
         <StepIndicator current={step} />
 
         <form id="public-booking" onSubmit={handleSubmit}>
-          {step === "service" ? (
-            <ServiceStep services={services} selectedId={serviceId} onSelect={handleServiceSelect} />
-          ) : null}
-
-          {step === "professional" ? (
-            <ProfessionalStep
-              professionals={availableProfessionals}
-              selectedId={professionalId}
-              onSelect={handleProfessionalSelect}
-              onBack={() => setStep("service")}
+          {step === "service-professional" ? (
+            <ServiceProfessionalStep
+              services={services}
+              professionals={professionals}
+              selectedServiceId={serviceId}
+              selectedProfessionalId={professionalId}
+              onServiceSelect={handleServiceSelect}
+              onProfessionalSelect={handleProfessionalSelect}
             />
           ) : null}
 
@@ -516,14 +513,13 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
         </form>
       </CardContent>
       <CardFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
-        {step !== "service" ? (
+        {step !== "service-professional" ? (
           <Button
             type="button"
             variant="outline"
             onClick={() => {
               if (step === "customer") setStep("datetime");
-              else if (step === "datetime") setStep(shouldChooseProfessional ? "professional" : "service");
-              else if (step === "professional") setStep("service");
+              else if (step === "datetime") setStep("service-professional");
             }}
             disabled={isPending}
             className="w-full sm:w-auto"
@@ -534,6 +530,18 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
         ) : (
           <div />
         )}
+
+        {step === "service-professional" ? (
+          <Button
+            type="button"
+            disabled={!canProceedFromService}
+            onClick={() => setStep("datetime")}
+            className="w-full sm:w-auto"
+          >
+            Continuar
+            <CheckIcon data-icon="inline-end" />
+          </Button>
+        ) : null}
 
         {step === "datetime" ? (
           <Button
