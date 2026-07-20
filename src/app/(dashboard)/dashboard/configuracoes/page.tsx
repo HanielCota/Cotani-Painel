@@ -1,7 +1,8 @@
-import { SettingsIcon } from "lucide-react";
+import { SettingsIcon, UsersIcon } from "lucide-react";
 import type { Metadata } from "next";
 
 import { BusinessHoursSettings } from "@/components/dashboard/business-hours-settings";
+import { ProfessionalsSettings } from "@/components/dashboard/professionals-settings";
 import { ServicesSettings } from "@/components/dashboard/services-settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,7 +33,7 @@ export default withTenant(async ({ clinic }) => {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-semibold tracking-tight">Configurações</h1>
-        <p className="text-sm text-muted-foreground">Gerencie os serviços e o expediente de {clinic.name}.</p>
+        <p className="text-sm text-muted-foreground">Gerencie os serviços, profissionais e o expediente de {clinic.name}.</p>
       </div>
 
       <Card className="border border-border/80 shadow-sm">
@@ -41,18 +42,25 @@ export default withTenant(async ({ clinic }) => {
             <SettingsIcon />
             Configurações da barbearia
           </CardTitle>
-          <CardDescription>Ajuste os serviços oferecidos e os horários de funcionamento.</CardDescription>
+          <CardDescription>Ajuste os serviços oferecidos, profissionais e os horários de funcionamento.</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="services">
             <div className="overflow-x-auto pb-1">
               <TabsList className="w-full sm:w-fit">
                 <TabsTrigger value="services">Serviços</TabsTrigger>
+                <TabsTrigger value="professionals" className="flex items-center gap-1.5">
+                  <UsersIcon className="size-3.5" />
+                  Profissionais
+                </TabsTrigger>
                 <TabsTrigger value="business-hours">Expediente</TabsTrigger>
               </TabsList>
             </div>
             <TabsContent value="services" className="pt-4">
               <ServicesSettings />
+            </TabsContent>
+            <TabsContent value="professionals" className="pt-4">
+              <ProfessionalsSettings />
             </TabsContent>
             <TabsContent value="business-hours" className="pt-4">
               <BusinessHoursSettings

@@ -1,0 +1,151 @@
+"use client";
+
+import { useMemo } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
+import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { UserIcon } from "lucide-react";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { ProfessionalFormDialog } from "@/components/dashboard/professional-form-dialog";
+import { ProfessionalToggleActive } from "@/components/dashboard/professional-toggle-active";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useProfessionals } from "@/hooks/use-professionals";
+import { useServices } from "@/hooks/use-services";
+import type { ProfessionalListItem } from "@/types";
+
+export function ProfessionalsSettings() {
+  const { data: professionals, isPending, isError } = useProfessionals();
+  const { data: services } = useServices();
+
+  const serviceById = useMemo(() => {
+    if (!services) return new Map<string, string>();
+    return new Map(services.map((service) => [service.id, service.name]));
+  }, [services]);
+
+  const columns = useMemo<ColumnDef<ProfessionalListItem>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: "Profissional",
+        cell: ({ row, getValue }) => (
+          <div className="flex items-center gap-3">
+            {row.original.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={row.original.imageUrl} alt="" className="size-10 rounded-lg object-cover ring-1 ring-border" />
+            ) : (
+              <div className="flex size-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                <UserIcon className="size-5" />
+              </div>
+            )}
+            <span className={row.original.isActive ? "" : "text-muted-foreground line-through"}>{getValue<string>()}</span>
+          </div>
+        ),
+      },
+      {
+        id: "services",
+        header: "Serviços",
+        cell: ({ row }) => {
+          const names = row.original.serviceIds.map((id) => serviceById.get(id) ?? "Serviço");
+
+          if (names.length === 0) {
+            return <span className="text-sm text-muted-foreground">Nenhum serviço vinculado</span>;
+          }
+
+          return (
+            <div className="flex flex-wrap gap-1">
+              {names.map((name) => (
+                <Badge key={name} variant="secondary" className="text-xs">
+                  {name}
+                </Badge>
+              ))}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "isActive",
+        header: "Status",
+        cell: ({ getValue }) =>
+          getValue<boolean>() ? <Badge>Ativo</Badge> : <Badge variant="secondary">Inativo</Badge>,
+      },
+      {
+        id: "actions",
+        header: "",
+        cell: ({ row }) => (
+          <div className="flex justify-end gap-2">
+            <ProfessionalFormDialog professional={row.original} />
+            <ProfessionalToggleActive professional={row.original} />
+          </div>
+        ),
+      },
+    ],
+    [serviceById],
+  );
+
+  const table = useReactTable({
+    data: professionals ?? [],
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">Gerencie os profissionais e os serviços que cada um atende.</p>
+        <ProfessionalFormDialog />
+      </div>
+
+      {isPending ? (
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      ) : null}
+
+      {!isPending && isError ? (
+        <Alert variant="destructive">
+          <AlertTitle>Não foi possível carregar os profissionais</AlertTitle>
+          <AlertDescription>Verifique sua conexão e tente novamente em instantes.</AlertDescription>
+        </Alert>
+      ) : null}
+
+      {!isPending && !isError ? (
+        <div className="rounded-lg border overflow-x-auto">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="py-10 text-center text-muted-foreground">
+                    Nenhum profissional cadastrado.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id} className={row.original.isActive ? "" : "bg-muted/30"}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      ) : null}
+    </div>
+  );
+}
