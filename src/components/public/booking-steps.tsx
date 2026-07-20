@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowLeftIcon, CalendarIcon, CalendarPlusIcon, CheckIcon, ClockIcon, UserIcon } from "lucide-react";
+import { ArrowLeftIcon, CalendarIcon, CalendarPlusIcon, CheckIcon, ClockIcon, ImageIcon, UserIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { createPublicAppointment } from "@/server/actions/public-booking";
@@ -26,6 +26,7 @@ interface Service {
   name: string;
   duration: number;
   price: number;
+  imageUrl: string | null;
 }
 
 interface AvailabilitySlot {
@@ -106,15 +107,29 @@ function ServiceStep({
               key={service.id}
               type="button"
               onClick={() => onSelect(service)}
-              className={`flex flex-col gap-1 rounded-xl border p-4 text-left transition-all ${
+              className={`flex items-center gap-4 rounded-xl border p-4 text-left transition-all ${
                 selected
                   ? "border-primary bg-primary/5 ring-1 ring-primary"
                   : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"
               }`}
             >
-              <span className="font-medium">{service.name}</span>
-              <span className="text-sm text-muted-foreground">{service.duration} min</span>
-              <span className="text-base font-semibold text-primary">{priceFormatter.format(service.price)}</span>
+              {service.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={service.imageUrl}
+                  alt=""
+                  className="size-16 shrink-0 rounded-lg object-cover ring-1 ring-border"
+                />
+              ) : (
+                <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <ImageIcon className="size-6" />
+                </div>
+              )}
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <span className="font-medium">{service.name}</span>
+                <span className="text-sm text-muted-foreground">{service.duration} min</span>
+                <span className="text-base font-semibold text-primary">{priceFormatter.format(service.price)}</span>
+              </div>
             </button>
           );
         })}
