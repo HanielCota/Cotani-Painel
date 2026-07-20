@@ -41,7 +41,6 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 interface NavigationItem {
@@ -242,21 +241,6 @@ function IntegrationAccordion() {
   );
 }
 
-function SandboxToggle() {
-  const { state } = useSidebar();
-
-  if (state === "collapsed") {
-    return null;
-  }
-
-  return (
-    <div className="flex items-center justify-between gap-2 rounded-xl border border-border/60 bg-card p-3 shadow-sm">
-      <span className="text-sm font-medium text-foreground">Modo Teste (Sandbox)</span>
-      <Switch defaultChecked className="data-checked:bg-[#82D951] shrink-0" />
-    </div>
-  );
-}
-
 export function AppSidebar() {
   const { ref: contentRef, isAtBottom } = useBottomShadow<HTMLDivElement>();
   const showShadow = !isAtBottom;
@@ -301,9 +285,6 @@ export function AppSidebar() {
 
       <SidebarFooter className="mt-auto px-3 pb-5 pt-2">
         <IntegrationAccordion />
-        <div className="mt-3">
-          <SandboxToggle />
-        </div>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
