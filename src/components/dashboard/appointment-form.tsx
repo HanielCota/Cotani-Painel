@@ -11,7 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,6 +36,7 @@ interface AppointmentFormProps {
 export function AppointmentForm({ customers, services, minStartTime, timeZone }: AppointmentFormProps) {
   const [state, formAction, isPending] = useActionState(createAppointmentFromForm, initialState);
   const [serviceId, setServiceId] = useState("");
+  const [professionalId, setProfessionalId] = useState("");
   const queryClient = useQueryClient();
 
   const { data: professionals, isFetching: isProfessionalsFetching } = useQuery({
@@ -54,6 +61,15 @@ export function AppointmentForm({ customers, services, minStartTime, timeZone }:
     (professional) => professional.isActive && professional.serviceIds.includes(serviceId),
   );
 
+  function handleServiceChange(value: unknown) {
+    setServiceId(String(value));
+    setProfessionalId("");
+  }
+
+  function handleProfessionalChange(value: unknown) {
+    setProfessionalId(String(value));
+  }
+
   return (
     <Card className="border border-border/80 shadow-sm">
       <CardHeader>
@@ -65,58 +81,70 @@ export function AppointmentForm({ customers, services, minStartTime, timeZone }:
           <FieldGroup className="md:grid md:grid-cols-2">
             <Field>
               <FieldLabel htmlFor="customerId">Cliente</FieldLabel>
-              <NativeSelect id="customerId" name="customerId" required className="w-full" disabled={isPending}>
-                <NativeSelectOption value="">Selecione um cliente</NativeSelectOption>
-                {customers.map((customer) => (
-                  <NativeSelectOption key={customer.id} value={customer.id}>
-                    {customer.name}
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
+              <Select name="customerId" defaultValue="" disabled={isPending} required>
+                <SelectTrigger id="customerId" className="w-full">
+                  <SelectValue placeholder="Selecione um cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {customers.map((customer) => (
+                    <SelectItem key={customer.id} value={customer.id}>
+                      {customer.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
             <Field>
               <FieldLabel htmlFor="serviceId">Serviço</FieldLabel>
-              <NativeSelect
-                id="serviceId"
+              <Select
                 name="serviceId"
-                required
-                className="w-full"
-                disabled={isPending}
                 value={serviceId}
-                onChange={(event) => setServiceId(event.target.value)}
+                onValueChange={handleServiceChange}
+                disabled={isPending}
+                required
               >
-                <NativeSelectOption value="">Selecione um serviço</NativeSelectOption>
-                {services.map((service) => (
-                  <NativeSelectOption key={service.id} value={service.id}>
-                    {service.name} · {service.duration} min
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
+                <SelectTrigger id="serviceId" className="w-full">
+                  <SelectValue placeholder="Selecione um serviço" />
+                </SelectTrigger>
+                <SelectContent>
+                  {services.map((service) => (
+                    <SelectItem key={service.id} value={service.id}>
+                      {service.name} · {service.duration} min
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
             <Field>
               <FieldLabel htmlFor="professionalId">Profissional</FieldLabel>
               {isProfessionalsFetching ? (
-                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-9 w-full" />
               ) : (
-                <NativeSelect
-                  id="professionalId"
+                <Select
                   name="professionalId"
-                  className="w-full"
+                  value={professionalId}
+                  onValueChange={handleProfessionalChange}
                   disabled={isPending || !serviceId || (availableProfessionals?.length ?? 0) === 0}
                 >
-                  <NativeSelectOption value="">
-                    {serviceId
-                      ? availableProfessionals && availableProfessionals.length > 0
-                        ? "Selecione um profissional"
-                        : "Nenhum profissional disponível"
-                      : "Selecione um serviço primeiro"}
-                  </NativeSelectOption>
-                  {availableProfessionals?.map((professional) => (
-                    <NativeSelectOption key={professional.id} value={professional.id}>
-                      {professional.name}
-                    </NativeSelectOption>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger id="professionalId" className="w-full">
+                    <SelectValue
+                      placeholder={
+                        serviceId
+                          ? availableProfessionals && availableProfessionals.length > 0
+                            ? "Selecione um profissional"
+                            : "Nenhum profissional disponível"
+                          : "Selecione um serviço primeiro"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableProfessionals?.map((professional) => (
+                      <SelectItem key={professional.id} value={professional.id}>
+                        {professional.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
             </Field>
             <Field>
