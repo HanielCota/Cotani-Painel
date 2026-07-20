@@ -19,6 +19,8 @@ export interface GetAvailableSlotsParams {
   serviceDuration: number;
   /** Data no formato YYYY-MM-DD, interpretada no fuso da barbearia. */
   date: string;
+  /** Profissional responsável pelos slots. Quando omitido, calcula contra todos os agendamentos da barbearia (modo legado). */
+  professionalId?: string;
 }
 
 function minutesFromTime(time: string): number {
@@ -88,6 +90,7 @@ export async function getAvailableSlots(params: GetAvailableSlotsParams): Promis
         status: { not: "CANCELED" },
         startTime: { lt: dayEnd },
         endTime: { gt: dayStart },
+        ...(params.professionalId ? { professionalId: params.professionalId } : {}),
       },
       select: { startTime: true, endTime: true },
     }),

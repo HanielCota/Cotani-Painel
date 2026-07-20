@@ -7,6 +7,7 @@ import { getAvailableSlots } from "@/server/services/availability";
 const querySchema = z.object({
   serviceId: z.uuid(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  professionalId: z.uuid().optional(),
 });
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
@@ -39,11 +40,28 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ message: "Serviço indisponível." }, { status: 404 });
   }
 
+  if (parsed.data.professionalId) {
+    const professional = await prisma.professional.findFirst({
+      where: {
+        id: parsed.data.professionalId,
+        clinicId: clinic.id,
+        isActive: true,
+        services: { some: { serviceId: parsed.data.serviceId } },
+      },
+      select: { id: true },
+    });
+
+    if (!professional) {
+      return NextResponse.json({ message: "Profissional indisponível para este serviço." }, { status: 404 });
+    }
+  }
+
   const slots = await getAvailableSlots({
     clinicId: clinic.id,
     timeZone: clinic.timeZone,
     serviceDuration: service.duration,
     date: parsed.data.date,
+    professionalId: parsed.data.professionalId,
   });
 
   if (!slots) {
