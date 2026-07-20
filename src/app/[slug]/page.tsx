@@ -47,9 +47,9 @@ export default async function PublicBookingPage({ params }: PublicBookingPagePro
   }
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 px-4 py-10">
+    <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 px-4 py-6 sm:py-10">
       <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{clinic.name}</h1>
+        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{clinic.name}</h1>
         <p className="text-muted-foreground text-sm">Agende seu atendimento em poucos passos. Os horários são exibidos no fuso {clinic.timeZone}.</p>
       </header>
       <PublicBookingForm

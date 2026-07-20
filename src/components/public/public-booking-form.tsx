@@ -148,7 +148,7 @@ export function PublicBookingForm({ slug, minDate, services }: PublicBookingForm
                   <CalendarIcon aria-hidden="true" />
                   {selectedDate ? format(selectedDate, "dd/MM/yyyy") : "Selecione uma data"}
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto max-w-[calc(100vw-2rem)] p-0" align="center">
                   <Calendar
                     mode="single"
                     locale={ptBR}
