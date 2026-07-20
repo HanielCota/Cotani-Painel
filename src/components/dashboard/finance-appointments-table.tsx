@@ -39,36 +39,38 @@ export function FinanceAppointmentsTable({ metrics }: FinanceAppointmentsTablePr
         {metrics.monthAppointments.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nenhum agendamento no mês atual.</p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Serviço</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {metrics.monthAppointments.map((appointment) => (
-                <TableRow key={appointment.id}>
-                  <TableCell>
-                    {format(new Date(appointment.startTime), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                  </TableCell>
-                  <TableCell className="font-medium">{appointment.customerName}</TableCell>
-                  <TableCell>{appointment.serviceName}</TableCell>
-                  <TableCell>
-                    <Badge variant={statusVariant[appointment.status]}>{statusLabel[appointment.status]}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {appointment.status === "CANCELED" || appointment.status === "NO_SHOW"
-                      ? "—"
-                      : priceFormatter.format(appointment.servicePrice)}
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Serviço</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Valor</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {metrics.monthAppointments.map((appointment) => (
+                  <TableRow key={appointment.id}>
+                    <TableCell>
+                      {format(new Date(appointment.startTime), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                    </TableCell>
+                    <TableCell className="font-medium">{appointment.customerName}</TableCell>
+                    <TableCell>{appointment.serviceName}</TableCell>
+                    <TableCell>
+                      <Badge variant={statusVariant[appointment.status]}>{statusLabel[appointment.status]}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {appointment.status === "CANCELED" || appointment.status === "NO_SHOW"
+                        ? "—"
+                        : priceFormatter.format(appointment.servicePrice)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </CardContent>
     </Card>
