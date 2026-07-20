@@ -1,15 +1,10 @@
 import type { Prisma } from "@/generated/prisma/client";
 import type { ClinicModel } from "@/generated/prisma/models/Clinic";
 import prisma from "@/lib/prisma";
-import { getMockMetrics } from "@/lib/dashboard-mocks";
 import { getClinicDateBounds } from "@/lib/timezone";
 import type { DashboardMetrics } from "@/types";
 
 export async function getDashboardMetrics(clinic: ClinicModel): Promise<DashboardMetrics> {
-  if (process.env.ENABLE_DASHBOARD_MOCKS === "true") {
-    return getMockMetrics();
-  }
-
   const { startOfToday, startOfTomorrow, startOfMonth, startOfNextMonth } = getClinicDateBounds(clinic.timeZone);
 
   const monthAppointments: Prisma.AppointmentWhereInput = {
