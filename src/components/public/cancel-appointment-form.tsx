@@ -36,13 +36,13 @@ export function CancelAppointmentForm({ slug, token }: CancelAppointmentFormProp
 
   if (result?.status === "success") {
     return (
-      <div className="flex flex-col gap-4 rounded-lg border p-4">
+      <div className="flex flex-col gap-4 rounded-xl border bg-card p-5 shadow-sm">
         <Alert variant="default">
           <CalendarXIcon aria-hidden="true" />
           <AlertTitle>Agendamento cancelado</AlertTitle>
           <AlertDescription>{result.message}</AlertDescription>
         </Alert>
-        <Button nativeButton={false} render={<Link href={`/${slug}`} />} variant="outline">
+        <Button nativeButton={false} render={<Link href={`/${slug}`} />} variant="outline" className="h-12 w-full">
           Fazer novo agendamento
         </Button>
       </div>
@@ -50,8 +50,8 @@ export function CancelAppointmentForm({ slug, token }: CancelAppointmentFormProp
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border p-4">
-      <p className="text-sm text-muted-foreground">
+    <div className="flex flex-col gap-4 rounded-xl border bg-card p-5 shadow-sm">
+      <p className="text-sm leading-relaxed text-muted-foreground">
         Confirme abaixo para liberar o horário. Esta ação não pode ser desfeita.
       </p>
       {result?.status === "error" ? (
@@ -60,7 +60,7 @@ export function CancelAppointmentForm({ slug, token }: CancelAppointmentFormProp
           <AlertDescription>{result.message}</AlertDescription>
         </Alert>
       ) : null}
-      <Button type="button" variant="destructive" disabled={isPending} onClick={handleCancel}>
+      <Button type="button" variant="destructive" disabled={isPending} onClick={handleCancel} className="h-12 w-full">
         {isPending ? <Spinner data-icon="inline-start" /> : <CalendarXIcon data-icon="inline-start" />}
         {isPending ? "Cancelando..." : "Confirmar cancelamento"}
       </Button>

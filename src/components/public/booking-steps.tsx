@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
@@ -63,31 +63,35 @@ function StepIndicator({ current }: { current: Step }) {
   const currentIndex = steps.findIndex((step) => step.id === current);
 
   return (
-    <div className="flex items-center justify-between gap-2">
+    <nav aria-label="Progresso do agendamento" className="flex items-center justify-between gap-2">
       {steps.map((step, index) => {
         const isActive = index <= currentIndex;
         const isCurrent = step.id === current;
 
         return (
-          <div key={step.id} className="flex flex-1 flex-col items-center gap-1.5">
+          <div key={step.id} className="flex min-w-0 flex-1 flex-col items-center gap-2">
             <div
-              className={`flex size-7 items-center justify-center rounded-full text-xs font-medium ${
+              className={`flex size-8 items-center justify-center rounded-full text-sm font-semibold ${
                 isCurrent
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-primary text-primary-foreground ring-2 ring-primary/20"
                   : isActive
                     ? "bg-primary/20 text-primary"
                     : "bg-muted text-muted-foreground"
               }`}
             >
-              {isActive && !isCurrent ? <CheckIcon className="size-3.5" /> : index + 1}
+              {isActive && !isCurrent ? <CheckIcon className="size-4" /> : index + 1}
             </div>
-            <span className={`text-xs ${isCurrent ? "font-medium text-foreground" : "text-muted-foreground"}`}>
+            <span
+              className={`truncate px-1 text-center text-[11px] sm:text-xs ${
+                isCurrent ? "font-semibold text-foreground" : "text-muted-foreground"
+              }`}
+            >
               {step.label}
             </span>
           </div>
         );
       })}
-    </div>
+    </nav>
   );
 }
 
@@ -127,7 +131,7 @@ function ServiceProfessionalStep({
               key={service.id}
               type="button"
               onClick={() => onServiceSelect(service)}
-              className={`flex items-center gap-4 rounded-xl border p-4 text-left transition-all ${
+              className={`flex min-h-[5.5rem] items-center gap-4 rounded-xl border p-4 text-left transition-all active:scale-[0.99] ${
                 selected
                   ? "border-primary bg-primary/5 ring-1 ring-primary"
                   : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"
@@ -138,17 +142,17 @@ function ServiceProfessionalStep({
                 <img
                   src={service.imageUrl}
                   alt=""
-                  className="size-16 shrink-0 rounded-lg object-cover ring-1 ring-border"
+                  className="size-14 shrink-0 rounded-lg object-cover ring-1 ring-border sm:size-16"
                 />
               ) : (
-                <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                <div className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground sm:size-16">
                   <ImageIcon className="size-6" />
                 </div>
               )}
-              <div className="flex min-w-0 flex-col gap-0.5">
-                <span className="font-medium">{service.name}</span>
+              <div className="flex min-w-0 flex-col gap-1">
+                <span className="font-semibold leading-tight">{service.name}</span>
                 <span className="text-sm text-muted-foreground">{service.duration} min</span>
-                <span className="text-base font-semibold text-primary">{priceFormatter.format(service.price)}</span>
+                <span className="text-base font-bold text-primary">{priceFormatter.format(service.price)}</span>
               </div>
             </button>
           );
@@ -176,7 +180,7 @@ function ServiceProfessionalStep({
                     key={professional.id}
                     type="button"
                     onClick={() => onProfessionalSelect(professional)}
-                    className={`flex items-center gap-4 rounded-xl border p-4 text-left transition-all ${
+                    className={`flex min-h-[4.5rem] items-center gap-4 rounded-xl border p-4 text-left transition-all active:scale-[0.99] ${
                       selected
                         ? "border-primary bg-primary/5 ring-1 ring-primary"
                         : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"
@@ -187,15 +191,15 @@ function ServiceProfessionalStep({
                       <img
                         src={professional.imageUrl}
                         alt=""
-                        className="size-14 shrink-0 rounded-lg object-cover ring-1 ring-border"
+                        className="size-12 shrink-0 rounded-full object-cover ring-1 ring-border sm:size-14"
                       />
                     ) : (
-                      <div className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                        <UserIcon className="size-6" />
+                      <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground sm:size-14">
+                        <UserIcon className="size-5 sm:size-6" />
                       </div>
                     )}
                     <div className="flex min-w-0 flex-col gap-0.5">
-                      <span className="font-medium">{professional.name}</span>
+                      <span className="font-semibold leading-tight">{professional.name}</span>
                       <span className="text-sm text-muted-foreground">Profissional</span>
                     </div>
                   </button>
@@ -269,13 +273,13 @@ function DateTimeStep({
         </Popover>
       </Field>
 
-      <fieldset className="flex flex-col gap-2">
-        <legend className="text-sm font-medium">Horários disponíveis</legend>
-        <div aria-live="polite" className="flex flex-wrap gap-2">
+      <fieldset className="flex flex-col gap-3">
+        <legend className="text-sm font-semibold">Horários disponíveis</legend>
+        <div aria-live="polite" className="flex flex-wrap gap-2.5">
           {!selectedDate ? (
             <p className="text-sm text-muted-foreground">Selecione uma data para ver os horários.</p>
           ) : isFetching ? (
-            Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className="h-9 w-16" />)
+            Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className="h-11 w-20" />)
           ) : slots.length === 0 ? (
             <p className="text-sm text-muted-foreground">Sem horários disponíveis para esta data.</p>
           ) : (
@@ -294,10 +298,10 @@ function DateTimeStep({
                     onChange={() => onSlotChange(slot)}
                   />
                   <span
-                    className={`inline-flex h-9 items-center rounded-md border px-3 text-sm transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-ring ${
+                    className={`inline-flex min-h-11 items-center rounded-lg border px-4 text-sm font-medium transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-ring active:scale-95 ${
                       selected
                         ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border hover:bg-accent hover:text-accent-foreground"
+                        : "border-border bg-card hover:bg-accent hover:text-accent-foreground"
                     }`}
                   >
                     {slot.label}
@@ -320,7 +324,7 @@ function CustomerStep({ isPending }: { isPending: boolean }) {
         <h2 className="text-lg font-semibold">Seus dados</h2>
       </div>
 
-      <FieldGroup>
+      <FieldGroup className="gap-4">
         <Field>
           <FieldLabel htmlFor="customerName">Nome completo</FieldLabel>
           <Input
@@ -332,6 +336,7 @@ function CustomerStep({ isPending }: { isPending: boolean }) {
             autoComplete="name"
             disabled={isPending}
             placeholder="Ex: João Silva"
+            className="h-12"
           />
         </Field>
         <Field>
@@ -346,6 +351,7 @@ function CustomerStep({ isPending }: { isPending: boolean }) {
             autoComplete="tel"
             placeholder="(11) 99999-9999"
             disabled={isPending}
+            className="h-12"
           />
           <FieldDescription>Usado para enviar a confirmação e os lembretes.</FieldDescription>
         </Field>
@@ -358,6 +364,7 @@ function CustomerStep({ isPending }: { isPending: boolean }) {
             autoComplete="email"
             disabled={isPending}
             placeholder="seu@email.com"
+            className="h-12"
           />
         </Field>
         <Field>
@@ -371,6 +378,7 @@ function CustomerStep({ isPending }: { isPending: boolean }) {
 
 export function BookingSteps({ slug, clinicName, services, professionals, minDate }: BookingStepsProps) {
   const router = useRouter();
+  const cardRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState<Step>("service-professional");
   const [serviceId, setServiceId] = useState("");
   const [serviceName, setServiceName] = useState("");
@@ -380,6 +388,12 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
   const [slot, setSlot] = useState<AvailabilitySlot | null>(null);
   const [result, setResult] = useState<ActionResult | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    if (cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [step]);
 
   const selectedService = services.find((service) => service.id === serviceId);
   const availableProfessionals = selectedService
@@ -470,9 +484,9 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
   const slots = data?.slots ?? [];
 
   return (
-    <Card className="border border-border/80 shadow-sm">
-      <CardHeader>
-        <CardTitle className="text-xl">Novo agendamento</CardTitle>
+    <Card ref={cardRef} className="border border-border/80 shadow-sm">
+      <CardHeader className="gap-2">
+        <CardTitle className="text-lg sm:text-xl">Novo agendamento</CardTitle>
         <CardDescription>Complete as etapas para reservar seu horário em {clinicName}.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
@@ -512,7 +526,7 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
           ) : null}
         </form>
       </CardContent>
-      <CardFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+      <CardFooter className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-between">
         {step !== "service-professional" ? (
           <Button
             type="button"
@@ -522,13 +536,13 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
               else if (step === "datetime") setStep("service-professional");
             }}
             disabled={isPending}
-            className="w-full sm:w-auto"
+            className="h-12 w-full sm:w-auto"
           >
             <ArrowLeftIcon data-icon="inline-start" />
             Voltar
           </Button>
         ) : (
-          <div />
+          <div className="hidden sm:block" />
         )}
 
         {step === "service-professional" ? (
@@ -536,7 +550,7 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
             type="button"
             disabled={!canProceedFromService}
             onClick={() => setStep("datetime")}
-            className="w-full sm:w-auto"
+            className="h-12 w-full sm:w-auto"
           >
             Continuar
             <CheckIcon data-icon="inline-end" />
@@ -548,7 +562,7 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
             type="button"
             disabled={!slot}
             onClick={() => setStep("customer")}
-            className="w-full sm:w-auto"
+            className="h-12 w-full sm:w-auto"
           >
             Continuar
             <CheckIcon data-icon="inline-end" />
@@ -556,7 +570,12 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
         ) : null}
 
         {step === "customer" ? (
-          <Button type="submit" form="public-booking" disabled={isPending || services.length === 0} className="w-full sm:w-auto">
+          <Button
+            type="submit"
+            form="public-booking"
+            disabled={isPending || services.length === 0}
+            className="h-12 w-full sm:w-auto"
+          >
             {isPending ? <Spinner data-icon="inline-start" /> : <CalendarPlusIcon data-icon="inline-start" />}
             {isPending ? "Agendando..." : "Confirmar agendamento"}
           </Button>

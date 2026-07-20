@@ -54,13 +54,13 @@ export default async function CancelPage({ params }: CancelPageProps) {
   }).format(appointment.startTime);
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 px-4 py-10">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Cancelar agendamento</h1>
-        <p className="text-muted-foreground text-sm">{clinic.name}</p>
+    <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 bg-background px-4 py-8 sm:py-10">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Cancelar agendamento</h1>
+        <p className="text-sm text-muted-foreground">{clinic.name}</p>
       </div>
 
-      <div className="rounded-lg border p-4">
+      <div className="rounded-xl border bg-card p-4 shadow-sm">
         <dl className="flex flex-col gap-3 text-sm">
           <div className="flex items-center justify-between gap-4">
             <dt className="flex items-center gap-2 text-muted-foreground">

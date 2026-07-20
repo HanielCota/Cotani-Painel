@@ -40,11 +40,11 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
   const formattedDate = date ? format(parseISO(date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : null;
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 px-4 py-10">
+    <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 bg-background px-4 py-8 sm:py-10">
       <Card className="border border-border/80 shadow-sm" role="status">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-2xl">
-            <CalendarCheckIcon aria-hidden="true" />
+        <CardHeader className="gap-2">
+          <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl">
+            <CalendarCheckIcon aria-hidden="true" className="size-6 text-primary sm:size-7" />
             Agendamento confirmado
           </CardTitle>
           <CardDescription>
@@ -104,11 +104,11 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
             ) : null}
           </dl>
         </CardContent>
-        <CardFooter className="flex flex-col gap-3">
-          <p className="text-sm text-muted-foreground">
+        <CardFooter className="flex flex-col gap-4">
+          <p className="text-center text-sm leading-relaxed text-muted-foreground">
             Você receberá uma confirmação no WhatsApp. Se precisar cancelar, use o link enviado na mensagem.
           </p>
-          <Button nativeButton={false} render={<Link href={`/${slug}`} />} variant="outline" className="w-full">
+          <Button nativeButton={false} render={<Link href={`/${slug}`} />} variant="outline" className="h-12 w-full">
             Fazer outro agendamento
           </Button>
         </CardFooter>
