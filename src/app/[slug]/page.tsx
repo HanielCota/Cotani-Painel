@@ -32,7 +32,7 @@ export default async function PublicBookingPage({ params }: PublicBookingPagePro
       subscriptionStatus: true,
       services: {
         where: { isActive: true },
-        select: { id: true, name: true, duration: true, price: true },
+        select: { id: true, name: true, duration: true, price: true, imageUrl: true },
         orderBy: { name: "asc" },
       },
     },
@@ -61,6 +61,7 @@ export default async function PublicBookingPage({ params }: PublicBookingPagePro
           name: service.name,
           duration: service.duration,
           price: Number(service.price),
+          imageUrl: service.imageUrl,
         }))}
       />
     </main>

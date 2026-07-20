@@ -29,6 +29,7 @@ export async function GET() {
       name: service.name,
       duration: service.duration,
       price: Number(service.price),
+      imageUrl: service.imageUrl,
       isActive: service.isActive,
     })),
   );
