@@ -231,7 +231,7 @@ function IntegrationAccordion() {
   return (
     <Accordion className="w-full">
       <AccordionItem value="integration" className="border-0">
-        <AccordionTrigger className="h-10 rounded-lg px-3 py-0 text-sm font-normal text-foreground hover:bg-muted hover:no-underline">
+        <AccordionTrigger className="flex min-h-10 items-center justify-between rounded-lg px-4 py-3 text-sm font-normal text-foreground hover:bg-muted hover:no-underline">
           <span className="truncate">Integração</span>
         </AccordionTrigger>
         <AccordionContent className="pb-2 pt-1">
