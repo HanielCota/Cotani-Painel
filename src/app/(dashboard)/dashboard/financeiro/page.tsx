@@ -4,7 +4,6 @@ import {
   MrrEvolutionChart,
   PaymentMethodsChart,
   PaymentStatusChart,
-  SalesCalendarHeatmap,
   SalesPerformanceChart,
 } from "@/components/dashboard/finance-charts";
 import { FinanceDateTabs } from "@/components/dashboard/finance-date-tabs";
@@ -43,10 +42,6 @@ export default withTenant(async ({ clinic }) => {
 
       <section className="grid gap-4 lg:grid-cols-3">
         <SalesPerformanceChart />
-      </section>
-
-      <section className="grid gap-4 lg:grid-cols-3">
-        <SalesCalendarHeatmap />
       </section>
 
       <section className="grid gap-4 lg:grid-cols-3">
