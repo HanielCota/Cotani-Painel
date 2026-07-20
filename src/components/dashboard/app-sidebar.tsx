@@ -98,8 +98,8 @@ function NavLink({ item }: { item: NavigationItem }) {
         isActive={isActive}
         tooltip={item.title}
         className={cn(
-          "h-10 rounded-lg px-3 text-sm transition-colors",
-          "hover:bg-muted hover:text-foreground",
+          "h-10 rounded-lg px-3 text-sm no-underline transition-colors",
+          "hover:bg-muted hover:text-foreground hover:no-underline",
           isActive && "bg-[#82D951] text-white shadow-sm hover:bg-[#75c448] hover:text-white"
         )}
       >
@@ -164,7 +164,7 @@ function StoreAccordion() {
   return (
     <Accordion defaultValue={["store"]} className="w-full">
       <AccordionItem value="store" className="border-0">
-        <AccordionTrigger className="h-10 rounded-lg px-3 py-0 text-sm font-normal text-foreground hover:bg-muted hover:no-underline">
+        <AccordionTrigger className="h-10 rounded-lg px-3 py-0 text-sm font-normal text-foreground no-underline hover:bg-muted hover:no-underline">
           <span className="flex items-center gap-3">
             <StoreIcon className="size-4 shrink-0" />
             <span className="truncate">Sua Loja</span>
@@ -231,7 +231,7 @@ function IntegrationAccordion() {
   return (
     <Accordion className="w-full">
       <AccordionItem value="integration" className="border-0">
-        <AccordionTrigger className="flex min-h-10 items-center justify-between rounded-lg px-4 py-3 text-sm font-normal text-foreground hover:bg-muted hover:no-underline">
+        <AccordionTrigger className="flex min-h-10 items-center justify-between rounded-lg px-4 py-3 text-sm font-normal text-foreground no-underline hover:bg-muted hover:no-underline">
           <span className="truncate">Integração</span>
         </AccordionTrigger>
         <AccordionContent className="pb-2 pt-1">
