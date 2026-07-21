@@ -89,3 +89,32 @@ export function getClinicDateBounds(timeZone: string, now = new Date()) {
 
   return { startOfToday, startOfTomorrow, startOfMonth, startOfNextMonth, startOfPreviousMonth };
 }
+
+export interface MonthlyBounds {
+  label: string;
+  start: Date;
+  end: Date;
+}
+
+export function getClinicMonthlyBounds(timeZone: string, months: number, now = new Date()): MonthlyBounds[] {
+  const current = getZonedDateParts(now, timeZone);
+  const result: MonthlyBounds[] = [];
+
+  for (let offset = months - 1; offset >= 0; offset -= 1) {
+    const monthIndex = current.month - 1 - offset;
+    const monthDate = new Date(Date.UTC(current.year, monthIndex, 1));
+    const monthParts = getZonedDateParts(monthDate, "UTC");
+    const start = zonedDateTimeToUtc({ ...monthParts, hour: 0, minute: 0, second: 0 }, timeZone);
+    const nextMonthDate = new Date(Date.UTC(monthParts.year, monthParts.month, 1));
+    const nextMonthParts = getZonedDateParts(nextMonthDate, "UTC");
+    const end = zonedDateTimeToUtc({ ...nextMonthParts, hour: 0, minute: 0, second: 0 }, timeZone);
+
+    result.push({
+      label: new Intl.DateTimeFormat("pt-BR", { month: "short" }).format(start),
+      start,
+      end,
+    });
+  }
+
+  return result;
+}

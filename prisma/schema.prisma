@@ -33,6 +33,14 @@ enum AppointmentStatus {
   NO_SHOW
 }
 
+enum PaymentMethod {
+  PIX
+  CREDIT_CARD
+  DEBIT_CARD
+  CASH
+  OTHER
+}
+
 enum NotificationChannel {
   WHATSAPP
   EMAIL
@@ -179,6 +187,7 @@ model Appointment {
   startTime         DateTime
   endTime           DateTime
   status            AppointmentStatus @default(PENDING)
+  paymentMethod     PaymentMethod     @default(OTHER)
   notes             String?
   clinicId          String
   customerId        String

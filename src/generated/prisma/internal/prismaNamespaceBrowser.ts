@@ -194,6 +194,7 @@ export const AppointmentScalarFieldEnum = {
   startTime: 'startTime',
   endTime: 'endTime',
   status: 'status',
+  paymentMethod: 'paymentMethod',
   notes: 'notes',
   clinicId: 'clinicId',
   customerId: 'customerId',
