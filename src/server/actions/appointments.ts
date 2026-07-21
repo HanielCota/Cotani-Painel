@@ -29,8 +29,15 @@ const rescheduleSchema = z.object({
 });
 
 const appointmentStatusSchema = z.enum(["CONFIRMED", "COMPLETED", "CANCELED", "NO_SHOW"]);
+const paymentMethodSchema = z.enum(["PIX", "CREDIT_CARD", "DEBIT_CARD", "CASH", "OTHER"]);
+
+const updateAppointmentStatusSchema = z.object({
+  status: appointmentStatusSchema,
+  paymentMethod: paymentMethodSchema.optional(),
+});
 
 type AppointmentStatusUpdate = z.infer<typeof appointmentStatusSchema>;
+type UpdateAppointmentStatusInput = z.infer<typeof updateAppointmentStatusSchema>;
 
 async function hasSchedulingConflict({
   clinicId,
@@ -257,15 +264,22 @@ export async function rescheduleAppointmentFromForm(_previousState: ActionResult
   return { status: "success", message: "Atendimento reagendado." };
 }
 
-export async function updateAppointmentStatus(appointmentId: string, status: AppointmentStatusUpdate): Promise<ActionResult> {
+export async function updateAppointmentStatus(
+  appointmentId: string,
+  input: UpdateAppointmentStatusInput | AppointmentStatusUpdate,
+): Promise<ActionResult> {
   await auth.protect();
 
-  const parsedStatus = appointmentStatusSchema.safeParse(status);
+  const parsedInput = updateAppointmentStatusSchema.safeParse(
+    typeof input === "string" ? { status: input } : input,
+  );
   const parsedId = z.uuid().safeParse(appointmentId);
 
-  if (!parsedStatus.success || !parsedId.success) {
+  if (!parsedInput.success || !parsedId.success) {
     return { status: "error", message: "Não foi possível atualizar este atendimento." };
   }
+
+  const { status: nextStatus, paymentMethod } = parsedInput.data;
 
   const clinic = await requireActiveClinic();
 
@@ -291,13 +305,17 @@ export async function updateAppointmentStatus(appointmentId: string, status: App
     CONFIRMED: ["COMPLETED", "CANCELED", "NO_SHOW"],
   };
 
-  if (!allowedStatuses[appointment.status]?.includes(parsedStatus.data)) {
+  if (!allowedStatuses[appointment.status]?.includes(nextStatus)) {
     return { status: "error", message: "Essa mudança de status não é permitida." };
+  }
+
+  if (nextStatus === "COMPLETED" && !paymentMethod) {
+    return { status: "error", message: "Informe o método de pagamento para concluir o atendimento." };
   }
 
   await prisma.appointment.update({
     where: { id: appointment.id },
-    data: { status: parsedStatus.data },
+    data: { status: nextStatus, ...(paymentMethod ? { paymentMethod } : {}) },
   });
 
   revalidateScheduleViews();
