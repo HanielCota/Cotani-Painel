@@ -1,41 +1,13 @@
-"use client";
-
-import { TrendingUpIcon, UserRoundXIcon, UsersIcon } from "lucide-react";
+import { CalendarDaysIcon, TrendingUpIcon, UserRoundXIcon, UsersIcon } from "lucide-react";
 
 import { MetricCard } from "@/components/dashboard/metric-card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useMetrics } from "@/hooks/use-metrics";
+import type { ReportsMetrics } from "@/server/services/reports";
 
-export function ReportsKpiCards() {
-  const { data: metrics, isPending, isError } = useMetrics();
+interface ReportsKpiCardsProps {
+  metrics: ReportsMetrics;
+}
 
-  if (isPending) {
-    return (
-      <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-        {[0, 1, 2].map((card) => (
-          <Card key={card} className="border border-border/80 shadow-sm">
-            <CardContent className="flex flex-col gap-3">
-              <Skeleton className="h-4 w-28" />
-              <Skeleton className="h-9 w-16" />
-              <Skeleton className="h-3 w-36" />
-            </CardContent>
-          </Card>
-        ))}
-      </section>
-    );
-  }
-
-  if (isError || !metrics) {
-    return (
-      <Alert variant="destructive">
-        <AlertTitle>Não foi possível carregar os indicadores</AlertTitle>
-        <AlertDescription>Verifique sua conexão e tente novamente em instantes.</AlertDescription>
-      </Alert>
-    );
-  }
-
+export function ReportsKpiCards({ metrics }: ReportsKpiCardsProps) {
   return (
     <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
       <MetricCard
@@ -43,18 +15,42 @@ export function ReportsKpiCards() {
         value={`${metrics.confirmationRate}%`}
         description="Confirmados e concluídos sobre os atendimentos do mês, exceto cancelados."
         icon={TrendingUpIcon}
+        accent="success"
       />
       <MetricCard
         title="Taxa de falta"
         value={`${metrics.noShowRate}%`}
         description="Não comparecimentos sobre os atendimentos do mês, exceto cancelados."
         icon={UserRoundXIcon}
+        accent={metrics.noShowRate > 0 ? "warning" : "success"}
       />
       <MetricCard
         title="Clientes ativos no mês"
         value={String(metrics.activeCustomersThisMonth)}
         description="Com ao menos um atendimento no mês, exceto cancelados."
         icon={UsersIcon}
+        accent="default"
+      />
+      <MetricCard
+        title="Total de agendamentos"
+        value={String(metrics.totalAppointments)}
+        description="Agendamentos históricos da barbearia."
+        icon={CalendarDaysIcon}
+        accent="default"
+      />
+      <MetricCard
+        title="Base de clientes"
+        value={String(metrics.totalCustomers)}
+        description="Clientes cadastrados no sistema."
+        icon={UsersIcon}
+        accent="default"
+      />
+      <MetricCard
+        title="Serviços ativos"
+        value={String(metrics.totalServices)}
+        description="Serviços disponíveis para agendamento."
+        icon={CalendarDaysIcon}
+        accent="default"
       />
     </section>
   );
