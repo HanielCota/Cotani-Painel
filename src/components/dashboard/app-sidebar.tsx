@@ -8,13 +8,14 @@ import {
   useState,
 } from "react";
 import {
+  Building2Icon,
   CalendarDaysIcon,
   CreditCardIcon,
   DollarSignIcon,
   LayoutDashboardIcon,
   LinkIcon,
-  ScissorsIcon,
   SettingsIcon,
+  SparklesIcon,
   StoreIcon,
   UsersIcon,
   Users2Icon,
@@ -62,7 +63,7 @@ const operationItems: NavigationItem[] = [
 ];
 
 const storeItems: NavigationItem[] = [
-  { title: "Serviços", href: "/dashboard/configuracoes", icon: ScissorsIcon },
+  { title: "Serviços", href: "/dashboard/configuracoes", icon: SparklesIcon },
   { title: "Profissionais", href: "/dashboard/profissionais", icon: Users2Icon },
   { title: "Horários", href: "/dashboard/configuracoes", icon: CalendarDaysIcon },
   { title: "Link de agendamento", href: "/dashboard/configuracoes", icon: LinkIcon },
@@ -251,7 +252,7 @@ export function AppSidebar() {
         <div className="flex items-center justify-between group-data-[collapsible=icon]:justify-center">
           <div className="flex items-center gap-2">
             <div className="flex size-9 items-center justify-center rounded-xl bg-[#82D951] text-white shadow-sm">
-              <ScissorsIcon className="size-5" />
+              <Building2Icon className="size-5" />
             </div>
             <span className="text-lg font-bold tracking-tight text-foreground group-data-[collapsible=icon]:hidden">
               Cotani
