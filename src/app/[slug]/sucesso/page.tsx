@@ -5,6 +5,7 @@ import { ptBR } from "date-fns/locale";
 import { CalendarCheckIcon, CalendarIcon, ClockIcon, MapPinIcon, TagIcon, UserIcon } from "lucide-react";
 import Link from "next/link";
 
+import { SuccessActions } from "@/components/public/success-actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import prisma from "@/lib/prisma";
@@ -30,7 +31,7 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
 
   const clinic = await prisma.clinic.findUnique({
     where: { slug },
-    select: { name: true },
+    select: { name: true, timeZone: true },
   });
 
   if (!clinic) {
@@ -108,6 +109,16 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
           <p className="text-center text-sm leading-relaxed text-muted-foreground">
             Você receberá uma confirmação no WhatsApp. Se precisar cancelar, use o link enviado na mensagem.
           </p>
+          <SuccessActions
+            slug={slug}
+            clinicName={clinic.name}
+            service={service}
+            professional={professional}
+            date={date}
+            time={time}
+            customer={customer}
+            timeZone={clinic.timeZone}
+          />
           <Button nativeButton={false} render={<Link href={`/${slug}`} />} variant="outline" className="h-12 w-full">
             Fazer outro agendamento
           </Button>
