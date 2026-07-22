@@ -2,6 +2,7 @@ import { SettingsIcon, UsersIcon } from "lucide-react";
 import type { Metadata } from "next";
 
 import { BusinessHoursSettings } from "@/components/dashboard/business-hours-settings";
+import { ClinicSettings } from "@/components/dashboard/clinic-settings";
 import { ProfessionalsSettings } from "@/components/dashboard/professionals-settings";
 import { ServicesSettings } from "@/components/dashboard/services-settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -63,10 +64,13 @@ export default withTenant(async ({ clinic }) => {
               <ProfessionalsSettings />
             </TabsContent>
             <TabsContent value="business-hours" className="pt-4">
-              <BusinessHoursSettings
-                key={initialBusinessHours.map((hour) => `${hour.dayOfWeek}-${hour.isOpen}-${hour.openTime}-${hour.closeTime}-${hour.breakStart}-${hour.breakEnd}`).join("|")}
-                businessHours={initialBusinessHours}
-              />
+              <div className="flex flex-col gap-6">
+                <ClinicSettings maxAppointmentsPerDay={clinic.maxAppointmentsPerDay} />
+                <BusinessHoursSettings
+                  key={initialBusinessHours.map((hour) => `${hour.dayOfWeek}-${hour.isOpen}-${hour.openTime}-${hour.closeTime}-${hour.breakStart}-${hour.breakEnd}`).join("|")}
+                  businessHours={initialBusinessHours}
+                />
+              </div>
             </TabsContent>
           </Tabs>
         </CardContent>
