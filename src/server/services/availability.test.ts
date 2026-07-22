@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { prismaMock } from "@/test/mocks/prisma";
-import { getAvailableSlots } from "@/server/services/availability";
+import { getAvailableDatesInMonth, getAvailableSlots } from "@/server/services/availability";
 
 const clinicId = "clinic-1";
 const timeZone = "America/Sao_Paulo";
@@ -179,5 +179,90 @@ describe("getAvailableSlots", () => {
       where: { professionalId?: string };
     };
     expect(query.where.professionalId).toBe("prof-1");
+  });
+});
+
+describe("getAvailableDatesInMonth", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("retorna lista vazia para mês inválido", async () => {
+    const result = await getAvailableDatesInMonth({
+      clinicId,
+      timeZone,
+      serviceDuration: 30,
+      yearMonth: "invalid",
+    });
+
+    expect(result).toEqual([]);
+  });
+
+  it("retorna apenas dias com expediente aberto e slots livres", async () => {
+    vi.setSystemTime(new Date("2026-07-01T06:00:00.000Z"));
+
+    prismaMock.businessHour.findMany.mockResolvedValueOnce([
+      {
+        id: "bh-1",
+        clinicId,
+        dayOfWeek: 1, // segunda
+        isOpen: true,
+        openTime: "09:00",
+        closeTime: "12:00",
+        breakStart: null,
+        breakEnd: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
+    prismaMock.appointment.findMany.mockResolvedValueOnce([]);
+
+    const result = await getAvailableDatesInMonth({
+      clinicId,
+      timeZone,
+      serviceDuration: 30,
+      yearMonth: "2026-07",
+    });
+
+    expect(result).toContain("2026-07-20");
+    expect(result).not.toContain("2026-07-19"); // domingo
+  });
+
+  it("ignora dias ocupados por agendamentos", async () => {
+    vi.setSystemTime(new Date("2026-07-20T06:00:00.000Z"));
+
+    prismaMock.businessHour.findMany.mockResolvedValueOnce([
+      {
+        id: "bh-1",
+        clinicId,
+        dayOfWeek: 1,
+        isOpen: true,
+        openTime: "09:00",
+        closeTime: "12:00",
+        breakStart: null,
+        breakEnd: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
+
+    // 09:00-12:00 ocupado no fuso SP -> 12:00-15:00 UTC no horário de inverno.
+    prismaMock.appointment.findMany.mockResolvedValueOnce([
+      { startTime: new Date("2026-07-20T12:00:00.000Z"), endTime: new Date("2026-07-20T15:00:00.000Z") },
+    ]);
+
+    const result = await getAvailableDatesInMonth({
+      clinicId,
+      timeZone,
+      serviceDuration: 30,
+      yearMonth: "2026-07",
+    });
+
+    expect(result).not.toContain("2026-07-20");
   });
 });

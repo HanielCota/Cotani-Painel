@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { getClinicDateBounds, parseClinicDateTime } from "@/lib/timezone";
+import { formatClinicDateTimeInput, getClinicDateBounds, parseClinicDateTime } from "@/lib/timezone";
 
 // Resolução mínima da grade de horários. Os slots são gerados a cada 30 minutos
 // dentro do expediente configurado, desde que caibam a duração do serviço.
@@ -139,4 +139,116 @@ export async function getAvailableSlots(params: GetAvailableSlotsParams): Promis
   }
 
   return slots;
+}
+
+export interface GetAvailableDatesParams {
+  clinicId: string;
+  timeZone: string;
+  serviceDuration: number;
+  yearMonth: string; // YYYY-MM
+  professionalId?: string;
+}
+
+/**
+ * Retorna todas as datas de um mês (formato YYYY-MM-DD) que possuem ao menos
+ * um slot disponível no futuro, considerando expediente e agendamentos existentes.
+ * Usada para desabilitar dias sem horários no calendário público.
+ */
+export async function getAvailableDatesInMonth(params: GetAvailableDatesParams): Promise<string[]> {
+  const match = /^(\d{4})-(\d{2})$/.exec(params.yearMonth);
+
+  if (!match) {
+    return [];
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+
+  if (month < 1 || month > 12) {
+    return [];
+  }
+
+  const monthStart = parseClinicDateTime(`${params.yearMonth}-01T00:00`, params.timeZone);
+
+  if (!monthStart) {
+    return [];
+  }
+
+  const nextMonthString = month === 12 ? `${year + 1}-01` : `${year}-${String(month + 1).padStart(2, "0")}`;
+  const monthEnd = parseClinicDateTime(`${nextMonthString}-01T00:00`, params.timeZone);
+
+  if (!monthEnd) {
+    return [];
+  }
+
+  const daysInMonth = Math.round((monthEnd.getTime() - monthStart.getTime()) / (24 * 60 * 60 * 1000));
+  const [businessHours, appointments] = await Promise.all([
+    prisma.businessHour.findMany({ where: { clinicId: params.clinicId } }),
+    prisma.appointment.findMany({
+      where: {
+        clinicId: params.clinicId,
+        status: { not: "CANCELED" },
+        startTime: { lt: monthEnd },
+        endTime: { gt: monthStart },
+        ...(params.professionalId ? { professionalId: params.professionalId } : {}),
+      },
+      select: { startTime: true, endTime: true },
+    }),
+  ]);
+
+  const businessHoursByDay = new Map(businessHours.map((hour) => [hour.dayOfWeek, hour]));
+  const availableDates: string[] = [];
+  const now = new Date();
+
+  for (let dayOffset = 0; dayOffset < daysInMonth; dayOffset += 1) {
+    const dayDate = new Date(monthStart.getTime() + dayOffset * 24 * 60 * 60 * 1000);
+    const dayString = formatClinicDateTimeInput(dayDate, params.timeZone).slice(0, 10);
+    const dayOfWeek = getClinicDayOfWeek(dayString, params.timeZone);
+    const businessHour = businessHoursByDay.get(dayOfWeek);
+
+    if (!businessHour || !businessHour.isOpen) {
+      continue;
+    }
+
+    const openMinutes = minutesFromTime(businessHour.openTime);
+    const closeMinutes = minutesFromTime(businessHour.closeTime);
+    const breakStartMinutes = businessHour.breakStart ? minutesFromTime(businessHour.breakStart) : null;
+    const breakEndMinutes = businessHour.breakEnd ? minutesFromTime(businessHour.breakEnd) : null;
+    const dayAppointments = appointments.filter(
+      (appointment) => appointment.startTime < new Date(dayDate.getTime() + 24 * 60 * 60 * 1000) && appointment.endTime > dayDate,
+    );
+
+    for (
+      let minutes = openMinutes;
+      minutes + params.serviceDuration <= closeMinutes;
+      minutes += SLOT_STEP_MINUTES
+    ) {
+      const slotEndMinutes = minutes + params.serviceDuration;
+
+      if (breakStartMinutes !== null && breakEndMinutes !== null) {
+        if (minutes < breakEndMinutes && slotEndMinutes > breakStartMinutes) {
+          continue;
+        }
+      }
+
+      const label = formatTimeLabel(minutes);
+      const startTime = parseClinicDateTime(`${dayString}T${label}`, params.timeZone);
+
+      if (!startTime || startTime <= now) {
+        continue;
+      }
+
+      const endTime = new Date(startTime.getTime() + params.serviceDuration * 60_000);
+      const overlaps = dayAppointments.some(
+        (appointment) => startTime < appointment.endTime && endTime > appointment.startTime,
+      );
+
+      if (!overlaps) {
+        availableDates.push(dayString);
+        break;
+      }
+    }
+  }
+
+  return availableDates;
 }

@@ -52,6 +52,7 @@ export const prismaMock = {
     deleteMany: vi.fn(),
   },
   businessHour: {
+    findMany: vi.fn(),
     findUnique: vi.fn(),
     upsert: vi.fn(),
   },
