@@ -14,6 +14,7 @@ import {
   DollarSignIcon,
   LayoutDashboardIcon,
   LinkIcon,
+  MessageCircleIcon,
   SettingsIcon,
   SparklesIcon,
   StoreIcon,
@@ -59,6 +60,7 @@ const dashboardItem: NavigationItem = {
 const operationItems: NavigationItem[] = [
   { title: "Agenda", href: "/dashboard/agenda", icon: CalendarDaysIcon },
   { title: "Clientes", href: "/dashboard/clientes", icon: UsersIcon },
+  { title: "Comunicações", href: "/dashboard/comunicacoes", icon: MessageCircleIcon },
   { title: "Financeiro", href: "/dashboard/financeiro", icon: DollarSignIcon },
 ];
 
