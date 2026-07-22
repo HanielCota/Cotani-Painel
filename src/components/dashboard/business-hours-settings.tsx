@@ -145,7 +145,7 @@ export function BusinessHoursSettings({ businessHours }: BusinessHoursSettingsPr
       ) : null}
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
           {isPending ? <Spinner data-icon="inline-start" /> : <ClockIcon data-icon="inline-start" />}
           {isPending ? "Salvando..." : "Salvar expediente"}
         </Button>

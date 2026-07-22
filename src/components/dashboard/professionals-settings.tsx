@@ -92,7 +92,7 @@ export function ProfessionalsSettings() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">Gerencie os profissionais e os serviços que cada um atende.</p>
         <ProfessionalFormDialog />
       </div>

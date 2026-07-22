@@ -137,7 +137,7 @@ export function CustomersTable() {
             </Table>
           </div>
 
-          <div className="flex items-center justify-between gap-4 pt-4">
+          <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
               {data?.total ?? 0} cliente{(data?.total ?? 0) === 1 ? "" : "s"} · Página {pagination.pageIndex + 1} de {Math.max(table.getPageCount(), 1)}
             </p>

@@ -166,7 +166,7 @@ export function AppointmentForm({ customers, services, minStartTime, timeZone }:
         </form>
       </CardContent>
       <CardFooter>
-        <Button type="submit" form="create-appointment" disabled={isPending}>
+        <Button type="submit" form="create-appointment" disabled={isPending} className="w-full sm:w-auto">
           {isPending ? <Spinner data-icon="inline-start" /> : <CalendarPlusIcon data-icon="inline-start" />}
           {isPending ? "Agendando..." : "Agendar atendimento"}
         </Button>
