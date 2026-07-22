@@ -219,20 +219,31 @@ function DateTimeStep({
   selectedSlot,
   slots,
   isFetching,
+  availableDates,
+  isLoadingAvailableDates,
   onDateChange,
   onSlotChange,
+  onMonthChange,
 }: {
   minDate: string;
   selectedDate: string;
   selectedSlot: AvailabilitySlot | null;
   slots: AvailabilitySlot[];
   isFetching: boolean;
+  availableDates: Set<string>;
+  isLoadingAvailableDates: boolean;
   onDateChange: (date: string) => void;
   onSlotChange: (slot: AvailabilitySlot) => void;
+  onMonthChange: (month: Date) => void;
 }) {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const selectedDateValue = selectedDate ? parseISO(selectedDate) : undefined;
   const minDateValue = parseISO(minDate);
+
+  const isDateDisabled = (day: Date) => {
+    const dayString = format(day, "yyyy-MM-dd");
+    return day < minDateValue || !availableDates.has(dayString);
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -267,8 +278,14 @@ function DateTimeStep({
                 onDateChange(format(day, "yyyy-MM-dd"));
                 setCalendarOpen(false);
               }}
-              disabled={{ before: minDateValue }}
+              onMonthChange={(month) => {
+                onMonthChange(month);
+              }}
+              disabled={isDateDisabled}
             />
+            {isLoadingAvailableDates ? (
+              <p className="px-4 py-2 text-xs text-muted-foreground">Carregando dias disponíveis...</p>
+            ) : null}
           </PopoverContent>
         </Popover>
       </Field>
@@ -316,13 +333,121 @@ function DateTimeStep({
   );
 }
 
-function CustomerStep({ isPending }: { isPending: boolean }) {
+function formatPhone(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+
+  if (digits.length <= 2) {
+    return digits.length ? `(${digits}` : "";
+  }
+  if (digits.length <= 7) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  }
+  if (digits.length <= 11) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  }
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+}
+
+function isValidPhone(value: string): boolean {
+  const digits = value.replace(/\D/g, "");
+  return digits.length >= 10 && digits.length <= 11;
+}
+
+interface BookingSummaryProps {
+  clinicName: string;
+  service: Service | undefined;
+  professional: Professional | undefined;
+  date: string;
+  slot: AvailabilitySlot | null;
+}
+
+function BookingSummary({ clinicName, service, professional, date, slot }: BookingSummaryProps) {
+  const formattedDate = date
+    ? format(parseISO(date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+    : null;
+
+  return (
+    <div className="rounded-xl border bg-muted/30 p-4 text-sm">
+      <h3 className="mb-3 font-semibold">Resumo do agendamento</h3>
+      <dl className="flex flex-col gap-2">
+        <div className="flex justify-between gap-4">
+          <dt className="text-muted-foreground">Barbearia</dt>
+          <dd className="font-medium">{clinicName}</dd>
+        </div>
+        {service ? (
+          <div className="flex justify-between gap-4">
+            <dt className="text-muted-foreground">Serviço</dt>
+            <dd className="font-medium">{service.name}</dd>
+          </div>
+        ) : null}
+        {professional ? (
+          <div className="flex justify-between gap-4">
+            <dt className="text-muted-foreground">Profissional</dt>
+            <dd className="font-medium">{professional.name}</dd>
+          </div>
+        ) : null}
+        {formattedDate ? (
+          <div className="flex justify-between gap-4">
+            <dt className="text-muted-foreground">Data</dt>
+            <dd className="font-medium">{formattedDate}</dd>
+          </div>
+        ) : null}
+        {slot ? (
+          <div className="flex justify-between gap-4">
+            <dt className="text-muted-foreground">Horário</dt>
+            <dd className="font-medium">{slot.label}</dd>
+          </div>
+        ) : null}
+        {service ? (
+          <div className="flex justify-between gap-4 border-t pt-2">
+            <dt className="text-muted-foreground">Valor estimado</dt>
+            <dd className="font-bold text-primary">{priceFormatter.format(service.price)}</dd>
+          </div>
+        ) : null}
+      </dl>
+    </div>
+  );
+}
+
+interface CustomerStepProps {
+  isPending: boolean;
+  clinicName: string;
+  service: Service | undefined;
+  professional: Professional | undefined;
+  date: string;
+  slot: AvailabilitySlot | null;
+}
+
+function CustomerStep({ isPending, clinicName, service, professional, date, slot }: CustomerStepProps) {
+  const [phone, setPhone] = useState("");
+  const [phoneError, setPhoneError] = useState(false);
+
+  function handlePhoneChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const masked = formatPhone(event.target.value);
+    setPhone(masked);
+    setPhoneError(false);
+  }
+
+  function handlePhoneBlur() {
+    if (phone && !isValidPhone(phone)) {
+      setPhoneError(true);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2 text-primary">
         <UserIcon className="size-5" />
         <h2 className="text-lg font-semibold">Seus dados</h2>
       </div>
+
+      <BookingSummary
+        clinicName={clinicName}
+        service={service}
+        professional={professional}
+        date={date}
+        slot={slot}
+      />
 
       <FieldGroup className="gap-4">
         <Field>
@@ -339,21 +464,27 @@ function CustomerStep({ isPending }: { isPending: boolean }) {
             className="h-12"
           />
         </Field>
-        <Field>
+        <Field data-invalid={phoneError || undefined}>
           <FieldLabel htmlFor="customerPhone">WhatsApp</FieldLabel>
           <Input
             id="customerPhone"
             name="customerPhone"
             type="tel"
             required
-            minLength={8}
-            maxLength={32}
+            minLength={14}
+            maxLength={16}
             autoComplete="tel"
             placeholder="(11) 99999-9999"
             disabled={isPending}
+            value={phone}
+            onChange={handlePhoneChange}
+            onBlur={handlePhoneBlur}
             className="h-12"
           />
           <FieldDescription>Usado para enviar a confirmação e os lembretes.</FieldDescription>
+          {phoneError ? (
+            <p className="text-xs text-destructive">Informe um WhatsApp válido com DDD.</p>
+          ) : null}
         </Field>
         <Field>
           <FieldLabel htmlFor="customerEmail">E-mail (opcional)</FieldLabel>
@@ -386,6 +517,7 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
   const [professionalName, setProfessionalName] = useState("");
   const [date, setDate] = useState("");
   const [slot, setSlot] = useState<AvailabilitySlot | null>(null);
+  const [calendarMonth, setCalendarMonth] = useState(() => parseISO(minDate));
   const [result, setResult] = useState<ActionResult | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -417,6 +549,25 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
     },
     enabled: Boolean(serviceId && date && (!hasProfessionals || professionalId)),
   });
+
+  const yearMonth = format(calendarMonth, "yyyy-MM");
+  const { data: availableDatesData, isFetching: isLoadingAvailableDates } = useQuery({
+    queryKey: ["public-available-dates", slug, serviceId, professionalId, yearMonth],
+    queryFn: async (): Promise<{ dates: string[] }> => {
+      const searchParams = new URLSearchParams({ serviceId, yearMonth });
+      if (professionalId) searchParams.set("professionalId", professionalId);
+      const response = await fetch(`/api/public/${slug}/available-dates?${searchParams.toString()}`);
+
+      if (!response.ok) {
+        throw new Error("Não foi possível carregar os dias disponíveis.");
+      }
+
+      return response.json();
+    },
+    enabled: Boolean(serviceId && yearMonth && (!hasProfessionals || professionalId)),
+  });
+
+  const availableDates = new Set(availableDatesData?.dates ?? []);
 
   function handleServiceSelect(selectedService: Service) {
     const serviceProfessionals = professionals.filter((professional) =>
@@ -511,12 +662,24 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
               selectedSlot={slot}
               slots={slots}
               isFetching={isFetching}
+              availableDates={availableDates}
+              isLoadingAvailableDates={isLoadingAvailableDates}
               onDateChange={handleDateChange}
               onSlotChange={handleSlotChange}
+              onMonthChange={setCalendarMonth}
             />
           ) : null}
 
-          {step === "customer" ? <CustomerStep isPending={isPending} /> : null}
+          {step === "customer" ? (
+            <CustomerStep
+              isPending={isPending}
+              clinicName={clinicName}
+              service={selectedService}
+              professional={professionals.find((professional) => professional.id === professionalId)}
+              date={date}
+              slot={slot}
+            />
+          ) : null}
 
           {result?.status === "error" ? (
             <Alert variant="destructive" className="mt-5">

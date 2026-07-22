@@ -76,7 +76,7 @@ describe("BookingSteps", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (useQuery as ReturnType<typeof vi.fn>).mockReturnValue({
-      data: { slots: [] },
+      data: { slots: [], dates: [] },
       isFetching: false,
       refetch: mockRefetch,
     });
@@ -100,6 +100,68 @@ describe("BookingSteps", () => {
     expect(screen.getByText("Escolha data e horário")).toBeInTheDocument();
   });
 
+  it("exibe resumo do agendamento na etapa de dados", async () => {
+    (useQuery as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: {
+        slots: [{ startTime: "2026-07-21T10:00:00", label: "10:00" }],
+        dates: ["2026-07-21"],
+      },
+      isFetching: false,
+      refetch: mockRefetch,
+    });
+
+    setup();
+
+    await userEvent.click(screen.getByText("Barba"));
+    await userEvent.click(screen.getByText("Ana"));
+    await userEvent.click(screen.getByRole("button", { name: /continuar/i }));
+    await userEvent.type(screen.getByTestId("calendar-mock"), "2026-07-21");
+
+    await waitFor(() => {
+      expect(screen.getByText("10:00")).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByText("10:00"));
+    await userEvent.click(screen.getByRole("button", { name: /continuar/i }));
+
+    expect(screen.getByText("Resumo do agendamento")).toBeInTheDocument();
+    expect(screen.getByText("Barbearia Teste")).toBeInTheDocument();
+    expect(screen.getByText("Barba")).toBeInTheDocument();
+    expect(screen.getByText("Ana")).toBeInTheDocument();
+    expect(screen.getByText("10:00")).toBeInTheDocument();
+    expect(screen.getByText(/R\$\s*35,00/)).toBeInTheDocument();
+  });
+
+  it("aplica máscara no campo WhatsApp", async () => {
+    (useQuery as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: {
+        slots: [{ startTime: "2026-07-21T10:00:00", label: "10:00" }],
+        dates: ["2026-07-21"],
+      },
+      isFetching: false,
+      refetch: mockRefetch,
+    });
+
+    setup();
+
+    await userEvent.click(screen.getByText("Barba"));
+    await userEvent.click(screen.getByText("Ana"));
+    await userEvent.click(screen.getByRole("button", { name: /continuar/i }));
+    await userEvent.type(screen.getByTestId("calendar-mock"), "2026-07-21");
+
+    await waitFor(() => {
+      expect(screen.getByText("10:00")).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByText("10:00"));
+    await userEvent.click(screen.getByRole("button", { name: /continuar/i }));
+
+    const phoneInput = screen.getByLabelText(/whatsapp/i) as HTMLInputElement;
+    await userEvent.type(phoneInput, "11999999999");
+
+    expect(phoneInput.value).toBe("(11) 99999-9999");
+  });
+
   it("avança até a etapa de dados do cliente e submete o agendamento", async () => {
     (createPublicAppointment as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       status: "success",
@@ -107,7 +169,10 @@ describe("BookingSteps", () => {
     });
 
     (useQuery as ReturnType<typeof vi.fn>).mockReturnValue({
-      data: { slots: [{ startTime: "2026-07-21T10:00:00", label: "10:00" }] },
+      data: {
+        slots: [{ startTime: "2026-07-21T10:00:00", label: "10:00" }],
+        dates: ["2026-07-21"],
+      },
       isFetching: false,
       refetch: mockRefetch,
     });
