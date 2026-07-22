@@ -71,6 +71,7 @@ model Clinic {
   subscriptionExpiresAt     DateTime?
   hasPaidOnce               Boolean            @default(false)
   mercadoPagoSubscriptionId String?            @unique
+  maxAppointmentsPerDay     Int?
   deletedAt                 DateTime?
   createdAt                 DateTime           @default(now())
   updatedAt                 DateTime           @updatedAt

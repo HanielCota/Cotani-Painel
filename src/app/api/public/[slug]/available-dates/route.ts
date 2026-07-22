@@ -25,7 +25,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const clinic = await prisma.clinic.findUnique({
     where: { slug, deletedAt: null },
-    select: { id: true, timeZone: true },
+    select: { id: true, timeZone: true, maxAppointmentsPerDay: true },
   });
 
   if (!clinic) {
@@ -63,6 +63,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     serviceDuration: service.duration,
     yearMonth: parsed.data.yearMonth,
     professionalId: parsed.data.professionalId,
+    maxAppointmentsPerDay: clinic.maxAppointmentsPerDay,
   });
 
   return NextResponse.json({ dates });

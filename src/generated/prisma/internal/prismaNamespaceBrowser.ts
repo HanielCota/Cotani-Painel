@@ -91,6 +91,7 @@ export const ClinicScalarFieldEnum = {
   subscriptionExpiresAt: 'subscriptionExpiresAt',
   hasPaidOnce: 'hasPaidOnce',
   mercadoPagoSubscriptionId: 'mercadoPagoSubscriptionId',
+  maxAppointmentsPerDay: 'maxAppointmentsPerDay',
   deletedAt: 'deletedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

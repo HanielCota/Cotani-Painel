@@ -20,8 +20,18 @@ export type ClinicModel = runtime.Types.Result.DefaultSelection<Prisma.$ClinicPa
 
 export type AggregateClinic = {
   _count: ClinicCountAggregateOutputType | null
+  _avg: ClinicAvgAggregateOutputType | null
+  _sum: ClinicSumAggregateOutputType | null
   _min: ClinicMinAggregateOutputType | null
   _max: ClinicMaxAggregateOutputType | null
+}
+
+export type ClinicAvgAggregateOutputType = {
+  maxAppointmentsPerDay: number | null
+}
+
+export type ClinicSumAggregateOutputType = {
+  maxAppointmentsPerDay: number | null
 }
 
 export type ClinicMinAggregateOutputType = {
@@ -35,6 +45,7 @@ export type ClinicMinAggregateOutputType = {
   subscriptionExpiresAt: Date | null
   hasPaidOnce: boolean | null
   mercadoPagoSubscriptionId: string | null
+  maxAppointmentsPerDay: number | null
   deletedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -51,6 +62,7 @@ export type ClinicMaxAggregateOutputType = {
   subscriptionExpiresAt: Date | null
   hasPaidOnce: boolean | null
   mercadoPagoSubscriptionId: string | null
+  maxAppointmentsPerDay: number | null
   deletedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -67,12 +79,21 @@ export type ClinicCountAggregateOutputType = {
   subscriptionExpiresAt: number
   hasPaidOnce: number
   mercadoPagoSubscriptionId: number
+  maxAppointmentsPerDay: number
   deletedAt: number
   createdAt: number
   updatedAt: number
   _all: number
 }
 
+
+export type ClinicAvgAggregateInputType = {
+  maxAppointmentsPerDay?: true
+}
+
+export type ClinicSumAggregateInputType = {
+  maxAppointmentsPerDay?: true
+}
 
 export type ClinicMinAggregateInputType = {
   id?: true
@@ -85,6 +106,7 @@ export type ClinicMinAggregateInputType = {
   subscriptionExpiresAt?: true
   hasPaidOnce?: true
   mercadoPagoSubscriptionId?: true
+  maxAppointmentsPerDay?: true
   deletedAt?: true
   createdAt?: true
   updatedAt?: true
@@ -101,6 +123,7 @@ export type ClinicMaxAggregateInputType = {
   subscriptionExpiresAt?: true
   hasPaidOnce?: true
   mercadoPagoSubscriptionId?: true
+  maxAppointmentsPerDay?: true
   deletedAt?: true
   createdAt?: true
   updatedAt?: true
@@ -117,6 +140,7 @@ export type ClinicCountAggregateInputType = {
   subscriptionExpiresAt?: true
   hasPaidOnce?: true
   mercadoPagoSubscriptionId?: true
+  maxAppointmentsPerDay?: true
   deletedAt?: true
   createdAt?: true
   updatedAt?: true
@@ -161,6 +185,18 @@ export type ClinicAggregateArgs<ExtArgs extends runtime.Types.Extensions.Interna
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: ClinicAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: ClinicSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: ClinicMinAggregateInputType
@@ -191,6 +227,8 @@ export type ClinicGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   _count?: ClinicCountAggregateInputType | true
+  _avg?: ClinicAvgAggregateInputType
+  _sum?: ClinicSumAggregateInputType
   _min?: ClinicMinAggregateInputType
   _max?: ClinicMaxAggregateInputType
 }
@@ -206,10 +244,13 @@ export type ClinicGroupByOutputType = {
   subscriptionExpiresAt: Date | null
   hasPaidOnce: boolean
   mercadoPagoSubscriptionId: string | null
+  maxAppointmentsPerDay: number | null
   deletedAt: Date | null
   createdAt: Date
   updatedAt: Date
   _count: ClinicCountAggregateOutputType | null
+  _avg: ClinicAvgAggregateOutputType | null
+  _sum: ClinicSumAggregateOutputType | null
   _min: ClinicMinAggregateOutputType | null
   _max: ClinicMaxAggregateOutputType | null
 }
@@ -243,6 +284,7 @@ export type ClinicWhereInput = {
   subscriptionExpiresAt?: Prisma.DateTimeNullableFilter<"Clinic"> | Date | string | null
   hasPaidOnce?: Prisma.BoolFilter<"Clinic"> | boolean
   mercadoPagoSubscriptionId?: Prisma.StringNullableFilter<"Clinic"> | string | null
+  maxAppointmentsPerDay?: Prisma.IntNullableFilter<"Clinic"> | number | null
   deletedAt?: Prisma.DateTimeNullableFilter<"Clinic"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Clinic"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Clinic"> | Date | string
@@ -266,6 +308,7 @@ export type ClinicOrderByWithRelationInput = {
   subscriptionExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   hasPaidOnce?: Prisma.SortOrder
   mercadoPagoSubscriptionId?: Prisma.SortOrderInput | Prisma.SortOrder
+  maxAppointmentsPerDay?: Prisma.SortOrderInput | Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -292,6 +335,7 @@ export type ClinicWhereUniqueInput = Prisma.AtLeast<{
   subscriptionPlan?: Prisma.EnumSubscriptionPlanNullableFilter<"Clinic"> | $Enums.SubscriptionPlan | null
   subscriptionExpiresAt?: Prisma.DateTimeNullableFilter<"Clinic"> | Date | string | null
   hasPaidOnce?: Prisma.BoolFilter<"Clinic"> | boolean
+  maxAppointmentsPerDay?: Prisma.IntNullableFilter<"Clinic"> | number | null
   deletedAt?: Prisma.DateTimeNullableFilter<"Clinic"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Clinic"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Clinic"> | Date | string
@@ -315,12 +359,15 @@ export type ClinicOrderByWithAggregationInput = {
   subscriptionExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   hasPaidOnce?: Prisma.SortOrder
   mercadoPagoSubscriptionId?: Prisma.SortOrderInput | Prisma.SortOrder
+  maxAppointmentsPerDay?: Prisma.SortOrderInput | Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ClinicCountOrderByAggregateInput
+  _avg?: Prisma.ClinicAvgOrderByAggregateInput
   _max?: Prisma.ClinicMaxOrderByAggregateInput
   _min?: Prisma.ClinicMinOrderByAggregateInput
+  _sum?: Prisma.ClinicSumOrderByAggregateInput
 }
 
 export type ClinicScalarWhereWithAggregatesInput = {
@@ -337,6 +384,7 @@ export type ClinicScalarWhereWithAggregatesInput = {
   subscriptionExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Clinic"> | Date | string | null
   hasPaidOnce?: Prisma.BoolWithAggregatesFilter<"Clinic"> | boolean
   mercadoPagoSubscriptionId?: Prisma.StringNullableWithAggregatesFilter<"Clinic"> | string | null
+  maxAppointmentsPerDay?: Prisma.IntNullableWithAggregatesFilter<"Clinic"> | number | null
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Clinic"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Clinic"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Clinic"> | Date | string
@@ -353,6 +401,7 @@ export type ClinicCreateInput = {
   subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: string | null
+  maxAppointmentsPerDay?: number | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -376,6 +425,7 @@ export type ClinicUncheckedCreateInput = {
   subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: string | null
+  maxAppointmentsPerDay?: number | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -399,6 +449,7 @@ export type ClinicUpdateInput = {
   subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -422,6 +473,7 @@ export type ClinicUncheckedUpdateInput = {
   subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -445,6 +497,7 @@ export type ClinicCreateManyInput = {
   subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: string | null
+  maxAppointmentsPerDay?: number | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -461,6 +514,7 @@ export type ClinicUpdateManyMutationInput = {
   subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -477,6 +531,7 @@ export type ClinicUncheckedUpdateManyInput = {
   subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -493,9 +548,14 @@ export type ClinicCountOrderByAggregateInput = {
   subscriptionExpiresAt?: Prisma.SortOrder
   hasPaidOnce?: Prisma.SortOrder
   mercadoPagoSubscriptionId?: Prisma.SortOrder
+  maxAppointmentsPerDay?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type ClinicAvgOrderByAggregateInput = {
+  maxAppointmentsPerDay?: Prisma.SortOrder
 }
 
 export type ClinicMaxOrderByAggregateInput = {
@@ -509,6 +569,7 @@ export type ClinicMaxOrderByAggregateInput = {
   subscriptionExpiresAt?: Prisma.SortOrder
   hasPaidOnce?: Prisma.SortOrder
   mercadoPagoSubscriptionId?: Prisma.SortOrder
+  maxAppointmentsPerDay?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -525,9 +586,14 @@ export type ClinicMinOrderByAggregateInput = {
   subscriptionExpiresAt?: Prisma.SortOrder
   hasPaidOnce?: Prisma.SortOrder
   mercadoPagoSubscriptionId?: Prisma.SortOrder
+  maxAppointmentsPerDay?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type ClinicSumOrderByAggregateInput = {
+  maxAppointmentsPerDay?: Prisma.SortOrder
 }
 
 export type ClinicScalarRelationFilter = {
@@ -557,6 +623,14 @@ export type BoolFieldUpdateOperationsInput = {
 
 export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -672,6 +746,7 @@ export type ClinicCreateWithoutBusinessHoursInput = {
   subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: string | null
+  maxAppointmentsPerDay?: number | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -694,6 +769,7 @@ export type ClinicUncheckedCreateWithoutBusinessHoursInput = {
   subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: string | null
+  maxAppointmentsPerDay?: number | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -732,6 +808,7 @@ export type ClinicUpdateWithoutBusinessHoursInput = {
   subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -754,6 +831,7 @@ export type ClinicUncheckedUpdateWithoutBusinessHoursInput = {
   subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -776,6 +854,7 @@ export type ClinicCreateWithoutMembershipsInput = {
   subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: string | null
+  maxAppointmentsPerDay?: number | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -798,6 +877,7 @@ export type ClinicUncheckedCreateWithoutMembershipsInput = {
   subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: string | null
+  maxAppointmentsPerDay?: number | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -836,6 +916,7 @@ export type ClinicUpdateWithoutMembershipsInput = {
   subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -858,6 +939,7 @@ export type ClinicUncheckedUpdateWithoutMembershipsInput = {
   subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -880,6 +962,7 @@ export type ClinicCreateWithoutCustomersInput = {
   subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: string | null
+  maxAppointmentsPerDay?: number | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -902,6 +985,7 @@ export type ClinicUncheckedCreateWithoutCustomersInput = {
   subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: string | null
+  maxAppointmentsPerDay?: number | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -940,6 +1024,7 @@ export type ClinicUpdateWithoutCustomersInput = {
   subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -962,6 +1047,7 @@ export type ClinicUncheckedUpdateWithoutCustomersInput = {
   subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -984,6 +1070,7 @@ export type ClinicCreateWithoutServicesInput = {
   subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: string | null
+  maxAppointmentsPerDay?: number | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1006,6 +1093,7 @@ export type ClinicUncheckedCreateWithoutServicesInput = {
   subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: string | null
+  maxAppointmentsPerDay?: number | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1044,6 +1132,7 @@ export type ClinicUpdateWithoutServicesInput = {
   subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1066,6 +1155,7 @@ export type ClinicUncheckedUpdateWithoutServicesInput = {
   subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1088,6 +1178,7 @@ export type ClinicCreateWithoutProfessionalsInput = {
   subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: string | null
+  maxAppointmentsPerDay?: number | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1110,6 +1201,7 @@ export type ClinicUncheckedCreateWithoutProfessionalsInput = {
   subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: string | null
+  maxAppointmentsPerDay?: number | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1148,6 +1240,7 @@ export type ClinicUpdateWithoutProfessionalsInput = {
   subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1170,6 +1263,7 @@ export type ClinicUncheckedUpdateWithoutProfessionalsInput = {
   subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1192,6 +1286,7 @@ export type ClinicCreateWithoutAppointmentsInput = {
   subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: string | null
+  maxAppointmentsPerDay?: number | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1214,6 +1309,7 @@ export type ClinicUncheckedCreateWithoutAppointmentsInput = {
   subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: string | null
+  maxAppointmentsPerDay?: number | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1252,6 +1348,7 @@ export type ClinicUpdateWithoutAppointmentsInput = {
   subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1274,6 +1371,7 @@ export type ClinicUncheckedUpdateWithoutAppointmentsInput = {
   subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1296,6 +1394,7 @@ export type ClinicCreateWithoutNotificationsInput = {
   subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: string | null
+  maxAppointmentsPerDay?: number | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1318,6 +1417,7 @@ export type ClinicUncheckedCreateWithoutNotificationsInput = {
   subscriptionExpiresAt?: Date | string | null
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: string | null
+  maxAppointmentsPerDay?: number | null
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1356,6 +1456,7 @@ export type ClinicUpdateWithoutNotificationsInput = {
   subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1378,6 +1479,7 @@ export type ClinicUncheckedUpdateWithoutNotificationsInput = {
   subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1485,6 +1587,7 @@ export type ClinicSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   subscriptionExpiresAt?: boolean
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: boolean
+  maxAppointmentsPerDay?: boolean
   deletedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1509,6 +1612,7 @@ export type ClinicSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   subscriptionExpiresAt?: boolean
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: boolean
+  maxAppointmentsPerDay?: boolean
   deletedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1525,6 +1629,7 @@ export type ClinicSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   subscriptionExpiresAt?: boolean
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: boolean
+  maxAppointmentsPerDay?: boolean
   deletedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1541,12 +1646,13 @@ export type ClinicSelectScalar = {
   subscriptionExpiresAt?: boolean
   hasPaidOnce?: boolean
   mercadoPagoSubscriptionId?: boolean
+  maxAppointmentsPerDay?: boolean
   deletedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ClinicOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerkOrgId" | "name" | "slug" | "timeZone" | "subscriptionStatus" | "subscriptionPlan" | "subscriptionExpiresAt" | "hasPaidOnce" | "mercadoPagoSubscriptionId" | "deletedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["clinic"]>
+export type ClinicOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerkOrgId" | "name" | "slug" | "timeZone" | "subscriptionStatus" | "subscriptionPlan" | "subscriptionExpiresAt" | "hasPaidOnce" | "mercadoPagoSubscriptionId" | "maxAppointmentsPerDay" | "deletedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["clinic"]>
 export type ClinicInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   memberships?: boolean | Prisma.Clinic$membershipsArgs<ExtArgs>
   customers?: boolean | Prisma.Clinic$customersArgs<ExtArgs>
@@ -1582,6 +1688,7 @@ export type $ClinicPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     subscriptionExpiresAt: Date | null
     hasPaidOnce: boolean
     mercadoPagoSubscriptionId: string | null
+    maxAppointmentsPerDay: number | null
     deletedAt: Date | null
     createdAt: Date
     updatedAt: Date
@@ -2025,6 +2132,7 @@ export interface ClinicFieldRefs {
   readonly subscriptionExpiresAt: Prisma.FieldRef<"Clinic", 'DateTime'>
   readonly hasPaidOnce: Prisma.FieldRef<"Clinic", 'Boolean'>
   readonly mercadoPagoSubscriptionId: Prisma.FieldRef<"Clinic", 'String'>
+  readonly maxAppointmentsPerDay: Prisma.FieldRef<"Clinic", 'Int'>
   readonly deletedAt: Prisma.FieldRef<"Clinic", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Clinic", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Clinic", 'DateTime'>

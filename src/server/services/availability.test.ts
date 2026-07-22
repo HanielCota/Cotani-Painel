@@ -180,6 +180,72 @@ describe("getAvailableSlots", () => {
     };
     expect(query.where.professionalId).toBe("prof-1");
   });
+
+  it("retorna lista vazia quando o limite diário foi atingido", async () => {
+    vi.setSystemTime(new Date("2026-07-20T06:00:00.000Z"));
+
+    prismaMock.businessHour.findUnique.mockResolvedValueOnce({
+      id: "bh-1",
+      clinicId,
+      dayOfWeek: 1,
+      isOpen: true,
+      openTime: "09:00",
+      closeTime: "18:00",
+      breakStart: null,
+      breakEnd: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    // Já existem 2 agendamentos e o limite é 2.
+    prismaMock.appointment.findMany.mockResolvedValueOnce([
+      { startTime: new Date("2026-07-20T12:00:00.000Z"), endTime: new Date("2026-07-20T13:00:00.000Z") },
+      { startTime: new Date("2026-07-20T13:00:00.000Z"), endTime: new Date("2026-07-20T14:00:00.000Z") },
+    ]);
+
+    const result = await getAvailableSlots({
+      clinicId,
+      timeZone,
+      serviceDuration: 30,
+      date: "2026-07-20",
+      maxAppointmentsPerDay: 2,
+    });
+
+    expect(result).toEqual([]);
+  });
+
+  it("ignora limite quando maxAppointmentsPerDay não é informado", async () => {
+    vi.setSystemTime(new Date("2026-07-20T06:00:00.000Z"));
+
+    prismaMock.businessHour.findUnique.mockResolvedValueOnce({
+      id: "bh-1",
+      clinicId,
+      dayOfWeek: 1,
+      isOpen: true,
+      openTime: "09:00",
+      closeTime: "12:00",
+      breakStart: null,
+      breakEnd: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    // Agendamentos à tarde (15h-18h SP), fora do expediente matutino.
+    prismaMock.appointment.findMany.mockResolvedValueOnce([
+      { startTime: new Date("2026-07-20T18:00:00.000Z"), endTime: new Date("2026-07-20T19:00:00.000Z") },
+      { startTime: new Date("2026-07-20T19:00:00.000Z"), endTime: new Date("2026-07-20T20:00:00.000Z") },
+      { startTime: new Date("2026-07-20T20:00:00.000Z"), endTime: new Date("2026-07-20T21:00:00.000Z") },
+    ]);
+
+    const result = await getAvailableSlots({
+      clinicId,
+      timeZone,
+      serviceDuration: 30,
+      date: "2026-07-20",
+    });
+
+    expect(result?.length).toBeGreaterThan(0);
+  });
 });
 
 describe("getAvailableDatesInMonth", () => {
@@ -261,6 +327,40 @@ describe("getAvailableDatesInMonth", () => {
       timeZone,
       serviceDuration: 30,
       yearMonth: "2026-07",
+    });
+
+    expect(result).not.toContain("2026-07-20");
+  });
+
+  it("ignora dias que atingiram o limite diário", async () => {
+    vi.setSystemTime(new Date("2026-07-20T06:00:00.000Z"));
+
+    prismaMock.businessHour.findMany.mockResolvedValueOnce([
+      {
+        id: "bh-1",
+        clinicId,
+        dayOfWeek: 1,
+        isOpen: true,
+        openTime: "09:00",
+        closeTime: "18:00",
+        breakStart: null,
+        breakEnd: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
+
+    prismaMock.appointment.findMany.mockResolvedValueOnce([
+      { startTime: new Date("2026-07-20T12:00:00.000Z"), endTime: new Date("2026-07-20T13:00:00.000Z") },
+      { startTime: new Date("2026-07-20T13:00:00.000Z"), endTime: new Date("2026-07-20T14:00:00.000Z") },
+    ]);
+
+    const result = await getAvailableDatesInMonth({
+      clinicId,
+      timeZone,
+      serviceDuration: 30,
+      yearMonth: "2026-07",
+      maxAppointmentsPerDay: 2,
     });
 
     expect(result).not.toContain("2026-07-20");

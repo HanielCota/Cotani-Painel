@@ -21,6 +21,8 @@ export interface GetAvailableSlotsParams {
   date: string;
   /** Profissional responsável pelos slots. Quando omitido, calcula contra todos os agendamentos da barbearia (modo legado). */
   professionalId?: string;
+  /** Limite diário de atendimentos da barbearia. Quando omitido, não aplica limite. */
+  maxAppointmentsPerDay?: number | null;
 }
 
 function minutesFromTime(time: string): number {
@@ -100,6 +102,14 @@ export async function getAvailableSlots(params: GetAvailableSlotsParams): Promis
     return [];
   }
 
+  const appointmentCount = appointments.length;
+  const hasReachedDailyLimit =
+    typeof params.maxAppointmentsPerDay === "number" && params.maxAppointmentsPerDay > 0 && appointmentCount >= params.maxAppointmentsPerDay;
+
+  if (hasReachedDailyLimit) {
+    return [];
+  }
+
   const now = new Date();
   const openMinutes = minutesFromTime(businessHour.openTime);
   const closeMinutes = minutesFromTime(businessHour.closeTime);
@@ -147,6 +157,8 @@ export interface GetAvailableDatesParams {
   serviceDuration: number;
   yearMonth: string; // YYYY-MM
   professionalId?: string;
+  /** Limite diário de atendimentos da barbearia. Quando omitido, não aplica limite. */
+  maxAppointmentsPerDay?: number | null;
 }
 
 /**
@@ -217,6 +229,13 @@ export async function getAvailableDatesInMonth(params: GetAvailableDatesParams):
     const dayAppointments = appointments.filter(
       (appointment) => appointment.startTime < new Date(dayDate.getTime() + 24 * 60 * 60 * 1000) && appointment.endTime > dayDate,
     );
+
+    const hasReachedDailyLimit =
+      typeof params.maxAppointmentsPerDay === "number" && params.maxAppointmentsPerDay > 0 && dayAppointments.length >= params.maxAppointmentsPerDay;
+
+    if (hasReachedDailyLimit) {
+      continue;
+    }
 
     for (
       let minutes = openMinutes;
