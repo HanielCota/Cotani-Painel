@@ -246,3 +246,17 @@ model WebhookEvent {
   @@unique([provider, eventId])
   @@index([processedAt])
 }
+
+model RateLimit {
+  id          String   @id @default(uuid())
+  key         String
+  windowStart DateTime
+  count       Int      @default(0)
+  resetAt     DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([key, windowStart])
+  @@index([key])
+  @@index([resetAt])
+}

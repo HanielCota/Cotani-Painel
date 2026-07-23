@@ -1,8 +1,10 @@
 "use server";
 
+import { headers } from "next/headers";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
+import { rateLimit } from "@/lib/rate-limit";
 import { DOUBLE_BOOKING_MESSAGE, scheduleAppointment } from "@/server/services/scheduling";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
@@ -18,6 +20,22 @@ const publicBookingSchema = z.object({
   notes: z.string().trim().max(2_000).optional(),
 });
 
+const BOOKING_RATE_LIMIT = {
+  limit: 5,
+  windowMs: 15 * 60_000,
+};
+
+async function getClientIpFromHeaders(): Promise<string> {
+  const headersList = await headers();
+  const forwardedFor = headersList.get("x-forwarded-for");
+
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0]?.trim() ?? "unknown";
+  }
+
+  return "unknown";
+}
+
 /**
  * Agendamento público (self-service), sem sessão Clerk. O escopo do tenant é
  * resolvido pelo slug da barbearia e todo o restante segue o mesmo núcleo
@@ -25,6 +43,13 @@ const publicBookingSchema = z.object({
  * constraint do banco e outbox de notificações na mesma transação.
  */
 export async function createPublicAppointment(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
+  const ip = await getClientIpFromHeaders();
+  const limit = await rateLimit({ key: `public-booking:${ip}`, ...BOOKING_RATE_LIMIT });
+
+  if (!limit.success) {
+    return { status: "error", message: "Muitas tentativas de agendamento. Tente novamente em alguns minutos." };
+  }
+
   const parsed = publicBookingSchema.safeParse({
     slug: formData.get("slug"),
     serviceId: formData.get("serviceId"),

@@ -96,3 +96,8 @@ export type Notification = Prisma.NotificationModel
  * 
  */
 export type WebhookEvent = Prisma.WebhookEventModel
+/**
+ * Model RateLimit
+ * 
+ */
+export type RateLimit = Prisma.RateLimitModel

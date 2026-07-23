@@ -14,6 +14,7 @@ describe("createPublicAppointment", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
+    prismaMock.rateLimit.upsert.mockResolvedValue({ count: 1, id: "rl-1", key: "key", windowStart: new Date(), resetAt: new Date(), createdAt: new Date(), updatedAt: new Date() });
   });
 
   afterEach(() => {
@@ -30,6 +31,23 @@ describe("createPublicAppointment", () => {
     Object.entries(overrides).forEach(([key, value]) => formData.set(key, value));
     return formData;
   }
+
+  it("retorna erro quando rate limit é excedido", async () => {
+    prismaMock.rateLimit.upsert.mockResolvedValueOnce({
+      count: 6,
+      id: "rl-1",
+      key: "key",
+      windowStart: new Date(),
+      resetAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const result = await createPublicAppointment({ status: "success", message: "" }, createFormData());
+
+    expect(result.status).toBe("error");
+    expect(result.message).toContain("Muitas tentativas");
+  });
 
   it("retorna erro para dados inválidos", async () => {
     const result = await createPublicAppointment({ status: "success", message: "" }, new FormData());

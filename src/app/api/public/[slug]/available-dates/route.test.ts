@@ -1,0 +1,61 @@
+import { NextRequest } from "next/server";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/lib/prisma", () => ({
+  default: {
+    clinic: { findUnique: vi.fn() },
+    service: { findFirst: vi.fn() },
+    rateLimit: { upsert: vi.fn() },
+  },
+}));
+
+vi.mock("@/server/services/availability", () => ({
+  getAvailableDatesInMonth: vi.fn(),
+}));
+
+import { GET } from "@/app/api/public/[slug]/available-dates/route";
+import prismaModule from "@/lib/prisma";
+import { getAvailableDatesInMonth } from "@/server/services/availability";
+
+const prisma = prismaModule as unknown as {
+  clinic: { findUnique: ReturnType<typeof vi.fn> };
+  service: { findFirst: ReturnType<typeof vi.fn> };
+  rateLimit: { upsert: ReturnType<typeof vi.fn> };
+};
+
+describe("/api/public/[slug]/available-dates", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    prisma.rateLimit.upsert.mockResolvedValue({ count: 1, id: "rl-1", key: "key", windowStart: new Date(), resetAt: new Date(), createdAt: new Date(), updatedAt: new Date() });
+  });
+
+  it("retorna 429 quando rate limit é excedido", async () => {
+    prisma.rateLimit.upsert.mockResolvedValueOnce({ count: 61, id: "rl-1", key: "key", windowStart: new Date(), resetAt: new Date(), createdAt: new Date(), updatedAt: new Date() });
+
+    const request = new NextRequest(
+      "http://localhost/api/public/barbearia/available-dates?serviceId=550e8400-e29b-41d4-a716-446655440001&yearMonth=2026-07",
+      { headers: { "x-forwarded-for": "127.0.0.1" } },
+    );
+
+    const response = await GET(request, { params: Promise.resolve({ slug: "barbearia" }) });
+
+    expect(response.status).toBe(429);
+  });
+
+  it("retorna datas quando parâmetros são válidos", async () => {
+    prisma.clinic.findUnique.mockResolvedValueOnce({ id: "clinic-1", timeZone: "America/Sao_Paulo", maxAppointmentsPerDay: null });
+    prisma.service.findFirst.mockResolvedValueOnce({ duration: 30 });
+    (getAvailableDatesInMonth as ReturnType<typeof vi.fn>).mockResolvedValueOnce(["2026-07-23", "2026-07-24"]);
+
+    const request = new NextRequest(
+      "http://localhost/api/public/barbearia/available-dates?serviceId=550e8400-e29b-41d4-a716-446655440001&yearMonth=2026-07",
+      { headers: { "x-forwarded-for": "127.0.0.1" } },
+    );
+
+    const response = await GET(request, { params: Promise.resolve({ slug: "barbearia" }) });
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.dates).toEqual(["2026-07-23", "2026-07-24"]);
+  });
+});

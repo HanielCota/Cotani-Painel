@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { getClientIp } from "@/lib/get-client-ip";
 import prisma from "@/lib/prisma";
+import { rateLimit } from "@/lib/rate-limit";
 import { getAvailableSlots } from "@/server/services/availability";
 
 const querySchema = z.object({
@@ -10,8 +12,20 @@ const querySchema = z.object({
   professionalId: z.uuid().optional(),
 });
 
+const RATE_LIMIT = {
+  limit: 60,
+  windowMs: 60_000,
+};
+
 export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+
+  const ip = getClientIp(request);
+  const limit = await rateLimit({ key: `availability:${ip}`, ...RATE_LIMIT });
+
+  if (!limit.success) {
+    return NextResponse.json({ message: "Muitas requisições. Tente novamente em instantes." }, { status: 429 });
+  }
 
   const parsed = querySchema.safeParse({
     serviceId: request.nextUrl.searchParams.get("serviceId") ?? undefined,

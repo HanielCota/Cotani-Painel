@@ -20,6 +20,9 @@ export const prismaMock = {
     findUnique: vi.fn(),
     create: vi.fn(),
   },
+  rateLimit: {
+    upsert: vi.fn(),
+  },
   membership: {
     findFirst: vi.fn(),
   },
