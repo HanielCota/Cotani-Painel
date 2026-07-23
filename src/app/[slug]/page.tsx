@@ -6,6 +6,7 @@ import { BookingSteps } from "@/components/public/booking-steps";
 import { isSubscriptionActive } from "@/server/subscription";
 import prisma from "@/lib/prisma";
 import { formatClinicDateTimeInput } from "@/lib/timezone";
+import { getPublicBookingUrl } from "@/lib/url";
 
 interface PublicBookingPageProps {
   params: Promise<{ slug: string }>;
@@ -18,7 +19,32 @@ export async function generateMetadata({ params }: PublicBookingPageProps): Prom
     select: { name: true },
   });
 
-  return { title: clinic ? `Agendar em ${clinic.name}` : "Agendamento" };
+  if (!clinic) {
+    return { title: "Agendamento" };
+  }
+
+  const title = `Agendar em ${clinic.name}`;
+  const description = `Agende seu horário na ${clinic.name} de forma rápida e fácil. Escolha o serviço, o profissional e o melhor dia e horário para você.`;
+  const url = await getPublicBookingUrl(slug);
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: "website",
+      locale: "pt_BR",
+      siteName: clinic.name,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+  };
 }
 
 export default async function PublicBookingPage({ params }: PublicBookingPageProps) {
