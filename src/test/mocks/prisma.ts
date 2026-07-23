@@ -26,7 +26,11 @@ export const prismaMock = {
   notification: {
     createMany: vi.fn(),
     deleteMany: vi.fn(),
+    findMany: vi.fn(),
+    update: vi.fn(),
+    updateMany: vi.fn(),
   },
+  $queryRaw: vi.fn(),
   customer: {
     count: vi.fn(),
     upsert: vi.fn(),

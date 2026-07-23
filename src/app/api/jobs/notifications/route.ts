@@ -9,6 +9,9 @@ import { getMessageSender } from "@/server/services/messaging/message-sender";
  * Dispatcher da fila de notificações (docs/ARCHITECTURE.md, seção 5.3).
  * Acionado pelo Vercel Cron (vercel.json). O Cron envia GET com o header
  * `Authorization: Bearer ${CRON_SECRET}`; POST é aceito para disparo manual.
+ *
+ * WhatsApp no modo "manual" é pulado pelo dispatcher: o barbeiro envia
+ * as mensagens pelo próprio WhatsApp via link wa.me no CRM de comunicações.
  */
 
 const cronSecretSchema = z.string().min(1);
@@ -17,6 +20,11 @@ const BATCH_SIZE = 25;
 const LOCK_TIMEOUT_MS = 5 * 60_000;
 const BACKOFF_MINUTES = [1, 5, 15, 60, 240] as const;
 const MAX_ERROR_LENGTH = 500;
+
+function isWhatsAppManualMode(): boolean {
+  const mode = process.env.WHATSAPP_SENDER_MODE?.trim().toLowerCase();
+  return mode !== "api";
+}
 
 /**
  * Claim atômico de um lote: a transação mantém o lock das linhas selecionadas
@@ -105,9 +113,21 @@ async function dispatch(request: NextRequest) {
   const batch = await claimBatch(new Date());
   const stats: DispatchStats = { claimed: batch.length, sent: 0, retried: 0, failed: 0 };
 
+  const skipWhatsApp = isWhatsAppManualMode();
+
   // Envio sequencial intencional: lote pequeno, respeita rate limits dos provedores
   // e mantém a duração da função bem abaixo do limite da Vercel.
   for (const notification of batch) {
+    if (skipWhatsApp && notification.channel === "WHATSAPP") {
+      // No modo manual o barbeiro envia pelo próprio WhatsApp via CRM.
+      // Libera o lock para que a notificação continue disponível no painel.
+      await prisma.notification.update({
+        where: { id: notification.id },
+        data: { lockedAt: null },
+      });
+      continue;
+    }
+
     const sender = getMessageSender(notification.channel);
 
     try {
@@ -137,8 +157,7 @@ async function dispatch(request: NextRequest) {
       await registerFailure(
         notification,
         error instanceof Error ? error.message : "Erro inesperado no envio.",
-        stats,
-      );
+        stats);
     }
   }
 
