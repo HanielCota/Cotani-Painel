@@ -13,7 +13,16 @@ import type { BusinessHourItem } from "@/types";
 
 export const metadata: Metadata = { title: "Configurações" };
 
-export default withTenant(async ({ clinic }) => {
+interface ConfiguracoesPageProps {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ tab?: string }>;
+}
+
+export default withTenant<ConfiguracoesPageProps>(async ({ clinic }, props) => {
+  const { tab } = await props.searchParams;
+  const activeTab = ["services", "professionals", "business-hours"].includes(tab ?? "")
+    ? tab
+    : "services";
 
   const businessHours = await prisma.businessHour.findMany({
     where: { clinicId: clinic.id },
@@ -46,7 +55,7 @@ export default withTenant(async ({ clinic }) => {
           <CardDescription>Ajuste os serviços oferecidos, profissionais e os horários de funcionamento.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="services">
+          <Tabs defaultValue={activeTab ?? "services"}>
             <div className="overflow-x-auto pb-1">
               <TabsList className="w-full sm:w-fit">
                 <TabsTrigger value="services">Serviços</TabsTrigger>

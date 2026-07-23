@@ -22,7 +22,7 @@ import {
   Users2Icon,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 import {
   Accordion,
@@ -66,8 +66,8 @@ const operationItems: NavigationItem[] = [
 
 const storeItems: NavigationItem[] = [
   { title: "Serviços", href: "/dashboard/configuracoes", icon: SparklesIcon },
-  { title: "Profissionais", href: "/dashboard/profissionais", icon: Users2Icon },
-  { title: "Horários", href: "/dashboard/configuracoes", icon: CalendarDaysIcon },
+  { title: "Profissionais", href: "/dashboard/configuracoes?tab=profissionais", icon: Users2Icon },
+  { title: "Horários", href: "/dashboard/configuracoes?tab=business-hours", icon: CalendarDaysIcon },
   { title: "Link de agendamento", href: "/dashboard/configuracoes", icon: LinkIcon },
 ];
 
@@ -78,19 +78,31 @@ const managementItems: NavigationItem[] = [
 
 /**
  * Determina se um item de navegação está ativo.
- * - Match exato do pathname com o href.
+ * - Match exato do pathname com o href (sem query string).
  * - Para itens de sub-rota, ativa também quando pathname começa com "href/".
  * - A rota raiz "/dashboard" nunca é ativada por sub-rotas.
+ * - Itens com query string só ficam ativos quando pathname e searchParams batem.
  */
-function isActivePath(pathname: string, href: string): boolean {
-  if (pathname === href) return true;
-  if (href === "/dashboard") return false;
-  return pathname.startsWith(`${href}/`);
+function isActivePath(pathname: string, searchParams: URLSearchParams, href: string): boolean {
+  const [hrefPath, hrefQuery] = href.split("?");
+  const hrefSearchParams = new URLSearchParams(hrefQuery ?? "");
+
+  const pathMatches = pathname === hrefPath || (hrefPath !== "/dashboard" && pathname.startsWith(`${hrefPath}/`));
+  if (!pathMatches) return false;
+
+  if (hrefQuery) {
+    for (const [key, value] of hrefSearchParams) {
+      if (searchParams.get(key) !== value) return false;
+    }
+  }
+
+  return true;
 }
 
 function NavLink({ item }: { item: NavigationItem }) {
   const pathname = usePathname() ?? "";
-  const isActive = isActivePath(pathname, item.href);
+  const searchParams = useSearchParams();
+  const isActive = isActivePath(pathname, searchParams, item.href);
   const Icon = item.icon;
 
   return (
