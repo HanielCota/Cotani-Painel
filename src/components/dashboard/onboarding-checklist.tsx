@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { CheckIcon, ClockIcon, LinkIcon, SettingsIcon, TagIcon, TriangleAlertIcon } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,12 +14,40 @@ interface OnboardingChecklistProps {
   isSubscriptionActive: boolean;
 }
 
+const LINK_STEP_STORAGE_KEY = "cotani:onboarding:link-shared";
+
+function readLinkStepDone(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return localStorage.getItem(LINK_STEP_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function useLinkStepDone() {
+  const [done, setDone] = useState(readLinkStepDone);
+
+  function markDone() {
+    try {
+      localStorage.setItem(LINK_STEP_STORAGE_KEY, "true");
+    } catch {
+      // ignore
+    }
+    setDone(true);
+  }
+
+  return { done, markDone };
+}
+
 export function OnboardingChecklist({
   bookingUrl,
   hasServices,
   hasBusinessHours,
   isSubscriptionActive,
 }: OnboardingChecklistProps) {
+  const { done: linkShared, markDone } = useLinkStepDone();
+
   const steps = [
     {
       id: "subscription",
@@ -46,7 +77,7 @@ export function OnboardingChecklist({
       id: "link",
       label: "Divulgar link de agendamento",
       description: "Copie o link e publique no Instagram, WhatsApp ou site.",
-      done: false,
+      done: linkShared,
       href: bookingUrl,
       icon: LinkIcon,
       external: true,
@@ -67,7 +98,7 @@ export function OnboardingChecklist({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="mb-4 flex items-center gap-2 text-sm">
+        <div className="mb-4 flex items-center gap-2 text-sm" data-testid="onboarding-progress">
           <span className="font-medium">{completedCount}</span>
           <span className="text-muted-foreground">de {steps.length} concluídos</span>
           <div className="ml-auto h-2 w-24 overflow-hidden rounded-full bg-primary/20">
@@ -104,11 +135,13 @@ export function OnboardingChecklist({
                   <Button
                     variant="outline"
                     size="sm"
-                    nativeButton={false}
-                    render={<a href={step.href} target="_blank" rel="noopener noreferrer" />}
+                    onClick={() => {
+                      void navigator.clipboard.writeText(step.href);
+                      markDone();
+                    }}
                   >
                     <LinkIcon className="mr-1.5 size-3.5" />
-                    Abrir
+                    Copiar link
                   </Button>
                 ) : (
                   <Button
