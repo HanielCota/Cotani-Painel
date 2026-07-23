@@ -46,6 +46,18 @@ vi.mock("@/components/ui/popover", () => ({
 const { createPublicAppointment } = await import("@/server/actions/public-booking");
 const { useQuery } = await import("@tanstack/react-query");
 
+const storage = new Map<string, string>();
+
+Object.defineProperty(window, "localStorage", {
+  value: {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, value: string) => storage.set(key, value),
+    removeItem: (key: string) => storage.delete(key),
+    clear: () => storage.clear(),
+  },
+  writable: true,
+});
+
 beforeAll(() => {
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
 });
@@ -75,6 +87,7 @@ function setup() {
 describe("BookingSteps", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    storage.clear();
     (useQuery as ReturnType<typeof vi.fn>).mockReturnValue({
       data: { slots: [], dates: [] },
       isFetching: false,
@@ -202,5 +215,106 @@ describe("BookingSteps", () => {
     });
 
     expect(mockPush).toHaveBeenCalledWith(expect.stringContaining("/barbearia-teste/sucesso"));
+  });
+
+  it("salva dados do cliente no localStorage após agendamento", async () => {
+    (createPublicAppointment as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      status: "success",
+      message: "Agendamento confirmado.",
+    });
+
+    (useQuery as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: {
+        slots: [{ startTime: "2026-07-21T10:00:00", label: "10:00" }],
+        dates: ["2026-07-21"],
+      },
+      isFetching: false,
+      refetch: mockRefetch,
+    });
+
+    setup();
+
+    await userEvent.click(screen.getByText("Barba"));
+    await userEvent.click(screen.getByText("Ana"));
+    await userEvent.click(screen.getByRole("button", { name: /continuar/i }));
+    await userEvent.type(screen.getByTestId("calendar-mock"), "2026-07-21");
+
+    await waitFor(() => {
+      expect(screen.getByText("10:00")).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByText("10:00"));
+    await userEvent.click(screen.getByRole("button", { name: /continuar/i }));
+
+    await userEvent.type(screen.getByLabelText(/nome completo/i), "João Silva");
+    await userEvent.type(screen.getByLabelText(/whatsapp/i), "11999999999");
+
+    await userEvent.click(screen.getByRole("button", { name: /confirmar agendamento/i }));
+
+    await waitFor(() => {
+      expect(createPublicAppointment).toHaveBeenCalled();
+    });
+
+    const saved = JSON.parse(storage.get("cotani:customer:barbearia-teste") ?? "{}");
+    expect(saved.name).toBe("João Silva");
+    expect(saved.phone).toBe("(11) 99999-9999");
+  });
+
+  it("pré-preenche dados do cliente quando existem no localStorage", async () => {
+    storage.set("cotani:customer:barbearia-teste", JSON.stringify({ name: "Maria Souza", phone: "(21) 98888-7777" }));
+
+    (useQuery as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: {
+        slots: [{ startTime: "2026-07-21T10:00:00", label: "10:00" }],
+        dates: ["2026-07-21"],
+      },
+      isFetching: false,
+      refetch: mockRefetch,
+    });
+
+    setup();
+
+    await userEvent.click(screen.getByText("Barba"));
+    await userEvent.click(screen.getByText("Ana"));
+    await userEvent.click(screen.getByRole("button", { name: /continuar/i }));
+    await userEvent.type(screen.getByTestId("calendar-mock"), "2026-07-21");
+
+    await waitFor(() => {
+      expect(screen.getByText("10:00")).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByText("10:00"));
+    await userEvent.click(screen.getByRole("button", { name: /continuar/i }));
+
+    const nameInput = screen.getByLabelText(/nome completo/i) as HTMLInputElement;
+    const phoneInput = screen.getByLabelText(/whatsapp/i) as HTMLInputElement;
+
+    expect(nameInput.value).toBe("Maria Souza");
+    expect(phoneInput.value).toBe("(21) 98888-7777");
+  });
+
+  it("exibe indicador de últimas vagas quando há poucos horários", async () => {
+    (useQuery as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: {
+        slots: [
+          { startTime: "2026-07-21T10:00:00", label: "10:00" },
+          { startTime: "2026-07-21T10:30:00", label: "10:30" },
+        ],
+        dates: ["2026-07-21"],
+      },
+      isFetching: false,
+      refetch: mockRefetch,
+    });
+
+    setup();
+
+    await userEvent.click(screen.getByText("Barba"));
+    await userEvent.click(screen.getByText("Ana"));
+    await userEvent.click(screen.getByRole("button", { name: /continuar/i }));
+    await userEvent.type(screen.getByTestId("calendar-mock"), "2026-07-21");
+
+    await waitFor(() => {
+      expect(screen.getByText("Apenas 2 horários disponíveis para este dia.")).toBeInTheDocument();
+    });
   });
 });

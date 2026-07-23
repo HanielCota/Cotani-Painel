@@ -328,6 +328,11 @@ function DateTimeStep({
             })
           )}
         </div>
+        {selectedDate && !isFetching && slots.length > 0 && slots.length <= 3 ? (
+          <p className="text-xs font-medium text-amber-600">
+            Apenas {slots.length} {slots.length === 1 ? "horário disponível" : "horários disponíveis"} para este dia.
+          </p>
+        ) : null}
       </fieldset>
     </div>
   );
@@ -411,6 +416,7 @@ function BookingSummary({ clinicName, service, professional, date, slot }: Booki
 
 interface CustomerStepProps {
   isPending: boolean;
+  slug: string;
   clinicName: string;
   service: Service | undefined;
   professional: Professional | undefined;
@@ -418,8 +424,24 @@ interface CustomerStepProps {
   slot: AvailabilitySlot | null;
 }
 
-function CustomerStep({ isPending, clinicName, service, professional, date, slot }: CustomerStepProps) {
-  const [phone, setPhone] = useState("");
+function getCustomerStorageKey(slug: string): string {
+  return `cotani:customer:${slug}`;
+}
+
+function readSavedCustomer(slug: string): { name?: string; phone?: string } {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(getCustomerStorageKey(slug));
+    if (!raw) return {};
+    return JSON.parse(raw) as { name?: string; phone?: string };
+  } catch {
+    return {};
+  }
+}
+
+function CustomerStep({ isPending, slug, clinicName, service, professional, date, slot }: CustomerStepProps) {
+  const savedCustomer = readSavedCustomer(slug);
+  const [phone, setPhone] = useState(() => savedCustomer.phone ?? "");
   const [phoneError, setPhoneError] = useState(false);
 
   function handlePhoneChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -461,6 +483,7 @@ function CustomerStep({ isPending, clinicName, service, professional, date, slot
             autoComplete="name"
             disabled={isPending}
             placeholder="Ex: João Silva"
+            defaultValue={savedCustomer.name}
             className="h-12"
           />
         </Field>
@@ -621,12 +644,24 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
         return;
       }
 
+      const customerName = String(formData.get("customerName"));
+      const customerPhone = String(formData.get("customerPhone"));
+
+      try {
+        localStorage.setItem(
+          getCustomerStorageKey(slug),
+          JSON.stringify({ name: customerName, phone: customerPhone }),
+        );
+      } catch {
+        // Ignora erros de escrita no localStorage.
+      }
+
       const params = new URLSearchParams();
       if (serviceName) params.set("service", serviceName);
       if (professionalName) params.set("professional", professionalName);
       if (date) params.set("date", date);
       if (slot) params.set("time", slot.label);
-      params.set("customer", String(formData.get("customerName")));
+      params.set("customer", customerName);
 
       router.push(`/${slug}/sucesso?${params.toString()}`);
     });
@@ -673,6 +708,7 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
           {step === "customer" ? (
             <CustomerStep
               isPending={isPending}
+              slug={slug}
               clinicName={clinicName}
               service={selectedService}
               professional={professionals.find((professional) => professional.id === professionalId)}
