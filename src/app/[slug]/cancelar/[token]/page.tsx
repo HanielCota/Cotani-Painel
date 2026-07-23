@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CalendarXIcon, ClockIcon, TagIcon } from "lucide-react";
+import { ClockIcon, TagIcon } from "lucide-react";
 
+import { CancelAppointmentError } from "@/components/public/cancel-appointment-error";
 import { CancelAppointmentForm } from "@/components/public/cancel-appointment-form";
 import prisma from "@/lib/prisma";
 
@@ -88,12 +89,11 @@ export default async function CancelPage({ params }: CancelPageProps) {
       {canCancel ? (
         <CancelAppointmentForm slug={slug} token={token} />
       ) : (
-        <div className="flex flex-col items-center gap-2 rounded-lg border bg-muted/30 p-8 text-center">
-          <CalendarXIcon className="size-8 text-muted-foreground" />
-          <p className="font-medium">
-            {isAlreadyCanceled ? "Este agendamento já foi cancelado." : "Este agendamento não pode mais ser cancelado."}
-          </p>
-        </div>
+        <CancelAppointmentError
+          clinicName={clinic.name}
+          clinicSlug={slug}
+          variant={isAlreadyCanceled ? "already-canceled" : "expired"}
+        />
       )}
     </main>
   );
