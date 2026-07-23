@@ -3,6 +3,10 @@
     {
       "path": "/api/jobs/notifications",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/jobs/billing/expire-subscriptions",
+      "schedule": "0 6 * * *"
     }
   ]
 }
