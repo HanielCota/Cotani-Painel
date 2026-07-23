@@ -16,6 +16,7 @@ import {
   DashboardMetricCards,
   DashboardMetricCardsSkeleton,
 } from "@/components/dashboard/dashboard-metric-cards";
+import { NewAppointmentsIndicator } from "@/components/dashboard/new-appointments-indicator";
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
 import {
   TodayAgendaList,
@@ -123,10 +124,11 @@ export default withTenant(async ({ clinic }) => {
               <CalendarDaysIcon className="size-5 text-primary" />
               Próximos agendamentos
             </CardTitle>
+            <NewAppointmentsIndicator />
           </CardHeader>
           <CardContent>
             <Suspense fallback={<UpcomingAppointmentsListSkeleton />}>
-              <UpcomingAppointmentsList clinic={clinic} />
+              <UpcomingAppointmentsList timeZone={clinic.timeZone} />
             </Suspense>
           </CardContent>
           <CardFooter>
@@ -147,7 +149,7 @@ export default withTenant(async ({ clinic }) => {
           </CardHeader>
           <CardContent>
             <Suspense fallback={<TodayAgendaListSkeleton />}>
-              <TodayAgendaList clinic={clinic} />
+              <TodayAgendaList timeZone={clinic.timeZone} />
             </Suspense>
           </CardContent>
           <CardFooter>

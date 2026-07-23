@@ -1,44 +1,53 @@
-import { screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TodayAgendaList, TodayAgendaListSkeleton } from "@/components/dashboard/today-agenda-list";
 import { render } from "@/test/utils";
-import type { ClinicModel } from "@/generated/prisma/models/Clinic";
 
-vi.mock("@/server/services/appointments", () => ({
-  getTodayAppointments: vi.fn(),
-}));
-
-const { getTodayAppointments } = await import("@/server/services/appointments");
-
-const mockClinic = {
-  id: "clinic-1",
-  name: "Barbearia Teste",
-  timeZone: "America/Sao_Paulo",
-} as ClinicModel;
+function createMockFetchResponse(data: unknown) {
+  return {
+    ok: true,
+    redirected: false,
+    headers: new Headers({ "content-type": "application/json" }),
+    json: vi.fn().mockResolvedValue(data),
+  };
+}
 
 describe("TodayAgendaList", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("renderiza lista de atendimentos do dia", async () => {
-    (getTodayAppointments as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
-      {
-        id: "app-1",
-        customerName: "João Silva",
-        serviceName: "Corte",
-        startTime: new Date("2026-07-21T14:00:00"),
-        status: "CONFIRMED",
-      },
-      {
-        id: "app-2",
-        customerName: "Pedro Souza",
-        serviceName: "Barba",
-        startTime: new Date("2026-07-21T15:30:00"),
-        status: "PENDING",
-      },
-    ]);
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      createMockFetchResponse([
+        {
+          id: "app-1",
+          customerName: "João Silva",
+          serviceName: "Corte",
+          startTime: "2026-07-21T14:00:00",
+          status: "CONFIRMED",
+        },
+        {
+          id: "app-2",
+          customerName: "Pedro Souza",
+          serviceName: "Barba",
+          startTime: "2026-07-21T15:30:00",
+          status: "PENDING",
+        },
+      ]),
+    );
 
-    render(await TodayAgendaList({ clinic: mockClinic }));
+    render(<TodayAgendaList timeZone="America/Sao_Paulo" />);
 
-    expect(screen.getByText("João Silva")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("João Silva")).toBeInTheDocument();
+    });
+
     expect(screen.getByText("Corte")).toBeInTheDocument();
     expect(screen.getByText("Pedro Souza")).toBeInTheDocument();
     expect(screen.getByText("Barba")).toBeInTheDocument();
@@ -47,11 +56,23 @@ describe("TodayAgendaList", () => {
   });
 
   it("renderiza estado vazio quando não há atendimentos", async () => {
-    (getTodayAppointments as ReturnType<typeof vi.fn>).mockResolvedValueOnce([]);
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(createMockFetchResponse([]));
 
-    render(await TodayAgendaList({ clinic: mockClinic }));
+    render(<TodayAgendaList timeZone="America/Sao_Paulo" />);
 
-    expect(screen.getByText("Nenhum atendimento hoje")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Nenhum atendimento hoje")).toBeInTheDocument();
+    });
+  });
+
+  it("chama a API de atendimentos do dia", async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(createMockFetchResponse([]));
+
+    render(<TodayAgendaList timeZone="America/Sao_Paulo" />);
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith("/api/appointments/today", undefined);
+    });
   });
 });
 

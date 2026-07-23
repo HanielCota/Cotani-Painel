@@ -1,16 +1,12 @@
+"use client";
+
 import { CalendarX2Icon } from "lucide-react";
 
 import { appointmentStatusLabel } from "@/components/dashboard/agenda-appointments-list";
 import { Badge } from "@/components/ui/badge";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ClinicModel } from "@/generated/prisma/models/Clinic";
-import { getUpcomingAppointments } from "@/server/services/appointments";
-
-interface UpcomingAppointmentsListProps {
-  clinic: ClinicModel;
-  limit?: number;
-}
+import { useUpcomingAppointments } from "@/hooks/use-upcoming-appointments";
 
 const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   CONFIRMED: "default",
@@ -39,10 +35,19 @@ export function UpcomingAppointmentsListSkeleton() {
   );
 }
 
-export async function UpcomingAppointmentsList({ clinic, limit = 10 }: UpcomingAppointmentsListProps) {
-  const appointments = await getUpcomingAppointments(clinic, limit);
+interface UpcomingAppointmentsListProps {
+  timeZone: string;
+  limit?: number;
+}
 
-  if (appointments.length === 0) {
+export function UpcomingAppointmentsList({ timeZone, limit = 10 }: UpcomingAppointmentsListProps) {
+  const { data: appointments, isLoading } = useUpcomingAppointments(limit);
+
+  if (isLoading) {
+    return <UpcomingAppointmentsListSkeleton />;
+  }
+
+  if (!appointments || appointments.length === 0) {
     return (
       <Empty className="min-h-32 border-0 bg-muted/30">
         <EmptyHeader>
@@ -57,11 +62,12 @@ export async function UpcomingAppointmentsList({ clinic, limit = 10 }: UpcomingA
   return (
     <div className="flex flex-col">
       {appointments.map((appointment) => {
+        const startTime = new Date(appointment.startTime);
         const dateTime = new Intl.DateTimeFormat("pt-BR", {
           dateStyle: "short",
           timeStyle: "short",
-          timeZone: clinic.timeZone,
-        }).format(appointment.startTime);
+          timeZone,
+        }).format(startTime);
 
         return (
           <div
@@ -70,9 +76,9 @@ export async function UpcomingAppointmentsList({ clinic, limit = 10 }: UpcomingA
           >
             <div className="flex min-w-0 items-center gap-3">
               <div className="flex size-8 shrink-0 flex-col items-center justify-center rounded-md border bg-muted text-xs font-medium">
-                <span>{appointment.startTime.toLocaleDateString("pt-BR", { day: "2-digit", timeZone: clinic.timeZone })}</span>
+                <span>{startTime.toLocaleDateString("pt-BR", { day: "2-digit", timeZone })}</span>
                 <span className="text-[10px] text-muted-foreground">
-                  {appointment.startTime.toLocaleDateString("pt-BR", { month: "short", timeZone: clinic.timeZone })}
+                  {startTime.toLocaleDateString("pt-BR", { month: "short", timeZone })}
                 </span>
               </div>
               <div className="min-w-0">

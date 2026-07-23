@@ -1,15 +1,12 @@
+"use client";
+
 import { CalendarX2Icon } from "lucide-react";
 
 import { appointmentStatusLabel } from "@/components/dashboard/agenda-appointments-list";
 import { Badge } from "@/components/ui/badge";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ClinicModel } from "@/generated/prisma/models/Clinic";
-import { getTodayAppointments } from "@/server/services/appointments";
-
-interface TodayAgendaListProps {
-  clinic: ClinicModel;
-}
+import { useTodayAppointments } from "@/hooks/use-today-appointments";
 
 const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   CONFIRMED: "default",
@@ -38,10 +35,18 @@ export function TodayAgendaListSkeleton() {
   );
 }
 
-export async function TodayAgendaList({ clinic }: TodayAgendaListProps) {
-  const appointments = await getTodayAppointments(clinic);
+interface TodayAgendaListProps {
+  timeZone: string;
+}
 
-  if (appointments.length === 0) {
+export function TodayAgendaList({ timeZone }: TodayAgendaListProps) {
+  const { data: appointments, isLoading } = useTodayAppointments();
+
+  if (isLoading) {
+    return <TodayAgendaListSkeleton />;
+  }
+
+  if (!appointments || appointments.length === 0) {
     return (
       <Empty className="min-h-32 border-0 bg-muted/30">
         <EmptyHeader>
@@ -58,8 +63,8 @@ export async function TodayAgendaList({ clinic }: TodayAgendaListProps) {
       {appointments.map((appointment) => {
         const time = new Intl.DateTimeFormat("pt-BR", {
           timeStyle: "short",
-          timeZone: clinic.timeZone,
-        }).format(appointment.startTime);
+          timeZone,
+        }).format(new Date(appointment.startTime));
 
         return (
           <div
