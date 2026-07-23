@@ -170,7 +170,7 @@ export function ProfessionalFormDialog({ professional }: ProfessionalFormDialogP
             </Field>
 
             <Field>
-              <FieldLabel>Foto (opcional)</FieldLabel>
+              <FieldLabel htmlFor={`professional-photo-${professional?.id ?? "new"}`}>Foto (opcional)</FieldLabel>
               <div className="flex items-center gap-4">
                 {preview ? (
                   <div className="relative">
@@ -194,6 +194,7 @@ export function ProfessionalFormDialog({ professional }: ProfessionalFormDialogP
                 )}
                 <div className="flex flex-col gap-2">
                   <Input
+                    id={`professional-photo-${professional?.id ?? "new"}`}
                     ref={fileInputRef}
                     type="file"
                     accept="image/jpeg,image/png,image/webp"

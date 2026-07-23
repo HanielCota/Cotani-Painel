@@ -62,4 +62,48 @@ describe("ServiceFormDialog", () => {
     expect(screen.getByDisplayValue("20")).toBeInTheDocument();
     expect(screen.getByDisplayValue("35")).toBeInTheDocument();
   });
+
+  it("converte imagem selecionada para base64 e envia no formData", async () => {
+    const file = new File(["dummy"], "service.jpg", { type: "image/jpeg" });
+
+    class MockFileReader {
+      result: string | null = null;
+      onload: ((event: ProgressEvent<FileReader>) => void) | null = null;
+      readAsDataURL() {
+        this.result = "data:image/jpeg;base64,dummy";
+        setTimeout(() => {
+          this.onload?.({ target: { result: this.result } } as ProgressEvent<FileReader>);
+        }, 0);
+      }
+    }
+    vi.stubGlobal("FileReader", MockFileReader);
+
+    (createServiceFromForm as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      status: "success",
+      message: "Serviço cadastrado.",
+    });
+
+    render(<ServiceFormDialog />);
+
+    fireEvent.click(screen.getByRole("button", { name: /novo serviço/i }));
+
+    fireEvent.change(screen.getByLabelText(/nome/i), { target: { value: "Corte" } });
+    fireEvent.change(screen.getByLabelText(/duração/i), { target: { value: "30" } });
+    fireEvent.change(screen.getByLabelText(/valor/i), { target: { value: "50" } });
+
+    const fileInput = screen.getByLabelText(/imagem/i);
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByAltText(/preview do serviço/i)).toHaveAttribute("src", "data:image/jpeg;base64,dummy");
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /cadastrar serviço/i }));
+
+    await waitFor(() => {
+      expect(createServiceFromForm).toHaveBeenCalled();
+    });
+
+    vi.unstubAllGlobals();
+  });
 });
