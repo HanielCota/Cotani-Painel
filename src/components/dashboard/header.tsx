@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 
+import { NotificationBell } from "@/components/dashboard/notification-bell";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
@@ -42,6 +43,8 @@ export function DashboardHeader({ className }: { className?: string }) {
       <div className="flex min-w-0 flex-1 items-center">
         <span className="truncate text-sm font-semibold text-foreground">{pageTitle}</span>
       </div>
+
+      <NotificationBell />
     </header>
   );
 }
