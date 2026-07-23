@@ -2,20 +2,25 @@
 
 import { useState, useTransition } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { BanIcon, CheckIcon, CircleOffIcon, UserRoundXIcon } from "lucide-react";
+import { BanIcon, CheckIcon, CircleOffIcon, EllipsisVerticalIcon, UserRoundXIcon } from "lucide-react";
 
 import { updateAppointmentStatus } from "@/server/actions/appointments";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -34,16 +39,29 @@ interface AppointmentActionsProps {
   status: AppointmentStatus;
 }
 
-const actionLabels = {
-  CONFIRMED: { label: "Confirmar", icon: CheckIcon, variant: "outline" as const },
-  COMPLETED: { label: "Concluir", icon: CheckIcon, variant: "default" as const },
-  CANCELED: { label: "Cancelar", icon: BanIcon, variant: "outline" as const },
-  NO_SHOW: { label: "Não compareceu", icon: UserRoundXIcon, variant: "outline" as const },
-};
+type NextAppointmentStatus = Exclude<AppointmentStatus, "PENDING">;
 
-const actionConfirmations: Partial<Record<keyof typeof actionLabels, string>> = {
-  CANCELED: "Tem certeza que deseja cancelar este atendimento? O horário será liberado.",
-  NO_SHOW: "Deseja marcar este atendimento como falta?",
+interface ActionOption {
+  status: NextAppointmentStatus;
+  label: string;
+  icon: typeof CheckIcon;
+  destructive?: boolean;
+}
+
+const actionsByStatus: Record<
+  Exclude<AppointmentStatus, "COMPLETED" | "CANCELED" | "NO_SHOW">,
+  ActionOption[]
+> = {
+  PENDING: [
+    { status: "CONFIRMED", label: "Confirmar", icon: CheckIcon },
+    { status: "CANCELED", label: "Cancelar", icon: BanIcon, destructive: true },
+    { status: "NO_SHOW", label: "Não compareceu", icon: UserRoundXIcon, destructive: true },
+  ],
+  CONFIRMED: [
+    { status: "COMPLETED", label: "Concluir", icon: CheckIcon },
+    { status: "CANCELED", label: "Cancelar", icon: BanIcon, destructive: true },
+    { status: "NO_SHOW", label: "Não compareceu", icon: UserRoundXIcon, destructive: true },
+  ],
 };
 
 const paymentMethodLabels: Record<PaymentMethod, string> = {
@@ -54,15 +72,26 @@ const paymentMethodLabels: Record<PaymentMethod, string> = {
   OTHER: "Outro",
 };
 
+const actionConfirmations: Partial<Record<AppointmentStatus, string>> = {
+  CANCELED: "Tem certeza que deseja cancelar este atendimento? O horário será liberado.",
+  NO_SHOW: "Deseja marcar este atendimento como falta?",
+};
+
 export function AppointmentActions({ appointmentId, status }: AppointmentActionsProps) {
   const [result, setResult] = useState<ActionResult | null>(null);
   const [isPending, startTransition] = useTransition();
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const queryClient = useQueryClient();
-  const actions = status === "PENDING" ? (["CONFIRMED", "CANCELED", "NO_SHOW"] as const) : (["COMPLETED", "CANCELED", "NO_SHOW"] as const);
 
-  function handleStatusChange(nextStatus: (typeof actions)[number]) {
+  if (status === "COMPLETED" || status === "CANCELED" || status === "NO_SHOW") {
+    return null;
+  }
+
+  const actions = actionsByStatus[status];
+
+  function handleStatusChange(nextStatus: NextAppointmentStatus) {
     const confirmation = actionConfirmations[nextStatus];
 
     if (confirmation && !window.confirm(confirmation)) {
@@ -70,6 +99,7 @@ export function AppointmentActions({ appointmentId, status }: AppointmentActions
     }
 
     if (nextStatus === "COMPLETED") {
+      setDropdownOpen(false);
       setCompleteDialogOpen(true);
       return;
     }
@@ -80,6 +110,7 @@ export function AppointmentActions({ appointmentId, status }: AppointmentActions
       setResult(nextResult);
 
       if (nextResult.status === "success") {
+        setDropdownOpen(false);
         queryClient.invalidateQueries({ queryKey: ["appointments"] });
       }
     });
@@ -108,27 +139,34 @@ export function AppointmentActions({ appointmentId, status }: AppointmentActions
   }
 
   return (
-    <div className="flex max-w-full flex-col items-start gap-2 sm:items-end">
-      <div className="flex flex-wrap gap-2">
-        {actions.map((nextStatus) => {
-          const action = actionLabels[nextStatus];
-          const Icon = action.icon;
+    <div className="flex flex-col items-end gap-2">
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+        <DropdownMenuTrigger
+          type="button"
+          disabled={isPending}
+          className="group/button inline-flex h-7 shrink-0 items-center justify-center gap-1 rounded-[min(var(--radius-md),12px)] border border-border bg-background px-2.5 text-[0.8rem] font-medium whitespace-nowrap text-foreground outline-none select-none transition-all hover:bg-muted hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:border-input dark:bg-input/30 dark:hover:bg-input/50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-')]:size-3.5"
+        >
+          Ações
+          {isPending ? <Spinner className="ml-1 size-3.5" /> : <EllipsisVerticalIcon className="ml-1 size-3.5" />}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {actions.map((action) => {
+            const Icon = action.icon;
 
-          return (
-            <Button
-              key={nextStatus}
-              type="button"
-              size="sm"
-              variant={action.variant}
-              disabled={isPending}
-              onClick={() => handleStatusChange(nextStatus)}
-            >
-              {isPending ? <Spinner data-icon="inline-start" /> : <Icon data-icon="inline-start" />}
-              {action.label}
-            </Button>
-          );
-        })}
-      </div>
+            return (
+              <DropdownMenuItem
+                key={action.status}
+                onClick={() => handleStatusChange(action.status)}
+                className={action.destructive ? "text-destructive focus:text-destructive" : undefined}
+                disabled={isPending}
+              >
+                <Icon className="mr-2 size-4" />
+                {action.label}
+              </DropdownMenuItem>
+            );
+          })}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {result?.message ? (
         <Alert variant={result.status === "error" ? "destructive" : "default"} className="max-w-sm py-1.5">

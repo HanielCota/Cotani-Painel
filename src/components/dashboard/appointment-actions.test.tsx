@@ -11,25 +11,36 @@ vi.mock("@/server/actions/appointments", () => ({
 const { updateAppointmentStatus } = await import("@/server/actions/appointments");
 
 describe("AppointmentActions", () => {
-  it("renderiza ações para agendamento PENDING", () => {
+  it("renderiza menu de ações para agendamento PENDING", () => {
     render(<AppointmentActions appointmentId="app-1" status="PENDING" />);
 
-    expect(screen.getByRole("button", { name: /confirmar/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /cancelar/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /não compareceu/i })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /concluir/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /ações/i })).toBeInTheDocument();
+  });
+
+  it("renderiza ações de confirmar, cancelar e não compareceu para PENDING", () => {
+    render(<AppointmentActions appointmentId="app-1" status="PENDING" />);
+
+    fireEvent.click(screen.getByRole("button", { name: /ações/i }));
+
+    expect(screen.getByRole("menuitem", { name: /confirmar/i })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /cancelar/i })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /não compareceu/i })).toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: /concluir/i })).not.toBeInTheDocument();
   });
 
   it("renderiza ação de concluir para agendamento CONFIRMED", () => {
     render(<AppointmentActions appointmentId="app-1" status="CONFIRMED" />);
 
-    expect(screen.getByRole("button", { name: /concluir/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /ações/i }));
+
+    expect(screen.getByRole("menuitem", { name: /concluir/i })).toBeInTheDocument();
   });
 
   it("abre diálogo de método de pagamento ao clicar em concluir", () => {
     render(<AppointmentActions appointmentId="app-1" status="CONFIRMED" />);
 
-    fireEvent.click(screen.getByRole("button", { name: /concluir/i }));
+    fireEvent.click(screen.getByRole("button", { name: /ações/i }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /concluir/i }));
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByText("Concluir atendimento")).toBeInTheDocument();
@@ -44,7 +55,8 @@ describe("AppointmentActions", () => {
 
     render(<AppointmentActions appointmentId="app-1" status="CONFIRMED" />);
 
-    fireEvent.click(screen.getByRole("button", { name: /concluir/i }));
+    fireEvent.click(screen.getByRole("button", { name: /ações/i }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /concluir/i }));
 
     // Seleciona Pix no Select
     fireEvent.click(screen.getByRole("combobox"));
@@ -58,5 +70,11 @@ describe("AppointmentActions", () => {
         paymentMethod: "PIX",
       });
     });
+  });
+
+  it("não renderiza nada para agendamentos finalizados", () => {
+    const { container } = render(<AppointmentActions appointmentId="app-1" status="COMPLETED" />);
+
+    expect(container.firstChild).toBeNull();
   });
 });
