@@ -39,6 +39,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarRail,
   SidebarTrigger,
   useSidebar,
@@ -182,6 +185,30 @@ function ProfileCompanyCard() {
   );
 }
 
+function SubNavLink({ item }: { item: NavigationItem }) {
+  const pathname = usePathname() ?? "";
+  const searchParams = useSearchParams();
+  const isActive = isActivePath(pathname, searchParams, item.href);
+  const Icon = item.icon;
+
+  return (
+    <SidebarMenuSubItem>
+      <SidebarMenuSubButton
+        render={<Link href={item.href} />}
+        isActive={isActive}
+        className={cn(
+          "h-9 rounded-md text-sm no-underline transition-colors",
+          "hover:bg-muted hover:text-foreground hover:no-underline",
+          isActive && "bg-[#82D951] text-white hover:bg-[#75c448] hover:text-white"
+        )}
+      >
+        <Icon className="size-4 shrink-0" />
+        <span className="truncate">{item.title}</span>
+      </SidebarMenuSubButton>
+    </SidebarMenuSubItem>
+  );
+}
+
 function StoreAccordion() {
   return (
     <Accordion defaultValue={["store"]} className="w-full">
@@ -193,11 +220,11 @@ function StoreAccordion() {
           </span>
         </AccordionTrigger>
         <AccordionContent className="pb-0 pt-1">
-          <SidebarMenu className="gap-1 pl-4">
+          <SidebarMenuSub>
             {storeItems.map((item) => (
-              <NavLink key={item.href + item.title} item={item} />
+              <SubNavLink key={item.title} item={item} />
             ))}
-          </SidebarMenu>
+          </SidebarMenuSub>
         </AccordionContent>
       </AccordionItem>
     </Accordion>
