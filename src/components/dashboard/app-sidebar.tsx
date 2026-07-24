@@ -198,7 +198,7 @@ function SubNavLink({ item }: { item: NavigationItem }) {
         isActive={isActive}
         className={cn(
           "h-9 rounded-md text-sm no-underline transition-colors",
-          "hover:bg-muted hover:text-foreground hover:no-underline",
+          "hover:bg-muted hover:text-foreground hover:no-underline focus:no-underline active:no-underline",
           isActive && "bg-[#82D951] text-white hover:bg-[#75c448] hover:text-white"
         )}
       >
