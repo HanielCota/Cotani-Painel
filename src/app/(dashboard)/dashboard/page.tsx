@@ -84,7 +84,6 @@ export default withTenant(async ({ clinic }) => {
         >
           <Button nativeButton={false} render={<Link href="/dashboard/agenda" />} size="sm" className="w-full">
             Abrir agenda
-            <ArrowRightIcon data-icon="inline-end" className="size-3.5" />
           </Button>
         </DashboardCard>
 
@@ -95,7 +94,6 @@ export default withTenant(async ({ clinic }) => {
         >
           <Button nativeButton={false} render={<Link href="/dashboard/configuracoes" />} size="sm" className="w-full">
             Abrir configurações
-            <ArrowRightIcon data-icon="inline-end" className="size-3.5" />
           </Button>
         </DashboardCard>
 
