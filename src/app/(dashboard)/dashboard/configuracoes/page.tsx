@@ -55,9 +55,9 @@ export default withTenant<ConfiguracoesPageProps>(async ({ clinic }, props) => {
           <CardDescription>Ajuste os serviços oferecidos, profissionais e os horários de funcionamento.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue={activeTab ?? "services"}>
-            <div className="overflow-x-auto pb-1">
-              <TabsList className="w-full sm:w-fit">
+          <Tabs value={activeTab}>
+            <div className="overflow-x-auto pb-1 -mb-1">
+              <TabsList className="w-full min-w-fit sm:w-fit">
                 <TabsTrigger value="services">Serviços</TabsTrigger>
                 <TabsTrigger value="professionals" className="flex items-center gap-1.5">
                   <UsersIcon className="size-3.5" />

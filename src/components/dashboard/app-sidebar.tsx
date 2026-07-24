@@ -71,7 +71,6 @@ const storeItems: NavigationItem[] = [
   { title: "Serviços", href: "/dashboard/configuracoes?tab=services", icon: SparklesIcon },
   { title: "Profissionais", href: "/dashboard/configuracoes?tab=profissionais", icon: Users2Icon },
   { title: "Horários", href: "/dashboard/configuracoes?tab=business-hours", icon: CalendarDaysIcon },
-  { title: "Link de agendamento", href: "/dashboard/configuracoes", icon: LinkIcon },
 ];
 
 const managementItems: NavigationItem[] = [
@@ -220,7 +219,7 @@ function StoreAccordion() {
           </span>
         </AccordionTrigger>
         <AccordionContent className="pb-0 pt-1 [&_a]:no-underline">
-          <SidebarMenuSub className="mx-0 ml-3 border-l border-sidebar-border pl-0">
+          <SidebarMenuSub className="mx-0 ml-[11px] border-l border-sidebar-border pl-0">
             {storeItems.map((item) => (
               <SubNavLink key={item.title} item={item} />
             ))}

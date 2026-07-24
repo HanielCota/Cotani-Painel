@@ -54,16 +54,16 @@ export function BusinessHoursSettings({ businessHours }: BusinessHoursSettingsPr
     <form action={formAction} className="flex flex-col gap-4">
       <p className="text-sm text-muted-foreground">Configure os dias e horários de funcionamento da barbearia.</p>
 
-      <div className="rounded-lg border">
+      <div className="overflow-hidden rounded-lg border">
         <div className="flex flex-col divide-y">
           {localHours
             .sort((a, b) => a.dayOfWeek - b.dayOfWeek)
             .map((item) => (
               <div
                 key={item.dayOfWeek}
-                className={`grid items-center gap-4 p-4 sm:grid-cols-[1fr_auto] ${item.isOpen ? "" : "bg-muted/30"}`}
+                className={`flex flex-col gap-4 p-4 sm:flex-row sm:items-start ${item.isOpen ? "" : "bg-muted/30"}`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex min-w-[10rem] items-center gap-3 sm:pt-6">
                   <Checkbox
                     name={`isOpen-${item.dayOfWeek}`}
                     checked={item.isOpen}
@@ -76,8 +76,8 @@ export function BusinessHoursSettings({ businessHours }: BusinessHoursSettingsPr
                   </span>
                 </div>
 
-                <FieldGroup className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  <Field>
+                <FieldGroup className="grid min-w-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <Field className="min-w-0">
                     <FieldLabel htmlFor={`openTime-${item.dayOfWeek}`} className="text-xs">
                       Abertura
                     </FieldLabel>
@@ -89,9 +89,10 @@ export function BusinessHoursSettings({ businessHours }: BusinessHoursSettingsPr
                       onChange={(event) => updateField(item.dayOfWeek, "openTime", event.target.value)}
                       disabled={!item.isOpen || isPending}
                       required
+                      className="w-full"
                     />
                   </Field>
-                  <Field>
+                  <Field className="min-w-0">
                     <FieldLabel htmlFor={`closeTime-${item.dayOfWeek}`} className="text-xs">
                       Fechamento
                     </FieldLabel>
@@ -103,9 +104,10 @@ export function BusinessHoursSettings({ businessHours }: BusinessHoursSettingsPr
                       onChange={(event) => updateField(item.dayOfWeek, "closeTime", event.target.value)}
                       disabled={!item.isOpen || isPending}
                       required
+                      className="w-full"
                     />
                   </Field>
-                  <Field>
+                  <Field className="min-w-0">
                     <FieldLabel htmlFor={`breakStart-${item.dayOfWeek}`} className="text-xs">
                       Início do intervalo
                     </FieldLabel>
@@ -116,9 +118,10 @@ export function BusinessHoursSettings({ businessHours }: BusinessHoursSettingsPr
                       value={item.breakStart ?? ""}
                       onChange={(event) => updateField(item.dayOfWeek, "breakStart", event.target.value)}
                       disabled={!item.isOpen || isPending}
+                      className="w-full"
                     />
                   </Field>
-                  <Field>
+                  <Field className="min-w-0">
                     <FieldLabel htmlFor={`breakEnd-${item.dayOfWeek}`} className="text-xs">
                       Fim do intervalo
                     </FieldLabel>
@@ -129,6 +132,7 @@ export function BusinessHoursSettings({ businessHours }: BusinessHoursSettingsPr
                       value={item.breakEnd ?? ""}
                       onChange={(event) => updateField(item.dayOfWeek, "breakEnd", event.target.value)}
                       disabled={!item.isOpen || isPending}
+                      className="w-full"
                     />
                   </Field>
                 </FieldGroup>
