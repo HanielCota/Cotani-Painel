@@ -197,8 +197,8 @@ function SubNavLink({ item }: { item: NavigationItem }) {
         render={<Link href={item.href} />}
         isActive={isActive}
         className={cn(
-          "h-9 rounded-md text-sm no-underline transition-colors",
-          "hover:bg-muted hover:text-foreground hover:no-underline focus:no-underline active:no-underline",
+          "h-9 gap-3 rounded-md pl-0 text-sm !no-underline transition-colors",
+          "hover:bg-muted hover:text-foreground hover:!no-underline focus:!no-underline active:!no-underline",
           isActive && "bg-[#82D951] text-white hover:bg-[#75c448] hover:text-white"
         )}
       >
@@ -219,8 +219,8 @@ function StoreAccordion() {
             <span className="truncate">Sua Loja</span>
           </span>
         </AccordionTrigger>
-        <AccordionContent className="pb-0 pt-1">
-          <SidebarMenuSub>
+        <AccordionContent className="pb-0 pt-1 [&_a]:no-underline">
+          <SidebarMenuSub className="mx-0 ml-3 border-l border-sidebar-border pl-0">
             {storeItems.map((item) => (
               <SubNavLink key={item.title} item={item} />
             ))}
