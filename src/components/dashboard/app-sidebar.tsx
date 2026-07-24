@@ -65,7 +65,7 @@ const operationItems: NavigationItem[] = [
 ];
 
 const storeItems: NavigationItem[] = [
-  { title: "Serviços", href: "/dashboard/configuracoes", icon: SparklesIcon },
+  { title: "Serviços", href: "/dashboard/configuracoes?tab=services", icon: SparklesIcon },
   { title: "Profissionais", href: "/dashboard/configuracoes?tab=profissionais", icon: Users2Icon },
   { title: "Horários", href: "/dashboard/configuracoes?tab=business-hours", icon: CalendarDaysIcon },
   { title: "Link de agendamento", href: "/dashboard/configuracoes", icon: LinkIcon },
@@ -82,13 +82,21 @@ const managementItems: NavigationItem[] = [
  * - Para itens de sub-rota, ativa também quando pathname começa com "href/".
  * - A rota raiz "/dashboard" nunca é ativada por sub-rotas.
  * - Itens com query string só ficam ativos quando pathname e searchParams batem.
+ * - Itens sem query string só ficam ativos quando a URL atual também não possui
+ *   query string, evitando que múltiplos itens fiquem ativos ao mesmo tempo.
  */
-function isActivePath(pathname: string, searchParams: URLSearchParams, href: string): boolean {
+export function isActivePath(pathname: string, searchParams: URLSearchParams, href: string): boolean {
   const [hrefPath, hrefQuery] = href.split("?");
   const hrefSearchParams = new URLSearchParams(hrefQuery ?? "");
 
   const pathMatches = pathname === hrefPath || (hrefPath !== "/dashboard" && pathname.startsWith(`${hrefPath}/`));
   if (!pathMatches) return false;
+
+  // href sem query string não deve ficar ativo em URLs com query string
+  // (ex: /dashboard/configuracoes não deve ativar quando ?tab=profissionais).
+  if (!hrefQuery && searchParams.toString()) {
+    return false;
+  }
 
   if (hrefQuery) {
     for (const [key, value] of hrefSearchParams) {
