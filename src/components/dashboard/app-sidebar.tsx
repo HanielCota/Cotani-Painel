@@ -39,9 +39,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
   SidebarRail,
   SidebarTrigger,
   useSidebar,
@@ -191,21 +188,18 @@ function SubNavLink({ item }: { item: NavigationItem }) {
   const Icon = item.icon;
 
   return (
-    <SidebarMenuSubItem>
-      <SidebarMenuSubButton
-        render={<Link href={item.href} style={{ textDecoration: "none" }} />}
-        isActive={isActive}
-        className={cn(
-          "h-9 gap-3 rounded-md pl-0 text-sm !no-underline transition-colors",
-          "hover:bg-muted hover:text-foreground hover:!no-underline focus:!no-underline active:!no-underline",
-          isActive && "bg-[#82D951] text-white hover:bg-[#75c448] hover:text-white"
-        )}
-        style={{ textDecoration: "none" }}
-      >
-        <Icon className="size-4 shrink-0" />
-        <span className="truncate">{item.title}</span>
-      </SidebarMenuSubButton>
-    </SidebarMenuSubItem>
+    <Link
+      href={item.href}
+      className={cn(
+        "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors no-underline",
+        isActive
+          ? "bg-zinc-100 text-zinc-900 font-medium"
+          : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50"
+      )}
+    >
+      <Icon className="size-4 shrink-0" />
+      <span className="truncate">{item.title}</span>
+    </Link>
   );
 }
 
@@ -220,11 +214,14 @@ function StoreAccordion() {
           </span>
         </AccordionTrigger>
         <AccordionContent className="pb-0 pt-1 [&_a]:!no-underline">
-          <SidebarMenuSub className="mx-0 border-l border-sidebar-border pl-[11px]">
-            {storeItems.map((item) => (
-              <SubNavLink key={item.title} item={item} />
-            ))}
-          </SidebarMenuSub>
+          <div className="relative flex flex-col mt-1 group-data-[collapsible=icon]:hidden">
+            <div className="absolute left-[1.375rem] top-0 bottom-0 w-px bg-zinc-200" />
+            <div className="flex flex-col gap-1 pl-11 pr-3">
+              {storeItems.map((item) => (
+                <SubNavLink key={item.title} item={item} />
+              ))}
+            </div>
+          </div>
         </AccordionContent>
       </AccordionItem>
     </Accordion>
