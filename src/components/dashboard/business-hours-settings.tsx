@@ -89,7 +89,7 @@ export function BusinessHoursSettings({ businessHours }: BusinessHoursSettingsPr
                       onChange={(event) => updateField(item.dayOfWeek, "openTime", event.target.value)}
                       disabled={!item.isOpen || isPending}
                       required
-                      className="w-full"
+                      className="w-full min-w-0"
                     />
                   </Field>
                   <Field className="min-w-0">
@@ -104,7 +104,7 @@ export function BusinessHoursSettings({ businessHours }: BusinessHoursSettingsPr
                       onChange={(event) => updateField(item.dayOfWeek, "closeTime", event.target.value)}
                       disabled={!item.isOpen || isPending}
                       required
-                      className="w-full"
+                      className="w-full min-w-0"
                     />
                   </Field>
                   <Field className="min-w-0">
@@ -118,7 +118,7 @@ export function BusinessHoursSettings({ businessHours }: BusinessHoursSettingsPr
                       value={item.breakStart ?? ""}
                       onChange={(event) => updateField(item.dayOfWeek, "breakStart", event.target.value)}
                       disabled={!item.isOpen || isPending}
-                      className="w-full"
+                      className="w-full min-w-0"
                     />
                   </Field>
                   <Field className="min-w-0">
@@ -132,7 +132,7 @@ export function BusinessHoursSettings({ businessHours }: BusinessHoursSettingsPr
                       value={item.breakEnd ?? ""}
                       onChange={(event) => updateField(item.dayOfWeek, "breakEnd", event.target.value)}
                       disabled={!item.isOpen || isPending}
-                      className="w-full"
+                      className="w-full min-w-0"
                     />
                   </Field>
                 </FieldGroup>

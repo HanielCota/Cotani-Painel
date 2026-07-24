@@ -193,13 +193,14 @@ function SubNavLink({ item }: { item: NavigationItem }) {
   return (
     <SidebarMenuSubItem>
       <SidebarMenuSubButton
-        render={<Link href={item.href} />}
+        render={<Link href={item.href} style={{ textDecoration: "none" }} />}
         isActive={isActive}
         className={cn(
           "h-9 gap-3 rounded-md pl-0 text-sm !no-underline transition-colors",
           "hover:bg-muted hover:text-foreground hover:!no-underline focus:!no-underline active:!no-underline",
           isActive && "bg-[#82D951] text-white hover:bg-[#75c448] hover:text-white"
         )}
+        style={{ textDecoration: "none" }}
       >
         <Icon className="size-4 shrink-0" />
         <span className="truncate">{item.title}</span>
@@ -218,8 +219,8 @@ function StoreAccordion() {
             <span className="truncate">Sua Loja</span>
           </span>
         </AccordionTrigger>
-        <AccordionContent className="pb-0 pt-1 [&_a]:no-underline">
-          <SidebarMenuSub className="mx-0 ml-[11px] border-l border-sidebar-border pl-0">
+        <AccordionContent className="pb-0 pt-1 [&_a]:!no-underline">
+          <SidebarMenuSub className="mx-0 border-l border-sidebar-border pl-[11px]">
             {storeItems.map((item) => (
               <SubNavLink key={item.title} item={item} />
             ))}
