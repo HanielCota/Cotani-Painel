@@ -138,7 +138,7 @@ export function ProfessionalFormDialog({ professional }: ProfessionalFormDialogP
       >
         {isEditing ? <EditIcon className="size-4" /> : <><PlusIcon className="size-4" /> Novo profissional</>}
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="w-[95vw] sm:max-w-[600px] overflow-x-hidden overflow-y-auto max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserIcon aria-hidden="true" />
