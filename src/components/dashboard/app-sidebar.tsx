@@ -191,10 +191,10 @@ function SubNavLink({ item }: { item: NavigationItem }) {
     <Link
       href={item.href}
       className={cn(
-        "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors no-underline",
+        "flex w-full items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors no-underline",
         isActive
           ? "bg-zinc-100 text-zinc-900 font-medium"
-          : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50"
+          : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
       )}
     >
       <Icon className="size-4 shrink-0" />
@@ -215,8 +215,8 @@ function StoreAccordion() {
         </AccordionTrigger>
         <AccordionContent className="pb-0 pt-1 [&_a]:!no-underline">
           <div className="relative flex flex-col mt-1 group-data-[collapsible=icon]:hidden">
-            <div className="absolute left-[1.375rem] top-0 bottom-0 w-px bg-zinc-200" />
-            <div className="flex flex-col gap-1 pl-11 pr-3">
+            <div className="absolute left-5 top-0 bottom-0 w-px bg-zinc-200" />
+            <div className="flex flex-col gap-1 pl-10 pr-2">
               {storeItems.map((item) => (
                 <SubNavLink key={item.title} item={item} />
               ))}
