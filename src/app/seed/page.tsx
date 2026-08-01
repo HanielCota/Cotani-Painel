@@ -110,7 +110,7 @@ export default function SeedPage() {
                   id="email"
                   name="email"
                   type="email"
-                  defaultValue="teste@cotani.com"
+                  placeholder="email@exemplo.com"
                   required
                   disabled={isPending}
                 />
@@ -120,7 +120,7 @@ export default function SeedPage() {
                 <Input
                   id="name"
                   name="name"
-                  defaultValue="Barbearia Teste"
+                  placeholder="Nome da barbearia"
                   required
                   disabled={isPending}
                 />

@@ -164,7 +164,7 @@ export function ProfessionalFormDialog({ professional }: ProfessionalFormDialogP
                 required
                 minLength={2}
                 maxLength={120}
-                placeholder="Ex: Carlos Oliveira"
+                placeholder="Nome do profissional"
                 disabled={isPending}
               />
             </Field>

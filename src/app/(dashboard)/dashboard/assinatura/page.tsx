@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 
 import { SubscriptionCheckout } from "@/components/dashboard/subscription-checkout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { SubscriptionStatus } from "@/generated/prisma/enums";
+import { SubscriptionPlan, SubscriptionStatus } from "@/generated/prisma/enums";
+import { getPlanConfig } from "@/server/services/mercado-pago";
 import { isSubscriptionActive } from "@/server/subscription";
 import { withTenant } from "@/server/with-tenant";
 
@@ -23,11 +24,33 @@ const statusDescription: Record<SubscriptionStatus, string> = {
   CANCELED: "A assinatura foi cancelada. Renove para voltar a operar.",
 };
 
+function buildPlans() {
+  try {
+    const monthly = getPlanConfig(SubscriptionPlan.MONTHLY);
+    const annual = getPlanConfig(SubscriptionPlan.ANNUAL);
+
+    return [
+      {
+        id: monthly.id,
+        name: monthly.name,
+        price: monthly.price,
+        description: "Renovação automática todo mês",
+      },
+      {
+        id: annual.id,
+        name: annual.name,
+        price: annual.price,
+        description: "2 meses grátis no ano",
+      },
+    ];
+  } catch {
+    return [];
+  }
+}
+
 export default withTenant(async ({ clinic }) => {
   const active = isSubscriptionActive(clinic);
-
-  const monthlyPlanId = process.env.MERCADO_PAGO_MONTHLY_PLAN_ID?.trim();
-  const annualPlanId = process.env.MERCADO_PAGO_ANNUAL_PLAN_ID?.trim();
+  const plans = buildPlans();
 
   return (
     <div className="flex flex-col gap-6">
@@ -73,7 +96,7 @@ export default withTenant(async ({ clinic }) => {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            <SubscriptionCheckout monthlyPlanId={monthlyPlanId} annualPlanId={annualPlanId} />
+            <SubscriptionCheckout plans={plans} />
           </CardContent>
         </Card>
       ) : null}

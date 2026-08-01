@@ -482,7 +482,7 @@ function CustomerStep({ isPending, slug, clinicName, service, professional, date
             maxLength={120}
             autoComplete="name"
             disabled={isPending}
-            placeholder="Ex: João Silva"
+            placeholder="Seu nome completo"
             defaultValue={savedCustomer.name}
             className="h-12"
           />
@@ -497,7 +497,7 @@ function CustomerStep({ isPending, slug, clinicName, service, professional, date
             minLength={14}
             maxLength={16}
             autoComplete="tel"
-            placeholder="(11) 99999-9999"
+            placeholder="(00) 00000-0000"
             disabled={isPending}
             value={phone}
             onChange={handlePhoneChange}

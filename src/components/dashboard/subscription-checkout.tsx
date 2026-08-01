@@ -2,17 +2,28 @@
 
 import { useState } from "react";
 import { ExternalLinkIcon, Loader2Icon } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { SubscriptionPlan } from "@/generated/prisma/enums";
-import { toast } from "sonner";
 
-interface SubscriptionCheckoutProps {
-  monthlyPlanId?: string;
-  annualPlanId?: string;
+interface SubscriptionPlanData {
+  id: SubscriptionPlan;
+  name: string;
+  price: number;
+  description: string;
 }
 
-export function SubscriptionCheckout({ monthlyPlanId, annualPlanId }: SubscriptionCheckoutProps) {
+interface SubscriptionCheckoutProps {
+  plans: SubscriptionPlanData[];
+}
+
+const priceFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
+
+export function SubscriptionCheckout({ plans }: SubscriptionCheckoutProps) {
   const [pendingPlan, setPendingPlan] = useState<SubscriptionPlan | null>(null);
 
   async function handleSubscribe(plan: SubscriptionPlan) {
@@ -45,45 +56,29 @@ export function SubscriptionCheckout({ monthlyPlanId, annualPlanId }: Subscripti
     }
   }
 
-  const isConfigured = Boolean(monthlyPlanId) && Boolean(annualPlanId);
+  const isConfigured = plans.length > 0;
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      <div className="rounded-lg border bg-card p-4">
-        <p className="font-medium">Plano Mensal</p>
-        <p className="text-2xl font-semibold">R$ 97,00</p>
-        <p className="text-xs text-muted-foreground">Renovação automática todo mês</p>
-        <Button
-          className="mt-4 w-full"
-          disabled={!isConfigured || pendingPlan !== null}
-          onClick={() => handleSubscribe(SubscriptionPlan.MONTHLY)}
-        >
-          {pendingPlan === SubscriptionPlan.MONTHLY ? (
-            <Loader2Icon className="mr-2 size-4 animate-spin" />
-          ) : (
-            <ExternalLinkIcon className="mr-2 size-4" />
-          )}
-          {pendingPlan === SubscriptionPlan.MONTHLY ? "Redirecionando..." : "Assinar mensal"}
-        </Button>
-      </div>
-
-      <div className="rounded-lg border bg-card p-4">
-        <p className="font-medium">Plano Anual</p>
-        <p className="text-2xl font-semibold">R$ 970,00</p>
-        <p className="text-xs text-muted-foreground">2 meses grátis no ano</p>
-        <Button
-          className="mt-4 w-full"
-          disabled={!isConfigured || pendingPlan !== null}
-          onClick={() => handleSubscribe(SubscriptionPlan.ANNUAL)}
-        >
-          {pendingPlan === SubscriptionPlan.ANNUAL ? (
-            <Loader2Icon className="mr-2 size-4 animate-spin" />
-          ) : (
-            <ExternalLinkIcon className="mr-2 size-4" />
-          )}
-          {pendingPlan === SubscriptionPlan.ANNUAL ? "Redirecionando..." : "Assinar anual"}
-        </Button>
-      </div>
+      {plans.map((plan) => (
+        <div key={plan.id} className="rounded-lg border bg-card p-4">
+          <p className="font-medium">{plan.name}</p>
+          <p className="text-2xl font-semibold">{priceFormatter.format(plan.price)}</p>
+          <p className="text-xs text-muted-foreground">{plan.description}</p>
+          <Button
+            className="mt-4 w-full"
+            disabled={!isConfigured || pendingPlan !== null}
+            onClick={() => handleSubscribe(plan.id)}
+          >
+            {pendingPlan === plan.id ? (
+              <Loader2Icon className="mr-2 size-4 animate-spin" />
+            ) : (
+              <ExternalLinkIcon className="mr-2 size-4" />
+            )}
+            {pendingPlan === plan.id ? "Redirecionando..." : `Assinar ${plan.id === SubscriptionPlan.ANNUAL ? "anual" : "mensal"}`}
+          </Button>
+        </div>
+      ))}
 
       {!isConfigured ? (
         <div className="rounded-lg border bg-muted/50 p-4 text-sm text-muted-foreground sm:col-span-2">
