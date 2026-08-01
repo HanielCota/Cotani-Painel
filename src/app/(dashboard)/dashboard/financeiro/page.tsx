@@ -41,11 +41,8 @@ export default withTenant(async ({ clinic }) => {
         monthNoShowCount={metrics.monthNoShowCount}
       />
 
-      <section className="grid gap-4 lg:grid-cols-3">
+      <section className="grid gap-4 lg:grid-cols-12">
         <SalesPerformanceChart data={metrics.dailyRevenue} />
-      </section>
-
-      <section className="grid gap-4 lg:grid-cols-3">
         <SalesCalendarHeatmap data={metrics.calendarHeatmap} />
       </section>
 

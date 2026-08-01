@@ -86,7 +86,7 @@ interface SalesPerformanceChartProps {
 
 export function SalesPerformanceChart({ data }: SalesPerformanceChartProps) {
   return (
-    <ChartCard title="Desempenho de vendas" className="lg:col-span-3">
+    <ChartCard title="Desempenho de vendas" className="lg:col-span-8">
       <div className="h-64 w-full sm:h-80">
         {data.length === 0 ? (
           <div className="flex h-full items-center justify-center text-sm text-gray-400">
@@ -247,9 +247,9 @@ export function SalesCalendarHeatmap({ data }: SalesCalendarHeatmapProps) {
   const weekCount = data[0]?.values.length ?? 0;
 
   return (
-    <ChartCard title="Calendário de vendas" className="lg:col-span-3">
-      <div className="overflow-x-auto">
-        <div className="flex min-w-[600px] flex-col gap-2">
+    <ChartCard title="Calendário de vendas" className="lg:col-span-4">
+      <div className="w-full lg:w-[350px]">
+        <div className="flex flex-col gap-2">
           <div className="grid grid-cols-8 gap-1 text-xs text-gray-400">
             <div />
             {Array.from({ length: weekCount }, (_, i) => (
