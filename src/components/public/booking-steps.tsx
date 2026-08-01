@@ -296,7 +296,11 @@ function DateTimeStep({
           {!selectedDate ? (
             <p className="text-sm text-muted-foreground">Selecione uma data para ver os horários.</p>
           ) : isFetching ? (
-            Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className="h-11 w-20" />)
+            <div className="flex w-full flex-wrap gap-2.5">
+              {Array.from({ length: 8 }, (_, index) => (
+                <Skeleton key={index} className="h-11 w-[4.5rem] rounded-lg" />
+              ))}
+            </div>
           ) : slots.length === 0 ? (
             <p className="text-sm text-muted-foreground">Sem horários disponíveis para esta data.</p>
           ) : (
