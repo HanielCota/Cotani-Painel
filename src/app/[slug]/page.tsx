@@ -78,7 +78,7 @@ export default async function PublicBookingPage({ params }: PublicBookingPagePro
   }
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 bg-background px-4 py-8 sm:py-10">
+    <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 overflow-x-hidden bg-background px-4 py-8 sm:py-10">
       <header className="flex flex-col gap-2">
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{clinic.name}</h1>
         <p className="text-sm leading-relaxed text-muted-foreground">

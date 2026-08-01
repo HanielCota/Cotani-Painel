@@ -41,7 +41,7 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
   const formattedDate = date ? format(parseISO(date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : null;
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 bg-background px-4 py-8 sm:py-10">
+    <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 overflow-x-hidden bg-background px-4 py-8 sm:py-10">
       <Card className="border border-border/80 shadow-sm" role="status">
         <CardHeader className="gap-2">
           <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl">
@@ -56,51 +56,51 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
           <dl className="flex flex-col gap-3 text-sm">
             <div className="flex items-center justify-between gap-4 border-b pb-3">
               <dt className="flex items-center gap-2 text-muted-foreground">
-                <MapPinIcon aria-hidden="true" className="size-4" />
+                <MapPinIcon aria-hidden="true" className="size-4 shrink-0" />
                 Barbearia
               </dt>
-              <dd className="font-medium">{clinic.name}</dd>
+              <dd className="min-w-0 truncate text-right font-medium">{clinic.name}</dd>
             </div>
             {service ? (
               <div className="flex items-center justify-between gap-4 border-b pb-3">
                 <dt className="flex items-center gap-2 text-muted-foreground">
-                  <TagIcon aria-hidden="true" className="size-4" />
+                  <TagIcon aria-hidden="true" className="size-4 shrink-0" />
                   Serviço
                 </dt>
-                <dd className="font-medium">{service}</dd>
+                <dd className="min-w-0 truncate text-right font-medium">{service}</dd>
               </div>
             ) : null}
             {professional ? (
               <div className="flex items-center justify-between gap-4 border-b pb-3">
                 <dt className="flex items-center gap-2 text-muted-foreground">
-                  <UserIcon aria-hidden="true" className="size-4" />
+                  <UserIcon aria-hidden="true" className="size-4 shrink-0" />
                   Profissional
                 </dt>
-                <dd className="font-medium">{professional}</dd>
+                <dd className="min-w-0 truncate text-right font-medium">{professional}</dd>
               </div>
             ) : null}
             {formattedDate ? (
               <div className="flex items-center justify-between gap-4 border-b pb-3">
                 <dt className="flex items-center gap-2 text-muted-foreground">
-                  <CalendarIcon aria-hidden="true" className="size-4" />
+                  <CalendarIcon aria-hidden="true" className="size-4 shrink-0" />
                   Data
                 </dt>
-                <dd className="font-medium">{formattedDate}</dd>
+                <dd className="min-w-0 truncate text-right font-medium">{formattedDate}</dd>
               </div>
             ) : null}
             {time ? (
               <div className="flex items-center justify-between gap-4 border-b pb-3">
                 <dt className="flex items-center gap-2 text-muted-foreground">
-                  <ClockIcon aria-hidden="true" className="size-4" />
+                  <ClockIcon aria-hidden="true" className="size-4 shrink-0" />
                   Horário
                 </dt>
-                <dd className="font-medium">{time}</dd>
+                <dd className="min-w-0 truncate text-right font-medium">{time}</dd>
               </div>
             ) : null}
             {customer ? (
               <div className="flex items-center justify-between gap-4">
                 <dt className="text-muted-foreground">Cliente</dt>
-                <dd className="font-medium">{customer}</dd>
+                <dd className="min-w-0 truncate text-right font-medium">{customer}</dd>
               </div>
             ) : null}
           </dl>

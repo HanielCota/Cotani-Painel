@@ -20,7 +20,7 @@ export function CancelAppointmentError({ clinicName, clinicSlug, variant }: Canc
   const isExpired = variant === "expired";
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col items-center justify-center px-4 py-10">
+    <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col items-center justify-center overflow-x-hidden px-4 py-10">
       <Empty className="border">
         <EmptyHeader>
           <EmptyMedia variant="icon">

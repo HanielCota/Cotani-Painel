@@ -55,7 +55,7 @@ export default async function CancelPage({ params }: CancelPageProps) {
   }).format(appointment.startTime);
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 bg-background px-4 py-8 sm:py-10">
+    <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 overflow-x-hidden bg-background px-4 py-8 sm:py-10">
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Cancelar agendamento</h1>
         <p className="text-sm text-muted-foreground">{clinic.name}</p>
@@ -65,21 +65,21 @@ export default async function CancelPage({ params }: CancelPageProps) {
         <dl className="flex flex-col gap-3 text-sm">
           <div className="flex items-center justify-between gap-4">
             <dt className="flex items-center gap-2 text-muted-foreground">
-              <TagIcon aria-hidden="true" className="size-4" />
+              <TagIcon aria-hidden="true" className="size-4 shrink-0" />
               Serviço
             </dt>
-            <dd className="font-medium">{appointment.service.name}</dd>
+            <dd className="min-w-0 truncate text-right font-medium">{appointment.service.name}</dd>
           </div>
           <div className="flex items-center justify-between gap-4">
             <dt className="flex items-center gap-2 text-muted-foreground">
-              <ClockIcon aria-hidden="true" className="size-4" />
+              <ClockIcon aria-hidden="true" className="size-4 shrink-0" />
               Data e horário
             </dt>
-            <dd className="font-medium">{dateTime}</dd>
+            <dd className="min-w-0 truncate text-right font-medium">{dateTime}</dd>
           </div>
           <div className="flex items-center justify-between gap-4">
             <dt className="text-muted-foreground">Status</dt>
-            <dd className="font-medium">
+            <dd className="min-w-0 truncate text-right font-medium">
               {isAlreadyCanceled ? "Cancelado" : isPast ? "Expirado" : "Ativo"}
             </dd>
           </div>

@@ -63,7 +63,7 @@ function StepIndicator({ current }: { current: Step }) {
   const currentIndex = steps.findIndex((step) => step.id === current);
 
   return (
-    <nav aria-label="Progresso do agendamento" className="flex items-center justify-between gap-2">
+    <nav aria-label="Progresso do agendamento" className="flex w-full min-w-0 items-center justify-between gap-2">
       {steps.map((step, index) => {
         const isActive = index <= currentIndex;
         const isCurrent = step.id === current;
@@ -131,7 +131,7 @@ function ServiceProfessionalStep({
               key={service.id}
               type="button"
               onClick={() => onServiceSelect(service)}
-              className={`flex min-h-[5.5rem] items-center gap-4 rounded-xl border p-4 text-left transition-all active:scale-[0.99] ${
+              className={`flex min-h-[5.5rem] min-w-0 items-center gap-4 overflow-hidden rounded-xl border p-4 text-left transition-all active:scale-[0.99] ${
                 selected
                   ? "border-primary bg-primary/5 ring-1 ring-primary"
                   : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"
@@ -149,8 +149,8 @@ function ServiceProfessionalStep({
                   <ImageIcon className="size-6" />
                 </div>
               )}
-              <div className="flex min-w-0 flex-col gap-1">
-                <span className="font-semibold leading-tight">{service.name}</span>
+              <div className="flex min-w-0 flex-col gap-1 overflow-hidden">
+                <span className="truncate font-semibold leading-tight">{service.name}</span>
                 <span className="text-sm text-muted-foreground">{service.duration} min</span>
                 <span className="text-base font-bold text-primary">{priceFormatter.format(service.price)}</span>
               </div>
@@ -180,7 +180,7 @@ function ServiceProfessionalStep({
                     key={professional.id}
                     type="button"
                     onClick={() => onProfessionalSelect(professional)}
-                    className={`flex min-h-[4.5rem] items-center gap-4 rounded-xl border p-4 text-left transition-all active:scale-[0.99] ${
+                    className={`flex min-h-[4.5rem] min-w-0 items-center gap-4 overflow-hidden rounded-xl border p-4 text-left transition-all active:scale-[0.99] ${
                       selected
                         ? "border-primary bg-primary/5 ring-1 ring-primary"
                         : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"
@@ -198,8 +198,8 @@ function ServiceProfessionalStep({
                         <UserIcon className="size-5 sm:size-6" />
                       </div>
                     )}
-                    <div className="flex min-w-0 flex-col gap-0.5">
-                      <span className="font-semibold leading-tight">{professional.name}</span>
+                    <div className="flex min-w-0 flex-col gap-0.5 overflow-hidden">
+                      <span className="truncate font-semibold leading-tight">{professional.name}</span>
                       <span className="text-sm text-muted-foreground">Profissional</span>
                     </div>
                   </button>
@@ -268,7 +268,7 @@ function DateTimeStep({
             <CalendarIcon aria-hidden="true" />
             {selectedDateValue ? format(selectedDateValue, "dd/MM/yyyy") : "Selecione uma data"}
           </PopoverTrigger>
-          <PopoverContent className="w-auto max-w-[calc(100vw-2rem)] p-0" align="center">
+          <PopoverContent className="w-auto max-w-[calc(100vw-2rem)] overflow-hidden p-0" align="center">
             <Calendar
               mode="single"
               locale={ptBR}
@@ -670,7 +670,7 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
   const slots = data?.slots ?? [];
 
   return (
-    <Card ref={cardRef} className="border border-border/80 shadow-sm">
+    <Card ref={cardRef} className="overflow-hidden border border-border/80 shadow-sm">
       <CardHeader className="gap-2">
         <CardTitle className="text-lg sm:text-xl">Novo agendamento</CardTitle>
         <CardDescription>Complete as etapas para reservar seu horário em {clinicName}.</CardDescription>
