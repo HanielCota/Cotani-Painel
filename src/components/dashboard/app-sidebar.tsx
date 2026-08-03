@@ -70,7 +70,7 @@ const storeItems: NavigationItem[] = [
   { title: "Horários", href: "/dashboard/configuracoes?tab=business-hours", icon: CalendarDaysIcon },
 ];
 
-const managementItems: NavigationItem[] = [
+const accountItems: NavigationItem[] = [
   { title: "Assinatura", href: "/dashboard/assinatura", icon: CreditCardIcon },
   { title: "Configurações", href: "/dashboard/configuracoes", icon: SettingsIcon },
 ];
@@ -121,7 +121,7 @@ function NavLink({ item }: { item: NavigationItem }) {
         className={cn(
           "h-10 rounded-lg px-3 text-sm no-underline transition-colors",
           "hover:bg-muted hover:text-foreground hover:no-underline",
-          isActive && "bg-[#82D951] text-white shadow-sm hover:bg-[#75c448] hover:text-white"
+          isActive && "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:text-primary-foreground"
         )}
       >
         <Icon className="size-4 shrink-0" />
@@ -172,7 +172,7 @@ function ProfileCompanyCard() {
       <Button
         nativeButton={false}
         render={<Link href="/dashboard/agenda" />}
-        className="w-full justify-center bg-[#82D951] text-white hover:bg-[#75c448]"
+        className="w-full justify-center bg-primary text-primary-foreground hover:bg-primary/90"
       >
         <CalendarDaysIcon className="mr-2 size-4" />
         Abrir agenda
@@ -193,8 +193,8 @@ function SubNavLink({ item }: { item: NavigationItem }) {
       className={cn(
         "flex w-full items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors no-underline",
         isActive
-          ? "bg-zinc-100 text-zinc-900 font-medium"
-          : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
+          ? "bg-muted text-foreground font-medium"
+          : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
       )}
     >
       <Icon className="size-4 shrink-0" />
@@ -207,7 +207,7 @@ function StoreAccordion() {
   return (
     <Accordion defaultValue={["store"]} className="w-full">
       <AccordionItem value="store" className="border-0">
-        <AccordionTrigger className="h-10 rounded-lg px-3 py-0 text-sm font-normal text-foreground no-underline hover:bg-muted hover:no-underline">
+        <AccordionTrigger className="flex h-10 items-center rounded-lg px-3 py-0 text-sm font-normal text-foreground no-underline hover:bg-muted hover:no-underline [&[data-state=open]>svg]:rotate-180">
           <span className="flex items-center gap-3">
             <StoreIcon className="size-4 shrink-0" />
             <span className="truncate">Sua Loja</span>
@@ -215,8 +215,8 @@ function StoreAccordion() {
         </AccordionTrigger>
         <AccordionContent className="pb-0 pt-1 [&_a]:!no-underline">
           <div className="relative flex flex-col mt-1 group-data-[collapsible=icon]:hidden">
-            <div className="absolute left-5 top-0 bottom-0 w-px bg-zinc-200" />
-            <div className="flex flex-col gap-1 pl-10 pr-2">
+            <div className="absolute left-[1.375rem] top-0 bottom-0 w-px bg-border" />
+            <div className="flex flex-col gap-1 pl-11 pr-3">
               {storeItems.map((item) => (
                 <SubNavLink key={item.title} item={item} />
               ))}
@@ -261,30 +261,16 @@ function useBottomShadow<T extends HTMLElement>() {
   return { ref, isAtBottom };
 }
 
-function IntegrationAccordion() {
+function NavSection({ title, children }: { title: string; children: React.ReactNode }) {
   const { state } = useSidebar();
 
-  if (state === "collapsed") {
-    return (
-      <div className="flex justify-center">
-        <div className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground">
-          <StoreIcon className="size-4" />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <Accordion className="w-full">
-      <AccordionItem value="integration" className="border-0">
-        <AccordionTrigger className="flex min-h-10 items-center justify-between rounded-lg px-4 py-3 text-sm font-normal text-foreground no-underline hover:bg-muted hover:no-underline">
-          <span className="truncate">Integração</span>
-        </AccordionTrigger>
-        <AccordionContent className="pb-2 pt-1">
-          <p className="px-3 text-xs text-muted-foreground">Conecte seu WhatsApp e outras ferramentas em breve.</p>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+    <div className="flex flex-col gap-1">
+      <span className="px-3 text-xs font-medium text-muted-foreground group-data-[collapsible=icon]:hidden">
+        {title}
+      </span>
+      {children}
+    </div>
   );
 }
 
@@ -293,11 +279,11 @@ export function AppSidebar() {
   const showShadow = !isAtBottom;
 
   return (
-    <Sidebar collapsible="icon" variant="inset" className="top-16 h-[calc(100vh-4rem)] border-r border-border/60 bg-white">
+    <Sidebar collapsible="icon" variant="inset" className="top-16 h-[calc(100vh-4rem)] border-r border-border/60 bg-sidebar">
       <SidebarHeader className="px-4 pt-5 pb-3">
         <div className="flex items-center justify-between group-data-[collapsible=icon]:justify-center">
           <div className="flex items-center gap-2">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-[#82D951] text-white shadow-sm">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
               <Building2Icon className="size-5" />
             </div>
             <span className="text-lg font-bold tracking-tight text-foreground group-data-[collapsible=icon]:hidden">
@@ -309,30 +295,39 @@ export function AppSidebar() {
         <ProfileCompanyCard />
       </SidebarHeader>
 
-      <SidebarContent ref={contentRef} className="relative px-3 py-4">
-        <SidebarMenu className="gap-1">
-          <NavLink item={dashboardItem} />
-          {operationItems.map((item) => (
-            <NavLink key={item.href} item={item} />
-          ))}
-          <li>
-            <StoreAccordion />
-          </li>
-          {managementItems.map((item) => (
-            <NavLink key={item.href} item={item} />
-          ))}
-        </SidebarMenu>
+      <SidebarContent ref={contentRef} className="relative flex flex-col gap-5 px-3 py-4">
+        <NavSection title="Operação">
+          <SidebarMenu className="gap-1">
+            <NavLink item={dashboardItem} />
+            {operationItems.map((item) => (
+              <NavLink key={item.href} item={item} />
+            ))}
+          </SidebarMenu>
+        </NavSection>
+
+        <NavSection title="Sua Loja">
+          <SidebarMenu className="gap-1">
+            <li>
+              <StoreAccordion />
+            </li>
+          </SidebarMenu>
+        </NavSection>
+
+        <NavSection title="Conta">
+          <SidebarMenu className="gap-1">
+            {accountItems.map((item) => (
+              <NavLink key={item.href} item={item} />
+            ))}
+          </SidebarMenu>
+        </NavSection>
 
         <div
           aria-hidden
           data-visible={showShadow}
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-10 bg-gradient-to-t from-black/8 to-transparent opacity-0 transition-opacity data-[visible=true]:opacity-100"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-10 bg-gradient-to-t from-background/80 to-transparent opacity-0 transition-opacity data-[visible=true]:opacity-100"
         />
       </SidebarContent>
 
-      <SidebarFooter className="mt-auto px-3 pb-5 pt-2">
-        <IntegrationAccordion />
-      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );

@@ -13,7 +13,7 @@ export function DashboardMetricCardsSkeleton() {
   return (
     <section className="grid gap-6 sm:grid-cols-3">
       {[0, 1, 2].map((card) => (
-        <Card key={card} className="border border-border/80 shadow-sm">
+        <Card key={card}>
           <CardContent className="flex items-center gap-4">
             <Skeleton className="size-10 rounded-lg" />
             <div className="flex flex-col gap-2">

@@ -116,7 +116,7 @@ export default withTenant(async ({ clinic }) => {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <Card className="border border-border/80 shadow-sm">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <CalendarDaysIcon className="size-5 text-primary" />
@@ -137,7 +137,7 @@ export default withTenant(async ({ clinic }) => {
           </CardFooter>
         </Card>
 
-        <Card className="border border-border/80 shadow-sm">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CalendarDaysIcon className="size-5 text-primary" />
