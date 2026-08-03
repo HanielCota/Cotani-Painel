@@ -13,7 +13,7 @@ export function FinanceDateTabs() {
   const [activePeriod, setActivePeriod] = useState("month");
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-full border border-[#F3F4F6] bg-white p-1 shadow-sm">
+    <div className="flex flex-wrap items-center gap-2 rounded-full border border-border bg-card p-1 shadow-sm">
       {periods.map((period) => {
         const isActive = activePeriod === period.id;
 
@@ -24,8 +24,8 @@ export function FinanceDateTabs() {
             onClick={() => setActivePeriod(period.id)}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
               isActive
-                ? "border border-lime-500 text-lime-600"
-                : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                ? "border border-primary text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
             {period.label}

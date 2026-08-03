@@ -202,7 +202,7 @@ export function AppointmentActions({ appointmentId, status }: AppointmentActions
           ) : null}
 
           <DialogFooter showCloseButton>
-            <Button onClick={handleComplete} disabled={isPending} className="bg-[#82D951] text-white hover:bg-[#75c448]">
+            <Button onClick={handleComplete} disabled={isPending} className="bg-primary text-primary-foreground hover:bg-primary/90">
               {isPending ? <Spinner data-icon="inline-start" /> : <CheckIcon data-icon="inline-start" />}
               Confirmar pagamento
             </Button>

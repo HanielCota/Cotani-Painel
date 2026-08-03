@@ -29,7 +29,7 @@ function ChartTooltip({
 }) {
   if (active && payload && payload.length) {
     return (
-      <div className="rounded-lg bg-gray-800 px-3 py-2 text-xs text-white shadow-lg">
+      <div className="rounded-lg bg-popover px-3 py-2 text-xs text-popover-foreground shadow-lg">
         <p className="font-medium">{label}</p>
         {payload.map((entry, index) => (
           <p key={index} style={{ color: entry.color }}>
@@ -46,23 +46,23 @@ function ChartTooltip({
 
 export function ReportsMonthlyChart({ data }: ReportsMonthlyChartProps) {
   return (
-    <div className="rounded-2xl border border-[#F3F4F6] bg-white p-5 shadow-sm">
-      <h3 className="mb-4 text-sm font-semibold text-gray-700">Evolução mensal</h3>
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <h3 className="mb-4 text-sm font-semibold text-card-foreground">Evolução mensal</h3>
       <div className="h-64 w-full sm:h-80">
         {data.length === 0 || data.every((d) => d.appointments === 0) ? (
-          <div className="flex h-full items-center justify-center text-sm text-gray-400">
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
             Nenhum dado nos últimos meses
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F4F6" />
-              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "#9CA3AF", fontSize: 12 }} dy={10} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} dy={10} />
               <YAxis
                 yAxisId="left"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                 allowDecimals={false}
               />
               <YAxis
@@ -70,7 +70,7 @@ export function ReportsMonthlyChart({ data }: ReportsMonthlyChartProps) {
                 orientation="right"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                 tickFormatter={(value) => `R$${value}`}
               />
               <Tooltip content={<ChartTooltip />} />
@@ -79,7 +79,7 @@ export function ReportsMonthlyChart({ data }: ReportsMonthlyChartProps) {
                 yAxisId="left"
                 dataKey="appointments"
                 name="Agendamentos"
-                fill="#82D951"
+                fill="hsl(var(--primary))"
                 radius={[4, 4, 0, 0]}
               />
               <Line
@@ -87,7 +87,7 @@ export function ReportsMonthlyChart({ data }: ReportsMonthlyChartProps) {
                 type="monotone"
                 dataKey="revenue"
                 name="Receita"
-                stroke="#3B82F6"
+                stroke="hsl(var(--chart-2))"
                 strokeWidth={3}
                 dot={false}
               />

@@ -62,55 +62,62 @@ function NotificationCard({
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-[#F3F4F6] bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={kindVariant[notification.kind] ?? "secondary"}>{kindLabels[notification.kind] ?? notification.kind}</Badge>
-          <span className="text-xs text-gray-500">
-            {format(new Date(notification.scheduledFor), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-          </span>
+    <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 shadow-sm">
+      <div className="flex flex-col gap-1">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={kindVariant[notification.kind] ?? "secondary"}>{kindLabels[notification.kind] ?? notification.kind}</Badge>
+            <span className="text-xs text-muted-foreground">
+              {format(new Date(notification.scheduledFor), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+            </span>
+          </div>
+          {isSent ? (
+            <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
+              <CheckIcon className="size-3.5" />
+              Enviado
+            </div>
+          ) : null}
         </div>
-        <p className="mt-1 truncate text-sm font-medium text-gray-900">{notification.recipient}</p>
-        <p className="text-sm text-gray-600 line-clamp-2">{notification.content}</p>
-        {notification.whatsappLink === null ? (
-          <p className="mt-1 text-xs text-red-500">Número inválido para WhatsApp.</p>
-        ) : null}
+        <p className="text-sm font-medium text-foreground">{notification.recipient}</p>
       </div>
 
-      <div className="flex flex-col gap-2 sm:items-end">
-        {isSent ? (
-          <div className="flex items-center gap-1.5 text-xs font-medium text-lime-600">
-            <CheckIcon className="size-3.5" />
-            Enviado
-          </div>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={notification.whatsappLink === null || isPending}
-              onClick={handleOpenLink}
-            >
-              <ExternalLinkIcon data-icon="inline-start" className="size-3.5" />
-              Abrir WhatsApp
-            </Button>
-            <Button
-              size="sm"
-              disabled={isPending}
-              onClick={handleMarkSent}
-              className="bg-[#82D951] text-white hover:bg-[#75c448]"
-            >
-              {isPending ? <Spinner data-icon="inline-start" /> : <CheckIcon data-icon="inline-start" className="size-3.5" />}
-              Marcar enviado
-            </Button>
-          </div>
-        )}
-        {result?.message ? (
-          <Alert variant={result.status === "error" ? "destructive" : "default"} className="max-w-xs py-1.5">
-            <AlertDescription>{result.message}</AlertDescription>
-          </Alert>
-        ) : null}
+      <div className="rounded-lg bg-muted/50 p-3">
+        <p className="whitespace-pre-wrap text-sm text-muted-foreground line-clamp-4">{notification.content}</p>
       </div>
+
+      {notification.whatsappLink === null ? (
+        <p className="text-xs text-destructive">Número inválido para WhatsApp.</p>
+      ) : null}
+
+      {!isSent ? (
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={notification.whatsappLink === null || isPending}
+            onClick={handleOpenLink}
+            className="w-full sm:w-auto"
+          >
+            <ExternalLinkIcon data-icon="inline-start" className="size-3.5" />
+            Abrir WhatsApp
+          </Button>
+          <Button
+            size="sm"
+            disabled={isPending}
+            onClick={handleMarkSent}
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto"
+          >
+            {isPending ? <Spinner data-icon="inline-start" /> : <CheckIcon data-icon="inline-start" className="size-3.5" />}
+            Marcar enviado
+          </Button>
+        </div>
+      ) : null}
+
+      {result?.message ? (
+        <Alert variant={result.status === "error" ? "destructive" : "default"} className="py-1.5">
+          <AlertDescription>{result.message}</AlertDescription>
+        </Alert>
+      ) : null}
     </div>
   );
 }
@@ -162,7 +169,7 @@ export function WhatsAppCrmList({ pending, sent }: WhatsAppCrmListProps) {
         <Card className="border border-border/80 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <CheckIcon className="size-5 text-lime-600" />
+              <CheckIcon className="size-5 text-primary" />
               Últimas enviadas
             </CardTitle>
             <CardDescription>Histórico das últimas mensagens enviadas manualmente.</CardDescription>
