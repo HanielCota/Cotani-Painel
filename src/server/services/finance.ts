@@ -25,6 +25,12 @@ export interface FinanceMetrics {
   paymentMethodDistribution: { name: string; value: number; color: string }[];
   statusDistribution: { name: string; value: number; color: string }[];
   calendarHeatmap: { day: string; values: number[] }[];
+  kpiSeries: {
+    revenue: number[];
+    sales: number[];
+    ticket: number[];
+    cancellations: number[];
+  };
 }
 
 const paymentMethodLabels: Record<string, string> = {
@@ -164,6 +170,66 @@ export async function getFinanceMetrics(clinic: ClinicModel): Promise<FinanceMet
     return { month: label, revenue, ticket };
   });
 
+  // Séries diárias para micrográficos dos KPIs (últimos 14 dias do mês).
+  const last14Days = Array.from({ length: 14 }, (_, i) => i);
+  const kpiSeries = {
+    revenue: last14Days.map((offset) => {
+      const targetDate = new Date(startOfMonth.getTime() + offset * 24 * 60 * 60 * 1000);
+      if (targetDate >= startOfNextMonth) return 0;
+      return currentMonthAppointments
+        .filter((a) => {
+          if (a.status !== "CONFIRMED" && a.status !== "COMPLETED") return false;
+          const appointmentDate = new Date(a.startTime.toLocaleString("en-US", { timeZone: clinic.timeZone }));
+          return (
+            appointmentDate.getDate() === targetDate.getDate() &&
+            appointmentDate.getMonth() === targetDate.getMonth() &&
+            appointmentDate.getFullYear() === targetDate.getFullYear()
+          );
+        })
+        .reduce((sum, a) => sum + Number(a.service.price), 0);
+    }),
+    sales: last14Days.map((offset) => {
+      const targetDate = new Date(startOfMonth.getTime() + offset * 24 * 60 * 60 * 1000);
+      if (targetDate >= startOfNextMonth) return 0;
+      return currentMonthAppointments.filter((a) => {
+        const appointmentDate = new Date(a.startTime.toLocaleString("en-US", { timeZone: clinic.timeZone }));
+        return (
+          appointmentDate.getDate() === targetDate.getDate() &&
+          appointmentDate.getMonth() === targetDate.getMonth() &&
+          appointmentDate.getFullYear() === targetDate.getFullYear()
+        );
+      }).length;
+    }),
+    ticket: last14Days.map((offset) => {
+      const targetDate = new Date(startOfMonth.getTime() + offset * 24 * 60 * 60 * 1000);
+      if (targetDate >= startOfNextMonth) return 0;
+      const dayAppointments = currentMonthAppointments.filter((a) => {
+        if (a.status !== "CONFIRMED" && a.status !== "COMPLETED") return false;
+        const appointmentDate = new Date(a.startTime.toLocaleString("en-US", { timeZone: clinic.timeZone }));
+        return (
+          appointmentDate.getDate() === targetDate.getDate() &&
+          appointmentDate.getMonth() === targetDate.getMonth() &&
+          appointmentDate.getFullYear() === targetDate.getFullYear()
+        );
+      });
+      const dayRevenue = dayAppointments.reduce((sum, a) => sum + Number(a.service.price), 0);
+      return dayAppointments.length > 0 ? Math.round(dayRevenue / dayAppointments.length) : 0;
+    }),
+    cancellations: last14Days.map((offset) => {
+      const targetDate = new Date(startOfMonth.getTime() + offset * 24 * 60 * 60 * 1000);
+      if (targetDate >= startOfNextMonth) return 0;
+      return currentMonthAppointments.filter((a) => {
+        if (a.status !== "CANCELED" && a.status !== "NO_SHOW") return false;
+        const appointmentDate = new Date(a.startTime.toLocaleString("en-US", { timeZone: clinic.timeZone }));
+        return (
+          appointmentDate.getDate() === targetDate.getDate() &&
+          appointmentDate.getMonth() === targetDate.getMonth() &&
+          appointmentDate.getFullYear() === targetDate.getFullYear()
+        );
+      }).length;
+    }),
+  };
+
   // Distribuição de métodos de pagamento: apenas agendamentos confirmados/concluídos do mês.
   const paymentMethodCounts: Record<string, number> = {};
   for (const appointment of currentMonthAppointments) {
@@ -226,5 +292,6 @@ export async function getFinanceMetrics(clinic: ClinicModel): Promise<FinanceMet
     paymentMethodDistribution,
     statusDistribution,
     calendarHeatmap,
+    kpiSeries,
   };
 }

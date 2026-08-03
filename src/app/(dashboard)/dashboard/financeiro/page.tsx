@@ -21,10 +21,10 @@ export default withTenant(async ({ clinic }) => {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight text-gray-900 sm:text-2xl lg:text-3xl">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl lg:text-3xl">
           Financeiro
         </h1>
-        <p className="text-sm text-gray-500">Acompanhe receitas, vendas e movimentação da {clinic.name}.</p>
+        <p className="text-sm text-muted-foreground">Acompanhe receitas, vendas e movimentação da {clinic.name}.</p>
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -39,20 +39,30 @@ export default withTenant(async ({ clinic }) => {
         monthCompletedCount={metrics.monthCompletedCount}
         monthCanceledCount={metrics.monthCanceledCount}
         monthNoShowCount={metrics.monthNoShowCount}
+        kpiSeries={metrics.kpiSeries}
       />
 
-      <section className="grid gap-4 lg:grid-cols-12">
-        <SalesPerformanceChart data={metrics.dailyRevenue} />
-        <SalesCalendarHeatmap data={metrics.calendarHeatmap} />
+      <section className="flex flex-col gap-4">
+        <h2 className="text-base font-semibold text-foreground">Desempenho e calendário</h2>
+        <div className="grid gap-4 lg:grid-cols-12">
+          <SalesPerformanceChart data={metrics.dailyRevenue} />
+          <SalesCalendarHeatmap data={metrics.calendarHeatmap} />
+        </div>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-3">
-        <MrrEvolutionChart data={metrics.monthlyRevenue} />
-        <PaymentMethodsChart data={metrics.paymentMethodDistribution} />
-        <PaymentStatusChart data={metrics.statusDistribution} />
+      <section className="flex flex-col gap-4">
+        <h2 className="text-base font-semibold text-foreground">Análise mensal</h2>
+        <div className="grid gap-4 lg:grid-cols-3">
+          <MrrEvolutionChart data={metrics.monthlyRevenue} />
+          <PaymentMethodsChart data={metrics.paymentMethodDistribution} />
+          <PaymentStatusChart data={metrics.statusDistribution} />
+        </div>
       </section>
 
-      <FinanceTransactionsTable appointments={metrics.monthAppointments} />
+      <section className="flex flex-col gap-4">
+        <h2 className="text-base font-semibold text-foreground">Transações recentes</h2>
+        <FinanceTransactionsTable appointments={metrics.monthAppointments} />
+      </section>
     </div>
   );
 });
