@@ -62,4 +62,26 @@ describe("FinanceKpiCards", () => {
 
     expect(screen.queryByText(/%$/)).not.toBeInTheDocument();
   });
+
+  it("renderiza micrográficos quando há séries de KPI", () => {
+    const { container } = render(
+      <FinanceKpiCards
+        currentMonthRevenue={1500}
+        previousMonthRevenue={1000}
+        monthAppointmentsTotal={5}
+        monthConfirmedCount={5}
+        monthCompletedCount={0}
+        monthCanceledCount={0}
+        monthNoShowCount={0}
+        kpiSeries={{
+          revenue: [100, 200, 150],
+          sales: [1, 2, 1],
+          ticket: [100, 100, 150],
+          cancellations: [0, 1, 0],
+        }}
+      />,
+    );
+
+    expect(container.querySelectorAll('[data-testid="sparkline"]').length).toBe(4);
+  });
 });
