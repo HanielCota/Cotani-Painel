@@ -63,7 +63,7 @@ function StepIndicator({ current }: { current: Step }) {
   const currentIndex = steps.findIndex((step) => step.id === current);
 
   return (
-    <nav aria-label="Progresso do agendamento" className="flex w-full min-w-0 items-center justify-between gap-2">
+    <nav aria-label="Progresso do agendamento" className="flex w-full min-w-0 items-center gap-2 sm:justify-between">
       {steps.map((step, index) => {
         const isActive = index <= currentIndex;
         const isCurrent = step.id === current;
@@ -116,13 +116,13 @@ function ServiceProfessionalStep({
     : [];
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 animate-fade-in-up">
       <div className="flex items-center gap-2 text-primary">
         <CalendarPlusIcon className="size-5" />
         <h2 className="text-lg font-semibold">Escolha o serviço e o profissional</h2>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {services.map((service) => {
           const selected = selectedServiceId === service.id;
 
@@ -167,11 +167,15 @@ function ServiceProfessionalStep({
           </div>
 
           {availableProfessionals.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Nenhum profissional disponível para este serviço no momento.
-            </p>
+            <div className="rounded-lg border border-dashed bg-muted/30 p-6 text-center">
+              <UserIcon className="mx-auto size-8 text-muted-foreground" />
+              <p className="mt-2 text-sm font-medium text-foreground">Nenhum profissional disponível</p>
+              <p className="text-sm text-muted-foreground">
+                Não há profissionais vinculados a este serviço no momento.
+              </p>
+            </div>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {availableProfessionals.map((professional) => {
                 const selected = selectedProfessionalId === professional.id;
 
@@ -194,7 +198,7 @@ function ServiceProfessionalStep({
                         className="size-12 shrink-0 rounded-full object-cover ring-1 ring-border sm:size-14"
                       />
                     ) : (
-                      <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground sm:size-14">
+                      <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary sm:size-14">
                         <UserIcon className="size-5 sm:size-6" />
                       </div>
                     )}
@@ -246,7 +250,7 @@ function DateTimeStep({
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 animate-fade-in-up">
       <div className="flex items-center gap-2 text-primary">
         <ClockIcon className="size-5" />
         <h2 className="text-lg font-semibold">Escolha data e horário</h2>
@@ -298,7 +302,7 @@ function DateTimeStep({
           ) : isFetching ? (
             <div className="flex w-full flex-wrap gap-2.5">
               {Array.from({ length: 8 }, (_, index) => (
-                <Skeleton key={index} className="h-11 w-[4.5rem] rounded-lg" />
+                <Skeleton key={index} className="h-12 w-20 rounded-lg" />
               ))}
             </div>
           ) : slots.length === 0 ? (
@@ -319,7 +323,7 @@ function DateTimeStep({
                     onChange={() => onSlotChange(slot)}
                   />
                   <span
-                    className={`inline-flex min-h-11 items-center rounded-lg border px-4 text-sm font-medium transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-ring active:scale-95 ${
+                    className={`inline-flex min-h-12 items-center rounded-lg border px-5 text-sm font-medium transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-ring active:scale-95 ${
                       selected
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border bg-card hover:bg-accent hover:text-accent-foreground"
@@ -461,7 +465,7 @@ function CustomerStep({ isPending, slug, clinicName, service, professional, date
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 animate-fade-in-up">
       <div className="flex items-center gap-2 text-primary">
         <UserIcon className="size-5" />
         <h2 className="text-lg font-semibold">Seus dados</h2>
