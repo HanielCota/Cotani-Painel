@@ -21,19 +21,28 @@ export default withTenant(async ({ clinic }) => {
         <p className="text-sm text-muted-foreground">Transforme a rotina da {clinic.name} em decisões claras.</p>
       </div>
 
-      <ReportsKpiCards metrics={metrics} />
+      <section className="flex flex-col gap-4">
+        <h2 className="text-base font-semibold text-foreground">Indicadores do mês</h2>
+        <ReportsKpiCards metrics={metrics} />
+      </section>
 
-      <section className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <ReportsMonthlyChart data={metrics.monthlyData} />
-        </div>
-        <div className="flex flex-col gap-4">
-          <ReportsTopServices services={metrics.topServices} />
-          <ReportsTopProfessionals professionals={metrics.topProfessionals} />
+      <section className="flex flex-col gap-4">
+        <h2 className="text-base font-semibold text-foreground">Análise mensal</h2>
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <ReportsMonthlyChart data={metrics.monthlyData} />
+          </div>
+          <div className="flex flex-col gap-4">
+            <ReportsTopServices services={metrics.topServices} />
+            <ReportsTopProfessionals professionals={metrics.topProfessionals} />
+          </div>
         </div>
       </section>
 
-      <ReportsAppointmentsTable appointments={metrics.monthAppointments} />
+      <section className="flex flex-col gap-4">
+        <h2 className="text-base font-semibold text-foreground">Agendamentos do mês</h2>
+        <ReportsAppointmentsTable appointments={metrics.monthAppointments} />
+      </section>
 
       <Card className="border border-border/80 shadow-sm">
         <CardHeader>
