@@ -1,12 +1,17 @@
 import { CheckIcon, ClockIcon, CreditCardIcon, HistoryIcon, RefreshCwIcon, XIcon } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import type { Metadata } from "next";
 
 import { CancelSubscriptionDialog } from "@/components/dashboard/cancel-subscription-dialog";
 import { SubscriptionCheckout } from "@/components/dashboard/subscription-checkout";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SubscriptionPlan, SubscriptionStatus } from "@/generated/prisma/enums";
 import { getPlanConfig } from "@/server/services/mercado-pago";
+import { getPaymentHistory } from "@/server/services/payment-history";
 import { isSubscriptionActive } from "@/server/subscription";
 import { withTenant } from "@/server/with-tenant";
 
@@ -50,9 +55,26 @@ function buildPlans() {
   }
 }
 
+const paymentStatusVariant: Record<string, "default" | "secondary" | "destructive" | "outline" | "success"> = {
+  paid: "success",
+  approved: "success",
+  pending: "secondary",
+  refunded: "destructive",
+  cancelled: "destructive",
+};
+
+const paymentStatusLabel: Record<string, string> = {
+  paid: "Pago",
+  approved: "Aprovado",
+  pending: "Pendente",
+  refunded: "Reembolsado",
+  cancelled: "Cancelado",
+};
+
 export default withTenant(async ({ clinic }) => {
   const active = isSubscriptionActive(clinic);
   const plans = buildPlans();
+  const paymentHistory = await getPaymentHistory(clinic);
 
   return (
     <div className="flex flex-col gap-6">
@@ -146,16 +168,48 @@ export default withTenant(async ({ clinic }) => {
               <CardDescription>Visualize seus pagamentos anteriores e comprovantes.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed bg-muted/30 py-10 text-center">
-                <HistoryIcon className="size-8 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  Nenhum histórico de pagamento disponível no momento.
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {/* TODO: Integrar com backend - PaymentHistory */}
-                  Em breve será possível consultar todos os pagamentos realizados.
-                </p>
-              </div>
+              {paymentHistory.length === 0 ? (
+                <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed bg-muted/30 py-10 text-center">
+                  <HistoryIcon className="size-8 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    Nenhum histórico de pagamento disponível no momento.
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Os pagamentos realizados aparecerão aqui assim que o gateway confirmar.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-lg border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Plano</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Valor</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paymentHistory.map((payment) => (
+                        <TableRow key={payment.id}>
+                          <TableCell className="text-muted-foreground">
+                            {format(new Date(payment.createdAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                          </TableCell>
+                          <TableCell>{payment.plan ?? "—"}</TableCell>
+                          <TableCell>
+                            <Badge variant={paymentStatusVariant[payment.status] ?? "secondary"}>
+                              {paymentStatusLabel[payment.status] ?? payment.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(payment.amount)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

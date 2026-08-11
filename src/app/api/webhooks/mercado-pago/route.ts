@@ -65,6 +65,29 @@ export async function POST(request: NextRequest) {
             subscriptionExpiresAt: synced.nextPaymentDate,
           },
         });
+
+        if (synced.status === "ACTIVE") {
+          const existingPayment = await prisma.paymentHistory.findFirst({
+            where: {
+              clinicId: clinic.id,
+              mercadoPagoSubscriptionId: synced.mercadoPagoSubscriptionId,
+              status: "paid",
+            },
+          });
+
+          if (!existingPayment) {
+            await prisma.paymentHistory.create({
+              data: {
+                clinicId: clinic.id,
+                amount: clinic.subscriptionPlan === "ANNUAL" ? 970 : 97,
+                status: "paid",
+                plan: clinic.subscriptionPlan,
+                mercadoPagoSubscriptionId: synced.mercadoPagoSubscriptionId,
+                paidAt: synced.nextPaymentDate ?? new Date(),
+              },
+            });
+          }
+        }
       } else {
         console.warn("[mercado-pago-webhook] Assinatura não vinculada a nenhuma barbearia", {
           mercadoPagoSubscriptionId: synced.mercadoPagoSubscriptionId,

@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Clinic: 'Clinic',
+  PaymentHistory: 'PaymentHistory',
   BusinessHour: 'BusinessHour',
   User: 'User',
   Membership: 'Membership',
@@ -99,6 +100,22 @@ export const ClinicScalarFieldEnum = {
 } as const
 
 export type ClinicScalarFieldEnum = (typeof ClinicScalarFieldEnum)[keyof typeof ClinicScalarFieldEnum]
+
+
+export const PaymentHistoryScalarFieldEnum = {
+  id: 'id',
+  clinicId: 'clinicId',
+  amount: 'amount',
+  status: 'status',
+  plan: 'plan',
+  mercadoPagoPaymentId: 'mercadoPagoPaymentId',
+  mercadoPagoSubscriptionId: 'mercadoPagoSubscriptionId',
+  paidAt: 'paidAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PaymentHistoryScalarFieldEnum = (typeof PaymentHistoryScalarFieldEnum)[keyof typeof PaymentHistoryScalarFieldEnum]
 
 
 export const BusinessHourScalarFieldEnum = {

@@ -516,14 +516,6 @@ export type ServiceUncheckedUpdateManyWithoutClinicNestedInput = {
   deleteMany?: Prisma.ServiceScalarWhereInput | Prisma.ServiceScalarWhereInput[]
 }
 
-export type DecimalFieldUpdateOperationsInput = {
-  set?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
-}
-
 export type ServiceCreateNestedOneWithoutProfessionalsInput = {
   create?: Prisma.XOR<Prisma.ServiceCreateWithoutProfessionalsInput, Prisma.ServiceUncheckedCreateWithoutProfessionalsInput>
   connectOrCreate?: Prisma.ServiceCreateOrConnectWithoutProfessionalsInput

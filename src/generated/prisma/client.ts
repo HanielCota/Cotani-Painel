@@ -47,6 +47,11 @@ export { Prisma }
  */
 export type Clinic = Prisma.ClinicModel
 /**
+ * Model PaymentHistory
+ * 
+ */
+export type PaymentHistory = Prisma.PaymentHistoryModel
+/**
  * Model BusinessHour
  * 
  */

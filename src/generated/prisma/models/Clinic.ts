@@ -295,6 +295,7 @@ export type ClinicWhereInput = {
   notifications?: Prisma.NotificationListRelationFilter
   businessHours?: Prisma.BusinessHourListRelationFilter
   professionals?: Prisma.ProfessionalListRelationFilter
+  paymentHistory?: Prisma.PaymentHistoryListRelationFilter
 }
 
 export type ClinicOrderByWithRelationInput = {
@@ -319,6 +320,7 @@ export type ClinicOrderByWithRelationInput = {
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
   businessHours?: Prisma.BusinessHourOrderByRelationAggregateInput
   professionals?: Prisma.ProfessionalOrderByRelationAggregateInput
+  paymentHistory?: Prisma.PaymentHistoryOrderByRelationAggregateInput
 }
 
 export type ClinicWhereUniqueInput = Prisma.AtLeast<{
@@ -346,6 +348,7 @@ export type ClinicWhereUniqueInput = Prisma.AtLeast<{
   notifications?: Prisma.NotificationListRelationFilter
   businessHours?: Prisma.BusinessHourListRelationFilter
   professionals?: Prisma.ProfessionalListRelationFilter
+  paymentHistory?: Prisma.PaymentHistoryListRelationFilter
 }, "id" | "clerkOrgId" | "slug" | "mercadoPagoSubscriptionId">
 
 export type ClinicOrderByWithAggregationInput = {
@@ -412,6 +415,7 @@ export type ClinicCreateInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutClinicInput
   businessHours?: Prisma.BusinessHourCreateNestedManyWithoutClinicInput
   professionals?: Prisma.ProfessionalCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicUncheckedCreateInput = {
@@ -436,6 +440,7 @@ export type ClinicUncheckedCreateInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutClinicInput
   businessHours?: Prisma.BusinessHourUncheckedCreateNestedManyWithoutClinicInput
   professionals?: Prisma.ProfessionalUncheckedCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicUpdateInput = {
@@ -460,6 +465,7 @@ export type ClinicUpdateInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutClinicNestedInput
   businessHours?: Prisma.BusinessHourUpdateManyWithoutClinicNestedInput
   professionals?: Prisma.ProfessionalUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicUncheckedUpdateInput = {
@@ -484,6 +490,7 @@ export type ClinicUncheckedUpdateInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutClinicNestedInput
   businessHours?: Prisma.BusinessHourUncheckedUpdateManyWithoutClinicNestedInput
   professionals?: Prisma.ProfessionalUncheckedUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicCreateManyInput = {
@@ -637,6 +644,20 @@ export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
 }
 
+export type ClinicCreateNestedOneWithoutPaymentHistoryInput = {
+  create?: Prisma.XOR<Prisma.ClinicCreateWithoutPaymentHistoryInput, Prisma.ClinicUncheckedCreateWithoutPaymentHistoryInput>
+  connectOrCreate?: Prisma.ClinicCreateOrConnectWithoutPaymentHistoryInput
+  connect?: Prisma.ClinicWhereUniqueInput
+}
+
+export type ClinicUpdateOneRequiredWithoutPaymentHistoryNestedInput = {
+  create?: Prisma.XOR<Prisma.ClinicCreateWithoutPaymentHistoryInput, Prisma.ClinicUncheckedCreateWithoutPaymentHistoryInput>
+  connectOrCreate?: Prisma.ClinicCreateOrConnectWithoutPaymentHistoryInput
+  upsert?: Prisma.ClinicUpsertWithoutPaymentHistoryInput
+  connect?: Prisma.ClinicWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClinicUpdateToOneWithWhereWithoutPaymentHistoryInput, Prisma.ClinicUpdateWithoutPaymentHistoryInput>, Prisma.ClinicUncheckedUpdateWithoutPaymentHistoryInput>
+}
+
 export type ClinicCreateNestedOneWithoutBusinessHoursInput = {
   create?: Prisma.XOR<Prisma.ClinicCreateWithoutBusinessHoursInput, Prisma.ClinicUncheckedCreateWithoutBusinessHoursInput>
   connectOrCreate?: Prisma.ClinicCreateOrConnectWithoutBusinessHoursInput
@@ -735,6 +756,118 @@ export type ClinicUpdateOneRequiredWithoutNotificationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ClinicUpdateToOneWithWhereWithoutNotificationsInput, Prisma.ClinicUpdateWithoutNotificationsInput>, Prisma.ClinicUncheckedUpdateWithoutNotificationsInput>
 }
 
+export type ClinicCreateWithoutPaymentHistoryInput = {
+  id?: string
+  clerkOrgId: string
+  name: string
+  slug: string
+  timeZone?: string
+  subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Date | string | null
+  hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
+  maxAppointmentsPerDay?: number | null
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  memberships?: Prisma.MembershipCreateNestedManyWithoutClinicInput
+  customers?: Prisma.CustomerCreateNestedManyWithoutClinicInput
+  services?: Prisma.ServiceCreateNestedManyWithoutClinicInput
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutClinicInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourCreateNestedManyWithoutClinicInput
+  professionals?: Prisma.ProfessionalCreateNestedManyWithoutClinicInput
+}
+
+export type ClinicUncheckedCreateWithoutPaymentHistoryInput = {
+  id?: string
+  clerkOrgId: string
+  name: string
+  slug: string
+  timeZone?: string
+  subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Date | string | null
+  hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
+  maxAppointmentsPerDay?: number | null
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutClinicInput
+  customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutClinicInput
+  services?: Prisma.ServiceUncheckedCreateNestedManyWithoutClinicInput
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutClinicInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourUncheckedCreateNestedManyWithoutClinicInput
+  professionals?: Prisma.ProfessionalUncheckedCreateNestedManyWithoutClinicInput
+}
+
+export type ClinicCreateOrConnectWithoutPaymentHistoryInput = {
+  where: Prisma.ClinicWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClinicCreateWithoutPaymentHistoryInput, Prisma.ClinicUncheckedCreateWithoutPaymentHistoryInput>
+}
+
+export type ClinicUpsertWithoutPaymentHistoryInput = {
+  update: Prisma.XOR<Prisma.ClinicUpdateWithoutPaymentHistoryInput, Prisma.ClinicUncheckedUpdateWithoutPaymentHistoryInput>
+  create: Prisma.XOR<Prisma.ClinicCreateWithoutPaymentHistoryInput, Prisma.ClinicUncheckedCreateWithoutPaymentHistoryInput>
+  where?: Prisma.ClinicWhereInput
+}
+
+export type ClinicUpdateToOneWithWhereWithoutPaymentHistoryInput = {
+  where?: Prisma.ClinicWhereInput
+  data: Prisma.XOR<Prisma.ClinicUpdateWithoutPaymentHistoryInput, Prisma.ClinicUncheckedUpdateWithoutPaymentHistoryInput>
+}
+
+export type ClinicUpdateWithoutPaymentHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerkOrgId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.MembershipUpdateManyWithoutClinicNestedInput
+  customers?: Prisma.CustomerUpdateManyWithoutClinicNestedInput
+  services?: Prisma.ServiceUpdateManyWithoutClinicNestedInput
+  appointments?: Prisma.AppointmentUpdateManyWithoutClinicNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUpdateManyWithoutClinicNestedInput
+  professionals?: Prisma.ProfessionalUpdateManyWithoutClinicNestedInput
+}
+
+export type ClinicUncheckedUpdateWithoutPaymentHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerkOrgId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutClinicNestedInput
+  customers?: Prisma.CustomerUncheckedUpdateManyWithoutClinicNestedInput
+  services?: Prisma.ServiceUncheckedUpdateManyWithoutClinicNestedInput
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutClinicNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUncheckedUpdateManyWithoutClinicNestedInput
+  professionals?: Prisma.ProfessionalUncheckedUpdateManyWithoutClinicNestedInput
+}
+
 export type ClinicCreateWithoutBusinessHoursInput = {
   id?: string
   clerkOrgId: string
@@ -756,6 +889,7 @@ export type ClinicCreateWithoutBusinessHoursInput = {
   appointments?: Prisma.AppointmentCreateNestedManyWithoutClinicInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutClinicInput
   professionals?: Prisma.ProfessionalCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicUncheckedCreateWithoutBusinessHoursInput = {
@@ -779,6 +913,7 @@ export type ClinicUncheckedCreateWithoutBusinessHoursInput = {
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutClinicInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutClinicInput
   professionals?: Prisma.ProfessionalUncheckedCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicCreateOrConnectWithoutBusinessHoursInput = {
@@ -818,6 +953,7 @@ export type ClinicUpdateWithoutBusinessHoursInput = {
   appointments?: Prisma.AppointmentUpdateManyWithoutClinicNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutClinicNestedInput
   professionals?: Prisma.ProfessionalUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicUncheckedUpdateWithoutBusinessHoursInput = {
@@ -841,6 +977,7 @@ export type ClinicUncheckedUpdateWithoutBusinessHoursInput = {
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutClinicNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutClinicNestedInput
   professionals?: Prisma.ProfessionalUncheckedUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicCreateWithoutMembershipsInput = {
@@ -864,6 +1001,7 @@ export type ClinicCreateWithoutMembershipsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutClinicInput
   businessHours?: Prisma.BusinessHourCreateNestedManyWithoutClinicInput
   professionals?: Prisma.ProfessionalCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicUncheckedCreateWithoutMembershipsInput = {
@@ -887,6 +1025,7 @@ export type ClinicUncheckedCreateWithoutMembershipsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutClinicInput
   businessHours?: Prisma.BusinessHourUncheckedCreateNestedManyWithoutClinicInput
   professionals?: Prisma.ProfessionalUncheckedCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicCreateOrConnectWithoutMembershipsInput = {
@@ -926,6 +1065,7 @@ export type ClinicUpdateWithoutMembershipsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutClinicNestedInput
   businessHours?: Prisma.BusinessHourUpdateManyWithoutClinicNestedInput
   professionals?: Prisma.ProfessionalUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicUncheckedUpdateWithoutMembershipsInput = {
@@ -949,6 +1089,7 @@ export type ClinicUncheckedUpdateWithoutMembershipsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutClinicNestedInput
   businessHours?: Prisma.BusinessHourUncheckedUpdateManyWithoutClinicNestedInput
   professionals?: Prisma.ProfessionalUncheckedUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicCreateWithoutCustomersInput = {
@@ -972,6 +1113,7 @@ export type ClinicCreateWithoutCustomersInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutClinicInput
   businessHours?: Prisma.BusinessHourCreateNestedManyWithoutClinicInput
   professionals?: Prisma.ProfessionalCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicUncheckedCreateWithoutCustomersInput = {
@@ -995,6 +1137,7 @@ export type ClinicUncheckedCreateWithoutCustomersInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutClinicInput
   businessHours?: Prisma.BusinessHourUncheckedCreateNestedManyWithoutClinicInput
   professionals?: Prisma.ProfessionalUncheckedCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicCreateOrConnectWithoutCustomersInput = {
@@ -1034,6 +1177,7 @@ export type ClinicUpdateWithoutCustomersInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutClinicNestedInput
   businessHours?: Prisma.BusinessHourUpdateManyWithoutClinicNestedInput
   professionals?: Prisma.ProfessionalUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicUncheckedUpdateWithoutCustomersInput = {
@@ -1057,6 +1201,7 @@ export type ClinicUncheckedUpdateWithoutCustomersInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutClinicNestedInput
   businessHours?: Prisma.BusinessHourUncheckedUpdateManyWithoutClinicNestedInput
   professionals?: Prisma.ProfessionalUncheckedUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicCreateWithoutServicesInput = {
@@ -1080,6 +1225,7 @@ export type ClinicCreateWithoutServicesInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutClinicInput
   businessHours?: Prisma.BusinessHourCreateNestedManyWithoutClinicInput
   professionals?: Prisma.ProfessionalCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicUncheckedCreateWithoutServicesInput = {
@@ -1103,6 +1249,7 @@ export type ClinicUncheckedCreateWithoutServicesInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutClinicInput
   businessHours?: Prisma.BusinessHourUncheckedCreateNestedManyWithoutClinicInput
   professionals?: Prisma.ProfessionalUncheckedCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicCreateOrConnectWithoutServicesInput = {
@@ -1142,6 +1289,7 @@ export type ClinicUpdateWithoutServicesInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutClinicNestedInput
   businessHours?: Prisma.BusinessHourUpdateManyWithoutClinicNestedInput
   professionals?: Prisma.ProfessionalUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicUncheckedUpdateWithoutServicesInput = {
@@ -1165,6 +1313,7 @@ export type ClinicUncheckedUpdateWithoutServicesInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutClinicNestedInput
   businessHours?: Prisma.BusinessHourUncheckedUpdateManyWithoutClinicNestedInput
   professionals?: Prisma.ProfessionalUncheckedUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicCreateWithoutProfessionalsInput = {
@@ -1188,6 +1337,7 @@ export type ClinicCreateWithoutProfessionalsInput = {
   appointments?: Prisma.AppointmentCreateNestedManyWithoutClinicInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutClinicInput
   businessHours?: Prisma.BusinessHourCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicUncheckedCreateWithoutProfessionalsInput = {
@@ -1211,6 +1361,7 @@ export type ClinicUncheckedCreateWithoutProfessionalsInput = {
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutClinicInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutClinicInput
   businessHours?: Prisma.BusinessHourUncheckedCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicCreateOrConnectWithoutProfessionalsInput = {
@@ -1250,6 +1401,7 @@ export type ClinicUpdateWithoutProfessionalsInput = {
   appointments?: Prisma.AppointmentUpdateManyWithoutClinicNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutClinicNestedInput
   businessHours?: Prisma.BusinessHourUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicUncheckedUpdateWithoutProfessionalsInput = {
@@ -1273,6 +1425,7 @@ export type ClinicUncheckedUpdateWithoutProfessionalsInput = {
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutClinicNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutClinicNestedInput
   businessHours?: Prisma.BusinessHourUncheckedUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicCreateWithoutAppointmentsInput = {
@@ -1296,6 +1449,7 @@ export type ClinicCreateWithoutAppointmentsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutClinicInput
   businessHours?: Prisma.BusinessHourCreateNestedManyWithoutClinicInput
   professionals?: Prisma.ProfessionalCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicUncheckedCreateWithoutAppointmentsInput = {
@@ -1319,6 +1473,7 @@ export type ClinicUncheckedCreateWithoutAppointmentsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutClinicInput
   businessHours?: Prisma.BusinessHourUncheckedCreateNestedManyWithoutClinicInput
   professionals?: Prisma.ProfessionalUncheckedCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicCreateOrConnectWithoutAppointmentsInput = {
@@ -1358,6 +1513,7 @@ export type ClinicUpdateWithoutAppointmentsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutClinicNestedInput
   businessHours?: Prisma.BusinessHourUpdateManyWithoutClinicNestedInput
   professionals?: Prisma.ProfessionalUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicUncheckedUpdateWithoutAppointmentsInput = {
@@ -1381,6 +1537,7 @@ export type ClinicUncheckedUpdateWithoutAppointmentsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutClinicNestedInput
   businessHours?: Prisma.BusinessHourUncheckedUpdateManyWithoutClinicNestedInput
   professionals?: Prisma.ProfessionalUncheckedUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicCreateWithoutNotificationsInput = {
@@ -1404,6 +1561,7 @@ export type ClinicCreateWithoutNotificationsInput = {
   appointments?: Prisma.AppointmentCreateNestedManyWithoutClinicInput
   businessHours?: Prisma.BusinessHourCreateNestedManyWithoutClinicInput
   professionals?: Prisma.ProfessionalCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicUncheckedCreateWithoutNotificationsInput = {
@@ -1427,6 +1585,7 @@ export type ClinicUncheckedCreateWithoutNotificationsInput = {
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutClinicInput
   businessHours?: Prisma.BusinessHourUncheckedCreateNestedManyWithoutClinicInput
   professionals?: Prisma.ProfessionalUncheckedCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicCreateOrConnectWithoutNotificationsInput = {
@@ -1466,6 +1625,7 @@ export type ClinicUpdateWithoutNotificationsInput = {
   appointments?: Prisma.AppointmentUpdateManyWithoutClinicNestedInput
   businessHours?: Prisma.BusinessHourUpdateManyWithoutClinicNestedInput
   professionals?: Prisma.ProfessionalUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicUncheckedUpdateWithoutNotificationsInput = {
@@ -1489,6 +1649,7 @@ export type ClinicUncheckedUpdateWithoutNotificationsInput = {
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutClinicNestedInput
   businessHours?: Prisma.BusinessHourUncheckedUpdateManyWithoutClinicNestedInput
   professionals?: Prisma.ProfessionalUncheckedUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedUpdateManyWithoutClinicNestedInput
 }
 
 
@@ -1504,6 +1665,7 @@ export type ClinicCountOutputType = {
   notifications: number
   businessHours: number
   professionals: number
+  paymentHistory: number
 }
 
 export type ClinicCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1514,6 +1676,7 @@ export type ClinicCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   notifications?: boolean | ClinicCountOutputTypeCountNotificationsArgs
   businessHours?: boolean | ClinicCountOutputTypeCountBusinessHoursArgs
   professionals?: boolean | ClinicCountOutputTypeCountProfessionalsArgs
+  paymentHistory?: boolean | ClinicCountOutputTypeCountPaymentHistoryArgs
 }
 
 /**
@@ -1575,6 +1738,13 @@ export type ClinicCountOutputTypeCountProfessionalsArgs<ExtArgs extends runtime.
   where?: Prisma.ProfessionalWhereInput
 }
 
+/**
+ * ClinicCountOutputType without action
+ */
+export type ClinicCountOutputTypeCountPaymentHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PaymentHistoryWhereInput
+}
+
 
 export type ClinicSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1598,6 +1768,7 @@ export type ClinicSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   notifications?: boolean | Prisma.Clinic$notificationsArgs<ExtArgs>
   businessHours?: boolean | Prisma.Clinic$businessHoursArgs<ExtArgs>
   professionals?: boolean | Prisma.Clinic$professionalsArgs<ExtArgs>
+  paymentHistory?: boolean | Prisma.Clinic$paymentHistoryArgs<ExtArgs>
   _count?: boolean | Prisma.ClinicCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["clinic"]>
 
@@ -1661,6 +1832,7 @@ export type ClinicInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   notifications?: boolean | Prisma.Clinic$notificationsArgs<ExtArgs>
   businessHours?: boolean | Prisma.Clinic$businessHoursArgs<ExtArgs>
   professionals?: boolean | Prisma.Clinic$professionalsArgs<ExtArgs>
+  paymentHistory?: boolean | Prisma.Clinic$paymentHistoryArgs<ExtArgs>
   _count?: boolean | Prisma.ClinicCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ClinicIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1676,6 +1848,7 @@ export type $ClinicPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
     businessHours: Prisma.$BusinessHourPayload<ExtArgs>[]
     professionals: Prisma.$ProfessionalPayload<ExtArgs>[]
+    paymentHistory: Prisma.$PaymentHistoryPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2093,6 +2266,7 @@ export interface Prisma__ClinicClient<T, Null = never, ExtArgs extends runtime.T
   notifications<T extends Prisma.Clinic$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Clinic$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   businessHours<T extends Prisma.Clinic$businessHoursArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Clinic$businessHoursArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BusinessHourPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   professionals<T extends Prisma.Clinic$professionalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Clinic$professionalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProfessionalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  paymentHistory<T extends Prisma.Clinic$paymentHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Clinic$paymentHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2694,6 +2868,30 @@ export type Clinic$professionalsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.ProfessionalScalarFieldEnum | Prisma.ProfessionalScalarFieldEnum[]
+}
+
+/**
+ * Clinic.paymentHistory
+ */
+export type Clinic$paymentHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PaymentHistory
+   */
+  select?: Prisma.PaymentHistorySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PaymentHistory
+   */
+  omit?: Prisma.PaymentHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PaymentHistoryInclude<ExtArgs> | null
+  where?: Prisma.PaymentHistoryWhereInput
+  orderBy?: Prisma.PaymentHistoryOrderByWithRelationInput | Prisma.PaymentHistoryOrderByWithRelationInput[]
+  cursor?: Prisma.PaymentHistoryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PaymentHistoryScalarFieldEnum | Prisma.PaymentHistoryScalarFieldEnum[]
 }
 
 /**

@@ -385,6 +385,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   Clinic: 'Clinic',
+  PaymentHistory: 'PaymentHistory',
   BusinessHour: 'BusinessHour',
   User: 'User',
   Membership: 'Membership',
@@ -411,7 +412,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "clinic" | "businessHour" | "user" | "membership" | "customer" | "service" | "professional" | "professionalService" | "appointment" | "notification" | "webhookEvent" | "rateLimit"
+    modelProps: "clinic" | "paymentHistory" | "businessHour" | "user" | "membership" | "customer" | "service" | "professional" | "professionalService" | "appointment" | "notification" | "webhookEvent" | "rateLimit"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -486,6 +487,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ClinicCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ClinicCountAggregateOutputType> | number
+        }
+      }
+    }
+    PaymentHistory: {
+      payload: Prisma.$PaymentHistoryPayload<ExtArgs>
+      fields: Prisma.PaymentHistoryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PaymentHistoryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentHistoryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PaymentHistoryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentHistoryPayload>
+        }
+        findFirst: {
+          args: Prisma.PaymentHistoryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentHistoryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PaymentHistoryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentHistoryPayload>
+        }
+        findMany: {
+          args: Prisma.PaymentHistoryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentHistoryPayload>[]
+        }
+        create: {
+          args: Prisma.PaymentHistoryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentHistoryPayload>
+        }
+        createMany: {
+          args: Prisma.PaymentHistoryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PaymentHistoryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentHistoryPayload>[]
+        }
+        delete: {
+          args: Prisma.PaymentHistoryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentHistoryPayload>
+        }
+        update: {
+          args: Prisma.PaymentHistoryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentHistoryPayload>
+        }
+        deleteMany: {
+          args: Prisma.PaymentHistoryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PaymentHistoryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PaymentHistoryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentHistoryPayload>[]
+        }
+        upsert: {
+          args: Prisma.PaymentHistoryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentHistoryPayload>
+        }
+        aggregate: {
+          args: Prisma.PaymentHistoryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePaymentHistory>
+        }
+        groupBy: {
+          args: Prisma.PaymentHistoryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PaymentHistoryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PaymentHistoryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PaymentHistoryCountAggregateOutputType> | number
         }
       }
     }
@@ -1362,6 +1437,22 @@ export const ClinicScalarFieldEnum = {
 export type ClinicScalarFieldEnum = (typeof ClinicScalarFieldEnum)[keyof typeof ClinicScalarFieldEnum]
 
 
+export const PaymentHistoryScalarFieldEnum = {
+  id: 'id',
+  clinicId: 'clinicId',
+  amount: 'amount',
+  status: 'status',
+  plan: 'plan',
+  mercadoPagoPaymentId: 'mercadoPagoPaymentId',
+  mercadoPagoSubscriptionId: 'mercadoPagoSubscriptionId',
+  paidAt: 'paidAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PaymentHistoryScalarFieldEnum = (typeof PaymentHistoryScalarFieldEnum)[keyof typeof PaymentHistoryScalarFieldEnum]
+
+
 export const BusinessHourScalarFieldEnum = {
   id: 'id',
   clinicId: 'clinicId',
@@ -1645,20 +1736,6 @@ export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
- * Reference to a field of type 'ClinicRole'
- */
-export type EnumClinicRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClinicRole'>
-    
-
-
-/**
- * Reference to a field of type 'ClinicRole[]'
- */
-export type ListEnumClinicRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClinicRole[]'>
-    
-
-
-/**
  * Reference to a field of type 'Decimal'
  */
 export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
@@ -1669,6 +1746,20 @@ export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
  * Reference to a field of type 'Decimal[]'
  */
 export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ClinicRole'
+ */
+export type EnumClinicRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClinicRole'>
+    
+
+
+/**
+ * Reference to a field of type 'ClinicRole[]'
+ */
+export type ListEnumClinicRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClinicRole[]'>
     
 
 
@@ -1880,6 +1971,7 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   clinic?: Prisma.ClinicOmit
+  paymentHistory?: Prisma.PaymentHistoryOmit
   businessHour?: Prisma.BusinessHourOmit
   user?: Prisma.UserOmit
   membership?: Prisma.MembershipOmit

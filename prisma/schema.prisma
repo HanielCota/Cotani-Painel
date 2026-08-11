@@ -82,6 +82,24 @@ model Clinic {
   notifications             Notification[]
   businessHours             BusinessHour[]
   professionals             Professional[]
+  paymentHistory            PaymentHistory[]
+}
+
+model PaymentHistory {
+  id                        String            @id @default(uuid())
+  clinicId                  String
+  clinic                    Clinic            @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  amount                    Decimal           @db.Decimal(10, 2)
+  status                    String
+  plan                      SubscriptionPlan?
+  mercadoPagoPaymentId      String?
+  mercadoPagoSubscriptionId String?
+  paidAt                    DateTime?
+  createdAt                 DateTime          @default(now())
+  updatedAt                 DateTime          @updatedAt
+
+  @@index([clinicId, createdAt])
+  @@index([mercadoPagoPaymentId])
 }
 
 model BusinessHour {
