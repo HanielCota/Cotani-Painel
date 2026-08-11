@@ -15,8 +15,6 @@ const pageTitles: Record<string, string> = {
   "/dashboard/relatorios": "Relatórios",
   "/dashboard/configuracoes": "Configurações",
   "/dashboard/assinatura": "Assinatura",
-  "/dashboard/automacoes": "Automações",
-  "/dashboard/ai": "IA",
 };
 
 function usePageTitle() {
