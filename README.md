@@ -5,20 +5,22 @@ Painel web para organizar a operação de barbearias: clientes, serviços e aten
 Cada barbearia corresponde a uma organização do Clerk. O painel usa a organização ativa para isolar dados e ações, permitindo que uma mesma conta trabalhe com mais de uma barbearia.
 
 > [!NOTE]
-> O produto está em evolução. A agenda, a visão geral, clientes e relatórios estão disponíveis; as demais áreas do produto exibem um estado de “Disponível em breve”.
+> O produto está pronto para produção. A agenda, visão geral, clientes, relatórios, financeiro, comunicações, configurações e assinatura estão disponíveis.
 
 ## O que já está disponível
 
 - Autenticação, cadastro e troca de organização com Clerk.
 - Sincronização das organizações do Clerk com barbearias locais por webhook.
-- Visão geral com totais de clientes, serviços, agendamentos, confirmações e faltas, e **Agenda de hoje** atualizada automaticamente.
+- Visão geral com KPIs, agenda de hoje, próximos agendamentos e ações rápidas.
 - Listagem de próximos atendimentos com polling a cada 30 segundos (TanStack Query + `GET /api/appointments`) e feedback por toasts em erros de agendamento.
 - Gestão de clientes em tabela interativa: busca com debounce, paginação no servidor (`GET /api/customers`), edição e remoção com proteção de histórico.
-- Relatórios com KPIs do mês: taxa de confirmação, taxa de falta e clientes ativos (`GET /api/metrics`).
-- Cadastro inicial de clientes e serviços diretamente pela Agenda.
+- Relatórios com KPIs do mês, evolução mensal, top serviços e top profissionais.
+- Financeiro com receita, ticket médio, gráficos de desempenho, métodos de pagamento e calendário de vendas.
+- Gestão de serviços, profissionais e expediente por dia da semana.
 - Criação, confirmação, conclusão, cancelamento, marcação de falta e reagendamento de atendimentos.
 - Proteção contra conflito de horário para o mesmo cliente ou serviço, garantida por exclusion constraints no banco e com mensagem amigável em caso de choque de horários.
-- Fila de notificações: confirmação e lembretes (24h e 2h) criados na mesma transação do agendamento e processados por cron (envio simulado no console nesta fase).
+- Fila de notificações: confirmação e lembretes (24h e 2h) criados na mesma transação do agendamento e processados por cron. Envio manual via link `wa.me` (modo `WHATSAPP_SENDER_MODE=manual`) ou automático por API (modo `api`).
+- Assinatura via Mercado Pago com checkout, webhook, renovação automática, cancelamento e histórico de pagamentos.
 - Datas e horários tratados no fuso configurado para cada barbearia (padrão: `America/Sao_Paulo`).
 - Estados de carregamento, erro e página não encontrada.
 
@@ -99,6 +101,9 @@ Abra [http://localhost:3000](http://localhost:3000). A rota inicial redireciona 
 
 O webhook cria ou atualiza a barbearia local quando uma organização é criada ou alterada. Sem essa sincronização, a organização ativa não terá dados no painel.
 
+> [!IMPORTANT]
+> Em produção, use o modo **Production** do Clerk e configure as URLs de redirect, allowed origins e webhooks com o domínio final.
+
 > [!TIP]
 > Para desenvolvimento local, exponha a aplicação por um túnel HTTPS antes de registrar o endpoint de webhook no Clerk.
 
@@ -115,11 +120,12 @@ Os agendamentos são associados à barbearia ativa. A criação e o reagendament
 
 Cada barbearia tem uma página pública de agendamento em `/{slug}` (o slug é único por barbearia). O fluxo não exige login:
 
-1. O cliente escolhe o serviço, a data e um dos horários disponíveis.
-2. Os horários vêm de `GET /api/public/{slug}/availability`, que desconta os atendimentos já marcados.
-3. O envio chama a Server Action `createPublicAppointment`, que faz upsert do cliente pelo telefone e usa o mesmo núcleo transacional do agendamento interno (verificação de conflito, exclusion constraint e fila de notificações).
+1. O cliente escolhe o serviço e o profissional.
+2. O cliente escolhe a data e um dos horários disponíveis.
+3. O cliente informa nome, WhatsApp e e-mail.
+4. O envio chama a Server Action `createPublicAppointment`, que faz upsert do cliente pelo telefone e usa o mesmo núcleo transacional do agendamento interno (verificação de conflito, exclusion constraint e fila de notificações).
 
-O horário comercial ainda é fixo no MVP (08h às 18h, em passos de 30 minutos, no fuso da barbearia); a modelagem de expediente por barbearia fica para uma fase futura.
+Os horários são calculados a partir do expediente configurado pela barbearia (abertura, fechamento e pausa para almoço) e da duração do serviço selecionado.
 
 ## Estrutura do projeto
 
@@ -146,12 +152,15 @@ prisma/
 
 | Entidade | Responsabilidade |
 | --- | --- |
-| `Clinic` | Barbearia sincronizada a uma organização do Clerk e seu fuso horário. |
+| `Clinic` | Barbearia sincronizada a uma organização do Clerk, com fuso horário e assinatura. |
 | `User` e `Membership` | Usuários locais e seus vínculos com barbearias. |
 | `Customer` | Clientes da barbearia. O telefone é único por barbearia. |
-| `Service` | Serviços com duração, preço e status ativo. |
-| `Appointment` | Atendimento com cliente, serviço, intervalo e status. |
+| `Service` | Serviços com duração, preço, imagem e status ativo. |
+| `Professional` | Profissionais vinculados a serviços específicos. |
+| `BusinessHour` | Expediente da barbearia por dia da semana. |
+| `Appointment` | Atendimento com cliente, serviço, profissional, intervalo e status. |
 | `Notification` | Base para lembretes por WhatsApp, e-mail ou SMS. |
+| `PaymentHistory` | Histórico de pagamentos da assinatura. |
 
 ## API
 
@@ -195,18 +204,41 @@ Processa um lote de até 25 notificações pendentes da fila (confirmações e l
 | `401` | Header `Authorization: Bearer ${CRON_SECRET}` ausente ou inválido. |
 | `500` | `CRON_SECRET` não configurado. |
 
-O Vercel Cron (`vercel.json`) dispara essa rota a cada minuto e envia o header de autorização automaticamente. Nesta fase o `MessageSender` é um mock que apenas registra a mensagem no console.
+O Vercel Cron (`vercel.json`) dispara essa rota a cada minuto e envia o header de autorização automaticamente. No modo `manual` (padrão), as mensagens aparecem na página **Comunicações** para envio manual via WhatsApp Web/App.
+
+### `GET/POST /api/jobs/billing/expire-subscriptions`
+
+Desativa assinaturas expiradas (roda diariamente às 6h pelo Vercel Cron).
+
+| Resposta | Significado |
+| --- | --- |
+| `200` | Contador de assinaturas expiradas. |
+| `401` | Header `Authorization: Bearer ${CRON_SECRET}` ausente ou inválido. |
+| `500` | `CRON_SECRET` não configurado. |
 
 ### `GET /api/public/{slug}/availability`
 
-Lista os horários livres de um serviço em uma data. Rota pública, sem autenticação, com o escopo resolvido pelo slug da barbearia.
+Lista os horários livres de um serviço em uma data. Rota pública, sem autenticação, com rate limit por IP e escopo resolvido pelo slug da barbearia.
 
 | Parâmetro | Descrição |
 | --- | --- |
 | `serviceId` | UUID de um serviço ativo da barbearia. |
 | `date` | Data no formato `YYYY-MM-DD` (fuso da barbearia). |
+| `professionalId` | UUID opcional do profissional. |
 
-Resposta `200`: `{ slots: [{ startTime, label }] }`, com `startTime` em ISO 8601 e `label` no formato `HH:mm`. Erros: `400` (parâmetros inválidos), `404` (barbearia ou serviço não encontrado).
+Resposta `200`: `{ slots: [{ startTime, label }] }`, com `startTime` em ISO 8601 e `label` no formato `HH:mm`. Erros: `400` (parâmetros inválidos), `404` (barbearia, serviço ou profissional não encontrado), `429` (rate limit).
+
+### `GET /api/public/{slug}/available-dates`
+
+Lista os dias do mês que possuem ao menos um horário livre para um serviço/profissional.
+
+| Parâmetro | Descrição |
+| --- | --- |
+| `serviceId` | UUID de um serviço ativo da barbearia. |
+| `yearMonth` | Mês no formato `YYYY-MM`. |
+| `professionalId` | UUID opcional do profissional. |
+
+Resposta `200`: `{ dates: string[] }` com datas no formato `YYYY-MM-DD`.
 
 ## Scripts
 
@@ -223,7 +255,19 @@ Resposta `200`: `{ slots: [{ startTime, label }] }`, com `startTime` em ISO 8601
 
 ```bash
 pnpm lint
+pnpm test
 pnpm build
+npx playwright test
 ```
 
-Em produção, configure as mesmas variáveis de ambiente, use um banco PostgreSQL persistente e cadastre o endpoint público do webhook do Clerk. A aplicação deve ser servida por HTTPS para que autenticação e webhooks funcionem adequadamente.
+## Deploy em produção
+
+1. **Banco de dados**: aplique todas as migrations (`pnpm prisma migrate deploy`).
+2. **Variáveis de ambiente**: configure todas as variáveis do `.env.example` com valores de produção.
+3. **Clerk**: use o modo Production, configure o domínio final, allowed origins, redirect URLs e o webhook `/api/webhooks/clerk`.
+4. **Mercado Pago**: configure o webhook `/api/webhooks/mercado-pago` com `MERCADO_PAGO_WEBHOOK_SECRET` obrigatório.
+5. **Cron**: garanta que `CRON_SECRET` esteja configurado para os jobs `/api/jobs/notifications` e `/api/jobs/billing/expire-subscriptions`.
+6. **HTTPS**: a aplicação deve ser servida por HTTPS para autenticação e webhooks.
+
+> [!IMPORTANT]
+> Não exponha `.env.local` nem chaves de desenvolvimento. Em produção, use apenas chaves `pk_live_` / `sk_live_` e access tokens de produção do Mercado Pago.
