@@ -13,9 +13,9 @@ test.describe("Smoke tests", () => {
     expect(response?.status()).toBe(404);
   });
 
-  test("página de seed é carregada", async ({ page }) => {
-    await page.goto("/seed");
+  test("página de seed não existe mais", async ({ page }) => {
+    const response = await page.goto("/seed");
 
-    await expect(page.locator("text=Provisionar").first()).toBeVisible();
+    expect(response?.status()).toBe(404);
   });
 });
