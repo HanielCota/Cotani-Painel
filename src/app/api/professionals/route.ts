@@ -1,9 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
+import { checkApiRateLimit } from "@/lib/api-rate-limit";
 import prisma from "@/lib/prisma";
 import { requireActiveClinic } from "@/server/tenant";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const rateLimitResponse = await checkApiRateLimit(request, "professionals");
+  if (rateLimitResponse) return rateLimitResponse;
+
   const clinic = await requireActiveClinic();
 
   if (!clinic) {

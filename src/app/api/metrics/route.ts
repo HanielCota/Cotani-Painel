@@ -1,13 +1,17 @@
 import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
+import { checkApiRateLimit } from "@/lib/api-rate-limit";
 import prisma from "@/lib/prisma";
 import { getClinicDateBounds } from "@/lib/timezone";
 import type { Prisma } from "@/generated/prisma/client";
 import type { DashboardMetrics } from "@/types";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const { orgId } = await auth.protect();
+
+  const rateLimitResponse = await checkApiRateLimit(request, "metrics");
+  if (rateLimitResponse) return rateLimitResponse;
 
   if (!orgId) {
     return NextResponse.json({ message: "Nenhuma barbearia selecionada." }, { status: 400 });

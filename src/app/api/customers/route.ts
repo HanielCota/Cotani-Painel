@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { checkApiRateLimit } from "@/lib/api-rate-limit";
 import prisma from "@/lib/prisma";
 import type { CustomersPage } from "@/types";
 
@@ -13,6 +14,9 @@ const querySchema = z.object({
 
 export async function GET(request: NextRequest) {
   const { orgId } = await auth.protect();
+
+  const rateLimitResponse = await checkApiRateLimit(request, "customers");
+  if (rateLimitResponse) return rateLimitResponse;
 
   if (!orgId) {
     return NextResponse.json({ message: "Nenhuma barbearia selecionada." }, { status: 400 });
