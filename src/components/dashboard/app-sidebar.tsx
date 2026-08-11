@@ -13,7 +13,6 @@ import {
   CreditCardIcon,
   DollarSignIcon,
   LayoutDashboardIcon,
-  LinkIcon,
   MessageCircleIcon,
   SettingsIcon,
   SparklesIcon,
@@ -34,7 +33,6 @@ import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -262,8 +260,6 @@ function useBottomShadow<T extends HTMLElement>() {
 }
 
 function NavSection({ title, children }: { title: string; children: React.ReactNode }) {
-  const { state } = useSidebar();
-
   return (
     <div className="flex flex-col gap-1">
       <span className="px-3 text-xs font-medium text-muted-foreground group-data-[collapsible=icon]:hidden">

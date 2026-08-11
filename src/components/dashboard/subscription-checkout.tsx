@@ -48,7 +48,7 @@ export function SubscriptionCheckout({ plans }: SubscriptionCheckoutProps) {
         return;
       }
 
-      window.location.href = data.checkoutUrl;
+      window.location.assign(data.checkoutUrl);
     } catch {
       toast.error("Erro de conexão ao iniciar o checkout.");
     } finally {
