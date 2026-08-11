@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import { SubscriptionPlan } from "@/generated/prisma/enums";
 import { createSubscriptionCheckout } from "@/server/services/mercado-pago";
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ checkoutUrl });
   } catch (error) {
-    console.error("[subscription/checkout] Falha ao criar checkout", {
+    logger.error("Falha ao criar checkout de assinatura", {
       error: error instanceof Error ? error.message : String(error),
     });
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import {
   syncSubscriptionFromMercadoPago,
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest) {
   try {
     validateMercadoPagoWebhook({ xSignature, xRequestId, dataId });
   } catch (error) {
-    console.error("[mercado-pago-webhook] Assinatura do webhook inválida", {
+    logger.error("Assinatura do webhook Mercado Pago inválida", {
       error: error instanceof Error ? error.message : String(error),
     });
 
@@ -89,12 +90,12 @@ export async function POST(request: NextRequest) {
           }
         }
       } else {
-        console.warn("[mercado-pago-webhook] Assinatura não vinculada a nenhuma barbearia", {
+        logger.warn("Assinatura do Mercado Pago não vinculada a nenhuma barbearia", {
           mercadoPagoSubscriptionId: synced.mercadoPagoSubscriptionId,
         });
       }
     } else {
-      console.log("[mercado-pago-webhook] Tipo de evento ignorado", { eventType, dataId });
+      logger.info("Tipo de evento do Mercado Pago ignorado", { eventType, dataId });
     }
 
     await prisma.webhookEvent.create({
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error("[mercado-pago-webhook] Falha ao processar evento", {
+    logger.error("Falha ao processar evento do webhook Mercado Pago", {
       eventId,
       eventType,
       dataId,

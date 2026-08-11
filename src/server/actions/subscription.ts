@@ -3,6 +3,7 @@
 import { MercadoPagoConfig, PreApproval } from "mercadopago";
 
 import { SubscriptionStatus } from "@/generated/prisma/enums";
+import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import { getTenantContext } from "@/server/tenant";
 import type { ActionResult } from "@/types";
@@ -48,7 +49,9 @@ export async function cancelSubscription(): Promise<ActionResult> {
 
     return { status: "success", message: "Assinatura cancelada com sucesso." };
   } catch (error) {
-    console.error("[cancelSubscription] Erro ao cancelar assinatura:", error);
+    logger.error("Erro ao cancelar assinatura", {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { status: "error", message: "Não foi possível cancelar a assinatura. Tente novamente em instantes." };
   }
 }

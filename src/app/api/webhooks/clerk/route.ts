@@ -1,6 +1,7 @@
 import { verifyWebhook } from "@clerk/nextjs/webhooks";
 import { NextRequest, NextResponse } from "next/server";
 
+import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 import {
@@ -153,7 +154,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error("[clerk-webhook] Falha ao processar evento", {
+    logger.error("Falha ao processar evento do webhook Clerk", {
       eventId,
       type: eventType,
       error: error instanceof Error ? error.message : String(error),
