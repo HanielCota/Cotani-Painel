@@ -9,6 +9,7 @@ import { ArrowLeftIcon, CalendarIcon, CalendarPlusIcon, CheckIcon, ClockIcon, Im
 import { toast } from "sonner";
 
 import { createPublicAppointment } from "@/server/actions/public-booking";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -687,43 +688,45 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
         <StepIndicator current={step} />
 
         <form id="public-booking" onSubmit={handleSubmit}>
-          {step === "service-professional" ? (
-            <ServiceProfessionalStep
-              services={services}
-              professionals={professionals}
-              selectedServiceId={serviceId}
-              selectedProfessionalId={professionalId}
-              onServiceSelect={handleServiceSelect}
-              onProfessionalSelect={handleProfessionalSelect}
-            />
-          ) : null}
+          <ErrorBoundary>
+            {step === "service-professional" ? (
+              <ServiceProfessionalStep
+                services={services}
+                professionals={professionals}
+                selectedServiceId={serviceId}
+                selectedProfessionalId={professionalId}
+                onServiceSelect={handleServiceSelect}
+                onProfessionalSelect={handleProfessionalSelect}
+              />
+            ) : null}
 
-          {step === "datetime" ? (
-            <DateTimeStep
-              minDate={minDate}
-              selectedDate={date}
-              selectedSlot={slot}
-              slots={slots}
-              isFetching={isFetching}
-              availableDates={availableDates}
-              isLoadingAvailableDates={isLoadingAvailableDates}
-              onDateChange={handleDateChange}
-              onSlotChange={handleSlotChange}
-              onMonthChange={setCalendarMonth}
-            />
-          ) : null}
+            {step === "datetime" ? (
+              <DateTimeStep
+                minDate={minDate}
+                selectedDate={date}
+                selectedSlot={slot}
+                slots={slots}
+                isFetching={isFetching}
+                availableDates={availableDates}
+                isLoadingAvailableDates={isLoadingAvailableDates}
+                onDateChange={handleDateChange}
+                onSlotChange={handleSlotChange}
+                onMonthChange={setCalendarMonth}
+              />
+            ) : null}
 
-          {step === "customer" ? (
-            <CustomerStep
-              isPending={isPending}
-              slug={slug}
-              clinicName={clinicName}
-              service={selectedService}
-              professional={professionals.find((professional) => professional.id === professionalId)}
-              date={date}
-              slot={slot}
-            />
-          ) : null}
+            {step === "customer" ? (
+              <CustomerStep
+                isPending={isPending}
+                slug={slug}
+                clinicName={clinicName}
+                service={selectedService}
+                professional={professionals.find((professional) => professional.id === professionalId)}
+                date={date}
+                slot={slot}
+              />
+            ) : null}
+          </ErrorBoundary>
 
           {result?.status === "error" ? (
             <Alert variant="destructive" className="mt-5">
