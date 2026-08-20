@@ -22,7 +22,7 @@ const mockedPrismaClinicUpdate = vi.mocked(prisma.clinic.update);
 
 describe("cancelSubscription", () => {
   it("retorna erro quando não há tenant", async () => {
-    mockedGetTenantContext.mockResolvedValueOnce(null);
+    mockedGetTenantContext.mockResolvedValueOnce(null as unknown as tenantModule.TenantContext);
 
     const result = await cancelSubscription();
 

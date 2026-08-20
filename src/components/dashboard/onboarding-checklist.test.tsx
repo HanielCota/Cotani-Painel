@@ -1,5 +1,5 @@
 import { fireEvent, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
 import { render } from "@/test/utils";

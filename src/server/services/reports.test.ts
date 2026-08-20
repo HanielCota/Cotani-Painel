@@ -15,6 +15,7 @@ const clinic: ClinicModel = {
   subscriptionExpiresAt: null,
   hasPaidOnce: true,
   mercadoPagoSubscriptionId: null,
+  maxAppointmentsPerDay: null,
   deletedAt: null,
   createdAt: new Date(),
   updatedAt: new Date(),

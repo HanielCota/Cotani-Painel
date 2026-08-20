@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { ColumnDef, PaginationState } from "@tanstack/react-table";
-import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import type { PaginationState } from "@tanstack/react-table";
+import type { LegacyColumnDef as ColumnDef } from "@tanstack/react-table/legacy";
+import { getCoreRowModel, useLegacyTable as useReactTable } from "@tanstack/react-table/legacy";
+import { flexRender } from "@tanstack/react-table";
 import { ChevronLeftIcon, ChevronRightIcon, SearchIcon } from "lucide-react";
 
 import { DeleteCustomerDialog } from "@/components/dashboard/delete-customer-dialog";

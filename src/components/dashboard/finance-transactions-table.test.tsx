@@ -2,15 +2,17 @@ import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { FinanceTransactionsTable } from "@/components/dashboard/finance-transactions-table";
+import type { FinanceAppointment } from "@/server/services/finance";
 import { render } from "@/test/utils";
 
-const appointments = [
+const appointments: FinanceAppointment[] = [
   {
     id: "app-1",
     customerName: "João Silva",
     serviceName: "Corte",
     professionalName: "Carlos",
     startTime: "2026-07-21T10:00:00.000Z",
+    endTime: "2026-07-21T10:30:00.000Z",
     status: "CONFIRMED",
     servicePrice: 50,
     paymentMethod: "PIX",
@@ -21,6 +23,7 @@ const appointments = [
     serviceName: "Barba",
     professionalName: null,
     startTime: "2026-07-22T14:00:00.000Z",
+    endTime: "2026-07-22T14:30:00.000Z",
     status: "CANCELED",
     servicePrice: 35,
     paymentMethod: "CASH",

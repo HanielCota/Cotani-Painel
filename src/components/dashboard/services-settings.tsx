@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import type { ColumnDef } from "@tanstack/react-table";
-import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import type { LegacyColumnDef as ColumnDef } from "@tanstack/react-table/legacy";
+import { getCoreRowModel, useLegacyTable as useReactTable } from "@tanstack/react-table/legacy";
+import { flexRender } from "@tanstack/react-table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { ServiceFormDialog } from "@/components/dashboard/service-form-dialog";

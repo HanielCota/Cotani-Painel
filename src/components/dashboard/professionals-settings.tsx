@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import type { ColumnDef } from "@tanstack/react-table";
-import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import type { LegacyColumnDef as ColumnDef } from "@tanstack/react-table/legacy";
+import { getCoreRowModel, useLegacyTable as useReactTable } from "@tanstack/react-table/legacy";
+import { flexRender } from "@tanstack/react-table";
 import { UserIcon } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";

@@ -60,7 +60,7 @@ describe("requireRole", () => {
       clinic: { id: "clinic-1" },
       membership: { id: "memb-1", role: "ADMIN" },
       role: "ADMIN" as const,
-    };
+    } as unknown as Parameters<typeof requireRole>[0];
 
     expect(requireRole(ctx, ["ADMIN"])).toBe(ctx);
   });
@@ -70,7 +70,7 @@ describe("requireRole", () => {
       clinic: { id: "clinic-1" },
       membership: { id: "memb-1", role: "PROVIDER" },
       role: "PROVIDER" as const,
-    };
+    } as unknown as Parameters<typeof requireRole>[0];
 
     expect(() => requireRole(ctx, ["ADMIN"])).toThrow(InsufficientRoleError);
   });

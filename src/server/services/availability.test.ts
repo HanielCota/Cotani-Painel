@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { prismaMock } from "@/test/mocks/prisma";
 import { getAvailableDatesInMonth, getAvailableSlots } from "@/server/services/availability";
