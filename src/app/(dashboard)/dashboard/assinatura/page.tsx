@@ -168,7 +168,7 @@ export default withTenant(async ({ clinic }) => {
                   </p>
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-lg border">
+                <div className="overflow-x-auto rounded-xl border border-border/80">
                   <Table>
                     <TableHeader>
                       <TableRow>

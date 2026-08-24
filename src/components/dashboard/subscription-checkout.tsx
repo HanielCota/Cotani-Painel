@@ -61,7 +61,7 @@ export function SubscriptionCheckout({ plans }: SubscriptionCheckoutProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       {plans.map((plan) => (
-        <div key={plan.id} className="rounded-lg border bg-card p-4">
+        <div key={plan.id} className="rounded-xl border border-border/80 bg-card p-4">
           <p className="font-medium">{plan.name}</p>
           <p className="text-2xl font-semibold">{priceFormatter.format(plan.price)}</p>
           <p className="text-xs text-muted-foreground">{plan.description}</p>
@@ -81,7 +81,7 @@ export function SubscriptionCheckout({ plans }: SubscriptionCheckoutProps) {
       ))}
 
       {!isConfigured ? (
-        <div className="rounded-lg border bg-muted/50 p-4 text-sm text-muted-foreground sm:col-span-2">
+        <div className="rounded-xl border border-border/80 bg-background/60 p-4 text-sm text-muted-foreground sm:col-span-2">
           O checkout automático ainda não está configurado. Configure as variáveis{" "}
           <code className="rounded bg-muted px-1 py-0.5 text-xs">MERCADO_PAGO_ACCESS_TOKEN</code>,{" "}
           <code className="rounded bg-muted px-1 py-0.5 text-xs">MERCADO_PAGO_MONTHLY_PLAN_ID</code> e{" "}

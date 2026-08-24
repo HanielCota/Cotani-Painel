@@ -8,7 +8,7 @@ const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", curre
 
 export function ReportsTopServices({ services }: ReportsTopServicesProps) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
       <h3 className="mb-4 text-sm font-semibold text-card-foreground">Serviços mais vendidos</h3>
       {services.length === 0 ? (
         <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">

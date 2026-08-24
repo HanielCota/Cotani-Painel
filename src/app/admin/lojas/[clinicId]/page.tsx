@@ -34,7 +34,7 @@ function LifecycleForm({ clinicId, action, label, variant = "default", help }: {
   help: string;
 }) {
   return (
-    <form action={action} className="space-y-3 rounded-lg border p-4">
+    <form action={action} className="space-y-3 rounded-xl border border-border/80 bg-background/50 p-4">
       <input type="hidden" name="clinicId" value={clinicId} />
       <div><p className="font-medium">{label}</p><p className="text-xs text-muted-foreground">{help}</p></div>
       <div className="space-y-1.5"><Label htmlFor={`reason-${label}`}>Motivo obrigatório</Label><Input id={`reason-${label}`} name="reason" minLength={5} maxLength={500} required placeholder="Registre a justificativa" /></div>
@@ -87,7 +87,7 @@ export default async function StoreDetailPage({
       <AdminFlash status={flash.status} message={flash.message} />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {metrics.map(({ label, value, icon: Icon }) => <Card key={label}><CardContent className="flex items-center justify-between pt-6"><div><p className="text-sm text-muted-foreground">{label}</p><p className="text-2xl font-semibold">{value}</p></div><Icon className="size-5 text-primary" /></CardContent></Card>)}
+        {metrics.map(({ label, value, icon: Icon }) => <Card key={label}><CardContent className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">{label}</p><p className="text-2xl font-semibold">{value}</p></div><span className="flex size-10 items-center justify-center rounded-xl bg-accent text-primary"><Icon className="size-5" /></span></CardContent></Card>)}
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
@@ -135,13 +135,13 @@ export default async function StoreDetailPage({
         <CardHeader><CardTitle>Membros e permissões</CardTitle><CardDescription>As alterações são sincronizadas com o Clerk. O último administrador nunca pode ser removido ou rebaixado.</CardDescription></CardHeader>
         <CardContent className="space-y-5">
           {clinic.memberships.map((membership) => (
-            <div key={membership.id} className="grid gap-4 rounded-lg border p-4 lg:grid-cols-[1fr_2fr]">
+            <div key={membership.id} className="grid gap-4 rounded-xl border border-border/80 bg-background/50 p-4 lg:grid-cols-[1fr_2fr]">
               <div><p className="font-medium">{membership.user.name}</p><p className="text-sm text-muted-foreground">{membership.user.email ?? "Sem e-mail"}</p><Badge className="mt-2" variant="outline">{roleLabels[membership.role]}</Badge></div>
               <div className="grid gap-4 md:grid-cols-2">
                 <form action={updateMembershipRoleAsPlatformAdmin} className="space-y-2">
                   <input type="hidden" name="clinicId" value={clinic.id} /><input type="hidden" name="membershipId" value={membership.id} />
                   <Label htmlFor={`role-${membership.id}`}>Alterar papel</Label>
-                  <select id={`role-${membership.id}`} name="role" defaultValue={membership.role} className="h-8 w-full rounded-lg border border-input bg-background px-2.5 text-sm">
+                  <select id={`role-${membership.id}`} name="role" defaultValue={membership.role} className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm">
                     <option value="ADMIN">Administrador</option><option value="RECEPTIONIST">Recepcionista</option><option value="PROVIDER">Profissional</option>
                   </select>
                   <Input name="reason" required minLength={5} maxLength={500} placeholder="Motivo da alteração" />
@@ -161,7 +161,7 @@ export default async function StoreDetailPage({
       </Card>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <Card><CardHeader><CardTitle>Pagamentos recentes</CardTitle></CardHeader><CardContent className="px-0"><Table><TableHeader><TableRow><TableHead className="pl-6">Data</TableHead><TableHead>Status</TableHead><TableHead>Plano</TableHead><TableHead className="pr-6 text-right">Valor</TableHead></TableRow></TableHeader><TableBody>
+        <Card className="overflow-hidden"><CardHeader><CardTitle>Pagamentos recentes</CardTitle></CardHeader><CardContent className="px-0"><Table><TableHeader className="bg-muted/40"><TableRow><TableHead className="pl-6">Data</TableHead><TableHead>Status</TableHead><TableHead>Plano</TableHead><TableHead className="pr-6 text-right">Valor</TableHead></TableRow></TableHeader><TableBody>
           {clinic.paymentHistory.map((payment) => <TableRow key={payment.id}><TableCell className="pl-6">{dateFormatter.format(payment.createdAt)}</TableCell><TableCell>{paymentStatusLabel(payment.status)}</TableCell><TableCell>{subscriptionPlanLabel(payment.plan)}</TableCell><TableCell className="pr-6 text-right">{moneyFormatter.format(Number(payment.amount))}</TableCell></TableRow>)}
           {!clinic.paymentHistory.length ? <TableRow><TableCell colSpan={4} className="py-10 text-center text-muted-foreground">Nenhum pagamento registrado.</TableCell></TableRow> : null}
         </TableBody></Table></CardContent></Card>

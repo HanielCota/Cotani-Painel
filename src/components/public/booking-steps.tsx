@@ -324,7 +324,7 @@ function DateTimeStep({
                     onChange={() => onSlotChange(slot)}
                   />
                   <span
-                    className={`inline-flex min-h-12 items-center rounded-lg border px-5 text-sm font-medium transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-ring active:scale-95 ${
+                    className={`inline-flex min-h-12 items-center rounded-xl border px-5 text-sm font-medium transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-ring active:scale-95 ${
                       selected
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border bg-card hover:bg-accent hover:text-accent-foreground"

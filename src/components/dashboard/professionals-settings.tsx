@@ -115,7 +115,7 @@ export function ProfessionalsSettings() {
       ) : null}
 
       {!isPending && !isError ? (
-        <div className="rounded-lg border overflow-x-auto">
+        <div className="overflow-x-auto rounded-xl border border-border/80">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -137,7 +137,7 @@ export function ProfessionalsSettings() {
                 </TableRow>
               ) : (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} className={row.original.isActive ? "" : "bg-muted/30"}>
+                  <TableRow key={row.id} className={row.original.isActive ? "" : "bg-background/60"}>
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                     ))}

@@ -35,7 +35,7 @@ export function ClinicSettings({ maxAppointmentsPerDay }: ClinicSettingsProps) {
   }, [state]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-4 rounded-lg border p-4">
+    <form action={formAction} className="flex flex-col gap-4 rounded-xl border border-border/80 bg-background/50 p-4">
       <div className="flex items-center gap-2">
         <Settings2Icon className="size-5 text-primary" />
         <h3 className="font-semibold">Limite diário de agendamentos</h3>

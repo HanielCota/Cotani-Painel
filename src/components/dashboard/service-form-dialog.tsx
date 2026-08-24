@@ -197,7 +197,7 @@ export function ServiceFormDialog({ service }: ServiceFormDialogProps) {
                     </Button>
                   </div>
                 ) : (
-                  <div className="flex h-32 w-32 flex-col items-center justify-center gap-2 rounded-lg border border-dashed bg-muted text-muted-foreground">
+                  <div className="flex h-32 w-32 flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-background/60 text-muted-foreground">
                     <ImageIcon className="size-6" />
                     <span className="text-xs">Sem imagem</span>
                   </div>

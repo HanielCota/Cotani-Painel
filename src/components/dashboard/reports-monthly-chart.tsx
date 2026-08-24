@@ -29,7 +29,7 @@ function ChartTooltip({
 }) {
   if (active && payload && payload.length) {
     return (
-      <div className="rounded-lg bg-popover px-3 py-2 text-xs text-popover-foreground shadow-lg">
+      <div className="rounded-xl border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-lg">
         <p className="font-medium">{label}</p>
         {payload.map((entry, index) => (
           <p key={index} style={{ color: entry.color }}>
@@ -46,7 +46,7 @@ function ChartTooltip({
 
 export function ReportsMonthlyChart({ data }: ReportsMonthlyChartProps) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
       <h3 className="mb-4 text-sm font-semibold text-card-foreground">Evolução mensal</h3>
       <div className="h-64 w-full sm:h-80">
         {data.length === 0 || data.every((d) => d.appointments === 0) ? (

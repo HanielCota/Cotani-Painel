@@ -48,7 +48,7 @@ function ChartCard({
   className?: string;
 }) {
   return (
-    <div className={`rounded-2xl border border-border bg-card p-5 shadow-sm ${className}`}>
+    <div className={`rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)] ${className}`}>
       <h3 className="mb-4 text-sm font-semibold text-card-foreground">{title}</h3>
       {children}
     </div>

@@ -14,14 +14,19 @@ export default function GlobalError({ error, unstable_retry }: { error: Error & 
   return (
     <html lang="pt-BR">
       <body className="bg-background text-foreground antialiased">
-        <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col items-start justify-center gap-4 p-6">
-          <TriangleAlertIcon aria-hidden="true" className="text-destructive" />
-          <h1 className="text-2xl font-semibold tracking-tight">Algo deu errado</h1>
-          <p className="text-sm text-muted-foreground">Não foi possível carregar o Cotani neste momento. Tente novamente.</p>
-          <Button type="button" onClick={() => unstable_retry()}>
-            <RefreshCwIcon data-icon="inline-start" />
-            Tentar novamente
-          </Button>
+        <main className="relative flex min-h-screen items-center justify-center overflow-hidden p-6">
+          <div aria-hidden="true" className="absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top,oklch(0.91_0.08_165_/_0.45),transparent_68%)]" />
+          <div className="relative flex w-full max-w-md flex-col items-center gap-4 rounded-2xl border border-border/80 bg-card p-8 text-center shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+            <span className="flex size-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive"><TriangleAlertIcon aria-hidden="true" className="size-6" /></span>
+            <div className="space-y-1">
+              <h1 className="text-2xl font-semibold tracking-tight">Algo deu errado</h1>
+              <p className="text-sm leading-relaxed text-muted-foreground">Não foi possível carregar o Cotani neste momento. Tente novamente.</p>
+            </div>
+            <Button type="button" onClick={() => unstable_retry()}>
+              <RefreshCwIcon data-icon="inline-start" />
+              Tentar novamente
+            </Button>
+          </div>
         </main>
       </body>
     </html>

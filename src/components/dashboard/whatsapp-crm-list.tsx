@@ -62,7 +62,7 @@ function NotificationCard({
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 shadow-sm">
+    <div className="flex flex-col gap-4 rounded-xl border border-border/80 bg-background/50 p-4">
       <div className="flex flex-col gap-1">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2">

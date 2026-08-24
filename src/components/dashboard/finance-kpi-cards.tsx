@@ -18,7 +18,7 @@ interface FinanceKpiCardProps {
 
 function FinanceKpiCard({ title, value, change, icon: Icon, iconBg = "bg-primary/10", sparklineData }: FinanceKpiCardProps) {
   return (
-    <div className="flex items-start gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <div className="flex items-start gap-4 rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
       <div className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${iconBg}`}>
         <Icon className="size-6 text-primary" strokeWidth={1.5} />
       </div>

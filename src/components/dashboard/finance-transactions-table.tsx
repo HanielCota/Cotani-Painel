@@ -31,16 +31,16 @@ const statusVariant: Record<string, "default" | "secondary" | "destructive" | "o
 export function FinanceTransactionsTable({ appointments }: FinanceTransactionsTableProps) {
   if (appointments.length === 0) {
     return (
-      <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
+      <div className="rounded-2xl border border-dashed border-border/80 bg-background/50 p-8 text-center">
         <p className="text-sm text-muted-foreground">Nenhuma transação no período selecionado.</p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-      <h3 className="mb-4 text-sm font-semibold text-card-foreground">Transações recentes</h3>
-      <div className="overflow-x-auto">
+    <div className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+      <h3 className="border-b px-5 py-4 text-sm font-semibold text-card-foreground">Transações recentes</h3>
+      <div className="overflow-x-auto px-5 pb-5">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs font-medium text-muted-foreground">

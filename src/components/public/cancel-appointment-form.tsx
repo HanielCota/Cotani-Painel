@@ -36,7 +36,7 @@ export function CancelAppointmentForm({ slug, token }: CancelAppointmentFormProp
 
   if (result?.status === "success") {
     return (
-      <div className="flex flex-col gap-4 rounded-xl border bg-card p-5 shadow-sm">
+      <div className="flex flex-col gap-4 rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
         <Alert variant="default">
           <CalendarXIcon aria-hidden="true" />
           <AlertTitle>Agendamento cancelado</AlertTitle>
@@ -50,7 +50,7 @@ export function CancelAppointmentForm({ slug, token }: CancelAppointmentFormProp
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border bg-card p-5 shadow-sm">
+    <div className="flex flex-col gap-4 rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
       <p className="text-sm leading-relaxed text-muted-foreground">
         Confirme abaixo para liberar o horário. Esta ação não pode ser desfeita.
       </p>

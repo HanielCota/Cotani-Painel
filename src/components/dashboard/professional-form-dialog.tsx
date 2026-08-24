@@ -221,7 +221,7 @@ export function ProfessionalFormDialog({ professional }: ProfessionalFormDialogP
                     return (
                       <label
                         key={service.id}
-                        className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors ${
+                        className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors ${
                           selected
                             ? "border-primary bg-primary/5 ring-1 ring-primary"
                             : "border-border bg-card hover:bg-muted/50"

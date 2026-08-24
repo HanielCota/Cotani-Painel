@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ClockIcon, TagIcon } from "lucide-react";
+import { CalendarXIcon, ClockIcon, TagIcon } from "lucide-react";
 
 import { CancelAppointmentError } from "@/components/public/cancel-appointment-error";
 import { CancelAppointmentForm } from "@/components/public/cancel-appointment-form";
@@ -55,13 +55,15 @@ export default async function CancelPage({ params }: CancelPageProps) {
   }).format(appointment.startTime);
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 overflow-x-hidden bg-background px-4 py-8 sm:py-10">
-      <div className="flex flex-col gap-2">
+    <main className="relative mx-auto flex min-h-svh w-full max-w-2xl flex-col justify-center gap-6 overflow-x-hidden px-4 py-8 sm:py-10">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_top,oklch(0.91_0.08_165_/_0.45),transparent_68%)]" />
+      <div className="flex flex-col items-center gap-2 text-center">
+        <span className="flex size-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive"><CalendarXIcon className="size-6" /></span>
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Cancelar agendamento</h1>
         <p className="text-sm text-muted-foreground">{clinic.name}</p>
       </div>
 
-      <div className="rounded-xl border bg-card p-4 shadow-sm">
+      <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
         <dl className="flex flex-col gap-3 text-sm">
           <div className="flex items-center justify-between gap-4">
             <dt className="flex items-center gap-2 text-muted-foreground">
