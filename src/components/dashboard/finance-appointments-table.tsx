@@ -30,7 +30,7 @@ interface FinanceAppointmentsTableProps {
 
 export function FinanceAppointmentsTable({ metrics }: FinanceAppointmentsTableProps) {
   return (
-    <Card className="border-border/80 shadow-sm">
+    <Card className="overflow-hidden">
       <CardHeader>
         <CardTitle>Agendamentos do mês</CardTitle>
         <CardDescription>Todos os atendimentos do mês atual com status e valor.</CardDescription>

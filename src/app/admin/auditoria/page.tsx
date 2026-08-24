@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,10 +26,10 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
 
   return (
     <>
-      <div><h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Auditoria</h1><p className="text-sm text-muted-foreground">Histórico imutável das ações administrativas sensíveis.</p></div>
-      <Card><CardContent className="px-0">
+      <AdminPageHeader title="Auditoria" description="Histórico imutável das ações administrativas sensíveis." />
+      <Card className="overflow-hidden"><CardContent className="px-0">
         <Table>
-          <TableHeader><TableRow><TableHead className="pl-6">Data</TableHead><TableHead>Ação</TableHead><TableHead>Loja / alvo</TableHead><TableHead>Motivo</TableHead><TableHead className="pr-6">Responsável</TableHead></TableRow></TableHeader>
+          <TableHeader className="bg-muted/40"><TableRow><TableHead className="pl-6">Data</TableHead><TableHead>Ação</TableHead><TableHead>Loja / alvo</TableHead><TableHead>Motivo</TableHead><TableHead className="pr-6">Responsável</TableHead></TableRow></TableHeader>
           <TableBody>
             {events.map((event) => (
               <TableRow key={event.id}>

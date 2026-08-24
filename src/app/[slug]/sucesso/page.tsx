@@ -41,11 +41,12 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
   const formattedDate = date ? format(parseISO(date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : null;
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-6 overflow-x-hidden bg-background px-4 py-8 sm:py-10">
-      <Card className="border border-border/80 shadow-sm" role="status">
-        <CardHeader className="gap-2">
-          <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl">
-            <CalendarCheckIcon aria-hidden="true" className="size-6 text-primary sm:size-7" />
+    <main className="relative mx-auto flex min-h-svh w-full max-w-2xl flex-col justify-center gap-6 overflow-x-hidden px-4 py-8 sm:py-10">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_top,oklch(0.91_0.08_165_/_0.45),transparent_68%)]" />
+      <Card role="status">
+        <CardHeader className="items-center gap-2 text-center">
+          <span className="flex size-12 items-center justify-center rounded-2xl bg-accent text-primary"><CalendarCheckIcon aria-hidden="true" className="size-7" /></span>
+          <CardTitle className="text-xl sm:text-2xl">
             Agendamento confirmado
           </CardTitle>
           <CardDescription>
@@ -101,7 +102,7 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
           <p className="text-center text-sm leading-relaxed text-muted-foreground">
-            Você receberá uma confirmação no WhatsApp. Se precisar cancelar, use o link enviado na mensagem.
+            Guarde os dados deste agendamento. Se precisar alterar ou cancelar, entre em contato com a barbearia.
           </p>
           <SuccessActions
             slug={slug}

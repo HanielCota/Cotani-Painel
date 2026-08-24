@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchJson } from "@/lib/fetch-json";
+import { cn } from "@/lib/utils";
 import type { ActionResult, ProfessionalListItem } from "@/types";
 
 const initialState: ActionResult = { status: "success", message: "" };
@@ -31,9 +32,11 @@ interface AppointmentFormProps {
   services: Array<{ id: string; name: string; duration: number }>;
   minStartTime: string;
   timeZone: string;
+  className?: string;
+  onSuccess?: () => void;
 }
 
-export function AppointmentForm({ customers, services, minStartTime, timeZone }: AppointmentFormProps) {
+export function AppointmentForm({ customers, services, minStartTime, timeZone, className, onSuccess }: AppointmentFormProps) {
   const [state, formAction, isPending] = useActionState(createAppointmentFromForm, initialState);
   const [serviceId, setServiceId] = useState("");
   const [professionalId, setProfessionalId] = useState("");
@@ -55,7 +58,9 @@ export function AppointmentForm({ customers, services, minStartTime, timeZone }:
     }
 
     queryClient.invalidateQueries({ queryKey: ["appointments"] });
-  }, [state, queryClient]);
+    toast.success(state.message);
+    onSuccess?.();
+  }, [state, queryClient, onSuccess]);
 
   const availableProfessionals = professionals?.filter(
     (professional) => professional.isActive && professional.serviceIds.includes(serviceId),
@@ -71,7 +76,7 @@ export function AppointmentForm({ customers, services, minStartTime, timeZone }:
   }
 
   return (
-    <Card className="border border-border/80 shadow-sm">
+    <Card className={cn(className)}>
       <CardHeader>
         <CardTitle>Adicionar atendimento</CardTitle>
         <CardDescription>Os horários são registrados no fuso {timeZone}.</CardDescription>

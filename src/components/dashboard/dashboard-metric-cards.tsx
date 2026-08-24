@@ -11,7 +11,7 @@ const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", curre
 
 export function DashboardMetricCardsSkeleton() {
   return (
-    <section className="grid gap-6 sm:grid-cols-3">
+    <section className="grid gap-4 sm:grid-cols-3">
       {[0, 1, 2].map((card) => (
         <Card key={card}>
           <CardContent className="flex items-center gap-4">
@@ -51,7 +51,7 @@ export async function DashboardMetricCards({ clinic }: DashboardMetricCardsProps
   }
 
   return (
-    <section className="grid gap-6 sm:grid-cols-3">
+    <section className="grid gap-4 sm:grid-cols-3">
       <MetricCard
         title="Agendamentos hoje"
         value={String(metrics.appointmentsToday)}

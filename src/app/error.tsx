@@ -23,7 +23,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-2xl items-center justify-center p-6">
-      <Card className="w-full border-border/80 shadow-sm">
+      <Card className="w-full">
         <CardHeader className="text-center">
           <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
             <AlertTriangleIcon className="size-6" />

@@ -2,6 +2,7 @@ import { addDays } from "date-fns";
 import { ActivityIcon, Building2Icon, CalendarDaysIcon, CircleAlertIcon, ShieldBanIcon, UsersIcon } from "lucide-react";
 import Link from "next/link";
 
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,15 +36,12 @@ export default async function PlatformAdminOverviewPage() {
 
   return (
     <>
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Visão geral da plataforma</h1>
-        <p className="text-sm text-muted-foreground">Acompanhe lojas, uso e pontos que exigem atenção.</p>
-      </div>
+      <AdminPageHeader title="Visão geral da plataforma" description="Acompanhe lojas, uso e pontos que exigem atenção." />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {metrics.map(({ label, value, icon: Icon }) => (
           <Card key={label}>
-            <CardContent className="flex items-center justify-between gap-4 pt-6">
+            <CardContent className="flex items-center justify-between gap-4">
               <div><p className="text-sm text-muted-foreground">{label}</p><p className="text-3xl font-semibold">{value}</p></div>
               <span className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><Icon className="size-5" /></span>
             </CardContent>
@@ -57,7 +55,7 @@ export default async function PlatformAdminOverviewPage() {
         </Card>
       ) : null}
 
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader className="flex-row items-center justify-between gap-4">
           <div><CardTitle>Lojas recentes</CardTitle><CardDescription>Últimas lojas sincronizadas com a plataforma.</CardDescription></div>
           <Button nativeButton={false} render={<Link href="/admin/lojas" />} variant="outline">Ver todas</Button>

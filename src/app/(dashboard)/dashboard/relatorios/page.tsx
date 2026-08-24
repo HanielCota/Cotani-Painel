@@ -5,6 +5,7 @@ import { ReportsKpiCards } from "@/components/dashboard/reports-kpi-cards";
 import { ReportsMonthlyChart } from "@/components/dashboard/reports-monthly-chart";
 import { ReportsTopProfessionals } from "@/components/dashboard/reports-top-professionals";
 import { ReportsTopServices } from "@/components/dashboard/reports-top-services";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getReportsMetrics } from "@/server/services/reports";
 import { withTenant } from "@/server/with-tenant";
@@ -16,10 +17,10 @@ export default withTenant(async ({ clinic }) => {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl lg:text-3xl">Relatórios</h1>
-        <p className="text-sm text-muted-foreground">Transforme a rotina da {clinic.name} em decisões claras.</p>
-      </div>
+      <PageHeader
+        title="Relatórios"
+        description={`Transforme a rotina da ${clinic.name} em decisões claras.`}
+      />
 
       <section className="flex flex-col gap-4">
         <h2 className="text-base font-semibold text-foreground">Indicadores do mês</h2>
@@ -44,7 +45,7 @@ export default withTenant(async ({ clinic }) => {
         <ReportsAppointmentsTable appointments={metrics.monthAppointments} />
       </section>
 
-      <Card className="border border-border/80 shadow-sm">
+      <Card>
         <CardHeader>
           <CardTitle>Como os indicadores são calculados</CardTitle>
           <CardDescription>As taxas consideram o mês atual no fuso {clinic.timeZone}.</CardDescription>

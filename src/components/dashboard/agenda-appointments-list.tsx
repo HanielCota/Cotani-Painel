@@ -72,7 +72,7 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule }: 
 
   if (!appointments || appointments.length === 0) {
     return (
-      <Empty className="min-h-48 border-0 bg-muted/30">
+      <Empty className="min-h-48 border border-dashed border-border/80 bg-background/50">
         <EmptyHeader>
           <EmptyMedia variant="icon"><Clock3Icon /></EmptyMedia>
           <EmptyTitle>Nenhum atendimento futuro</EmptyTitle>
@@ -106,7 +106,7 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule }: 
       </div>
 
       {filteredAppointments.length === 0 ? (
-        <Empty className="min-h-32 border-0 bg-muted/30">
+        <Empty className="min-h-32 border border-dashed border-border/80 bg-background/50">
           <EmptyHeader>
             <EmptyMedia variant="icon"><Clock3Icon /></EmptyMedia>
             <EmptyTitle>Nenhum atendimento neste filtro</EmptyTitle>

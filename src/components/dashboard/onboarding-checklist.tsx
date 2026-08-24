@@ -116,7 +116,7 @@ export function OnboardingChecklist({
             return (
               <li
                 key={step.id}
-                className={`flex items-start gap-3 rounded-lg border p-3 ${step.done ? "bg-muted/30" : "bg-card"}`}
+                className={`flex items-start gap-3 rounded-xl border p-3 ${step.done ? "bg-accent/45" : "bg-card"}`}
               >
                 <div
                   className={`flex size-8 shrink-0 items-center justify-center rounded-full border ${

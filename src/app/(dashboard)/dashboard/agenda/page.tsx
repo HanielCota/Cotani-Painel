@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 
 import { AgendaAppointmentsList } from "@/components/dashboard/agenda-appointments-list";
 import { AgendaSetup } from "@/components/dashboard/agenda-setup";
-import { AppointmentForm } from "@/components/dashboard/appointment-form";
+import { AppointmentFormDialog } from "@/components/dashboard/appointment-form-dialog";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import prisma from "@/lib/prisma";
 import { formatClinicDateTimeInput } from "@/lib/timezone";
@@ -30,18 +31,24 @@ export default withTenant(async ({ clinic }) => {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl lg:text-3xl">Agenda</h1>
-        <p className="text-sm text-muted-foreground">Organize os próximos atendimentos de {clinic.name}.</p>
-      </div>
+      <PageHeader
+        title="Agenda"
+        description={`Organize os próximos atendimentos de ${clinic.name}.`}
+        actions={
+          canSchedule ? (
+            <AppointmentFormDialog
+              customers={customers}
+              services={services}
+              minStartTime={minStartTime}
+              timeZone={clinic.timeZone}
+            />
+          ) : undefined
+        }
+      />
 
       <AgendaSetup needsCustomers={customers.length === 0} needsServices={services.length === 0} />
 
-      {canSchedule ? (
-        <AppointmentForm customers={customers} services={services} minStartTime={minStartTime} timeZone={clinic.timeZone} />
-      ) : null}
-
-      <Card className="border border-border/80 shadow-sm">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><CalendarDaysIcon /> Próximos atendimentos</CardTitle>
           <CardDescription>Confirme, reagende ou conclua os atendimentos conforme a operação avança. A lista é atualizada automaticamente.</CardDescription>

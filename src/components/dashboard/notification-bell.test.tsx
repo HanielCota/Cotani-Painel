@@ -1,8 +1,14 @@
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { NotificationBell } from "@/components/dashboard/notification-bell";
 import { render } from "@/test/utils";
+
+const routerPush = vi.hoisted(() => vi.fn());
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: routerPush }),
+}));
 
 vi.mock("sonner", () => ({
   toast: {
@@ -33,14 +39,30 @@ describe("NotificationBell", () => {
     vi.clearAllMocks();
   });
 
-  it("renderiza o sino de notificações", async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(createMockFetchResponse([]));
+  it("abre os próximos agendamentos e permite acessar a agenda", async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+      createMockFetchResponse([
+        {
+          id: "app-1",
+          customerName: "João Silva",
+          serviceName: "Corte",
+          startTime: "2026-07-22T14:00:00",
+          status: "CONFIRMED",
+        },
+      ]),
+    );
 
     render(<NotificationBell />);
 
     await waitFor(() => {
       expect(screen.getByLabelText(/notificações/i)).toBeInTheDocument();
     });
+
+    fireEvent.click(screen.getByLabelText(/notificações/i));
+
+    expect(await screen.findByText("João Silva")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /abrir agenda/i }));
+    expect(routerPush).toHaveBeenCalledWith("/dashboard/agenda");
   });
 
   it("exibe toast quando novos agendamentos chegam", async () => {

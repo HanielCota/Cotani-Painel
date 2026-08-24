@@ -14,7 +14,7 @@ export function DashboardCard({ icon: Icon, title, description, children, classN
   return (
     <div
       className={cn(
-        "flex flex-col h-full rounded-xl bg-card p-6 text-card-foreground ring-1 ring-foreground/10",
+        "flex h-full flex-col rounded-2xl border bg-card p-6 text-card-foreground shadow-sm",
         className,
       )}
     >
@@ -25,7 +25,7 @@ export function DashboardCard({ icon: Icon, title, description, children, classN
         </h3>
         <p className="mt-2 text-xs text-muted-foreground">{description}</p>
       </div>
-      <div className="mt-6 mt-auto">{children}</div>
+      <div className="mt-auto pt-6">{children}</div>
     </div>
   );
 }

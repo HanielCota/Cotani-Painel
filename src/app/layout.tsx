@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: "%s | Cotani",
   },
   description:
-    "Plataforma de gestão para barbearias: agenda online, clientes, relatórios e agendamento público com lembretes automáticos por WhatsApp.",
+    "Plataforma de gestão para barbearias com agenda on-line, clientes, relatórios e agendamento público.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     siteName: "Cotani",
     title: "Cotani — Gestão inteligente para barbearias",
     description:
-      "Plataforma de gestão para barbearias: agenda online, clientes, relatórios e agendamento público com lembretes automáticos por WhatsApp.",
+      "Plataforma de gestão para barbearias com agenda on-line, clientes, relatórios e agendamento público.",
   },
 };
 

@@ -134,7 +134,7 @@ export function WhatsAppCrmList({ pending, sent }: WhatsAppCrmListProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <Card className="border border-border/80 shadow-sm">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageCircleIcon className="size-5 text-primary" />
@@ -146,7 +146,7 @@ export function WhatsAppCrmList({ pending, sent }: WhatsAppCrmListProps) {
         </CardHeader>
         <CardContent>
           {visiblePending.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed bg-muted/30 py-10 text-center">
+            <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed bg-background/50 py-10 text-center">
               <MessageSquareIcon className="size-8 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">Nenhuma mensagem pendente no momento.</p>
             </div>
@@ -166,7 +166,7 @@ export function WhatsAppCrmList({ pending, sent }: WhatsAppCrmListProps) {
       </Card>
 
       {visibleSent.length > 0 ? (
-        <Card className="border border-border/80 shadow-sm">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CheckIcon className="size-5 text-primary" />

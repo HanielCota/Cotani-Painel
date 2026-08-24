@@ -1,6 +1,7 @@
 import { Building2Icon, SearchIcon } from "lucide-react";
 import Link from "next/link";
 
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -53,13 +54,10 @@ export default async function StoresPage({
 
   return (
     <>
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Lojas</h1>
-        <p className="text-sm text-muted-foreground">Pesquise, inspecione e controle o acesso das lojas à plataforma.</p>
-      </div>
+      <AdminPageHeader title="Lojas" description="Pesquise, inspecione e controle o acesso das lojas à plataforma." />
 
       <Card>
-        <CardContent className="space-y-4 pt-6">
+        <CardContent className="space-y-4">
           <form className="flex flex-col gap-2 sm:flex-row" action="/admin/lojas">
             <div className="relative flex-1">
               <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -78,11 +76,11 @@ export default async function StoresPage({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="overflow-hidden">
         <CardContent className="px-0">
           {clinics.length ? (
             <Table>
-              <TableHeader><TableRow><TableHead className="pl-6">Loja</TableHead><TableHead>Status</TableHead><TableHead>Plano</TableHead><TableHead>Membros</TableHead><TableHead>Clientes</TableHead><TableHead>Agendamentos</TableHead><TableHead className="pr-6 text-right">Ação</TableHead></TableRow></TableHeader>
+              <TableHeader className="bg-muted/40"><TableRow><TableHead className="pl-6">Loja</TableHead><TableHead>Status</TableHead><TableHead>Plano</TableHead><TableHead>Membros</TableHead><TableHead>Clientes</TableHead><TableHead>Agendamentos</TableHead><TableHead className="pr-6 text-right">Ação</TableHead></TableRow></TableHeader>
               <TableBody>
                 {clinics.map((clinic) => (
                   <TableRow key={clinic.id}>

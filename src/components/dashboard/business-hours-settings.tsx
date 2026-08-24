@@ -61,7 +61,7 @@ export function BusinessHoursSettings({ businessHours }: BusinessHoursSettingsPr
             .map((item) => (
               <div
                 key={item.dayOfWeek}
-                className={`flex flex-col gap-4 p-4 sm:flex-row sm:items-start ${item.isOpen ? "" : "bg-muted/30"}`}
+                className={`flex flex-col gap-4 p-4 sm:flex-row sm:items-start ${item.isOpen ? "" : "bg-background/60"}`}
               >
                 <div className="flex min-w-[10rem] items-center gap-3 sm:pt-6">
                   <Checkbox

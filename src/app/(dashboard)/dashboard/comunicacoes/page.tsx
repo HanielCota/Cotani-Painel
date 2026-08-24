@@ -2,6 +2,7 @@ import { InfoIcon } from "lucide-react";
 import type { Metadata } from "next";
 
 import { WhatsAppCrmList } from "@/components/dashboard/whatsapp-crm-list";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getWhatsAppCrmData } from "@/server/services/whatsapp-crm";
 import { withTenant } from "@/server/with-tenant";
@@ -13,12 +14,10 @@ export default withTenant(async ({ clinic }) => {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl lg:text-3xl">Comunicações</h1>
-        <p className="text-sm text-muted-foreground">
-          Envie mensagens do WhatsApp manualmente e acompanhe o histórico da {clinic.name}.
-        </p>
-      </div>
+      <PageHeader
+        title="Comunicações"
+        description={`Envie mensagens do WhatsApp manualmente e acompanhe o histórico da ${clinic.name}.`}
+      />
 
       <Alert className="border-primary/20 bg-primary/5">
         <InfoIcon className="size-4 text-primary" />

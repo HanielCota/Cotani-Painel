@@ -2,18 +2,22 @@ import { auth } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
-import { DashboardHeader } from "@/components/dashboard/header";
 import { EmptyBarbershopState } from "@/components/dashboard/empty-barbershop-state";
 import { PaymentRequiredState } from "@/components/dashboard/payment-required-state";
 import { ClinicSuspendedState } from "@/components/dashboard/clinic-suspended-state";
 import { SubscriptionBanner } from "@/components/dashboard/subscription-banner";
 import { UnprovisionedAccountState } from "@/components/dashboard/unprovisioned-account-state";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import prisma from "@/lib/prisma";
 import { getSelectedOrgId, getTenantContext, TenantResolutionError, type TenantContext } from "@/server/tenant";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
+}
+
+interface DashboardShellProps {
+  children: React.ReactNode;
+  insetClassName?: string;
 }
 
 export const metadata: Metadata = {
@@ -22,6 +26,22 @@ export const metadata: Metadata = {
     template: "%s | Cotani",
   },
 };
+
+function DashboardShell({ children, insetClassName = "bg-background" }: DashboardShellProps) {
+  return (
+    <SidebarProvider className="min-h-svh">
+      <AppSidebar />
+      <SidebarInset className={insetClassName}>
+        <div className="px-4 pt-4 md:hidden">
+          <SidebarTrigger className="size-9 border border-border/60 bg-card shadow-sm" />
+        </div>
+        <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:px-10 lg:py-8">
+          {children}
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}
 
 export default async function DashboardLayout({ children }: DashboardLayoutProps) {
   const { userId } = await auth.protect();
@@ -36,17 +56,9 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
 
   if (!hasMembership) {
     return (
-      <SidebarProvider className="min-h-svh flex-col">
-        <DashboardHeader />
-        <div className="flex flex-1">
-          <AppSidebar />
-          <SidebarInset className="bg-background">
-            <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
-              <UnprovisionedAccountState />
-            </div>
-          </SidebarInset>
-        </div>
-      </SidebarProvider>
+      <DashboardShell>
+        <UnprovisionedAccountState />
+      </DashboardShell>
     );
   }
 
@@ -67,17 +79,9 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
     const selectedOrgId = await getSelectedOrgId();
 
     return (
-      <SidebarProvider className="min-h-svh flex-col">
-        <DashboardHeader />
-        <div className="flex flex-1">
-          <AppSidebar />
-          <SidebarInset className="bg-background">
-            <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
-              <EmptyBarbershopState selectedOrgId={selectedOrgId} />
-            </div>
-          </SidebarInset>
-        </div>
-      </SidebarProvider>
+      <DashboardShell>
+        <EmptyBarbershopState selectedOrgId={selectedOrgId} />
+      </DashboardShell>
     );
   }
 
@@ -85,48 +89,24 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
 
   if (clinic.operationalStatus === "SUSPENDED" || clinic.deletedAt) {
     return (
-      <SidebarProvider className="min-h-svh flex-col">
-        <DashboardHeader />
-        <div className="flex flex-1">
-          <AppSidebar />
-          <SidebarInset className="bg-background">
-            <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
-              <ClinicSuspendedState reason={clinic.suspensionReason} />
-            </div>
-          </SidebarInset>
-        </div>
-      </SidebarProvider>
+      <DashboardShell>
+        <ClinicSuspendedState reason={clinic.suspensionReason} />
+      </DashboardShell>
     );
   }
 
   if (!clinic.hasPaidOnce) {
     return (
-      <SidebarProvider className="min-h-svh flex-col">
-        <DashboardHeader />
-        <div className="flex flex-1">
-          <AppSidebar />
-          <SidebarInset className="bg-background">
-            <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
-              <PaymentRequiredState barbershopName={clinic.name} />
-            </div>
-          </SidebarInset>
-        </div>
-      </SidebarProvider>
+      <DashboardShell>
+        <PaymentRequiredState barbershopName={clinic.name} />
+      </DashboardShell>
     );
   }
 
   return (
-    <SidebarProvider className="min-h-svh flex-col">
-      <DashboardHeader />
-      <div className="flex flex-1">
-        <AppSidebar />
-        <SidebarInset className="bg-muted/30">
-          <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
-            <SubscriptionBanner status={clinic.subscriptionStatus} />
-            {children}
-          </div>
-        </SidebarInset>
-      </div>
-    </SidebarProvider>
+    <DashboardShell>
+      <SubscriptionBanner status={clinic.subscriptionStatus} />
+      {children}
+    </DashboardShell>
   );
 }

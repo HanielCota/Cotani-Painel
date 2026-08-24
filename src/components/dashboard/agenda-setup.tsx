@@ -19,7 +19,7 @@ function CustomerSetupForm() {
   const [state, formAction, isPending] = useActionState(createCustomerFromForm, initialState);
 
   return (
-    <Card className="border border-border/80 shadow-sm">
+    <Card>
       <CardHeader>
         <ContactRoundIcon />
         <CardTitle>Cadastre um cliente</CardTitle>
@@ -61,7 +61,7 @@ function CustomerSetupForm() {
 
 function ServiceSetupHint() {
   return (
-    <Card className="border border-border/80 shadow-sm">
+    <Card>
       <CardHeader>
         <TagIcon />
         <CardTitle>Cadastre um serviço</CardTitle>

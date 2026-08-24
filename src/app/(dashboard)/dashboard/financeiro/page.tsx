@@ -10,6 +10,7 @@ import {
 import { FinanceDateTabs } from "@/components/dashboard/finance-date-tabs";
 import { FinanceKpiCards } from "@/components/dashboard/finance-kpi-cards";
 import { FinanceTransactionsTable } from "@/components/dashboard/finance-transactions-table";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { getFinanceMetrics } from "@/server/services/finance";
 import { withTenant } from "@/server/with-tenant";
 
@@ -20,12 +21,10 @@ export default withTenant(async ({ clinic }) => {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl lg:text-3xl">
-          Financeiro
-        </h1>
-        <p className="text-sm text-muted-foreground">Acompanhe receitas, vendas e movimentação da {clinic.name}.</p>
-      </div>
+      <PageHeader
+        title="Financeiro"
+        description={`Acompanhe receitas, vendas e movimentação da ${clinic.name}.`}
+      />
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <FinanceDateTabs />

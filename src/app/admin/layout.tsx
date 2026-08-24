@@ -17,25 +17,25 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!admin) notFound();
 
   return (
-    <div className="min-h-svh bg-muted/30">
-      <header className="border-b bg-card">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:px-8">
+    <div className="min-h-svh bg-background">
+      <header className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85">
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-4">
             <Link href="/admin" className="flex items-center gap-2 font-semibold">
-              <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
                 <ShieldCheckIcon className="size-5" />
               </span>
               Gestão Cotani
             </Link>
             <div className="flex items-center gap-3">
-              <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">Ir para o painel</Link>
+              <Link href="/dashboard" className="rounded-lg px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground">Ir para o painel</Link>
               <UserButton />
             </div>
           </div>
           <AdminNav />
         </div>
       </header>
-      <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <main className="mx-auto flex w-full max-w-[1440px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         {children}
       </main>
     </div>

@@ -49,7 +49,7 @@ export function UpcomingAppointmentsList({ timeZone, limit = 10 }: UpcomingAppoi
 
   if (!appointments || appointments.length === 0) {
     return (
-      <Empty className="min-h-32 border-0 bg-muted/30">
+      <Empty className="min-h-40 border border-dashed border-border/80 bg-background/50">
         <EmptyHeader>
           <EmptyMedia variant="icon"><CalendarX2Icon /></EmptyMedia>
           <EmptyTitle>Sem agendamentos próximos</EmptyTitle>

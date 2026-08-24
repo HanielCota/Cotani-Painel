@@ -58,8 +58,6 @@ export function ServicesSettings() {
     [],
   );
 
-  // TanStack Table expõe funções mutáveis; o componente já foi excluído do React Compiler.
-  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: services ?? [],
     columns,

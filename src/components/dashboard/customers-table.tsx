@@ -19,6 +19,22 @@ import type { CustomerListItem } from "@/types";
 
 const PAGE_SIZE = 10;
 
+function formatPhone(value: string) {
+  const digits = value.replace(/\D/g, "");
+  const localDigits = digits.startsWith("55") && digits.length >= 12 ? digits.slice(2) : digits;
+  const countryPrefix = digits.startsWith("55") && digits.length >= 12 ? "+55 " : "";
+
+  if (localDigits.length === 11) {
+    return `${countryPrefix}(${localDigits.slice(0, 2)}) ${localDigits.slice(2, 7)}-${localDigits.slice(7)}`;
+  }
+
+  if (localDigits.length === 10) {
+    return `${countryPrefix}(${localDigits.slice(0, 2)}) ${localDigits.slice(2, 6)}-${localDigits.slice(6)}`;
+  }
+
+  return value;
+}
+
 export function CustomersTable() {
   "use no memo";
   const [search, setSearch] = useState("");
@@ -48,7 +64,11 @@ export function CustomersTable() {
         header: "E-mail",
         cell: ({ getValue }) => getValue<string | null>() ?? "—",
       },
-      { accessorKey: "phone", header: "Telefone" },
+      {
+        accessorKey: "phone",
+        header: "Telefone",
+        cell: ({ getValue }) => formatPhone(getValue<string>()),
+      },
       {
         accessorKey: "createdAt",
         header: "Cliente desde",
@@ -68,8 +88,6 @@ export function CustomersTable() {
     [],
   );
 
-  // TanStack Table expõe funções mutáveis; o componente já foi excluído do React Compiler.
-  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: data?.items ?? [],
     columns,
@@ -82,7 +100,7 @@ export function CustomersTable() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="relative max-w-sm">
+      <div className="relative w-full max-w-md">
         <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={search}
@@ -109,9 +127,9 @@ export function CustomersTable() {
 
       {!isPending && !isError ? (
         <div className={isFetching ? "opacity-60 transition-opacity" : "transition-opacity"}>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-xl border border-border/70">
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-muted/40">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (

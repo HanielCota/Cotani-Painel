@@ -168,7 +168,7 @@ function ServiceProfessionalStep({
           </div>
 
           {availableProfessionals.length === 0 ? (
-            <div className="rounded-lg border border-dashed bg-muted/30 p-6 text-center">
+            <div className="rounded-xl border border-dashed bg-background/50 p-6 text-center">
               <UserIcon className="mx-auto size-8 text-muted-foreground" />
               <p className="mt-2 text-sm font-medium text-foreground">Nenhum profissional disponível</p>
               <p className="text-sm text-muted-foreground">
@@ -381,7 +381,7 @@ function BookingSummary({ clinicName, service, professional, date, slot }: Booki
     : null;
 
   return (
-    <div className="rounded-xl border bg-muted/30 p-4 text-sm">
+    <div className="rounded-xl border bg-background/60 p-4 text-sm">
       <h3 className="mb-3 font-semibold">Resumo do agendamento</h3>
       <dl className="flex flex-col gap-2">
         <div className="flex justify-between gap-4">
@@ -513,7 +513,7 @@ function CustomerStep({ isPending, slug, clinicName, service, professional, date
             onBlur={handlePhoneBlur}
             className="h-12"
           />
-          <FieldDescription>Usado para enviar a confirmação e os lembretes.</FieldDescription>
+          <FieldDescription>Usado pela barbearia para identificar e entrar em contato com você.</FieldDescription>
           {phoneError ? (
             <p className="text-xs text-destructive">Informe um WhatsApp válido com DDD.</p>
           ) : null}
@@ -675,7 +675,7 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
   const slots = data?.slots ?? [];
 
   return (
-    <Card ref={cardRef} className="overflow-hidden border border-border/80 shadow-sm">
+    <Card ref={cardRef} className="overflow-hidden">
       <CardHeader className="gap-2">
         <CardTitle className="text-lg sm:text-xl">Novo agendamento</CardTitle>
         <CardDescription>Complete as etapas para reservar seu horário em {clinicName}.</CardDescription>

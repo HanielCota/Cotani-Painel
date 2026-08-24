@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 
 import { CancelSubscriptionDialog } from "@/components/dashboard/cancel-subscription-dialog";
 import { SubscriptionCheckout } from "@/components/dashboard/subscription-checkout";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -71,12 +72,7 @@ export default withTenant(async ({ clinic }) => {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl lg:text-3xl">
-          Assinatura
-        </h1>
-        <p className="text-sm text-muted-foreground">Gerencie o plano da {clinic.name}.</p>
-      </div>
+      <PageHeader title="Assinatura" description={`Gerencie o plano da ${clinic.name}.`} />
 
       <Tabs defaultValue="current" className="w-full">
         <TabsList>
@@ -162,7 +158,7 @@ export default withTenant(async ({ clinic }) => {
             </CardHeader>
             <CardContent>
               {paymentHistory.length === 0 ? (
-                <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed bg-muted/30 py-10 text-center">
+                <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed bg-background/50 py-10 text-center">
                   <HistoryIcon className="size-8 text-muted-foreground" />
                   <p className="text-sm text-muted-foreground">
                     Nenhum histórico de pagamento disponível no momento.

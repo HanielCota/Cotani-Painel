@@ -2,6 +2,7 @@ import { SettingsIcon } from "lucide-react";
 import type { Metadata } from "next";
 
 import { SettingsTabs } from "@/components/dashboard/settings-tabs";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import prisma from "@/lib/prisma";
 import { withTenant } from "@/server/with-tenant";
@@ -37,12 +38,12 @@ export default withTenant<ConfiguracoesPageProps>(async ({ clinic }, props) => {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl lg:text-3xl">Configurações</h1>
-        <p className="text-sm text-muted-foreground">Gerencie os serviços, profissionais e o expediente de {clinic.name}.</p>
-      </div>
+      <PageHeader
+        title="Configurações"
+        description={`Gerencie os serviços, profissionais e o expediente de ${clinic.name}.`}
+      />
 
-      <Card className="border border-border/80 shadow-sm">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <SettingsIcon />
