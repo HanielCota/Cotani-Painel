@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: SuccessPageProps): Promise<Me
 
 export default async function SuccessPage({ params, searchParams }: SuccessPageProps) {
   const { slug } = await params;
-  const { service, professional, date, time, customer } = await searchParams;
+  const { service, professional, date, time } = await searchParams;
 
   const clinic = await prisma.clinic.findUnique({
     where: { slug },
@@ -97,12 +97,6 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
                 <dd className="min-w-0 truncate text-right font-medium">{time}</dd>
               </div>
             ) : null}
-            {customer ? (
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-muted-foreground">Cliente</dt>
-                <dd className="min-w-0 truncate text-right font-medium">{customer}</dd>
-              </div>
-            ) : null}
           </dl>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
@@ -116,7 +110,6 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
             professional={professional}
             date={date}
             time={time}
-            customer={customer}
             timeZone={clinic.timeZone}
           />
           <Button nativeButton={false} render={<Link href={`/${slug}`} />} variant="outline" className="h-12 w-full">

@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { DashboardHeader } from "@/components/dashboard/header";
 import { EmptyBarbershopState } from "@/components/dashboard/empty-barbershop-state";
 import { PaymentRequiredState } from "@/components/dashboard/payment-required-state";
+import { ClinicSuspendedState } from "@/components/dashboard/clinic-suspended-state";
 import { SubscriptionBanner } from "@/components/dashboard/subscription-banner";
 import { UnprovisionedAccountState } from "@/components/dashboard/unprovisioned-account-state";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -81,6 +82,22 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
   }
 
   const { clinic } = tenant;
+
+  if (clinic.operationalStatus === "SUSPENDED" || clinic.deletedAt) {
+    return (
+      <SidebarProvider className="min-h-svh flex-col">
+        <DashboardHeader />
+        <div className="flex flex-1">
+          <AppSidebar />
+          <SidebarInset className="bg-background">
+            <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:p-8">
+              <ClinicSuspendedState reason={clinic.suspensionReason} />
+            </div>
+          </SidebarInset>
+        </div>
+      </SidebarProvider>
+    );
+  }
 
   if (!clinic.hasPaidOnce) {
     return (

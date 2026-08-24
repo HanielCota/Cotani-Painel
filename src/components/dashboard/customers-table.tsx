@@ -20,6 +20,7 @@ import type { CustomerListItem } from "@/types";
 const PAGE_SIZE = 10;
 
 export function CustomersTable() {
+  "use no memo";
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: PAGE_SIZE });
@@ -67,6 +68,8 @@ export function CustomersTable() {
     [],
   );
 
+  // TanStack Table expõe funções mutáveis; o componente já foi excluído do React Compiler.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: data?.items ?? [],
     columns,

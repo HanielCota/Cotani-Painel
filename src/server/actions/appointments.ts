@@ -6,12 +6,13 @@ import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { parseClinicDateTime } from "@/lib/timezone";
-import { requireActiveClinic } from "@/server/tenant";
+import { getClinicForRoles } from "@/server/tenant";
 import {
   DOUBLE_BOOKING_MESSAGE,
-  isDoubleBookingError,
+  rescheduleScheduledAppointment,
   scheduleAppointment,
 } from "@/server/services/scheduling";
+import { deletePendingNotifications } from "@/server/services/notifications";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
 
@@ -39,44 +40,6 @@ const updateAppointmentStatusSchema = z.object({
 type AppointmentStatusUpdate = z.infer<typeof appointmentStatusSchema>;
 type UpdateAppointmentStatusInput = z.infer<typeof updateAppointmentStatusSchema>;
 
-async function hasSchedulingConflict({
-  clinicId,
-  customerId,
-  serviceId,
-  professionalId,
-  startTime,
-  endTime,
-  appointmentId,
-}: {
-  clinicId: string;
-  customerId: string;
-  serviceId: string;
-  professionalId?: string | null;
-  startTime: Date;
-  endTime: Date;
-  appointmentId?: string;
-}) {
-  const conflictConditions: Array<Record<string, unknown>> = [{ customerId }];
-
-  if (professionalId) {
-    conflictConditions.push({ professionalId });
-  } else {
-    conflictConditions.push({ serviceId });
-  }
-
-  return prisma.appointment.findFirst({
-    where: {
-      clinicId,
-      ...(appointmentId ? { id: { not: appointmentId } } : {}),
-      status: { not: "CANCELED" },
-      startTime: { lt: endTime },
-      endTime: { gt: startTime },
-      OR: conflictConditions,
-    },
-    select: { id: true },
-  });
-}
-
 function revalidateScheduleViews() {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/agenda");
@@ -92,7 +55,7 @@ export async function createAppointment(input: unknown): Promise<ActionResult> {
     return { status: "error", message: "Revise os dados do agendamento." };
   }
 
-  const clinic = await requireActiveClinic();
+  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de criar agendamentos." };
@@ -140,9 +103,11 @@ export async function createAppointment(input: unknown): Promise<ActionResult> {
     serviceId: service.id,
     serviceName: service.name,
     serviceDuration: service.duration,
+    servicePrice: Number(service.price),
     startTime: parsed.data.startTime,
     notes: parsed.data.notes,
     professionalId: parsed.data.professionalId,
+    maxAppointmentsPerDay: clinic.maxAppointmentsPerDay,
   });
 
   if (result.status === "conflict") {
@@ -160,7 +125,7 @@ export async function createAppointment(input: unknown): Promise<ActionResult> {
 export async function createAppointmentFromForm(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
   await auth.protect();
 
-  const clinic = await requireActiveClinic();
+  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de criar agendamentos." };
@@ -201,7 +166,7 @@ export async function rescheduleAppointmentFromForm(_previousState: ActionResult
     return { status: "error", message: "Informe uma nova data e horário válidos." };
   }
 
-  const clinic = await requireActiveClinic();
+  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de reagendar." };
@@ -213,7 +178,7 @@ export async function rescheduleAppointmentFromForm(_previousState: ActionResult
 
   const appointment = await prisma.appointment.findFirst({
     where: { id: parsed.data.appointmentId, clinicId: clinic.id },
-    include: { service: true },
+    include: { service: true, customer: true },
   });
 
   if (!appointment || !["PENDING", "CONFIRMED"].includes(appointment.status)) {
@@ -230,34 +195,31 @@ export async function rescheduleAppointmentFromForm(_previousState: ActionResult
     return { status: "error", message: "Escolha um horário futuro para o atendimento." };
   }
 
-  const endTime = new Date(startTime.getTime() + appointment.service.duration * 60_000);
-  const conflictingAppointment = await hasSchedulingConflict({
-    clinicId: clinic.id,
-    customerId: appointment.customerId,
-    serviceId: appointment.serviceId,
-    professionalId: appointment.professionalId,
-    startTime,
-    endTime,
+  const result = await rescheduleScheduledAppointment({
     appointmentId: appointment.id,
+    clinicId: clinic.id,
+    clinicSlug: clinic.slug,
+    clinicName: clinic.name,
+    timeZone: clinic.timeZone,
+    customerId: appointment.customerId,
+    customerName: appointment.customer.name,
+    customerPhone: appointment.customer.phone,
+    serviceId: appointment.serviceId,
+    serviceName: appointment.service.name,
+    serviceDuration: appointment.service.duration,
+    servicePrice: Number(appointment.priceAtBooking),
+    professionalId: appointment.professionalId ?? undefined,
+    startTime,
+    cancellationToken: appointment.cancellationToken ?? undefined,
+    maxAppointmentsPerDay: clinic.maxAppointmentsPerDay,
   });
 
-  if (conflictingAppointment) {
-    return { status: "error", message: "Já existe um atendimento nesse horário para o cliente ou serviço selecionado." };
+  if (result.status === "conflict") {
+    return { status: "error", message: DOUBLE_BOOKING_MESSAGE };
   }
 
-  try {
-    await prisma.appointment.update({
-      where: { id: appointment.id },
-      data: { startTime, endTime },
-    });
-  } catch (error) {
-    // Rede de segurança: se a exclusion constraint disparar (concorrência real
-    // entre o check acima e o update), devolve mensagem amigável em vez de 500.
-    if (isDoubleBookingError(error)) {
-      return { status: "error", message: DOUBLE_BOOKING_MESSAGE };
-    }
-
-    throw error;
+  if (result.status === "error") {
+    return { status: "error", message: "Não foi possível reagendar o atendimento. Tente novamente." };
   }
 
   revalidateScheduleViews();
@@ -281,7 +243,7 @@ export async function updateAppointmentStatus(
 
   const { status: nextStatus, paymentMethod } = parsedInput.data;
 
-  const clinic = await requireActiveClinic();
+  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de atualizar atendimentos." };
@@ -313,9 +275,19 @@ export async function updateAppointmentStatus(
     return { status: "error", message: "Informe o método de pagamento para concluir o atendimento." };
   }
 
-  await prisma.appointment.update({
-    where: { id: appointment.id },
-    data: { status: nextStatus, ...(paymentMethod ? { paymentMethod } : {}) },
+  await prisma.$transaction(async (transaction) => {
+    await transaction.appointment.update({
+      where: { id: appointment.id },
+      data: {
+        status: nextStatus,
+        ...(paymentMethod ? { paymentMethod } : {}),
+        ...(nextStatus === "COMPLETED" ? { paidAt: new Date() } : {}),
+      },
+    });
+
+    if (["COMPLETED", "CANCELED", "NO_SHOW"].includes(nextStatus)) {
+      await deletePendingNotifications(transaction, appointment.id);
+    }
   });
 
   revalidateScheduleViews();

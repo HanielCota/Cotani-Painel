@@ -16,6 +16,9 @@ const clinic: ClinicModel = {
   hasPaidOnce: true,
   mercadoPagoSubscriptionId: null,
   maxAppointmentsPerDay: null,
+  operationalStatus: "ACTIVE",
+  suspensionReason: null,
+  suspendedAt: null,
   deletedAt: null,
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -37,6 +40,7 @@ function createAppointment(overrides: {
     endTime: new Date(overrides.startTime.getTime() + 30 * 60_000),
     status: overrides.status,
     paymentMethod: overrides.paymentMethod ?? "OTHER",
+    totalPrice: overrides.price,
     notes: null,
     clinicId: clinic.id,
     customerId: "cust-1",
@@ -72,7 +76,7 @@ describe("getFinanceMetrics", () => {
 
     const metrics = await getFinanceMetrics(clinic);
 
-    expect(metrics.currentMonthRevenue).toBe(120); // 50 + 70
+    expect(metrics.currentMonthRevenue).toBe(70); // receita realizada: apenas concluídos
     expect(metrics.monthAppointmentsTotal).toBe(5);
     expect(metrics.monthConfirmedCount).toBe(1);
     expect(metrics.monthCompletedCount).toBe(1);
@@ -80,7 +84,7 @@ describe("getFinanceMetrics", () => {
     expect(metrics.monthNoShowCount).toBe(1);
     expect(metrics.revenueChangePercent).toBeNull();
     expect(metrics.statusDistribution).toHaveLength(5);
-    expect(metrics.paymentMethodDistribution).toHaveLength(2);
+    expect(metrics.paymentMethodDistribution).toHaveLength(1);
     expect(metrics.dailyRevenue).toHaveLength(1);
     expect(metrics.monthlyRevenue).toHaveLength(6);
   });
@@ -91,10 +95,10 @@ describe("getFinanceMetrics", () => {
     );
 
     prismaMock.appointment.findMany.mockResolvedValueOnce([
-      createAppointment({ status: "CONFIRMED", price: 120, startTime: new Date(startOfMonth.getTime() + 60 * 60_000) }),
+      createAppointment({ status: "COMPLETED", price: 120, startTime: new Date(startOfMonth.getTime() + 60 * 60_000) }),
     ]);
     prismaMock.appointment.findMany.mockResolvedValueOnce([
-      createAppointment({ status: "CONFIRMED", price: 100, startTime: new Date(startOfPreviousMonth.getTime() + 60 * 60_000) }),
+      createAppointment({ status: "COMPLETED", price: 100, startTime: new Date(startOfPreviousMonth.getTime() + 60 * 60_000) }),
     ]);
     prismaMock.appointment.findMany.mockResolvedValueOnce([]);
 
@@ -111,9 +115,9 @@ describe("getFinanceMetrics", () => {
     );
 
     prismaMock.appointment.findMany.mockResolvedValueOnce([
-      createAppointment({ id: "app-1", status: "CONFIRMED", price: 50, startTime: new Date(startOfMonth.getTime() + 60 * 60_000), paymentMethod: "PIX" }),
+      createAppointment({ id: "app-1", status: "COMPLETED", price: 50, startTime: new Date(startOfMonth.getTime() + 60 * 60_000), paymentMethod: "PIX" }),
       createAppointment({ id: "app-2", status: "COMPLETED", price: 70, startTime: new Date(startOfMonth.getTime() + 2 * 60 * 60_000), paymentMethod: "PIX" }),
-      createAppointment({ id: "app-3", status: "CONFIRMED", price: 30, startTime: new Date(startOfMonth.getTime() + 24 * 60 * 60_000), paymentMethod: "CASH" }),
+      createAppointment({ id: "app-3", status: "COMPLETED", price: 30, startTime: new Date(startOfMonth.getTime() + 24 * 60 * 60_000), paymentMethod: "CASH" }),
     ]);
     prismaMock.appointment.findMany.mockResolvedValueOnce([]);
     prismaMock.appointment.findMany.mockResolvedValueOnce([]);

@@ -437,12 +437,12 @@ function getCustomerStorageKey(slug: string): string {
   return `cotani:customer:${slug}`;
 }
 
-function readSavedCustomer(slug: string): { name?: string; phone?: string } {
+function readSavedCustomer(slug: string): { name?: string } {
   if (typeof window === "undefined") return {};
   try {
-    const raw = localStorage.getItem(getCustomerStorageKey(slug));
+    const raw = sessionStorage.getItem(getCustomerStorageKey(slug));
     if (!raw) return {};
-    return JSON.parse(raw) as { name?: string; phone?: string };
+    return JSON.parse(raw) as { name?: string };
   } catch {
     return {};
   }
@@ -450,7 +450,7 @@ function readSavedCustomer(slug: string): { name?: string; phone?: string } {
 
 function CustomerStep({ isPending, slug, clinicName, service, professional, date, slot }: CustomerStepProps) {
   const savedCustomer = readSavedCustomer(slug);
-  const [phone, setPhone] = useState(() => savedCustomer.phone ?? "");
+  const [phone, setPhone] = useState("");
   const [phoneError, setPhoneError] = useState(false);
 
   function handlePhoneChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -654,12 +654,10 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
       }
 
       const customerName = String(formData.get("customerName"));
-      const customerPhone = String(formData.get("customerPhone"));
-
       try {
-        localStorage.setItem(
+        sessionStorage.setItem(
           getCustomerStorageKey(slug),
-          JSON.stringify({ name: customerName, phone: customerPhone }),
+          JSON.stringify({ name: customerName }),
         );
       } catch {
         // Ignora erros de escrita no localStorage.
@@ -670,8 +668,6 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
       if (professionalName) params.set("professional", professionalName);
       if (date) params.set("date", date);
       if (slot) params.set("time", slot.label);
-      params.set("customer", customerName);
-
       router.push(`/${slug}/sucesso?${params.toString()}`);
     });
   }

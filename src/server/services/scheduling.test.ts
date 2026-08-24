@@ -38,7 +38,8 @@ describe("scheduleAppointment", () => {
     serviceId: "svc-1",
     serviceName: "Corte",
     serviceDuration: 30,
-    startTime: new Date("2026-07-20T14:00:00.000Z"),
+    servicePrice: 50,
+    startTime: new Date("2099-07-20T14:00:00.000Z"),
   };
 
   it("cria agendamento quando não há conflito", async () => {
@@ -51,6 +52,13 @@ describe("scheduleAppointment", () => {
       return callback(prismaMock);
     });
     prismaMock.appointment.findFirst.mockResolvedValueOnce(null);
+    prismaMock.businessHour.findUnique.mockResolvedValueOnce({
+      isOpen: true,
+      openTime: "08:00",
+      closeTime: "18:00",
+      breakStart: null,
+      breakEnd: null,
+    });
     prismaMock.appointment.create.mockResolvedValueOnce(created);
     prismaMock.notification.createMany.mockResolvedValueOnce({ count: 1 });
 
@@ -65,6 +73,13 @@ describe("scheduleAppointment", () => {
       return callback(prismaMock);
     });
     prismaMock.appointment.findFirst.mockResolvedValueOnce({ id: "app-existing" });
+    prismaMock.businessHour.findUnique.mockResolvedValueOnce({
+      isOpen: true,
+      openTime: "08:00",
+      closeTime: "18:00",
+      breakStart: null,
+      breakEnd: null,
+    });
 
     const result = await scheduleAppointment(baseParams);
 

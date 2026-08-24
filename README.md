@@ -18,11 +18,13 @@ Cada barbearia corresponde a uma organização do Clerk. O painel usa a organiza
 - Financeiro com receita, ticket médio, gráficos de desempenho, métodos de pagamento e calendário de vendas.
 - Gestão de serviços, profissionais e expediente por dia da semana.
 - Criação, confirmação, conclusão, cancelamento, marcação de falta e reagendamento de atendimentos.
-- Proteção contra conflito de horário para o mesmo cliente ou serviço, garantida por exclusion constraints no banco e com mensagem amigável em caso de choque de horários.
+- Proteção transacional contra conflito do cliente e do profissional (ou do serviço sem profissional), limite diário e horários fora do expediente, com exclusion constraints no banco.
 - Fila de notificações: confirmação e lembretes (24h e 2h) criados na mesma transação do agendamento e processados por cron. Envio manual via link `wa.me` (modo `WHATSAPP_SENDER_MODE=manual`) ou automático por API (modo `api`).
 - Assinatura via Mercado Pago com checkout, webhook, renovação automática, cancelamento e histórico de pagamentos.
 - Datas e horários tratados no fuso configurado para cada barbearia (padrão: `America/Sao_Paulo`).
 - Estados de carregamento, erro e página não encontrada.
+- Administração da plataforma em `/admin`, protegida por allowlist de Clerk user IDs, com gestão de lojas, suspensão,
+exclusão reversível, membros e trilha de auditoria.
 
 ## Tecnologias
 
@@ -37,8 +39,8 @@ Cada barbearia corresponde a uma organização do Clerk. O painel usa a organiza
 
 ## Requisitos
 
-- Node.js 20 ou superior.
-- pnpm 9 ou superior.
+- Node.js 24.
+- pnpm 11.22.
 - Uma instância PostgreSQL acessível.
 - Uma aplicação Clerk com Organizations habilitado.
 
@@ -71,6 +73,9 @@ Preencha as variáveis em `.env.local`:
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
 CLERK_SECRET_KEY=
 CLERK_WEBHOOK_SIGNING_SECRET=
+
+# Administração da plataforma (Clerk user IDs separados por vírgula)
+PLATFORM_ADMIN_CLERK_USER_IDS=user_SEU_ID
 
 # PostgreSQL
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/cotani?schema=public"
@@ -114,7 +119,7 @@ O webhook cria ou atualiza a barbearia local quando uma organização é criada 
 3. Crie um atendimento em data e horário futuros.
 4. Use as ações do atendimento para confirmar, reagendar, concluir, cancelar ou registrar falta.
 
-Os agendamentos são associados à barbearia ativa. A criação e o reagendamento verificam intervalos sobrepostos para evitar que o mesmo cliente ou serviço seja marcado no mesmo horário.
+Os agendamentos são associados à barbearia ativa. A criação e o reagendamento validam expediente, pausa, limite diário e intervalos sobrepostos. O preço é congelado no momento da reserva; a receita considera apenas atendimentos concluídos.
 
 ## Agendamento público (self-service)
 
@@ -208,13 +213,41 @@ O Vercel Cron (`vercel.json`) dispara essa rota a cada minuto e envia o header d
 
 ### `GET/POST /api/jobs/billing/expire-subscriptions`
 
-Desativa assinaturas expiradas (roda diariamente às 6h pelo Vercel Cron).
+Move assinaturas vencidas para carência (`PAST_DUE`) e só as desativa após o período configurado em `SUBSCRIPTION_GRACE_PERIOD_DAYS`.
 
 | Resposta | Significado |
 | --- | --- |
 | `200` | Contador de assinaturas expiradas. |
 | `401` | Header `Authorization: Bearer ${CRON_SECRET}` ausente ou inválido. |
 | `500` | `CRON_SECRET` não configurado. |
+
+### `GET/POST /api/jobs/maintenance`
+
+Executa diariamente a retenção operacional: remove janelas antigas de rate limit e webhooks antigos e anonimiza destinatário/conteúdo de notificações encerradas com mais de 90 dias.
+
+## Produção
+
+1. Configure todas as variáveis de `.env.example`; se `WHATSAPP_SENDER_MODE=api`, informe também as credenciais da Meta Cloud API.
+2. Aplique as migrações com `pnpm exec prisma migrate deploy` no banco correto antes de promover a nova versão.
+3. No Mercado Pago, assine `subscription_preapproval` e `subscription_authorized_payment` no endpoint `/api/webhooks/mercado-pago`.
+4. Execute `pnpm check` e `pnpm build`. A mesma validação roda em `.github/workflows/ci.yml`.
+
+### Administração da plataforma
+
+A rota `/admin` é separada dos papéis das lojas. Ter papel `ADMIN` em uma organização do Clerk não concede acesso à
+administração global. Informe em `PLATFORM_ADMIN_CLERK_USER_IDS` apenas o Clerk user ID do responsável pela plataforma
+(ou uma lista separada por vírgulas). Encontre esse ID em **Clerk Dashboard → Users → usuário → User ID**.
+
+Configure a variável tanto no `.env.local` para desenvolvimento quanto nas variáveis de ambiente da Vercel para
+produção. Como as instâncias Development e Production do Clerk possuem usuários distintos, use em cada ambiente o ID
+da respectiva instância. A configuração ausente ou um ID diferente bloqueiam o acesso por padrão e a rota responde como
+não encontrada.
+
+O administrador da plataforma pode editar dados básicos da loja, suspender/reativar, excluir/restaurar sem apagar os
+dados e gerenciar papéis de membros. Toda mutação sensível exige justificativa e gera um evento em `AdminAuditLog`. A
+aplicação impede a remoção ou o rebaixamento do último administrador de uma loja.
+
+As páginas e APIs operacionais exigem papel `ADMIN` ou `RECEPTIONIST`; assinatura, financeiro, relatórios e configurações exigem `ADMIN`. O papel `PROVIDER` permanece bloqueado dessas áreas até existir uma visão de agenda individual vinculada ao profissional.
 
 ### `GET /api/public/{slug}/availability`
 

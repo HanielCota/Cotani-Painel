@@ -31,7 +31,7 @@ const required = [
   "MERCADO_PAGO_ANNUAL_PLAN_ID",
 ];
 
-const productionOnly = ["MERCADO_PAGO_WEBHOOK_SECRET"];
+const productionOnly = ["MERCADO_PAGO_WEBHOOK_SECRET", "PLATFORM_ADMIN_CLERK_USER_IDS"];
 
 const isProduction = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
 
@@ -69,6 +69,24 @@ if (isProduction) {
   if (process.env.CLERK_SECRET_KEY?.startsWith("sk_test_")) {
     console.error("✗ CLERK_SECRET_KEY — chave de teste detectada em produção");
     hasError = true;
+  }
+
+  for (const urlKey of ["NEXT_PUBLIC_APP_URL", "NEXT_PUBLIC_CHECKOUT_URL"]) {
+    try {
+      if (new URL(process.env[urlKey]).protocol !== "https:") throw new Error();
+    } catch {
+      console.error(`✗ ${urlKey} — deve ser uma URL HTTPS válida em produção`);
+      hasError = true;
+    }
+  }
+}
+
+if (process.env.WHATSAPP_SENDER_MODE === "api") {
+  for (const key of ["META_WHATSAPP_ACCESS_TOKEN", "META_WHATSAPP_PHONE_NUMBER_ID"]) {
+    if (!process.env[key]?.trim()) {
+      console.error(`✗ ${key} — obrigatória quando WHATSAPP_SENDER_MODE=api`);
+      hasError = true;
+    }
   }
 }
 

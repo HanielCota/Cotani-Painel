@@ -17,11 +17,11 @@ vi.mock("@clerk/nextjs/server", () => {
 });
 
 vi.mock("@/server/tenant", () => ({
-  requireActiveClinic: vi.fn(),
+  getClinicForRoles: vi.fn(),
 }));
 
 const { auth } = await import("@clerk/nextjs/server");
-const { requireActiveClinic } = await import("@/server/tenant");
+const { getClinicForRoles } = await import("@/server/tenant");
 
 const activeClinic = {
   id: "550e8400-e29b-41d4-a716-446655440000",
@@ -33,7 +33,7 @@ const activeClinic = {
 
 const validCustomer = {
   name: "João Silva",
-  phone: "11999999999",
+  phone: "5511999999999",
   email: "joao@example.com",
 };
 
@@ -56,7 +56,7 @@ describe("createCustomer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (auth.protect as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "user-1", orgId: "org-1" });
-    (requireActiveClinic as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
+    (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
   });
 
   it("retorna erro para dados inválidos", async () => {
@@ -66,7 +66,7 @@ describe("createCustomer", () => {
   });
 
   it("retorna erro quando não há barbearia", async () => {
-    (requireActiveClinic as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
+    (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
 
     const result = await createCustomer(validCustomer);
 
@@ -112,7 +112,7 @@ describe("updateCustomer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (auth.protect as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "user-1", orgId: "org-1" });
-    (requireActiveClinic as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
+    (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
   });
 
   it("retorna erro para ID inválido", async () => {
@@ -153,7 +153,7 @@ describe("deleteCustomer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (auth.protect as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "user-1", orgId: "org-1" });
-    (requireActiveClinic as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
+    (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
   });
 
   it("retorna erro para ID inválido", async () => {

@@ -6,7 +6,7 @@ import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import { SubscriptionPlan } from "@/generated/prisma/enums";
 import { createSubscriptionCheckout } from "@/server/services/mercado-pago";
-import { getTenantContext } from "@/server/tenant";
+import { getTenantContext, requireRole } from "@/server/tenant";
 
 const checkoutSchema = z.object({
   plan: z.enum([SubscriptionPlan.MONTHLY, SubscriptionPlan.ANNUAL]),
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { clinic } = await getTenantContext();
+    const { clinic } = requireRole(await getTenantContext(), ["ADMIN"]);
     const { userId } = await auth();
 
     const user = await prisma.user.findUnique({
@@ -28,7 +28,15 @@ export async function POST(request: NextRequest) {
       select: { email: true },
     });
 
-    const payerEmail = user?.email ?? clinic.name;
+    if (!user?.email) {
+      return NextResponse.json({ message: "Sua conta precisa ter um e-mail válido para iniciar o checkout." }, { status: 400 });
+    }
+
+    if (clinic.mercadoPagoSubscriptionId && clinic.subscriptionStatus !== "CANCELED") {
+      return NextResponse.json({ message: "Já existe uma assinatura vinculada a esta barbearia." }, { status: 409 });
+    }
+
+    const payerEmail = user.email;
     const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
     const backUrl = appUrl
       ? `${appUrl.replace(/\/$/, "")}/dashboard/assinatura`

@@ -65,4 +65,4 @@ export default withTenant(async ({ clinic }) => {
       </section>
     </div>
   );
-});
+}, ["ADMIN"]);

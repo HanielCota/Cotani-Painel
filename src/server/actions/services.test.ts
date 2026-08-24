@@ -17,11 +17,11 @@ vi.mock("@clerk/nextjs/server", () => {
 });
 
 vi.mock("@/server/tenant", () => ({
-  requireActiveClinic: vi.fn(),
+  getClinicForRoles: vi.fn(),
 }));
 
 const { auth } = await import("@clerk/nextjs/server");
-const { requireActiveClinic } = await import("@/server/tenant");
+const { getClinicForRoles } = await import("@/server/tenant");
 
 const activeClinic = {
   id: "550e8400-e29b-41d4-a716-446655440000",
@@ -57,7 +57,7 @@ describe("createService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (auth.protect as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "user-1", orgId: "org-1" });
-    (requireActiveClinic as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
+    (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
   });
 
   it("retorna erro para dados inválidos", async () => {
@@ -67,7 +67,7 @@ describe("createService", () => {
   });
 
   it("retorna erro quando não há barbearia", async () => {
-    (requireActiveClinic as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
+    (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
 
     const result = await createService(validService);
 
@@ -118,7 +118,7 @@ describe("updateService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (auth.protect as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "user-1", orgId: "org-1" });
-    (requireActiveClinic as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
+    (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
   });
 
   it("retorna erro para ID inválido", async () => {
@@ -156,7 +156,7 @@ describe("toggleServiceActive", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (auth.protect as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "user-1", orgId: "org-1" });
-    (requireActiveClinic as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
+    (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
   });
 
   it("retorna erro para ID inválido", async () => {

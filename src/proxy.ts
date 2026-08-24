@@ -6,7 +6,7 @@ export default clerkMiddleware(async (auth, request) => {
   // /api/jobs/notifications (protegida por CRON_SECRET) e /sign-in.
   // As APIs privadas mantêm seu próprio auth.protect() (404 para não autenticados).
   // O destino do redirect é /sign-in via NEXT_PUBLIC_CLERK_SIGN_IN_URL.
-  if (request.nextUrl.pathname.startsWith("/dashboard")) {
+  if (request.nextUrl.pathname.startsWith("/dashboard") || request.nextUrl.pathname.startsWith("/admin")) {
     await auth.protect();
   }
 });

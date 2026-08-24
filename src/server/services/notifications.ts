@@ -62,7 +62,7 @@ function buildReminderInputs(params: AppointmentNotificationParams, now: Date) {
       status: "PENDING" as const,
       recipient: params.customerPhone,
       content: buildContent(kind, params),
-      idempotencyKey: `${params.appointmentId}:${kind}`,
+      idempotencyKey: `${params.appointmentId}:${kind}:${params.startTime.toISOString()}`,
       scheduledFor,
       nextAttemptAt: scheduledFor,
       clinicId: params.clinicId,

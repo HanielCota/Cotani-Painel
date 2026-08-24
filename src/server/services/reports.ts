@@ -100,8 +100,8 @@ export async function getReportsMetrics(clinic: ClinicModel): Promise<ReportsMet
     );
     const appointments = appointmentsInBounds.length;
     const revenue = appointmentsInBounds
-      .filter((a) => ["CONFIRMED", "COMPLETED"].includes(a.status))
-      .reduce((sum, a) => sum + Number(a.service.price), 0);
+      .filter((a) => a.status === "COMPLETED")
+      .reduce((sum, a) => sum + Number(a.totalPrice), 0);
     return { month: label, appointments, revenue };
   });
 
@@ -110,15 +110,15 @@ export async function getReportsMetrics(clinic: ClinicModel): Promise<ReportsMet
   for (const appointment of monthAppointmentsResult) {
     if (appointment.status === "CANCELED") continue;
     const existing = serviceMap.get(appointment.serviceId);
-    const price = Number(appointment.service.price);
+    const price = Number(appointment.totalPrice);
     if (existing) {
       existing.count += 1;
-      existing.revenue += price;
+      if (appointment.status === "COMPLETED") existing.revenue += price;
     } else {
       serviceMap.set(appointment.serviceId, {
         name: appointment.service.name,
         count: 1,
-        revenue: price,
+        revenue: appointment.status === "COMPLETED" ? price : 0,
       });
     }
   }
@@ -151,7 +151,7 @@ export async function getReportsMetrics(clinic: ClinicModel): Promise<ReportsMet
     professionalName: appointment.professional?.name ?? null,
     startTime: appointment.startTime.toISOString(),
     status: appointment.status,
-    servicePrice: Number(appointment.service.price),
+    servicePrice: Number(appointment.totalPrice),
   }));
 
   return {

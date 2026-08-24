@@ -62,7 +62,7 @@ describe("requireRole", () => {
       role: "ADMIN" as const,
     } as unknown as Parameters<typeof requireRole>[0];
 
-    expect(requireRole(ctx, ["ADMIN"])).toBe(ctx);
+    expect(requireRole(ctx as never, ["ADMIN"])).toBe(ctx);
   });
 
   it("lança erro quando papel não é permitido", () => {
@@ -72,7 +72,7 @@ describe("requireRole", () => {
       role: "PROVIDER" as const,
     } as unknown as Parameters<typeof requireRole>[0];
 
-    expect(() => requireRole(ctx, ["ADMIN"])).toThrow(InsufficientRoleError);
+    expect(() => requireRole(ctx as never, ["ADMIN"])).toThrow(InsufficientRoleError);
   });
 });
 

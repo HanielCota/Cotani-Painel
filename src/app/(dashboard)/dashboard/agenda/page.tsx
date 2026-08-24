@@ -52,4 +52,4 @@ export default withTenant(async ({ clinic }) => {
       </Card>
     </div>
   );
-});
+}, ["ADMIN", "RECEPTIONIST"]);

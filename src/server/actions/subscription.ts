@@ -5,14 +5,14 @@ import { MercadoPagoConfig, PreApproval } from "mercadopago";
 import { SubscriptionStatus } from "@/generated/prisma/enums";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
-import { getTenantContext } from "@/server/tenant";
+import { getTenantContext, requireRole } from "@/server/tenant";
 import type { ActionResult } from "@/types";
 
 const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim();
 
 export async function cancelSubscription(): Promise<ActionResult> {
   try {
-    const tenant = await getTenantContext();
+    const tenant = requireRole(await getTenantContext(), ["ADMIN"]);
 
     if (!tenant) {
       return { status: "error", message: "Nenhuma barbearia encontrada para este usuário." };

@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SubscriptionPlan, SubscriptionStatus } from "@/generated/prisma/enums";
+import { paymentStatusLabel, subscriptionPlanLabel } from "@/lib/display-labels";
 import { getPlanConfig } from "@/server/services/mercado-pago";
 import { getPaymentHistory } from "@/server/services/payment-history";
 import { isSubscriptionActive } from "@/server/subscription";
@@ -61,14 +62,6 @@ const paymentStatusVariant: Record<string, "default" | "secondary" | "destructiv
   pending: "secondary",
   refunded: "destructive",
   cancelled: "destructive",
-};
-
-const paymentStatusLabel: Record<string, string> = {
-  paid: "Pago",
-  approved: "Aprovado",
-  pending: "Pendente",
-  refunded: "Reembolsado",
-  cancelled: "Cancelado",
 };
 
 export default withTenant(async ({ clinic }) => {
@@ -195,10 +188,10 @@ export default withTenant(async ({ clinic }) => {
                           <TableCell className="text-muted-foreground">
                             {format(new Date(payment.createdAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                           </TableCell>
-                          <TableCell>{payment.plan ?? "—"}</TableCell>
+                          <TableCell>{subscriptionPlanLabel(payment.plan)}</TableCell>
                           <TableCell>
                             <Badge variant={paymentStatusVariant[payment.status] ?? "secondary"}>
-                              {paymentStatusLabel[payment.status] ?? payment.status}
+                              {paymentStatusLabel(payment.status)}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right font-medium">
@@ -216,4 +209,4 @@ export default withTenant(async ({ clinic }) => {
       </Tabs>
     </div>
   );
-});
+}, ["ADMIN"]);

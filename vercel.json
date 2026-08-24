@@ -7,6 +7,10 @@
     {
       "path": "/api/jobs/billing/expire-subscriptions",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/jobs/maintenance",
+      "schedule": "30 6 * * *"
     }
   ]
 }

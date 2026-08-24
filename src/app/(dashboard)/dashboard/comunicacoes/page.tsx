@@ -32,4 +32,4 @@ export default withTenant(async ({ clinic }) => {
       <WhatsAppCrmList pending={data.pending} sent={data.sent} />
     </div>
   );
-});
+}, ["ADMIN", "RECEPTIONIST"]);

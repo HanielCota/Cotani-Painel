@@ -11,7 +11,10 @@ export const prismaMock = {
     updateMany: vi.fn(),
   },
   clinic: {
+    count: vi.fn(),
+    findMany: vi.fn(),
     findUnique: vi.fn(),
+    findUniqueOrThrow: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     updateMany: vi.fn(),
@@ -24,7 +27,15 @@ export const prismaMock = {
     upsert: vi.fn(),
   },
   membership: {
+    count: vi.fn(),
     findFirst: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+  },
+  adminAuditLog: {
+    count: vi.fn(),
+    findMany: vi.fn(),
+    create: vi.fn(),
   },
   notification: {
     createMany: vi.fn(),

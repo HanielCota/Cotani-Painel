@@ -16,6 +16,7 @@ import type { ServiceListItem } from "@/types";
 const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 export function ServicesSettings() {
+  "use no memo";
   const { data: services, isPending, isError } = useServices();
 
   const columns = useMemo<ColumnDef<ServiceListItem>[]>(
@@ -57,6 +58,8 @@ export function ServicesSettings() {
     [],
   );
 
+  // TanStack Table expõe funções mutáveis; o componente já foi excluído do React Compiler.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: services ?? [],
     columns,

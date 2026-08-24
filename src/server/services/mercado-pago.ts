@@ -1,4 +1,4 @@
-import { MercadoPagoConfig, PreApproval, WebhookSignatureValidator } from "mercadopago";
+import { Invoice, MercadoPagoConfig, PreApproval, WebhookSignatureValidator } from "mercadopago";
 
 import { SubscriptionPlan, SubscriptionStatus } from "@/generated/prisma/enums";
 
@@ -142,6 +142,37 @@ export async function syncSubscriptionFromMercadoPago(
     status,
     hasPaidOnce: status === SubscriptionStatus.ACTIVE,
     nextPaymentDate: subscription.nextPaymentDate,
+  };
+}
+
+export interface MercadoPagoInvoice {
+  id: string;
+  subscriptionId: string;
+  paymentId: string;
+  amount: number;
+  status: string;
+  paidAt?: Date;
+}
+
+export async function getInvoiceFromMercadoPago(invoiceId: string): Promise<MercadoPagoInvoice> {
+  const invoice = await new Invoice(getConfig()).get({ id: invoiceId });
+  const id = String(invoice.id ?? invoiceId);
+  const subscriptionId = invoice.preapproval_id?.trim();
+
+  if (!subscriptionId || typeof invoice.transaction_amount !== "number") {
+    throw new Error("Fatura do Mercado Pago sem assinatura ou valor para conciliação.");
+  }
+
+  const status = invoice.payment?.status ?? invoice.status ?? "unknown";
+  const date = invoice.last_modified ?? invoice.date_created ?? invoice.debit_date;
+
+  return {
+    id,
+    subscriptionId,
+    paymentId: String(invoice.payment?.id ?? id),
+    amount: invoice.transaction_amount,
+    status,
+    paidAt: status === "approved" && date ? new Date(date) : undefined,
   };
 }
 

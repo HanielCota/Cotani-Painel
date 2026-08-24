@@ -1,10 +1,10 @@
-import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { checkApiRateLimit } from "@/lib/api-rate-limit";
 import prisma from "@/lib/prisma";
 import type { CustomersPage } from "@/types";
+import { getClinicForRoles } from "@/server/tenant";
 
 const querySchema = z.object({
   search: z.string().trim().max(120).optional().default(""),
@@ -13,14 +13,8 @@ const querySchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
-  const { orgId } = await auth.protect();
-
   const rateLimitResponse = await checkApiRateLimit(request, "customers");
   if (rateLimitResponse) return rateLimitResponse;
-
-  if (!orgId) {
-    return NextResponse.json({ message: "Nenhuma barbearia selecionada." }, { status: 400 });
-  }
 
   const parsed = querySchema.safeParse({
     search: request.nextUrl.searchParams.get("search") ?? undefined,
@@ -32,9 +26,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: "Parâmetros de consulta inválidos." }, { status: 400 });
   }
 
-  const clinic = await prisma.clinic.findUnique({
-    where: { clerkOrgId: orgId },
-  });
+  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
 
   if (!clinic) {
     return NextResponse.json({ message: "A barbearia ativa ainda não foi sincronizada." }, { status: 404 });

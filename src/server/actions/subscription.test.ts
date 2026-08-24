@@ -7,6 +7,7 @@ import * as tenantModule from "@/server/tenant";
 
 vi.mock("@/server/tenant", () => ({
   getTenantContext: vi.fn(),
+  requireRole: vi.fn((tenant) => tenant),
 }));
 
 vi.mock("@/lib/prisma", () => ({

@@ -92,9 +92,8 @@ export async function getAvailableSlots(params: GetAvailableSlotsParams): Promis
         status: { not: "CANCELED" },
         startTime: { lt: dayEnd },
         endTime: { gt: dayStart },
-        ...(params.professionalId ? { professionalId: params.professionalId } : {}),
       },
-      select: { startTime: true, endTime: true },
+      select: { startTime: true, endTime: true, professionalId: true },
     }),
   ]);
 
@@ -139,7 +138,12 @@ export async function getAvailableSlots(params: GetAvailableSlotsParams): Promis
     }
 
     const endTime = new Date(startTime.getTime() + params.serviceDuration * 60_000);
-    const overlaps = appointments.some((appointment) => startTime < appointment.endTime && endTime > appointment.startTime);
+    const overlaps = appointments.some(
+      (appointment) =>
+        (!params.professionalId || appointment.professionalId === params.professionalId) &&
+        startTime < appointment.endTime &&
+        endTime > appointment.startTime,
+    );
 
     if (overlaps) {
       continue;
@@ -202,9 +206,8 @@ export async function getAvailableDatesInMonth(params: GetAvailableDatesParams):
         status: { not: "CANCELED" },
         startTime: { lt: monthEnd },
         endTime: { gt: monthStart },
-        ...(params.professionalId ? { professionalId: params.professionalId } : {}),
       },
-      select: { startTime: true, endTime: true },
+      select: { startTime: true, endTime: true, professionalId: true },
     }),
   ]);
 
@@ -226,12 +229,15 @@ export async function getAvailableDatesInMonth(params: GetAvailableDatesParams):
     const closeMinutes = minutesFromTime(businessHour.closeTime);
     const breakStartMinutes = businessHour.breakStart ? minutesFromTime(businessHour.breakStart) : null;
     const breakEndMinutes = businessHour.breakEnd ? minutesFromTime(businessHour.breakEnd) : null;
-    const dayAppointments = appointments.filter(
+    const allDayAppointments = appointments.filter(
       (appointment) => appointment.startTime < new Date(dayDate.getTime() + 24 * 60 * 60 * 1000) && appointment.endTime > dayDate,
     );
+    const dayAppointments = params.professionalId
+      ? allDayAppointments.filter((appointment) => appointment.professionalId === params.professionalId)
+      : allDayAppointments;
 
     const hasReachedDailyLimit =
-      typeof params.maxAppointmentsPerDay === "number" && params.maxAppointmentsPerDay > 0 && dayAppointments.length >= params.maxAppointmentsPerDay;
+      typeof params.maxAppointmentsPerDay === "number" && params.maxAppointmentsPerDay > 0 && allDayAppointments.length >= params.maxAppointmentsPerDay;
 
     if (hasReachedDailyLimit) {
       continue;

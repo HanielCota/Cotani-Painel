@@ -5,7 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
-import { requireActiveClinic } from "@/server/tenant";
+import { getClinicForRoles } from "@/server/tenant";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
 
@@ -53,7 +53,7 @@ export async function createProfessional(input: unknown): Promise<ActionResult> 
     return { status: "error", message: "Revise os dados do profissional." };
   }
 
-  const clinic = await requireActiveClinic();
+  const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de cadastrar profissionais." };
@@ -110,7 +110,7 @@ export async function updateProfessional(input: unknown): Promise<ActionResult> 
     return { status: "error", message: "Revise os dados do profissional." };
   }
 
-  const clinic = await requireActiveClinic();
+  const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de atualizar profissionais." };
@@ -183,7 +183,7 @@ export async function toggleProfessionalActive(professionalId: string): Promise<
     return { status: "error", message: "Não foi possível alterar este profissional." };
   }
 
-  const clinic = await requireActiveClinic();
+  const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de alterar profissionais." };

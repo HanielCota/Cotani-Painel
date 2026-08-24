@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getUpcomingAppointments } from "@/server/services/appointments";
-import { requireActiveClinic } from "@/server/tenant";
+import { getClinicForRoles } from "@/server/tenant";
 
 export async function GET(request: NextRequest) {
-  const clinic = await requireActiveClinic();
+  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
 
   if (!clinic) {
     return NextResponse.json({ message: "Clínica não encontrada." }, { status: 404 });

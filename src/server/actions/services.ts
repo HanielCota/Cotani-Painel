@@ -5,7 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
-import { requireActiveClinic } from "@/server/tenant";
+import { getClinicForRoles } from "@/server/tenant";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
 
@@ -53,7 +53,7 @@ export async function createService(input: unknown): Promise<ActionResult> {
     return { status: "error", message: "Revise os dados do serviço." };
   }
 
-  const clinic = await requireActiveClinic();
+  const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de cadastrar serviços." };
@@ -99,7 +99,7 @@ export async function updateService(input: unknown): Promise<ActionResult> {
     return { status: "error", message: "Revise os dados do serviço." };
   }
 
-  const clinic = await requireActiveClinic();
+  const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de atualizar serviços." };
@@ -155,7 +155,7 @@ export async function toggleServiceActive(serviceId: string): Promise<ActionResu
     return { status: "error", message: "Não foi possível alterar este serviço." };
   }
 
-  const clinic = await requireActiveClinic();
+  const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de alterar serviços." };

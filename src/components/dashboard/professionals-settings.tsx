@@ -17,6 +17,7 @@ import { useServices } from "@/hooks/use-services";
 import type { ProfessionalListItem } from "@/types";
 
 export function ProfessionalsSettings() {
+  "use no memo";
   const { data: professionals, isPending, isError } = useProfessionals();
   const { data: services } = useServices();
 
@@ -85,6 +86,8 @@ export function ProfessionalsSettings() {
     [serviceById],
   );
 
+  // TanStack Table expõe funções mutáveis; o componente já foi excluído do React Compiler.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: professionals ?? [],
     columns,

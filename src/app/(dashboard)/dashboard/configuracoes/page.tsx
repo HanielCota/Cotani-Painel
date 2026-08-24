@@ -60,4 +60,4 @@ export default withTenant<ConfiguracoesPageProps>(async ({ clinic }, props) => {
       </Card>
     </div>
   );
-});
+}, ["ADMIN"]);

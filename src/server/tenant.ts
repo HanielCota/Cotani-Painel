@@ -72,6 +72,19 @@ export function requireRole(ctx: TenantContext, roles: readonly ClinicRole[]): T
   return ctx;
 }
 
+/** Resolve o tenant e aplica RBAC sem esconder falhas de autenticação do Clerk. */
+export async function getClinicForRoles(roles: readonly ClinicRole[]) {
+  try {
+    const clinic = requireRole(await getTenantContext(), roles).clinic;
+    return clinic.operationalStatus === "ACTIVE" && clinic.deletedAt === null ? clinic : null;
+  } catch (error) {
+    if (error instanceof TenantResolutionError || error instanceof InsufficientRoleError) {
+      return null;
+    }
+    throw error;
+  }
+}
+
 /**
  * Variante legada que retorna `null` em vez de lançar, usada pelas Server Actions
  * atuais que convertem a ausência de barbearia em `ActionResult` de erro.
@@ -87,6 +100,7 @@ export async function requireActiveClinic() {
     where: {
       clerkOrgId: orgId,
       deletedAt: null,
+      operationalStatus: "ACTIVE",
     },
   });
 

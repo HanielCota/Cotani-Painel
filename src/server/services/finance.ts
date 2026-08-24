@@ -71,6 +71,7 @@ function toFinanceAppointment(appointment: {
   endTime: Date;
   status: AppointmentStatus;
   paymentMethod: string;
+  totalPrice: unknown;
   customer: { name: string };
   service: { name: string; price: unknown };
   professional: { name: string } | null;
@@ -80,7 +81,7 @@ function toFinanceAppointment(appointment: {
     customerName: appointment.customer.name,
     serviceName: appointment.service.name,
     professionalName: appointment.professional?.name ?? null,
-    servicePrice: Number(appointment.service.price),
+    servicePrice: Number(appointment.totalPrice),
     paymentMethod: appointment.paymentMethod,
     startTime: appointment.startTime.toISOString(),
     endTime: appointment.endTime.toISOString(),
@@ -111,7 +112,7 @@ export async function getFinanceMetrics(clinic: ClinicModel): Promise<FinanceMet
       where: {
         clinicId: clinic.id,
         startTime: { gte: startOfPreviousMonth, lt: startOfMonth },
-        status: { in: ["CONFIRMED", "COMPLETED"] },
+        status: "COMPLETED",
       },
       include: { service: true },
     }),
@@ -119,7 +120,7 @@ export async function getFinanceMetrics(clinic: ClinicModel): Promise<FinanceMet
       where: {
         clinicId: clinic.id,
         startTime: { gte: historyStart, lt: startOfNextMonth },
-        status: { in: ["CONFIRMED", "COMPLETED"] },
+        status: "COMPLETED",
       },
       include: { service: true },
       orderBy: { startTime: "asc" },
@@ -127,11 +128,11 @@ export async function getFinanceMetrics(clinic: ClinicModel): Promise<FinanceMet
   ]);
 
   const currentMonthRevenue = currentMonthAppointments
-    .filter((appointment) => appointment.status === "CONFIRMED" || appointment.status === "COMPLETED")
-    .reduce((sum, appointment) => sum + Number(appointment.service.price), 0);
+    .filter((appointment) => appointment.status === "COMPLETED")
+    .reduce((sum, appointment) => sum + Number(appointment.totalPrice), 0);
 
   const previousMonthRevenue = previousMonthAppointments.reduce(
-    (sum, appointment) => sum + Number(appointment.service.price),
+    (sum, appointment) => sum + Number(appointment.totalPrice),
     0,
   );
 
@@ -150,11 +151,11 @@ export async function getFinanceMetrics(clinic: ClinicModel): Promise<FinanceMet
   // Desempenho de vendas: agrupado por dia do mês atual.
   const dailyRevenueMap = new Map<string, number>();
   for (const appointment of currentMonthAppointments) {
-    if (appointment.status !== "CONFIRMED" && appointment.status !== "COMPLETED") continue;
+    if (appointment.status !== "COMPLETED") continue;
     const dateKey = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit" }).format(
       appointment.startTime,
     );
-    dailyRevenueMap.set(dateKey, (dailyRevenueMap.get(dateKey) ?? 0) + Number(appointment.service.price));
+    dailyRevenueMap.set(dateKey, (dailyRevenueMap.get(dateKey) ?? 0) + Number(appointment.totalPrice));
   }
   const dailyRevenue = Array.from(dailyRevenueMap.entries())
     .map(([date, value]) => ({ date, value }))
@@ -165,7 +166,7 @@ export async function getFinanceMetrics(clinic: ClinicModel): Promise<FinanceMet
     const monthAppointmentsInBounds = historyAppointments.filter(
       (a) => a.startTime >= start && a.startTime < end,
     );
-    const revenue = monthAppointmentsInBounds.reduce((sum, a) => sum + Number(a.service.price), 0);
+    const revenue = monthAppointmentsInBounds.reduce((sum, a) => sum + Number(a.totalPrice), 0);
     const ticket = monthAppointmentsInBounds.length > 0 ? Math.round(revenue / monthAppointmentsInBounds.length) : 0;
     return { month: label, revenue, ticket };
   });
@@ -178,7 +179,7 @@ export async function getFinanceMetrics(clinic: ClinicModel): Promise<FinanceMet
       if (targetDate >= startOfNextMonth) return 0;
       return currentMonthAppointments
         .filter((a) => {
-          if (a.status !== "CONFIRMED" && a.status !== "COMPLETED") return false;
+          if (a.status !== "COMPLETED") return false;
           const appointmentDate = new Date(a.startTime.toLocaleString("en-US", { timeZone: clinic.timeZone }));
           return (
             appointmentDate.getDate() === targetDate.getDate() &&
@@ -186,7 +187,7 @@ export async function getFinanceMetrics(clinic: ClinicModel): Promise<FinanceMet
             appointmentDate.getFullYear() === targetDate.getFullYear()
           );
         })
-        .reduce((sum, a) => sum + Number(a.service.price), 0);
+        .reduce((sum, a) => sum + Number(a.totalPrice), 0);
     }),
     sales: last14Days.map((offset) => {
       const targetDate = new Date(startOfMonth.getTime() + offset * 24 * 60 * 60 * 1000);
@@ -204,7 +205,7 @@ export async function getFinanceMetrics(clinic: ClinicModel): Promise<FinanceMet
       const targetDate = new Date(startOfMonth.getTime() + offset * 24 * 60 * 60 * 1000);
       if (targetDate >= startOfNextMonth) return 0;
       const dayAppointments = currentMonthAppointments.filter((a) => {
-        if (a.status !== "CONFIRMED" && a.status !== "COMPLETED") return false;
+        if (a.status !== "COMPLETED") return false;
         const appointmentDate = new Date(a.startTime.toLocaleString("en-US", { timeZone: clinic.timeZone }));
         return (
           appointmentDate.getDate() === targetDate.getDate() &&
@@ -212,7 +213,7 @@ export async function getFinanceMetrics(clinic: ClinicModel): Promise<FinanceMet
           appointmentDate.getFullYear() === targetDate.getFullYear()
         );
       });
-      const dayRevenue = dayAppointments.reduce((sum, a) => sum + Number(a.service.price), 0);
+      const dayRevenue = dayAppointments.reduce((sum, a) => sum + Number(a.totalPrice), 0);
       return dayAppointments.length > 0 ? Math.round(dayRevenue / dayAppointments.length) : 0;
     }),
     cancellations: last14Days.map((offset) => {
@@ -233,9 +234,9 @@ export async function getFinanceMetrics(clinic: ClinicModel): Promise<FinanceMet
   // Distribuição de métodos de pagamento: apenas agendamentos confirmados/concluídos do mês.
   const paymentMethodCounts: Record<string, number> = {};
   for (const appointment of currentMonthAppointments) {
-    if (appointment.status !== "CONFIRMED" && appointment.status !== "COMPLETED") continue;
+    if (appointment.status !== "COMPLETED") continue;
     paymentMethodCounts[appointment.paymentMethod] =
-      (paymentMethodCounts[appointment.paymentMethod] ?? 0) + Number(appointment.service.price);
+      (paymentMethodCounts[appointment.paymentMethod] ?? 0) + Number(appointment.totalPrice);
   }
   const totalPaymentMethodRevenue = Object.values(paymentMethodCounts).reduce((sum, value) => sum + value, 0);
   const paymentMethodDistribution = Object.entries(paymentMethodCounts)
@@ -268,12 +269,12 @@ export async function getFinanceMetrics(clinic: ClinicModel): Promise<FinanceMet
   }
 
   for (const appointment of currentMonthAppointments) {
-    if (appointment.status !== "CONFIRMED" && appointment.status !== "COMPLETED") continue;
+    if (appointment.status !== "COMPLETED") continue;
     const zonedStart = new Date(appointment.startTime.toLocaleString("en-US", { timeZone: clinic.timeZone }));
     const dayName = dayNames[zonedStart.getDay()];
     const weekOfMonth = Math.floor((zonedStart.getDate() - 1) / 7);
     const clampedWeek = Math.min(Math.max(weekOfMonth, 0), weeksInMonth - 1);
-    calendarMap[dayName][clampedWeek] += Number(appointment.service.price);
+    calendarMap[dayName][clampedWeek] += Number(appointment.totalPrice);
   }
   const calendarHeatmap = dayNames.map((day) => ({ day, values: calendarMap[day] }));
 

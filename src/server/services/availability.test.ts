@@ -176,9 +176,11 @@ describe("getAvailableSlots", () => {
     });
 
     const query = prismaMock.appointment.findMany.mock.calls[0][0] as {
-      where: { professionalId?: string };
+      select: { professionalId?: boolean };
     };
-    expect(query.where.professionalId).toBe("prof-1");
+    // A consulta traz todos para também aplicar o limite diário da clínica;
+    // o bloqueio de slots é filtrado pelo profissional no serviço.
+    expect(query.select.professionalId).toBe(true);
   });
 
   it("retorna lista vazia quando o limite diário foi atingido", async () => {

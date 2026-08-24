@@ -5,7 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
-import { requireActiveClinic } from "@/server/tenant";
+import { getClinicForRoles } from "@/server/tenant";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
 
@@ -36,7 +36,7 @@ export async function saveBusinessHours(input: unknown): Promise<ActionResult> {
     return { status: "error", message: "Revise os horários informados." };
   }
 
-  const clinic = await requireActiveClinic();
+  const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de salvar o expediente." };

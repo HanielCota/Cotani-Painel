@@ -56,6 +56,8 @@ export default async function PublicBookingPage({ params }: PublicBookingPagePro
       slug: true,
       timeZone: true,
       subscriptionStatus: true,
+      operationalStatus: true,
+      deletedAt: true,
       services: {
         where: { isActive: true },
         select: { id: true, name: true, duration: true, price: true, imageUrl: true },
@@ -73,7 +75,7 @@ export default async function PublicBookingPage({ params }: PublicBookingPagePro
     notFound();
   }
 
-  if (!isSubscriptionActive(clinic)) {
+  if (clinic.operationalStatus !== "ACTIVE" || clinic.deletedAt || !isSubscriptionActive(clinic)) {
     return <ClinicUnavailable clinicName={clinic.name} />;
   }
 

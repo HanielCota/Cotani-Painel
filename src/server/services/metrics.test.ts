@@ -16,6 +16,9 @@ const clinic: ClinicModel = {
   hasPaidOnce: true,
   mercadoPagoSubscriptionId: null,
   maxAppointmentsPerDay: null,
+  operationalStatus: "ACTIVE",
+  suspensionReason: null,
+  suspendedAt: null,
   deletedAt: null,
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -44,6 +47,7 @@ describe("getDashboardMetrics", () => {
       {
         id: "app-1",
         customerId: "cust-1",
+        totalPrice: 50,
         service: { price: 50 },
         startTime: startOfToday,
         endTime: startOfToday,
@@ -51,6 +55,7 @@ describe("getDashboardMetrics", () => {
       {
         id: "app-2",
         customerId: "cust-2",
+        totalPrice: 70,
         service: { price: 70 },
         startTime: startOfToday,
         endTime: startOfToday,

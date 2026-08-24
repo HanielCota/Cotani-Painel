@@ -52,7 +52,7 @@ export const getDashboardMetrics = unstable_cache(
 
   const appointmentsToday = todayAppointments.length;
   const estimatedRevenueToday = todayAppointments.reduce(
-    (sum, appointment) => sum + Number(appointment.service.price),
+    (sum, appointment) => sum + Number(appointment.totalPrice),
     0,
   );
   const customersServedToday = new Set(todayAppointments.map((appointment) => appointment.customerId)).size;

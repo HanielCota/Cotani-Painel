@@ -13,6 +13,11 @@ enum ClinicRole {
   RECEPTIONIST
 }
 
+enum ClinicOperationalStatus {
+  ACTIVE
+  SUSPENDED
+}
+
 enum SubscriptionStatus {
   ACTIVE
   INACTIVE
@@ -61,20 +66,23 @@ enum NotificationStatus {
 }
 
 model Clinic {
-  id                        String             @id @default(uuid())
-  clerkOrgId                String             @unique
+  id                        String                  @id @default(uuid())
+  clerkOrgId                String                  @unique
   name                      String
-  slug                      String             @unique
-  timeZone                  String             @default("America/Sao_Paulo")
-  subscriptionStatus        SubscriptionStatus @default(INACTIVE)
+  slug                      String                  @unique
+  timeZone                  String                  @default("America/Sao_Paulo")
+  subscriptionStatus        SubscriptionStatus      @default(INACTIVE)
   subscriptionPlan          SubscriptionPlan?
   subscriptionExpiresAt     DateTime?
-  hasPaidOnce               Boolean            @default(false)
-  mercadoPagoSubscriptionId String?            @unique
+  hasPaidOnce               Boolean                 @default(false)
+  mercadoPagoSubscriptionId String?                 @unique
   maxAppointmentsPerDay     Int?
+  operationalStatus         ClinicOperationalStatus @default(ACTIVE)
+  suspensionReason          String?
+  suspendedAt               DateTime?
   deletedAt                 DateTime?
-  createdAt                 DateTime           @default(now())
-  updatedAt                 DateTime           @updatedAt
+  createdAt                 DateTime                @default(now())
+  updatedAt                 DateTime                @updatedAt
   memberships               Membership[]
   customers                 Customer[]
   services                  Service[]
@@ -83,6 +91,28 @@ model Clinic {
   businessHours             BusinessHour[]
   professionals             Professional[]
   paymentHistory            PaymentHistory[]
+  adminAuditLogs            AdminAuditLog[]
+}
+
+model AdminAuditLog {
+  id               String   @id @default(uuid())
+  actorClerkUserId String
+  action           String
+  targetType       String
+  targetId         String
+  reason           String?
+  beforeSnapshot   Json?
+  afterSnapshot    Json?
+  requestId        String?
+  ipAddress        String?
+  clinicId         String?
+  clinic           Clinic?  @relation(fields: [clinicId], references: [id], onDelete: SetNull)
+  createdAt        DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actorClerkUserId, createdAt])
+  @@index([clinicId, createdAt])
+  @@index([targetType, targetId, createdAt])
 }
 
 model PaymentHistory {
@@ -92,14 +122,13 @@ model PaymentHistory {
   amount                    Decimal           @db.Decimal(10, 2)
   status                    String
   plan                      SubscriptionPlan?
-  mercadoPagoPaymentId      String?
+  mercadoPagoPaymentId      String?           @unique
   mercadoPagoSubscriptionId String?
   paidAt                    DateTime?
   createdAt                 DateTime          @default(now())
   updatedAt                 DateTime          @updatedAt
 
   @@index([clinicId, createdAt])
-  @@index([mercadoPagoPaymentId])
 }
 
 model BusinessHour {
@@ -130,14 +159,15 @@ model User {
 }
 
 model Membership {
-  id        String     @id @default(uuid())
-  role      ClinicRole @default(PROVIDER)
-  clinicId  String
-  userId    String
-  clinic    Clinic     @relation(fields: [clinicId], references: [id], onDelete: Restrict)
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id           String        @id @default(uuid())
+  role         ClinicRole    @default(PROVIDER)
+  clinicId     String
+  userId       String
+  clinic       Clinic        @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  professional Professional?
 
   @@unique([clinicId, userId])
   @@index([userId])
@@ -159,18 +189,18 @@ model Customer {
 }
 
 model Service {
-  id           String                @id @default(uuid())
-  name         String
-  duration     Int
-  price        Decimal               @db.Decimal(10, 2)
-  imageUrl     String?
-  isActive     Boolean               @default(true)
-  clinicId     String
-  clinic       Clinic                @relation(fields: [clinicId], references: [id], onDelete: Restrict)
-  appointments Appointment[]
+  id            String                @id @default(uuid())
+  name          String
+  duration      Int
+  price         Decimal               @db.Decimal(10, 2)
+  imageUrl      String?
+  isActive      Boolean               @default(true)
+  clinicId      String
+  clinic        Clinic                @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  appointments  Appointment[]
   professionals ProfessionalService[]
-  createdAt    DateTime              @default(now())
-  updatedAt    DateTime              @updatedAt
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
 
   @@index([clinicId, isActive])
 }
@@ -181,7 +211,9 @@ model Professional {
   imageUrl     String?
   isActive     Boolean               @default(true)
   clinicId     String
+  membershipId String?               @unique
   clinic       Clinic                @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  membership   Membership?           @relation(fields: [membershipId], references: [id], onDelete: SetNull)
   appointments Appointment[]
   services     ProfessionalService[]
   createdAt    DateTime              @default(now())
@@ -207,6 +239,9 @@ model Appointment {
   endTime           DateTime
   status            AppointmentStatus @default(PENDING)
   paymentMethod     PaymentMethod     @default(OTHER)
+  priceAtBooking    Decimal           @db.Decimal(10, 2)
+  totalPrice        Decimal           @db.Decimal(10, 2)
+  paidAt            DateTime?
   notes             String?
   clinicId          String
   customerId        String

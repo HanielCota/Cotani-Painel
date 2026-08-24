@@ -43,6 +43,7 @@ export async function getWhatsAppCrmData(clinic: ClinicModel, sentLimit = 20): P
         clinicId: clinic.id,
         channel: "WHATSAPP",
         status: "PENDING",
+        scheduledFor: { lte: new Date() },
       },
       orderBy: { scheduledFor: "asc" },
     }),

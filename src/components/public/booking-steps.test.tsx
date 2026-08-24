@@ -48,7 +48,7 @@ const { useQuery } = await import("@tanstack/react-query");
 
 const storage = new Map<string, string>();
 
-Object.defineProperty(window, "localStorage", {
+Object.defineProperty(window, "sessionStorage", {
   value: {
     getItem: (key: string) => storage.get(key) ?? null,
     setItem: (key: string, value: string) => storage.set(key, value),
@@ -217,7 +217,7 @@ describe("BookingSteps", () => {
     expect(mockPush).toHaveBeenCalledWith(expect.stringContaining("/barbearia-teste/sucesso"));
   });
 
-  it("salva dados do cliente no localStorage após agendamento", async () => {
+  it("salva apenas o nome na sessão após agendamento", async () => {
     (createPublicAppointment as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       status: "success",
       message: "Agendamento confirmado.",
@@ -257,11 +257,11 @@ describe("BookingSteps", () => {
 
     const saved = JSON.parse(storage.get("cotani:customer:barbearia-teste") ?? "{}");
     expect(saved.name).toBe("João Silva");
-    expect(saved.phone).toBe("(11) 99999-9999");
+    expect(saved.phone).toBeUndefined();
   });
 
-  it("pré-preenche dados do cliente quando existem no localStorage", async () => {
-    storage.set("cotani:customer:barbearia-teste", JSON.stringify({ name: "Maria Souza", phone: "(21) 98888-7777" }));
+  it("pré-preenche somente o nome salvo na sessão", async () => {
+    storage.set("cotani:customer:barbearia-teste", JSON.stringify({ name: "Maria Souza" }));
 
     (useQuery as ReturnType<typeof vi.fn>).mockReturnValue({
       data: {
@@ -290,7 +290,7 @@ describe("BookingSteps", () => {
     const phoneInput = screen.getByLabelText(/whatsapp/i) as HTMLInputElement;
 
     expect(nameInput.value).toBe("Maria Souza");
-    expect(phoneInput.value).toBe("(21) 98888-7777");
+    expect(phoneInput.value).toBe("");
   });
 
   it("exibe indicador de últimas vagas quando há poucos horários", async () => {

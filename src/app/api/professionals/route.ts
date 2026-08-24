@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { checkApiRateLimit } from "@/lib/api-rate-limit";
 import prisma from "@/lib/prisma";
-import { requireActiveClinic } from "@/server/tenant";
+import { getClinicForRoles } from "@/server/tenant";
 
 export async function GET(request: NextRequest) {
   const rateLimitResponse = await checkApiRateLimit(request, "professionals");
   if (rateLimitResponse) return rateLimitResponse;
 
-  const clinic = await requireActiveClinic();
+  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
 
   if (!clinic) {
     return NextResponse.json({ message: "Selecione uma barbearia." }, { status: 403 });

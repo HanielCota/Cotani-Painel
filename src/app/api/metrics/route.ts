@@ -1,4 +1,3 @@
-import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 import { checkApiRateLimit } from "@/lib/api-rate-limit";
@@ -6,20 +5,13 @@ import prisma from "@/lib/prisma";
 import { getClinicDateBounds } from "@/lib/timezone";
 import type { Prisma } from "@/generated/prisma/client";
 import type { DashboardMetrics } from "@/types";
+import { getClinicForRoles } from "@/server/tenant";
 
 export async function GET(request: NextRequest) {
-  const { orgId } = await auth.protect();
-
   const rateLimitResponse = await checkApiRateLimit(request, "metrics");
   if (rateLimitResponse) return rateLimitResponse;
 
-  if (!orgId) {
-    return NextResponse.json({ message: "Nenhuma barbearia selecionada." }, { status: 400 });
-  }
-
-  const clinic = await prisma.clinic.findUnique({
-    where: { clerkOrgId: orgId, deletedAt: null },
-  });
+  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
 
   if (!clinic) {
     return NextResponse.json({ message: "A barbearia ativa ainda não foi sincronizada." }, { status: 404 });
@@ -70,7 +62,7 @@ export async function GET(request: NextRequest) {
 
   const appointmentsToday = todayAppointments.length;
   const estimatedRevenueToday = todayAppointments.reduce(
-    (sum, appointment) => sum + Number(appointment.service.price),
+    (sum, appointment) => sum + Number(appointment.totalPrice),
     0,
   );
   const customersServedToday = new Set(todayAppointments.map((appointment) => appointment.customerId)).size;

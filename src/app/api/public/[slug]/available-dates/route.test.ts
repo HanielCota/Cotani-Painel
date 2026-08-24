@@ -43,7 +43,7 @@ describe("/api/public/[slug]/available-dates", () => {
   });
 
   it("retorna datas quando parâmetros são válidos", async () => {
-    prisma.clinic.findUnique.mockResolvedValueOnce({ id: "clinic-1", timeZone: "America/Sao_Paulo", maxAppointmentsPerDay: null });
+    prisma.clinic.findUnique.mockResolvedValueOnce({ id: "clinic-1", timeZone: "America/Sao_Paulo", maxAppointmentsPerDay: null, subscriptionStatus: "ACTIVE", operationalStatus: "ACTIVE", deletedAt: null });
     prisma.service.findFirst.mockResolvedValueOnce({ duration: 30 });
     (getAvailableDatesInMonth as ReturnType<typeof vi.fn>).mockResolvedValueOnce(["2026-07-23", "2026-07-24"]);
 

@@ -5,7 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
-import { requireActiveClinic } from "@/server/tenant";
+import { getClinicForRoles } from "@/server/tenant";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
 
@@ -18,7 +18,7 @@ export async function markWhatsAppNotificationAsSent(notificationId: string): Pr
     return { status: "error", message: "Notificação inválida." };
   }
 
-  const clinic = await requireActiveClinic();
+  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de continuar." };

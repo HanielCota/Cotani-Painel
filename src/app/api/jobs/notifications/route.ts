@@ -32,7 +32,7 @@ function isWhatsAppManualMode(): boolean {
  * pulam as linhas já reservadas. Após o commit, `lockedAt` impede que outra
  * execução reivindique as mesmas linhas antes do timeout de recuperação.
  */
-async function claimBatch(now: Date) {
+async function claimBatch(now: Date, skipWhatsApp: boolean) {
   const staleLockBefore = new Date(now.getTime() - LOCK_TIMEOUT_MS);
 
   return prisma.$transaction(async (transaction) => {
@@ -41,6 +41,7 @@ async function claimBatch(now: Date) {
       FROM "Notification"
       WHERE "status" = 'PENDING'
         AND "nextAttemptAt" <= ${now}
+        AND (${skipWhatsApp} = FALSE OR "channel" <> 'WHATSAPP')
         AND ("lockedAt" IS NULL OR "lockedAt" < ${staleLockBefore})
       ORDER BY "nextAttemptAt" ASC
       LIMIT ${BATCH_SIZE}
@@ -110,24 +111,13 @@ async function dispatch(request: NextRequest) {
     return NextResponse.json({ message: "Não autorizado." }, { status: 401 });
   }
 
-  const batch = await claimBatch(new Date());
-  const stats: DispatchStats = { claimed: batch.length, sent: 0, retried: 0, failed: 0 };
-
   const skipWhatsApp = isWhatsAppManualMode();
+  const batch = await claimBatch(new Date(), skipWhatsApp);
+  const stats: DispatchStats = { claimed: batch.length, sent: 0, retried: 0, failed: 0 };
 
   // Envio sequencial intencional: lote pequeno, respeita rate limits dos provedores
   // e mantém a duração da função bem abaixo do limite da Vercel.
   for (const notification of batch) {
-    if (skipWhatsApp && notification.channel === "WHATSAPP") {
-      // No modo manual o barbeiro envia pelo próprio WhatsApp via CRM.
-      // Libera o lock para que a notificação continue disponível no painel.
-      await prisma.notification.update({
-        where: { id: notification.id },
-        data: { lockedAt: null },
-      });
-      continue;
-    }
-
     const sender = getMessageSender(notification.channel);
 
     try {

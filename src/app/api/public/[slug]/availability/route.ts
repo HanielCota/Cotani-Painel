@@ -30,6 +30,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const parsed = querySchema.safeParse({
     serviceId: request.nextUrl.searchParams.get("serviceId") ?? undefined,
     date: request.nextUrl.searchParams.get("date") ?? undefined,
+    professionalId: request.nextUrl.searchParams.get("professionalId") || undefined,
   });
 
   if (!parsed.success) {
@@ -38,11 +39,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const clinic = await prisma.clinic.findUnique({
     where: { slug, deletedAt: null },
-    select: { id: true, timeZone: true, maxAppointmentsPerDay: true },
+    select: { id: true, timeZone: true, maxAppointmentsPerDay: true, subscriptionStatus: true, operationalStatus: true },
   });
 
   if (!clinic) {
     return NextResponse.json({ message: "Barbearia não encontrada." }, { status: 404 });
+  }
+
+  if (clinic.subscriptionStatus !== "ACTIVE" || clinic.operationalStatus !== "ACTIVE") {
+    return NextResponse.json({ message: "Barbearia indisponível para agendamentos." }, { status: 403 });
   }
 
   const service = await prisma.service.findFirst({

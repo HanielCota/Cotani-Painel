@@ -14,7 +14,7 @@ vi.mock("@clerk/nextjs/server", () => {
 });
 
 vi.mock("@/server/tenant", () => ({
-  requireActiveClinic: vi.fn(),
+  getClinicForRoles: vi.fn(),
 }));
 
 vi.mock("@/server/services/scheduling", () => ({
@@ -24,7 +24,7 @@ vi.mock("@/server/services/scheduling", () => ({
 }));
 
 const { auth } = await import("@clerk/nextjs/server");
-const { requireActiveClinic } = await import("@/server/tenant");
+const { getClinicForRoles } = await import("@/server/tenant");
 
 (auth.protect as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "user-1", orgId: "org-1" });
 
@@ -39,10 +39,11 @@ const activeClinic = {
 describe("updateAppointmentStatus", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    prismaMock.$transaction.mockImplementation(async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock));
   });
 
   it("retorna erro para ID inválido", async () => {
-    (requireActiveClinic as ReturnType<typeof vi.fn>).mockResolvedValueOnce(activeClinic);
+    (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValueOnce(activeClinic);
 
     const result = await updateAppointmentStatus("invalid", { status: "CONFIRMED" });
 
@@ -50,7 +51,7 @@ describe("updateAppointmentStatus", () => {
   });
 
   it("retorna erro para transição de status inválida", async () => {
-    (requireActiveClinic as ReturnType<typeof vi.fn>).mockResolvedValueOnce(activeClinic);
+    (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValueOnce(activeClinic);
     prismaMock.appointment.findFirst.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440002", status: "PENDING" });
 
     const result = await updateAppointmentStatus("550e8400-e29b-41d4-a716-446655440002", { status: "COMPLETED" });
@@ -60,7 +61,7 @@ describe("updateAppointmentStatus", () => {
   });
 
   it("atualiza status de PENDING para CONFIRMED", async () => {
-    (requireActiveClinic as ReturnType<typeof vi.fn>).mockResolvedValueOnce(activeClinic);
+    (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValueOnce(activeClinic);
     prismaMock.appointment.findFirst.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440002", status: "PENDING" });
 
     const result = await updateAppointmentStatus("550e8400-e29b-41d4-a716-446655440002", { status: "CONFIRMED" });
@@ -73,7 +74,7 @@ describe("updateAppointmentStatus", () => {
   });
 
   it("exige método de pagamento ao concluir", async () => {
-    (requireActiveClinic as ReturnType<typeof vi.fn>).mockResolvedValueOnce(activeClinic);
+    (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValueOnce(activeClinic);
     prismaMock.appointment.findFirst.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440002", status: "CONFIRMED" });
 
     const result = await updateAppointmentStatus("550e8400-e29b-41d4-a716-446655440002", { status: "COMPLETED" });
@@ -83,7 +84,7 @@ describe("updateAppointmentStatus", () => {
   });
 
   it("atualiza status para COMPLETED com método de pagamento", async () => {
-    (requireActiveClinic as ReturnType<typeof vi.fn>).mockResolvedValueOnce(activeClinic);
+    (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValueOnce(activeClinic);
     prismaMock.appointment.findFirst.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440002", status: "CONFIRMED" });
 
     const result = await updateAppointmentStatus("550e8400-e29b-41d4-a716-446655440002", {
@@ -94,7 +95,7 @@ describe("updateAppointmentStatus", () => {
     expect(result.status).toBe("success");
     expect(prismaMock.appointment.update).toHaveBeenCalledWith({
       where: { id: "550e8400-e29b-41d4-a716-446655440002" },
-      data: { status: "COMPLETED", paymentMethod: "PIX" },
+      data: expect.objectContaining({ status: "COMPLETED", paymentMethod: "PIX", paidAt: expect.any(Date) }),
     });
   });
 });
@@ -111,7 +112,7 @@ describe("createAppointmentFromForm", () => {
 
   it("retorna erro para horário passado", async () => {
     vi.setSystemTime(new Date("2026-07-21T10:00:00.000Z"));
-    (requireActiveClinic as ReturnType<typeof vi.fn>).mockResolvedValueOnce(activeClinic);
+    (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValueOnce(activeClinic);
 
     const formData = new FormData();
     formData.set("startTime", "2026-07-20T14:00");

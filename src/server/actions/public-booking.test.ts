@@ -71,6 +71,8 @@ describe("createPublicAppointment", () => {
       name: "Barbearia",
       timeZone: "America/Sao_Paulo",
       subscriptionStatus: "INACTIVE",
+      operationalStatus: "ACTIVE",
+      deletedAt: null,
     });
 
     const result = await createPublicAppointment({ status: "success", message: "" }, createFormData());
@@ -85,6 +87,8 @@ describe("createPublicAppointment", () => {
       name: "Barbearia",
       timeZone: "America/Sao_Paulo",
       subscriptionStatus: "ACTIVE",
+      operationalStatus: "ACTIVE",
+      deletedAt: null,
     });
     prismaMock.service.findFirst.mockResolvedValueOnce(null);
 
@@ -101,6 +105,8 @@ describe("createPublicAppointment", () => {
       name: "Barbearia",
       timeZone: "America/Sao_Paulo",
       subscriptionStatus: "ACTIVE",
+      operationalStatus: "ACTIVE",
+      deletedAt: null,
     });
     prismaMock.service.findFirst.mockResolvedValueOnce({
       id: "550e8400-e29b-41d4-a716-446655440001",

@@ -5,7 +5,8 @@ import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
-import { requireActiveClinic } from "@/server/tenant";
+import { normalizeWhatsAppPhone } from "@/lib/phone";
+import { getClinicForRoles } from "@/server/tenant";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
 
@@ -27,8 +28,10 @@ export async function createCustomer(input: unknown): Promise<ActionResult> {
   if (!parsed.success) {
     return { status: "error", message: "Revise os dados do cliente." };
   }
+  const normalizedPhone = normalizeWhatsAppPhone(parsed.data.phone);
+  if (!normalizedPhone) return { status: "error", message: "Informe um telefone com DDD válido." };
 
-  const clinic = await requireActiveClinic();
+  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de cadastrar clientes." };
@@ -44,7 +47,7 @@ export async function createCustomer(input: unknown): Promise<ActionResult> {
         clinicId: clinic.id,
         name: parsed.data.name,
         email: parsed.data.email,
-        phone: parsed.data.phone,
+        phone: normalizedPhone,
       },
     });
   } catch (error) {
@@ -79,8 +82,10 @@ export async function updateCustomer(input: unknown): Promise<ActionResult> {
   if (!parsed.success) {
     return { status: "error", message: "Revise os dados do cliente." };
   }
+  const normalizedPhone = normalizeWhatsAppPhone(parsed.data.phone);
+  if (!normalizedPhone) return { status: "error", message: "Informe um telefone com DDD válido." };
 
-  const clinic = await requireActiveClinic();
+  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de atualizar clientes." };
@@ -105,7 +110,7 @@ export async function updateCustomer(input: unknown): Promise<ActionResult> {
       data: {
         name: parsed.data.name,
         email: parsed.data.email ?? null,
-        phone: parsed.data.phone,
+        phone: normalizedPhone,
       },
     });
   } catch {
@@ -136,7 +141,7 @@ export async function deleteCustomer(customerId: string): Promise<ActionResult> 
     return { status: "error", message: "Não foi possível remover este cliente." };
   }
 
-  const clinic = await requireActiveClinic();
+  const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
     return { status: "error", message: "Selecione uma barbearia antes de remover clientes." };

@@ -23,25 +23,25 @@ describe("expireSubscriptions", () => {
     vi.clearAllMocks();
   });
 
-  it("desativa assinaturas expiradas ACTIVE", async () => {
-    prisma.clinic.updateMany.mockResolvedValueOnce({ count: 2 });
+  it("aplica carência antes de desativar assinaturas", async () => {
+    prisma.clinic.updateMany.mockResolvedValueOnce({ count: 2 }).mockResolvedValueOnce({ count: 1 });
 
     const now = new Date("2026-07-23T10:00:00");
     const result = await expireSubscriptions(now);
 
-    expect(result.expired).toBe(2);
-    expect(prisma.clinic.updateMany).toHaveBeenCalledWith({
+    expect(result).toEqual({ pastDue: 2, expired: 1 });
+    expect(prisma.clinic.updateMany).toHaveBeenNthCalledWith(1, {
       where: {
         subscriptionExpiresAt: { lt: now },
-        subscriptionStatus: { in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.PAST_DUE] },
+        subscriptionStatus: SubscriptionStatus.ACTIVE,
         deletedAt: null,
       },
-      data: { subscriptionStatus: SubscriptionStatus.INACTIVE },
+      data: { subscriptionStatus: SubscriptionStatus.PAST_DUE },
     });
   });
 
   it("não desativa assinaturas com data futura", async () => {
-    prisma.clinic.updateMany.mockResolvedValueOnce({ count: 0 });
+    prisma.clinic.updateMany.mockResolvedValue({ count: 0 });
 
     const result = await expireSubscriptions(new Date("2026-07-23T10:00:00"));
 

@@ -4,10 +4,12 @@ import { headers } from "next/headers";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
+import { normalizeWhatsAppPhone } from "@/lib/phone";
 import { rateLimit } from "@/lib/rate-limit";
 import { DOUBLE_BOOKING_MESSAGE, scheduleAppointment } from "@/server/services/scheduling";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
+import { isClinicOperational } from "@/server/clinic-access";
 
 const publicBookingSchema = z.object({
   slug: z.string().trim().min(1).max(120),
@@ -64,6 +66,8 @@ export async function createPublicAppointment(_previousState: ActionResult, form
   if (!parsed.success) {
     return { status: "error", message: "Revise os dados do agendamento." };
   }
+  const normalizedPhone = normalizeWhatsAppPhone(parsed.data.customerPhone);
+  if (!normalizedPhone) return { status: "error", message: "Informe um WhatsApp com DDD válido." };
 
   const clinic = await prisma.clinic.findUnique({
     where: { slug: parsed.data.slug, deletedAt: null },
@@ -71,6 +75,10 @@ export async function createPublicAppointment(_previousState: ActionResult, form
 
   if (!clinic) {
     return { status: "error", message: "Barbearia não encontrada." };
+  }
+
+  if (!isClinicOperational(clinic)) {
+    return { status: "error", message: "Esta loja está temporariamente indisponível." };
   }
 
   if (!isSubscriptionActive(clinic)) {
@@ -105,11 +113,11 @@ export async function createPublicAppointment(_previousState: ActionResult, form
   }
 
   const customer = await prisma.customer.upsert({
-    where: { clinicId_phone: { clinicId: clinic.id, phone: parsed.data.customerPhone } },
+    where: { clinicId_phone: { clinicId: clinic.id, phone: normalizedPhone } },
     create: {
       clinicId: clinic.id,
       name: parsed.data.customerName,
-      phone: parsed.data.customerPhone,
+      phone: normalizedPhone,
       email: parsed.data.customerEmail,
     },
     update: {
@@ -129,9 +137,11 @@ export async function createPublicAppointment(_previousState: ActionResult, form
     serviceId: service.id,
     serviceName: service.name,
     serviceDuration: service.duration,
+    servicePrice: Number(service.price),
     startTime: parsed.data.startTime,
     notes: parsed.data.notes,
     professionalId: parsed.data.professionalId,
+    maxAppointmentsPerDay: clinic.maxAppointmentsPerDay,
   });
 
   if (result.status === "conflict") {
