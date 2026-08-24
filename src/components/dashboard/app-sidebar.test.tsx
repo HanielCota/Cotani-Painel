@@ -12,15 +12,15 @@ describe("isActivePath", () => {
   });
 
   it("não ativa quando href não tem query mas URL atual tem", () => {
-    expect(isActivePath("/dashboard/configuracoes", createSearchParams("tab=profissionais"), "/dashboard/configuracoes")).toBe(false);
+    expect(isActivePath("/dashboard/configuracoes", createSearchParams("tab=professionals"), "/dashboard/configuracoes")).toBe(false);
   });
 
   it("ativa quando query string bate", () => {
-    expect(isActivePath("/dashboard/configuracoes", createSearchParams("tab=profissionais"), "/dashboard/configuracoes?tab=profissionais")).toBe(true);
+    expect(isActivePath("/dashboard/configuracoes", createSearchParams("tab=professionals"), "/dashboard/configuracoes?tab=professionals")).toBe(true);
   });
 
   it("não ativa quando query string não bate", () => {
-    expect(isActivePath("/dashboard/configuracoes", createSearchParams("tab=profissionais"), "/dashboard/configuracoes?tab=business-hours")).toBe(false);
+    expect(isActivePath("/dashboard/configuracoes", createSearchParams("tab=professionals"), "/dashboard/configuracoes?tab=business-hours")).toBe(false);
   });
 
   it("ativa para sub-rotas", () => {

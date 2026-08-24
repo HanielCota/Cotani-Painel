@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { UsersIcon } from "lucide-react";
 
@@ -22,12 +21,14 @@ const validTabs = ["services", "professionals", "business-hours"];
 export function SettingsTabs({ defaultTab, maxAppointmentsPerDay, initialBusinessHours }: SettingsTabsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState(() =>
-    validTabs.includes(defaultTab) ? defaultTab : "services",
-  );
+  const tabFromUrl = searchParams.get("tab");
+  const activeTab = validTabs.includes(tabFromUrl ?? "")
+    ? tabFromUrl!
+    : validTabs.includes(defaultTab)
+      ? defaultTab
+      : "services";
 
   function handleValueChange(value: string) {
-    setActiveTab(value);
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", value);
     router.replace(`/dashboard/configuracoes?${params.toString()}`, { scroll: false });

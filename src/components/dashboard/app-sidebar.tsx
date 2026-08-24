@@ -64,7 +64,7 @@ const operationItems: NavigationItem[] = [
 
 const storeItems: NavigationItem[] = [
   { title: "Serviços", href: "/dashboard/configuracoes?tab=services", icon: SparklesIcon },
-  { title: "Profissionais", href: "/dashboard/configuracoes?tab=profissionais", icon: Users2Icon },
+  { title: "Profissionais", href: "/dashboard/configuracoes?tab=professionals", icon: Users2Icon },
   { title: "Horários", href: "/dashboard/configuracoes?tab=business-hours", icon: CalendarDaysIcon },
 ];
 
