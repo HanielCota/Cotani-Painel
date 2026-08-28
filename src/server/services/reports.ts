@@ -77,7 +77,7 @@ export async function getReportsMetrics(clinic: ClinicModel): Promise<ReportsMet
     }),
   ]);
 
-  const monthAppointmentsTotal = monthAppointmentsResult.length;
+  const monthAppointmentsTotal = monthAppointmentsResult.filter((appointment) => appointment.status !== "CANCELED").length;
   const confirmedOrCompletedThisMonth = monthAppointmentsResult.filter((a) =>
     ["CONFIRMED", "COMPLETED"].includes(a.status),
   ).length;

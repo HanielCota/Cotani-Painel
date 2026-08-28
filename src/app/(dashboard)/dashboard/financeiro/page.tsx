@@ -11,12 +11,17 @@ import { FinanceDateTabs } from "@/components/dashboard/finance-date-tabs";
 import { FinanceKpiCards } from "@/components/dashboard/finance-kpi-cards";
 import { FinanceTransactionsTable } from "@/components/dashboard/finance-transactions-table";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { PlanUpgradeRequired } from "@/components/dashboard/plan-upgrade-required";
+import { getPlanEntitlements } from "@/config/subscription-plans";
 import { getFinanceMetrics } from "@/server/services/finance";
 import { withTenant } from "@/server/with-tenant";
 
 export const metadata: Metadata = { title: "Financeiro" };
 
 export default withTenant(async ({ clinic }) => {
+  if (!getPlanEntitlements(clinic.subscriptionPlan).finance) {
+    return <PlanUpgradeRequired feature="Controle financeiro" />;
+  }
   const metrics = await getFinanceMetrics(clinic);
 
   return (

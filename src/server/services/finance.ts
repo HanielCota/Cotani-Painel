@@ -2,7 +2,7 @@ import type { AppointmentStatus } from "@/generated/prisma/enums";
 
 import type { ClinicModel } from "@/generated/prisma/models/Clinic";
 import prisma from "@/lib/prisma";
-import { getClinicDateBounds, getClinicMonthlyBounds } from "@/lib/timezone";
+import { formatClinicDateKey, getClinicDateBounds, getClinicMonthlyBounds } from "@/lib/timezone";
 import type { AgendaAppointment } from "@/types";
 
 export interface FinanceAppointment extends AgendaAppointment {
@@ -147,18 +147,21 @@ export async function getFinanceMetrics(clinic: ClinicModel): Promise<FinanceMet
   const monthNoShowCount = currentMonthAppointments.filter((a) => a.status === "NO_SHOW").length;
 
   const monthAppointments = currentMonthAppointments.map(toFinanceAppointment);
+  const appointmentsByLocalDay = new Map<string, typeof currentMonthAppointments>();
+  for (const appointment of currentMonthAppointments) {
+    const key = formatClinicDateKey(appointment.startTime, clinic.timeZone);
+    appointmentsByLocalDay.set(key, [...(appointmentsByLocalDay.get(key) ?? []), appointment]);
+  }
 
   // Desempenho de vendas: agrupado por dia do mês atual.
   const dailyRevenueMap = new Map<string, number>();
   for (const appointment of currentMonthAppointments) {
     if (appointment.status !== "COMPLETED") continue;
-    const dateKey = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit" }).format(
-      appointment.startTime,
-    );
+    const dateKey = formatClinicDateKey(appointment.startTime, clinic.timeZone);
     dailyRevenueMap.set(dateKey, (dailyRevenueMap.get(dateKey) ?? 0) + Number(appointment.totalPrice));
   }
   const dailyRevenue = Array.from(dailyRevenueMap.entries())
-    .map(([date, value]) => ({ date, value }))
+    .map(([date, value]) => ({ date: `${date.slice(8, 10)}/${date.slice(5, 7)}`, value }))
     .sort((a, b) => a.date.localeCompare(b.date));
 
   // Evolução mensal: receita e ticket médio dos últimos meses.
@@ -173,61 +176,25 @@ export async function getFinanceMetrics(clinic: ClinicModel): Promise<FinanceMet
 
   // Séries diárias para micrográficos dos KPIs (últimos 14 dias do mês).
   const last14Days = Array.from({ length: 14 }, (_, i) => i);
+  const monthKey = formatClinicDateKey(startOfMonth, clinic.timeZone);
+  const [monthYear, monthNumber] = monthKey.split("-").map(Number);
+  const dayKey = (offset: number) => new Date(Date.UTC(monthYear, monthNumber - 1, offset + 1)).toISOString().slice(0, 10);
   const kpiSeries = {
     revenue: last14Days.map((offset) => {
-      const targetDate = new Date(startOfMonth.getTime() + offset * 24 * 60 * 60 * 1000);
-      if (targetDate >= startOfNextMonth) return 0;
-      return currentMonthAppointments
-        .filter((a) => {
-          if (a.status !== "COMPLETED") return false;
-          const appointmentDate = new Date(a.startTime.toLocaleString("en-US", { timeZone: clinic.timeZone }));
-          return (
-            appointmentDate.getDate() === targetDate.getDate() &&
-            appointmentDate.getMonth() === targetDate.getMonth() &&
-            appointmentDate.getFullYear() === targetDate.getFullYear()
-          );
-        })
+      return (appointmentsByLocalDay.get(dayKey(offset)) ?? [])
+        .filter((a) => a.status === "COMPLETED")
         .reduce((sum, a) => sum + Number(a.totalPrice), 0);
     }),
     sales: last14Days.map((offset) => {
-      const targetDate = new Date(startOfMonth.getTime() + offset * 24 * 60 * 60 * 1000);
-      if (targetDate >= startOfNextMonth) return 0;
-      return currentMonthAppointments.filter((a) => {
-        const appointmentDate = new Date(a.startTime.toLocaleString("en-US", { timeZone: clinic.timeZone }));
-        return (
-          appointmentDate.getDate() === targetDate.getDate() &&
-          appointmentDate.getMonth() === targetDate.getMonth() &&
-          appointmentDate.getFullYear() === targetDate.getFullYear()
-        );
-      }).length;
+      return (appointmentsByLocalDay.get(dayKey(offset)) ?? []).length;
     }),
     ticket: last14Days.map((offset) => {
-      const targetDate = new Date(startOfMonth.getTime() + offset * 24 * 60 * 60 * 1000);
-      if (targetDate >= startOfNextMonth) return 0;
-      const dayAppointments = currentMonthAppointments.filter((a) => {
-        if (a.status !== "COMPLETED") return false;
-        const appointmentDate = new Date(a.startTime.toLocaleString("en-US", { timeZone: clinic.timeZone }));
-        return (
-          appointmentDate.getDate() === targetDate.getDate() &&
-          appointmentDate.getMonth() === targetDate.getMonth() &&
-          appointmentDate.getFullYear() === targetDate.getFullYear()
-        );
-      });
+      const dayAppointments = (appointmentsByLocalDay.get(dayKey(offset)) ?? []).filter((a) => a.status === "COMPLETED");
       const dayRevenue = dayAppointments.reduce((sum, a) => sum + Number(a.totalPrice), 0);
       return dayAppointments.length > 0 ? Math.round(dayRevenue / dayAppointments.length) : 0;
     }),
     cancellations: last14Days.map((offset) => {
-      const targetDate = new Date(startOfMonth.getTime() + offset * 24 * 60 * 60 * 1000);
-      if (targetDate >= startOfNextMonth) return 0;
-      return currentMonthAppointments.filter((a) => {
-        if (a.status !== "CANCELED" && a.status !== "NO_SHOW") return false;
-        const appointmentDate = new Date(a.startTime.toLocaleString("en-US", { timeZone: clinic.timeZone }));
-        return (
-          appointmentDate.getDate() === targetDate.getDate() &&
-          appointmentDate.getMonth() === targetDate.getMonth() &&
-          appointmentDate.getFullYear() === targetDate.getFullYear()
-        );
-      }).length;
+      return (appointmentsByLocalDay.get(dayKey(offset)) ?? []).filter((a) => a.status === "CANCELED" || a.status === "NO_SHOW").length;
     }),
   };
 
@@ -270,9 +237,10 @@ export async function getFinanceMetrics(clinic: ClinicModel): Promise<FinanceMet
 
   for (const appointment of currentMonthAppointments) {
     if (appointment.status !== "COMPLETED") continue;
-    const zonedStart = new Date(appointment.startTime.toLocaleString("en-US", { timeZone: clinic.timeZone }));
-    const dayName = dayNames[zonedStart.getDay()];
-    const weekOfMonth = Math.floor((zonedStart.getDate() - 1) / 7);
+    const localKey = formatClinicDateKey(appointment.startTime, clinic.timeZone);
+    const localDay = new Date(`${localKey}T12:00:00.000Z`);
+    const dayName = dayNames[localDay.getUTCDay()];
+    const weekOfMonth = Math.floor((Number(localKey.slice(8, 10)) - 1) / 7);
     const clampedWeek = Math.min(Math.max(weekOfMonth, 0), weeksInMonth - 1);
     calendarMap[dayName][clampedWeek] += Number(appointment.totalPrice);
   }

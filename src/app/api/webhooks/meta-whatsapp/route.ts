@@ -1,0 +1,113 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
+import { NextRequest, NextResponse } from "next/server";
+
+import type { Prisma } from "@/generated/prisma/client";
+import prisma from "@/lib/prisma";
+import { normalizeWhatsAppPhone } from "@/lib/phone";
+import { logger } from "@/lib/logger";
+
+interface MetaMessage {
+  id?: string;
+  from?: string;
+  type?: string;
+  text?: { body?: string };
+}
+
+interface MetaWebhookPayload {
+  entry?: Array<{ changes?: Array<{ value?: { messages?: MetaMessage[] } }> }>;
+}
+
+function verifySignature(rawBody: string, signature: string | null): boolean {
+  const secret = process.env.META_APP_SECRET?.trim();
+  if (!secret) return process.env.NODE_ENV !== "production";
+  if (!signature?.startsWith("sha256=")) return false;
+  const expected = `sha256=${createHmac("sha256", secret).update(rawBody).digest("hex")}`;
+  const left = Buffer.from(expected);
+  const right = Buffer.from(signature);
+  return left.length === right.length && timingSafeEqual(left, right);
+}
+
+export async function GET(request: NextRequest) {
+  const mode = request.nextUrl.searchParams.get("hub.mode");
+  const token = request.nextUrl.searchParams.get("hub.verify_token");
+  const challenge = request.nextUrl.searchParams.get("hub.challenge");
+  if (mode === "subscribe" && challenge && token === process.env.META_WHATSAPP_VERIFY_TOKEN?.trim()) {
+    return new NextResponse(challenge, { status: 200, headers: { "Content-Type": "text/plain" } });
+  }
+  return NextResponse.json({ message: "Verificação inválida." }, { status: 403 });
+}
+
+export async function POST(request: NextRequest) {
+  const rawBody = await request.text();
+  if (!verifySignature(rawBody, request.headers.get("x-hub-signature-256"))) {
+    return NextResponse.json({ message: "Assinatura inválida." }, { status: 401 });
+  }
+
+  let payload: MetaWebhookPayload;
+  try {
+    payload = JSON.parse(rawBody) as MetaWebhookPayload;
+  } catch {
+    return NextResponse.json({ message: "Corpo inválido." }, { status: 400 });
+  }
+
+  const messages = payload.entry?.flatMap((entry) =>
+    entry.changes?.flatMap((change) => change.value?.messages ?? []) ?? [],
+  ) ?? [];
+
+  for (const message of messages) {
+    const eventId = message.id?.trim();
+    const phone = message.from ? normalizeWhatsAppPhone(message.from) : null;
+    const answer = message.text?.body?.trim().toLocaleLowerCase("pt-BR");
+    if (!eventId || !phone || !answer) continue;
+
+    const seen = await prisma.webhookEvent.findUnique({
+      where: { provider_eventId: { provider: "meta-whatsapp", eventId } },
+      select: { id: true },
+    });
+    if (seen) continue;
+
+    const lastOutbound = await prisma.notification.findFirst({
+      where: {
+        channel: "WHATSAPP",
+        recipient: phone,
+        status: "SENT",
+        appointment: { status: "PENDING", startTime: { gte: new Date() }, clinic: { deletedAt: null, operationalStatus: "ACTIVE" } },
+      },
+      include: { appointment: { include: { clinic: { select: { id: true, name: true, slug: true } } } } },
+      orderBy: { sentAt: "desc" },
+    });
+    const appointment = lastOutbound?.appointment ?? null;
+
+    try {
+      await prisma.$transaction(async (transaction) => {
+        if (appointment && ["1", "confirmar", "confirmado", "sim"].includes(answer)) {
+          await transaction.appointment.updateMany({ where: { id: appointment.id, status: "PENDING" }, data: { status: "CONFIRMED" } });
+        }
+        if (appointment && ["2", "reagendar", "remarcar"].includes(answer)) {
+          const baseUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "";
+          const now = new Date();
+          await transaction.notification.create({
+            data: {
+              kind: "RESCHEDULE_RESPONSE",
+              channel: "WHATSAPP",
+              recipient: phone,
+              content: `Para reagendar na ${appointment.clinic.name}, cancele o horário atual em ${baseUrl}/${appointment.clinic.slug}/cancelar/${appointment.cancellationToken} e escolha uma nova data em ${baseUrl}/${appointment.clinic.slug}.`,
+              idempotencyKey: `${eventId}:reschedule-response`,
+              scheduledFor: now,
+              nextAttemptAt: now,
+              clinicId: appointment.clinic.id,
+              appointmentId: appointment.id,
+            },
+          });
+        }
+        await transaction.webhookEvent.create({ data: { provider: "meta-whatsapp", eventId, type: "message.received", payloadSnapshot: message as unknown as Prisma.InputJsonValue } });
+      });
+    } catch (error) {
+      if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") continue;
+      throw error;
+    }
+  }
+
+  logger.info("Webhook da Meta processado", { messages: messages.length });
+  return NextResponse.json({ received: true });
+}

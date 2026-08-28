@@ -125,6 +125,7 @@ async function dispatch(request: NextRequest) {
         channel: notification.channel,
         recipient: notification.recipient,
         content: notification.content,
+        notificationKind: notification.kind,
         idempotencyKey: notification.idempotencyKey,
       });
 

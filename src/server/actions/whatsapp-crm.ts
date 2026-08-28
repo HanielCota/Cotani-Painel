@@ -1,16 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { getClinicForRoles } from "@/server/tenant";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
+import { requireAuthenticatedUser } from "@/server/auth";
 
 export async function markWhatsAppNotificationAsSent(notificationId: string): Promise<ActionResult> {
-  await auth.protect();
+  await requireAuthenticatedUser();
 
   const parsedId = z.uuid().safeParse(notificationId);
 

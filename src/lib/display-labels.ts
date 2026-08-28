@@ -1,4 +1,5 @@
 const subscriptionStatusLabels: Record<string, string> = {
+  TRIALING: "Período grátis",
   ACTIVE: "Ativa",
   INACTIVE: "Inativa",
   PAST_DUE: "Em atraso",
@@ -6,6 +7,12 @@ const subscriptionStatusLabels: Record<string, string> = {
 };
 
 const subscriptionPlanLabels: Record<string, string> = {
+  ESSENTIAL: "Essencial",
+  PROFESSIONAL: "Profissional",
+  ENTERPRISE: "Empresa",
+};
+
+const billingCycleLabels: Record<string, string> = {
   MONTHLY: "Mensal",
   ANNUAL: "Anual",
 };
@@ -46,6 +53,10 @@ export function subscriptionStatusLabel(status: string): string {
 
 export function subscriptionPlanLabel(plan: string | null | undefined): string {
   return plan ? subscriptionPlanLabels[plan] ?? "Plano não reconhecido" : "Sem plano";
+}
+
+export function billingCycleLabel(cycle: string | null | undefined): string {
+  return cycle ? billingCycleLabels[cycle] ?? "Ciclo não reconhecido" : "Sem ciclo";
 }
 
 export function paymentStatusLabel(status: string): string {

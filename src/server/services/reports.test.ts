@@ -6,12 +6,21 @@ import type { ClinicModel } from "@/generated/prisma/models/Clinic";
 
 const clinic: ClinicModel = {
   id: "clinic-1",
-  clerkOrgId: "org_1",
+  legacyExternalId: "org_1",
+  billingOwnerId: null,
   name: "Barbearia Teste",
   slug: "barbearia-teste",
   timeZone: "America/Sao_Paulo",
   subscriptionStatus: "ACTIVE",
-  subscriptionPlan: "MONTHLY",
+  subscriptionPlan: "PROFESSIONAL",
+  subscriptionCycle: "MONTHLY",
+  pendingSubscriptionPlan: null,
+  pendingSubscriptionCycle: null,
+  trialEndsAt: null,
+  mercadoPagoCheckoutKey: null,
+  mercadoPagoCheckoutStartedAt: null,
+  mercadoPagoCheckoutUrl: null,
+  cancelAtPeriodEnd: false,
   subscriptionExpiresAt: null,
   hasPaidOnce: true,
   mercadoPagoSubscriptionId: null,
@@ -85,8 +94,8 @@ describe("getReportsMetrics", () => {
     expect(metrics.totalCustomers).toBe(5);
     expect(metrics.totalServices).toBe(3);
     expect(metrics.activeCustomersThisMonth).toBe(1);
-    expect(metrics.confirmationRate).toBe(50); // 2 confirmados/completados de 4 total
-    expect(metrics.noShowRate).toBe(25); // 1 no-show de 4 total
+    expect(metrics.confirmationRate).toBe(67); // 2 confirmados/completados de 3 atendimentos não cancelados
+    expect(metrics.noShowRate).toBe(33); // 1 no-show de 3 atendimentos não cancelados
     expect(metrics.monthAppointments).toHaveLength(4);
     expect(metrics.topServices).toHaveLength(2);
     expect(metrics.topServices[0]?.name).toBe("Corte");

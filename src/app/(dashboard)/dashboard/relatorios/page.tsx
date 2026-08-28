@@ -1,3 +1,4 @@
+import { DownloadIcon } from "lucide-react";
 import type { Metadata } from "next";
 
 import { ReportsAppointmentsTable } from "@/components/dashboard/reports-appointments-table";
@@ -6,13 +7,20 @@ import { ReportsMonthlyChart } from "@/components/dashboard/reports-monthly-char
 import { ReportsTopProfessionals } from "@/components/dashboard/reports-top-professionals";
 import { ReportsTopServices } from "@/components/dashboard/reports-top-services";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { PlanUpgradeRequired } from "@/components/dashboard/plan-upgrade-required";
+import { getPlanEntitlements } from "@/config/subscription-plans";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { getReportsMetrics } from "@/server/services/reports";
 import { withTenant } from "@/server/with-tenant";
 
 export const metadata: Metadata = { title: "Relatórios" };
 
 export default withTenant(async ({ clinic }) => {
+  const entitlements = getPlanEntitlements(clinic.subscriptionPlan);
+  if (!entitlements.monthlyReports) {
+    return <PlanUpgradeRequired feature="Relatórios mensais" />;
+  }
   const metrics = await getReportsMetrics(clinic);
 
   return (
@@ -20,6 +28,16 @@ export default withTenant(async ({ clinic }) => {
       <PageHeader
         title="Relatórios"
         description={`Transforme a rotina da ${clinic.name} em decisões claras.`}
+        actions={entitlements.advancedReports ? (
+          <Button
+            nativeButton={false}
+            render={<a href="/api/reports/export" download />}
+            variant="outline"
+          >
+            <DownloadIcon />
+            Exportar CSV
+          </Button>
+        ) : undefined}
       />
 
       <section className="flex flex-col gap-4">

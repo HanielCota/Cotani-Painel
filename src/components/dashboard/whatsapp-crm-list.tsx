@@ -17,6 +17,7 @@ import type { ActionResult } from "@/types";
 interface WhatsAppCrmListProps {
   pending: WhatsAppNotificationItem[];
   sent: WhatsAppNotificationItem[];
+  automaticMode?: boolean;
 }
 
 const kindLabels: Record<string, string> = {
@@ -35,10 +36,12 @@ function NotificationCard({
   notification,
   isSent,
   onMarkSent,
+  automaticMode,
 }: {
   notification: WhatsAppNotificationItem;
   isSent: boolean;
   onMarkSent?: (id: string) => void;
+  automaticMode?: boolean;
 }) {
   const [result, setResult] = useState<ActionResult | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -89,7 +92,7 @@ function NotificationCard({
         <p className="text-xs text-destructive">Número inválido para WhatsApp.</p>
       ) : null}
 
-      {!isSent ? (
+      {!isSent && !automaticMode ? (
         <div className="flex flex-col gap-2 sm:flex-row">
           <Button
             size="sm"
@@ -122,7 +125,7 @@ function NotificationCard({
   );
 }
 
-export function WhatsAppCrmList({ pending, sent }: WhatsAppCrmListProps) {
+export function WhatsAppCrmList({ pending, sent, automaticMode = false }: WhatsAppCrmListProps) {
   const [sentIds, setSentIds] = useState<Set<string>>(new Set());
 
   function handleMarkSent(id: string) {
@@ -141,7 +144,9 @@ export function WhatsAppCrmList({ pending, sent }: WhatsAppCrmListProps) {
             Mensagens pendentes
           </CardTitle>
           <CardDescription>
-            Clique em Abrir WhatsApp para enviar a mensagem manualmente, depois marque como enviada.
+            {automaticMode
+              ? "Mensagens aguardando o horário programado ou a próxima execução do envio automático."
+              : "Clique em Abrir WhatsApp para enviar a mensagem manualmente, depois marque como enviada."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -157,6 +162,7 @@ export function WhatsAppCrmList({ pending, sent }: WhatsAppCrmListProps) {
                   key={notification.id}
                   notification={notification}
                   isSent={false}
+                  automaticMode={automaticMode}
                   onMarkSent={handleMarkSent}
                 />
               ))}
@@ -172,7 +178,9 @@ export function WhatsAppCrmList({ pending, sent }: WhatsAppCrmListProps) {
               <CheckIcon className="size-5 text-primary" />
               Últimas enviadas
             </CardTitle>
-            <CardDescription>Histórico das últimas mensagens enviadas manualmente.</CardDescription>
+            <CardDescription>
+              Histórico das últimas mensagens enviadas {automaticMode ? "automaticamente" : "manualmente"}.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-3">
