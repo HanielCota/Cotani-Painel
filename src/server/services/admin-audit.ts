@@ -31,7 +31,7 @@ export async function writeAdminAuditLog(
   const metadata = await getAdminRequestMetadata();
   await transaction.adminAuditLog.create({
     data: {
-      actorClerkUserId: actor.userId,
+      actorAuthUserId: actor.userId,
       action: input.action,
       targetType: input.targetType,
       targetId: input.targetId,

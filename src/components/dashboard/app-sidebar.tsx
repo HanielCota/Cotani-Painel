@@ -1,6 +1,5 @@
 "use client";
 
-import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
 import type { LucideIcon } from "lucide-react";
 import {
   useEffect,
@@ -9,6 +8,7 @@ import {
 } from "react";
 import {
   Building2Icon,
+  ChartNoAxesCombinedIcon,
   CalendarDaysIcon,
   CreditCardIcon,
   DollarSignIcon,
@@ -19,6 +19,7 @@ import {
   StoreIcon,
   UsersIcon,
   Users2Icon,
+  LogOutIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -30,6 +31,15 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -42,6 +52,10 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { getPlanEntitlements } from "@/config/subscription-plans";
+import type { ClinicRole, SubscriptionPlan } from "@/generated/prisma/enums";
+import { signOut } from "@/server/actions/auth";
+import { switchActiveClinic } from "@/server/actions/clinics";
 
 interface NavigationItem {
   title: string;
@@ -60,6 +74,7 @@ const operationItems: NavigationItem[] = [
   { title: "Clientes", href: "/dashboard/clientes", icon: UsersIcon },
   { title: "Comunicações", href: "/dashboard/comunicacoes", icon: MessageCircleIcon },
   { title: "Financeiro", href: "/dashboard/financeiro", icon: DollarSignIcon },
+  { title: "Relatórios", href: "/dashboard/relatorios", icon: ChartNoAxesCombinedIcon },
 ];
 
 const storeItems: NavigationItem[] = [
@@ -129,42 +144,67 @@ function NavLink({ item }: { item: NavigationItem }) {
   );
 }
 
-function ProfileCompanyCard() {
+interface SidebarIdentity {
+  name: string;
+  email: string | null;
+}
+
+interface SidebarClinic {
+  id: string;
+  name: string;
+}
+
+function ProfileCompanyCard({ user, clinics, activeClinicId }: { user: SidebarIdentity; clinics: SidebarClinic[]; activeClinicId?: string | null }) {
   const { state } = useSidebar();
+  const initials = user.name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "U";
+  const activeClinic = clinics.find((clinic) => clinic.id === activeClinicId) ?? clinics[0];
+
+  const profileMenu = (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <Avatar className="size-9 rounded-lg border border-input"><AvatarFallback className="rounded-lg bg-primary/10 text-xs font-semibold text-primary">{initials}</AvatarFallback></Avatar>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-64">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>
+            <span className="block truncate text-sm text-foreground">{user.name}</span>
+            <span className="block truncate font-normal">{user.email}</span>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <form action={signOut}><button type="submit" className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm hover:bg-muted"><LogOutIcon className="size-4" />Sair</button></form>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   if (state === "collapsed") {
-    return (
-      <div className="mt-4 flex justify-center">
-        <UserButton
-          appearance={{
-            elements: {
-              userButtonTrigger: "size-9 rounded-lg border border-input bg-card hover:bg-muted",
-            },
-          }}
-        />
-      </div>
-    );
+    return <div className="mt-4 flex justify-center">{profileMenu}</div>;
   }
 
   return (
     <div className="mt-4 flex flex-col gap-3 rounded-xl border border-border/70 bg-card p-3">
       <div className="flex items-center justify-between gap-2">
-        <UserButton
-          appearance={{
-            elements: {
-              userButtonTrigger: "size-9 rounded-lg border border-input bg-card hover:bg-muted",
-            },
-          }}
-        />
-        <OrganizationSwitcher
-          hidePersonal
-          appearance={{
-            elements: {
-              organizationSwitcherPopoverActions: "hidden",
-              organizationSwitcherTrigger: "h-9 px-3 rounded-lg border border-input bg-card hover:bg-muted text-sm",
-            },
-          }}
-        />
+        {profileMenu}
+        {activeClinic ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger className="h-9 min-w-0 flex-1 truncate rounded-lg border border-input bg-background px-3 text-left text-sm hover:bg-muted">
+              {activeClinic.name}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>Trocar de loja</DropdownMenuLabel>
+                {clinics.map((clinic) => (
+                  <form action={switchActiveClinic} key={clinic.id}>
+                    <input type="hidden" name="clinicId" value={clinic.id} />
+                    <button type="submit" className={`w-full rounded-md px-2 py-2 text-left text-sm hover:bg-muted ${clinic.id === activeClinic.id ? "font-semibold text-primary" : ""}`}>
+                      {clinic.name}
+                    </button>
+                  </form>
+                ))}
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
       </div>
 
       <Button
@@ -290,9 +330,17 @@ function NavSection({ title, children }: { title: string; children: React.ReactN
   );
 }
 
-export function AppSidebar() {
+export function AppSidebar({ subscriptionPlan, role, user, clinics, activeClinicId }: { subscriptionPlan?: SubscriptionPlan | null; role?: ClinicRole; user: SidebarIdentity; clinics: SidebarClinic[]; activeClinicId?: string | null }) {
   const { ref: contentRef, isAtBottom } = useBottomShadow<HTMLDivElement>();
   const showShadow = !isAtBottom;
+  const entitlements = getPlanEntitlements(subscriptionPlan);
+  const visibleOperationItems = operationItems.filter((item) => {
+    if (role === "PROVIDER") return item.href === "/dashboard/agenda";
+    if (role === "RECEPTIONIST" && ["/dashboard/financeiro", "/dashboard/relatorios"].includes(item.href)) return false;
+    if (item.href === "/dashboard/financeiro") return entitlements.finance;
+    if (item.href === "/dashboard/relatorios") return entitlements.monthlyReports;
+    return true;
+  });
 
   return (
     <Sidebar collapsible="icon" variant="sidebar" className="top-0 h-svh border-r border-sidebar-border bg-sidebar">
@@ -308,28 +356,28 @@ export function AppSidebar() {
           </div>
           <SidebarTrigger className="size-8 text-muted-foreground hover:text-foreground group-data-[collapsible=icon]:hidden" />
         </div>
-        <ProfileCompanyCard />
+        <ProfileCompanyCard user={user} clinics={clinics} activeClinicId={activeClinicId} />
       </SidebarHeader>
 
       <SidebarContent ref={contentRef} className="relative flex flex-col gap-5 px-3 py-4">
         <NavSection title="Operação">
           <SidebarMenu className="gap-1">
-            <NavLink item={dashboardItem} />
-            {operationItems.map((item) => (
+            {role !== "PROVIDER" ? <NavLink item={dashboardItem} /> : null}
+            {visibleOperationItems.map((item) => (
               <NavLink key={item.href} item={item} />
             ))}
           </SidebarMenu>
         </NavSection>
 
-        <NavSection title="Sua Loja">
+        {role === "ADMIN" ? <NavSection title="Sua Loja">
           <SidebarMenu className="gap-1">
             <StoreAccordion />
           </SidebarMenu>
-        </NavSection>
+        </NavSection> : null}
 
         <NavSection title="Conta">
           <SidebarMenu className="gap-1">
-            {accountItems.map((item) => (
+            {accountItems.filter((item) => role === "ADMIN" || item.href !== "/dashboard/assinatura").filter((item) => role !== "PROVIDER" || item.href !== "/dashboard/configuracoes").map((item) => (
               <NavLink key={item.href} item={item} />
             ))}
           </SidebarMenu>

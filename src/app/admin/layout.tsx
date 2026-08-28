@@ -1,4 +1,3 @@
-import { UserButton } from "@clerk/nextjs";
 import { ShieldCheckIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -6,6 +5,7 @@ import { notFound } from "next/navigation";
 
 import { AdminNav } from "@/components/admin/admin-nav";
 import { getPlatformAdminContext } from "@/server/platform-admin";
+import { signOut } from "@/server/actions/auth";
 
 export const metadata: Metadata = {
   title: { default: "Administração", template: "%s | Gestão Cotani" },
@@ -29,7 +29,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </Link>
             <div className="flex items-center gap-3">
               <Link href="/dashboard" className="rounded-lg px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground">Ir para o painel</Link>
-              <UserButton />
+              <form action={signOut}><button type="submit" className="rounded-lg px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground">Sair</button></form>
             </div>
           </div>
           <AdminNav />

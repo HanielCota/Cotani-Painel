@@ -2,11 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   generateClinicSlug,
-  mapClerkRole,
   mapSubscriptionStatus,
   slugify,
 } from "@/server/services/clinic-provisioning";
-import { ClinicRole, SubscriptionStatus } from "@/generated/prisma/enums";
+import { SubscriptionStatus } from "@/generated/prisma/enums";
 
 describe("slugify", () => {
   it("converte nome simples para slug", () => {
@@ -31,7 +30,7 @@ describe("slugify", () => {
 });
 
 describe("generateClinicSlug", () => {
-  it("gera slug composto por nome e sufixo do clerkOrgId", () => {
+  it("gera slug composto por nome e sufixo único", () => {
     const slug = generateClinicSlug("Barbearia do Zé", "org_1234567890abcdef");
 
     expect(slug).toBe("barbearia-do-ze-abcdef");
@@ -50,6 +49,10 @@ describe("mapSubscriptionStatus", () => {
     expect(mapSubscriptionStatus("active")).toBe(SubscriptionStatus.ACTIVE);
   });
 
+  it("mapeia trialing", () => {
+    expect(mapSubscriptionStatus("trialing")).toBe(SubscriptionStatus.TRIALING);
+  });
+
   it("mapeia past_due", () => {
     expect(mapSubscriptionStatus("past_due")).toBe(SubscriptionStatus.PAST_DUE);
   });
@@ -64,19 +67,5 @@ describe("mapSubscriptionStatus", () => {
 
   it("retorna INACTIVE para valores não string", () => {
     expect(mapSubscriptionStatus(123)).toBe(SubscriptionStatus.INACTIVE);
-  });
-});
-
-describe("mapClerkRole", () => {
-  it("mapeia org:admin para ADMIN", () => {
-    expect(mapClerkRole("org:admin")).toBe(ClinicRole.ADMIN);
-  });
-
-  it("mapeia org:receptionist para RECEPTIONIST", () => {
-    expect(mapClerkRole("org:receptionist")).toBe(ClinicRole.RECEPTIONIST);
-  });
-
-  it("mapeia qualquer outro role para PROVIDER", () => {
-    expect(mapClerkRole("org:member")).toBe(ClinicRole.PROVIDER);
   });
 });

@@ -1,6 +1,4 @@
-import { ClinicRole, SubscriptionStatus } from "@/generated/prisma/enums";
-import type { Prisma } from "@/generated/prisma/client";
-import prisma from "@/lib/prisma";
+import { SubscriptionStatus } from "@/generated/prisma/enums";
 
 export function slugify(value: string) {
   return value
@@ -12,130 +10,14 @@ export function slugify(value: string) {
     .replace(/(^-|-$)/g, "");
 }
 
-export function generateClinicSlug(name: string, clerkOrgId: string) {
-  return `${slugify(name)}-${clerkOrgId.slice(-6).toLowerCase()}`;
+export function generateClinicSlug(name: string, uniqueSuffix: string) {
+  return `${slugify(name) || "barbearia"}-${uniqueSuffix.replaceAll("-", "").slice(-6).toLowerCase()}`;
 }
 
 export function mapSubscriptionStatus(value: unknown): SubscriptionStatus {
-  if (typeof value !== "string") {
-    return SubscriptionStatus.INACTIVE;
-  }
-
+  if (typeof value !== "string") return SubscriptionStatus.INACTIVE;
   const normalized = value.toUpperCase();
-
-  if (normalized === "ACTIVE") return SubscriptionStatus.ACTIVE;
-  if (normalized === "PAST_DUE") return SubscriptionStatus.PAST_DUE;
-  if (normalized === "CANCELED") return SubscriptionStatus.CANCELED;
-
-  return SubscriptionStatus.INACTIVE;
-}
-
-export function mapClerkRole(clerkRole: string): ClinicRole {
-  if (clerkRole === "org:admin") return ClinicRole.ADMIN;
-  if (clerkRole === "org:receptionist") return ClinicRole.RECEPTIONIST;
-  return ClinicRole.PROVIDER;
-}
-
-interface ClinicProvisioningInput {
-  clerkOrgId: string;
-  name: string;
-  publicMetadata?: Record<string, unknown>;
-}
-
-export async function upsertClinic(
-  input: ClinicProvisioningInput,
-  client: Prisma.TransactionClient | typeof prisma = prisma,
-) {
-  const slug = generateClinicSlug(input.name, input.clerkOrgId);
-  const subscriptionStatus = mapSubscriptionStatus(input.publicMetadata?.subscription_status);
-
-  const existing = await client.clinic.findUnique({
-    where: { clerkOrgId: input.clerkOrgId },
-  });
-
-  if (existing) {
-    // O slug é imutável: ele é o link público de agendamento da barbearia.
-    // Nunca sobrescrevemos o slug em updates, mesmo que o nome mude no Clerk.
-    const shouldInheritSubscription =
-      existing.mercadoPagoSubscriptionId || existing.hasPaidOnce;
-
-    return client.clinic.update({
-      where: { clerkOrgId: input.clerkOrgId },
-      data: {
-        name: input.name,
-        subscriptionStatus: shouldInheritSubscription ? undefined : subscriptionStatus,
-        hasPaidOnce: shouldInheritSubscription
-          ? existing.hasPaidOnce || subscriptionStatus === SubscriptionStatus.ACTIVE
-          : subscriptionStatus === SubscriptionStatus.ACTIVE,
-      },
-    });
-  }
-
-  return client.clinic.create({
-    data: {
-      clerkOrgId: input.clerkOrgId,
-      name: input.name,
-      slug,
-      subscriptionStatus,
-      hasPaidOnce: subscriptionStatus === SubscriptionStatus.ACTIVE,
-    },
-  });
-}
-
-interface UserProvisioningInput {
-  clerkUserId: string;
-  email: string | null;
-  name: string;
-}
-
-export async function upsertUser(
-  input: UserProvisioningInput,
-  client: Prisma.TransactionClient | typeof prisma = prisma,
-) {
-  return client.user.upsert({
-    where: { clerkUserId: input.clerkUserId },
-    create: {
-      clerkUserId: input.clerkUserId,
-      email: input.email,
-      name: input.name,
-    },
-    update: {
-      email: input.email,
-      name: input.name,
-    },
-  });
-}
-
-interface MembershipProvisioningInput {
-  clinic: ClinicProvisioningInput;
-  user: UserProvisioningInput;
-  role: ClinicRole;
-}
-
-export async function provisionMembership(input: MembershipProvisioningInput) {
-  return prisma.$transaction(async (transaction) => {
-    const clinic = await upsertClinic(input.clinic, transaction);
-    const user = await upsertUser(input.user, transaction);
-
-    await transaction.membership.upsert({
-      where: { clinicId_userId: { clinicId: clinic.id, userId: user.id } },
-      create: {
-        clinicId: clinic.id,
-        userId: user.id,
-        role: input.role,
-      },
-      update: {
-        role: input.role,
-      },
-    });
-
-    return { clinic, user };
-  });
-}
-
-export async function softDeleteClinic(clerkOrgId: string) {
-  await prisma.clinic.updateMany({
-    where: { clerkOrgId, deletedAt: null },
-    data: { deletedAt: new Date() },
-  });
+  return Object.values(SubscriptionStatus).includes(normalized as SubscriptionStatus)
+    ? normalized as SubscriptionStatus
+    : SubscriptionStatus.INACTIVE;
 }

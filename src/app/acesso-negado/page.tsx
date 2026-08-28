@@ -16,18 +16,17 @@ export default function AccessDeniedPage() {
           <span className="flex size-11 items-center justify-center rounded-xl bg-accent text-accent-foreground"><LockKeyholeIcon className="size-5" /></span>
           <CardTitle>Acesso restrito</CardTitle>
           <CardDescription>
-            O Cotani só pode ser acessado por convite após a contratação do plano.
+            Seu perfil não possui permissão para acessar esta área.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-center text-sm leading-relaxed text-muted-foreground">
-            Se você já é cliente, use o link do convite enviado por e-mail. Novas contas só podem ser criadas no
-            momento da contratação do plano.
+            Volte ao painel para usar as funções liberadas ao seu papel ou peça a um administrador da barbearia para ajustar seu acesso.
           </p>
         </CardContent>
         <CardFooter>
-          <Button nativeButton={false} render={<Link href="/sign-in" />} variant="outline" className="w-full">
-            Voltar para o login
+          <Button nativeButton={false} render={<Link href="/dashboard" />} variant="outline" className="w-full">
+            Voltar ao painel
           </Button>
         </CardFooter>
       </Card>

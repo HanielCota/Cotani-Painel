@@ -37,7 +37,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
                 <TableCell><Badge variant="outline">{adminActionLabel(event.action)}</Badge></TableCell>
                 <TableCell>{event.clinic ? <Link className="font-medium hover:underline" href={`/admin/lojas/${event.clinic.id}`}>{event.clinic.name}</Link> : <span>{adminTargetLabel(event.targetType)}: {event.targetId}</span>}</TableCell>
                 <TableCell className="max-w-72 whitespace-normal text-muted-foreground">{event.reason ?? "—"}</TableCell>
-                <TableCell className="pr-6 font-mono text-xs">{event.actorClerkUserId}</TableCell>
+                <TableCell className="pr-6 font-mono text-xs">{event.actorAuthUserId}</TableCell>
               </TableRow>
             ))}
             {!events.length ? <TableRow><TableCell colSpan={5} className="py-16 text-center text-muted-foreground">Nenhuma ação administrativa registrada.</TableCell></TableRow> : null}

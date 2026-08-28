@@ -1,15 +1,16 @@
-import { auth } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
+import type { ClinicRole, SubscriptionPlan } from "@/generated/prisma/enums";
 
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
+import { ActiveClinicProvider } from "@/components/dashboard/active-clinic-context";
 import { EmptyBarbershopState } from "@/components/dashboard/empty-barbershop-state";
 import { PaymentRequiredState } from "@/components/dashboard/payment-required-state";
 import { ClinicSuspendedState } from "@/components/dashboard/clinic-suspended-state";
 import { SubscriptionBanner } from "@/components/dashboard/subscription-banner";
-import { UnprovisionedAccountState } from "@/components/dashboard/unprovisioned-account-state";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import prisma from "@/lib/prisma";
-import { getSelectedOrgId, getTenantContext, TenantResolutionError, type TenantContext } from "@/server/tenant";
+import { ensureCurrentAppUser } from "@/server/auth";
+import { getAvailableClinics, getSelectedClinicId, getTenantContext, TenantResolutionError, type TenantContext } from "@/server/tenant";
+import { isSubscriptionActive } from "@/server/subscription";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -18,6 +19,11 @@ interface DashboardLayoutProps {
 interface DashboardShellProps {
   children: React.ReactNode;
   insetClassName?: string;
+  subscriptionPlan?: SubscriptionPlan | null;
+  user: { name: string; email: string | null };
+  clinics: { id: string; name: string }[];
+  activeClinicId?: string | null;
+  role?: ClinicRole;
 }
 
 export const metadata: Metadata = {
@@ -27,10 +33,11 @@ export const metadata: Metadata = {
   },
 };
 
-function DashboardShell({ children, insetClassName = "bg-background" }: DashboardShellProps) {
+function DashboardShell({ children, insetClassName = "bg-background", subscriptionPlan, user, clinics, activeClinicId, role }: DashboardShellProps) {
   return (
+    <ActiveClinicProvider clinicId={activeClinicId}>
     <SidebarProvider className="min-h-svh">
-      <AppSidebar />
+      <AppSidebar subscriptionPlan={subscriptionPlan} role={role} user={user} clinics={clinics} activeClinicId={activeClinicId} />
       <SidebarInset className={insetClassName}>
         <div className="px-4 pt-4 md:hidden">
           <SidebarTrigger className="size-9 border border-border/60 bg-card shadow-sm" />
@@ -40,24 +47,26 @@ function DashboardShell({ children, insetClassName = "bg-background" }: Dashboar
         </div>
       </SidebarInset>
     </SidebarProvider>
+    </ActiveClinicProvider>
   );
 }
 
 export default async function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { userId } = await auth.protect();
+  const [{ appUser }, memberships, selectedClinicId] = await Promise.all([
+    ensureCurrentAppUser(),
+    getAvailableClinics(),
+    getSelectedClinicId(),
+  ]);
+  const sidebarProps = {
+    user: { name: appUser.name, email: appUser.email },
+    clinics: memberships.map(({ clinic }) => ({ id: clinic.id, name: clinic.name })),
+    activeClinicId: selectedClinicId,
+  };
 
-  const hasMembership = await prisma.membership.findFirst({
-    where: {
-      user: { clerkUserId: userId },
-      clinic: { deletedAt: null },
-    },
-    select: { id: true },
-  });
-
-  if (!hasMembership) {
+  if (memberships.length === 0) {
     return (
-      <DashboardShell>
-        <UnprovisionedAccountState />
+      <DashboardShell {...sidebarProps}>
+        <EmptyBarbershopState />
       </DashboardShell>
     );
   }
@@ -76,35 +85,33 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
   }
 
   if (tenantResolutionFailed || !tenant) {
-    const selectedOrgId = await getSelectedOrgId();
-
     return (
-      <DashboardShell>
-        <EmptyBarbershopState selectedOrgId={selectedOrgId} />
+      <DashboardShell {...sidebarProps}>
+        <EmptyBarbershopState />
       </DashboardShell>
     );
   }
 
-  const { clinic } = tenant;
+  const { clinic, role } = tenant;
 
   if (clinic.operationalStatus === "SUSPENDED" || clinic.deletedAt) {
     return (
-      <DashboardShell>
+      <DashboardShell {...sidebarProps}>
         <ClinicSuspendedState reason={clinic.suspensionReason} />
       </DashboardShell>
     );
   }
 
-  if (!clinic.hasPaidOnce) {
+  if (!clinic.hasPaidOnce && !isSubscriptionActive(clinic)) {
     return (
-      <DashboardShell>
+      <DashboardShell {...sidebarProps}>
         <PaymentRequiredState barbershopName={clinic.name} />
       </DashboardShell>
     );
   }
 
   return (
-    <DashboardShell>
+    <DashboardShell {...sidebarProps} activeClinicId={clinic.id} subscriptionPlan={clinic.subscriptionPlan} role={role}>
       <SubscriptionBanner status={clinic.subscriptionStatus} />
       {children}
     </DashboardShell>

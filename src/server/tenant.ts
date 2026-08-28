@@ -1,10 +1,13 @@
 import { cache } from "react";
-import { auth } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
 
 import prisma from "@/lib/prisma";
 import type { ClinicRole } from "@/generated/prisma/enums";
 import type { ClinicModel } from "@/generated/prisma/models/Clinic";
 import type { MembershipModel } from "@/generated/prisma/models/Membership";
+import { AuthenticationRequiredError, ensureCurrentAppUser } from "@/server/auth";
+
+export const ACTIVE_CLINIC_COOKIE = "cotani_active_clinic";
 
 /** Lançado quando não há barbearia ativa ou o vínculo do usuário ainda não foi sincronizado. */
 export class TenantResolutionError extends Error {
@@ -35,26 +38,33 @@ export interface TenantContext {
 
 /**
  * Contexto de tenant da requisição, memoizado por request via `cache()` do React.
- * Fail-closed: lança `TenantResolutionError` quando não há organização ativa
- * ou quando a barbearia/vínculo ainda não foi sincronizado pelo webhook do Clerk.
+ * Fail-closed: a identidade vem do Supabase e a associação à loja é sempre
+ * validada no banco. Um cookie apenas sugere a loja ativa; ele nunca concede acesso.
  */
 export const getTenantContext = cache(async (): Promise<TenantContext> => {
-  const { orgId, userId } = await auth.protect();
+  const { appUser } = await ensureCurrentAppUser();
+  const selectedClinicId = await getSelectedClinicId();
 
-  if (!orgId) {
-    throw new TenantResolutionError("Nenhuma barbearia ativa selecionada.");
-  }
-
-  const membership = await prisma.membership.findFirst({
+  let membership = await prisma.membership.findFirst({
     where: {
-      clinic: { clerkOrgId: orgId, deletedAt: null },
-      user: { clerkUserId: userId },
+      userId: appUser.id,
+      clinicId: selectedClinicId ?? undefined,
+      clinic: { deletedAt: null },
     },
     include: { clinic: true },
+    orderBy: { createdAt: "asc" },
   });
 
+  if (!membership && selectedClinicId) {
+    membership = await prisma.membership.findFirst({
+      where: { userId: appUser.id, clinic: { deletedAt: null } },
+      include: { clinic: true },
+      orderBy: { createdAt: "asc" },
+    });
+  }
+
   if (!membership) {
-    throw new TenantResolutionError("A barbearia ativa ou o vínculo do usuário ainda não foi sincronizado.");
+    throw new TenantResolutionError("Nenhuma barbearia acessível foi encontrada para esta conta.");
   }
 
   return { clinic: membership.clinic, membership, role: membership.role };
@@ -72,13 +82,13 @@ export function requireRole(ctx: TenantContext, roles: readonly ClinicRole[]): T
   return ctx;
 }
 
-/** Resolve o tenant e aplica RBAC sem esconder falhas de autenticação do Clerk. */
+/** Resolve o tenant e aplica RBAC sem esconder falhas de autenticação. */
 export async function getClinicForRoles(roles: readonly ClinicRole[]) {
   try {
     const clinic = requireRole(await getTenantContext(), roles).clinic;
     return clinic.operationalStatus === "ACTIVE" && clinic.deletedAt === null ? clinic : null;
   } catch (error) {
-    if (error instanceof TenantResolutionError || error instanceof InsufficientRoleError) {
+    if (error instanceof AuthenticationRequiredError || error instanceof TenantResolutionError || error instanceof InsufficientRoleError) {
       return null;
     }
     throw error;
@@ -90,26 +100,53 @@ export async function getClinicForRoles(roles: readonly ClinicRole[]) {
  * atuais que convertem a ausência de barbearia em `ActionResult` de erro.
  */
 export async function requireActiveClinic() {
-  const { orgId } = await auth.protect();
-
-  if (!orgId) {
-    return null;
+  try {
+    const { clinic } = await getTenantContext();
+    return clinic.deletedAt === null && clinic.operationalStatus === "ACTIVE" ? clinic : null;
+  } catch (error) {
+    if (error instanceof TenantResolutionError) return null;
+    throw error;
   }
+}
 
-  const clinic = await prisma.clinic.findUnique({
-    where: {
-      clerkOrgId: orgId,
-      deletedAt: null,
-      operationalStatus: "ACTIVE",
-    },
+export type ApiTenantResult =
+  | { ok: true; context: TenantContext }
+  | { ok: false; status: 401 | 403 | 404; message: string };
+
+/** Mantém 401, 403 e 404 distintos para Route Handlers privados. */
+export async function getApiTenant(roles: readonly ClinicRole[]): Promise<ApiTenantResult> {
+  try {
+    const context = await getTenantContext();
+    requireRole(context, roles);
+    if (context.clinic.deletedAt || context.clinic.operationalStatus !== "ACTIVE") {
+      return { ok: false, status: 404, message: "Barbearia ativa não encontrada." };
+    }
+    return { ok: true, context };
+  } catch (error) {
+    if (error instanceof AuthenticationRequiredError) {
+      return { ok: false, status: 401, message: "Sua sessão expirou. Entre novamente." };
+    }
+    if (error instanceof InsufficientRoleError) {
+      return { ok: false, status: 403, message: "Seu perfil não permite acessar este recurso." };
+    }
+    if (error instanceof TenantResolutionError) {
+      return { ok: false, status: 404, message: "Barbearia ativa não encontrada." };
+    }
+    throw error;
+  }
+}
+
+/** Retorna a preferência de loja ativa; a autorização ainda é validada no banco. */
+export async function getSelectedClinicId(): Promise<string | null> {
+  const cookieStore = await cookies();
+  return cookieStore.get(ACTIVE_CLINIC_COOKIE)?.value ?? null;
+}
+
+export const getAvailableClinics = cache(async () => {
+  const { appUser } = await ensureCurrentAppUser();
+  return prisma.membership.findMany({
+    where: { userId: appUser.id, clinic: { deletedAt: null } },
+    include: { clinic: true },
+    orderBy: [{ clinic: { name: "asc" } }, { createdAt: "asc" }],
   });
-
-  return clinic;
-}
-
-/** Retorna o orgId selecionado no Clerk sem buscar a barbearia no banco. */
-export async function getSelectedOrgId(): Promise<string | null> {
-  const { orgId } = await auth.protect();
-
-  return orgId ?? null;
-}
+});

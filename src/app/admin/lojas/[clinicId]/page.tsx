@@ -132,7 +132,7 @@ export default async function StoreDetailPage({
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Membros e permissões</CardTitle><CardDescription>As alterações são sincronizadas com o Clerk. O último administrador nunca pode ser removido ou rebaixado.</CardDescription></CardHeader>
+        <CardHeader><CardTitle>Membros e permissões</CardTitle><CardDescription>As permissões são mantidas pela Cotani. O último administrador nunca pode ser removido ou rebaixado.</CardDescription></CardHeader>
         <CardContent className="space-y-5">
           {clinic.memberships.map((membership) => (
             <div key={membership.id} className="grid gap-4 rounded-xl border border-border/80 bg-background/50 p-4 lg:grid-cols-[1fr_2fr]">

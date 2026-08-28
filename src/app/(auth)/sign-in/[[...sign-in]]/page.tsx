@@ -1,10 +1,8 @@
-import { SignIn } from "@clerk/nextjs";
 import { CalendarCheckIcon } from "lucide-react";
 
+import { AuthForm } from "@/components/auth/auth-form";
+
 export default function SignInPage() {
-  // Contas são provisionadas via API do Clerk após o pagamento — não há sign-up
-  // público. routing="path" é necessário para que OAuth (Google) funcione
-  // corretamente, pois o fluxo social exige redirects completos de URL.
   return (
     <main className="relative flex min-h-svh items-center justify-center overflow-hidden bg-background px-4 py-10">
       <div aria-hidden="true" className="absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top,oklch(0.91_0.08_165_/_0.55),transparent_68%)]" />
@@ -18,23 +16,9 @@ export default function SignInPage() {
             <p className="text-sm text-muted-foreground">Gestão simples para sua barbearia</p>
           </div>
         </div>
-        <SignIn
-          routing="path"
-          path="/sign-in"
-          signUpUrl="/acesso-negado"
-          fallbackRedirectUrl="/dashboard"
-          appearance={{
-            elements: {
-              footerAction: "hidden",
-              cardBox: "shadow-lg",
-              card: "rounded-2xl border border-border/80",
-              headerTitle: "text-foreground",
-              formButtonPrimary: "bg-primary hover:bg-primary/90",
-            },
-          }}
-        />
+        <AuthForm />
         <p className="max-w-sm text-center text-xs leading-relaxed text-muted-foreground">
-          O acesso é liberado após a contratação do plano. Use o e-mail e a senha do convite ou sua conta Google.
+          Crie sua conta para iniciar o período grátis ou use o e-mail do convite da sua equipe.
         </p>
       </div>
     </main>

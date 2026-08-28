@@ -1,122 +1,48 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { prismaMock } from "@/test/mocks/prisma";
-import {
-  getSelectedOrgId,
-  getTenantContext,
-  InsufficientRoleError,
-  requireActiveClinic,
-  requireRole,
-  TenantResolutionError,
-} from "@/server/tenant";
+import { getClinicForRoles, getSelectedClinicId, getTenantContext, InsufficientRoleError, requireRole, TenantResolutionError } from "@/server/tenant";
 
-vi.mock("@clerk/nextjs/server", () => {
-  const protect = vi.fn();
-  return {
-    auth: Object.assign(vi.fn(() => ({ protect })), { protect }),
-  };
-});
+vi.mock("@/server/auth", () => ({
+  AuthenticationRequiredError: class AuthenticationRequiredError extends Error {},
+  ensureCurrentAppUser: vi.fn().mockResolvedValue({ appUser: { id: "user-1" } }),
+}));
+vi.mock("next/headers", () => ({ cookies: vi.fn() }));
 
-const { auth } = await import("@clerk/nextjs/server");
+const { cookies } = await import("next/headers");
 
-describe("getTenantContext", () => {
+const clinic = { id: "clinic-1", name: "Barbearia", operationalStatus: "ACTIVE", deletedAt: null };
+const membership = { id: "membership-1", clinicId: clinic.id, userId: "user-1", role: "ADMIN", clinic };
+
+describe("tenant", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(cookies).mockResolvedValue({ get: vi.fn().mockReturnValue({ value: clinic.id }) } as never);
   });
 
-  it("lança erro quando não há orgId", async () => {
-    (auth.protect as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ orgId: null, userId: "user-1" });
-
-    await expect(getTenantContext()).rejects.toThrow(TenantResolutionError);
+  it("resolve a loja apenas por um vínculo do usuário autenticado", async () => {
+    prismaMock.membership.findFirst.mockResolvedValueOnce(membership as never);
+    const result = await getTenantContext();
+    expect(result.clinic).toEqual(clinic);
+    expect(prismaMock.membership.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ userId: "user-1", clinicId: "clinic-1" }) }));
   });
 
-  it("lança erro quando vínculo não existe", async () => {
-    (auth.protect as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ orgId: "org-1", userId: "user-1" });
+  it("falha fechado quando não existe vínculo", async () => {
     prismaMock.membership.findFirst.mockResolvedValueOnce(null);
-
-    await expect(getTenantContext()).rejects.toThrow(TenantResolutionError);
+    await expect(getTenantContext()).rejects.toBeInstanceOf(TenantResolutionError);
   });
 
-  it("retorna contexto quando vínculo existe", async () => {
-    (auth.protect as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ orgId: "org-1", userId: "user-1" });
-    prismaMock.membership.findFirst.mockResolvedValueOnce({
-      id: "memb-1",
-      role: "ADMIN",
-      clinicId: "clinic-1",
-      userId: "user-1",
-      clinic: { id: "clinic-1", name: "Barbearia" },
-    });
-
-    const ctx = await getTenantContext();
-
-    expect(ctx.clinic.id).toBe("clinic-1");
-    expect(ctx.role).toBe("ADMIN");
-  });
-});
-
-describe("requireRole", () => {
-  it("retorna contexto quando papel é permitido", () => {
-    const ctx = {
-      clinic: { id: "clinic-1" },
-      membership: { id: "memb-1", role: "ADMIN" },
-      role: "ADMIN" as const,
-    } as unknown as Parameters<typeof requireRole>[0];
-
-    expect(requireRole(ctx as never, ["ADMIN"])).toBe(ctx);
+  it("não permite papel insuficiente", () => {
+    expect(() => requireRole({ clinic, membership: { ...membership, role: "PROVIDER" }, role: "PROVIDER" } as never, ["ADMIN"]))
+      .toThrow(InsufficientRoleError);
   });
 
-  it("lança erro quando papel não é permitido", () => {
-    const ctx = {
-      clinic: { id: "clinic-1" },
-      membership: { id: "memb-1", role: "PROVIDER" },
-      role: "PROVIDER" as const,
-    } as unknown as Parameters<typeof requireRole>[0];
-
-    expect(() => requireRole(ctx as never, ["ADMIN"])).toThrow(InsufficientRoleError);
-  });
-});
-
-describe("requireActiveClinic", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+  it("retorna null para acesso sem papel suficiente", async () => {
+    prismaMock.membership.findFirst.mockResolvedValueOnce({ ...membership, role: "PROVIDER" } as never);
+    await expect(getClinicForRoles(["ADMIN"])).resolves.toBeNull();
   });
 
-  it("retorna null quando não há orgId", async () => {
-    (auth.protect as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ orgId: null });
-
-    const result = await requireActiveClinic();
-
-    expect(result).toBeNull();
-  });
-
-  it("retorna clínica quando orgId existe", async () => {
-    (auth.protect as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ orgId: "org-1" });
-    prismaMock.clinic.findUnique.mockResolvedValueOnce({ id: "clinic-1", name: "Barbearia" });
-
-    const result = await requireActiveClinic();
-
-    expect(result).toMatchObject({ id: "clinic-1" });
-  });
-});
-
-describe("getSelectedOrgId", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("retorna orgId quando disponível", async () => {
-    (auth.protect as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ orgId: "org-1" });
-
-    const result = await getSelectedOrgId();
-
-    expect(result).toBe("org-1");
-  });
-
-  it("retorna null quando não há orgId", async () => {
-    (auth.protect as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ orgId: null });
-
-    const result = await getSelectedOrgId();
-
-    expect(result).toBeNull();
+  it("lê a preferência de loja do cookie", async () => {
+    await expect(getSelectedClinicId()).resolves.toBe("clinic-1");
   });
 });

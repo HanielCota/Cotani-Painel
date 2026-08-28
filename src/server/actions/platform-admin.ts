@@ -1,6 +1,5 @@
 "use server";
 
-import { clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -182,14 +181,7 @@ export async function updateMembershipRoleAsPlatformAdmin(formData: FormData): P
     if (admins <= 1) redirectToClinic(parsed.data.clinicId, "error", "A loja precisa manter pelo menos um administrador.");
   }
 
-  const clerkRole = { ADMIN: "org:admin", RECEPTIONIST: "org:receptionist", PROVIDER: "org:provider" }[parsed.data.role];
   try {
-    const clerk = await clerkClient();
-    await clerk.organizations.updateOrganizationMembership({
-      organizationId: membership.clinic.clerkOrgId,
-      userId: membership.user.clerkUserId,
-      role: clerkRole,
-    });
     await prisma.$transaction(async (transaction) => {
       await transaction.membership.update({ where: { id: membership.id }, data: { role: parsed.data.role } });
       await writeAdminAuditLog(transaction, actor, {
@@ -198,12 +190,12 @@ export async function updateMembershipRoleAsPlatformAdmin(formData: FormData): P
         targetId: membership.id,
         clinicId: membership.clinicId,
         reason: parsed.data.reason,
-        beforeSnapshot: { userId: membership.user.clerkUserId, role: membership.role },
-        afterSnapshot: { userId: membership.user.clerkUserId, role: parsed.data.role },
+        beforeSnapshot: { userId: membership.user.authUserId, role: membership.role },
+        afterSnapshot: { userId: membership.user.authUserId, role: parsed.data.role },
       });
     });
   } catch {
-    redirectToClinic(parsed.data.clinicId, "error", "Não foi possível alterar o papel no Clerk.");
+    redirectToClinic(parsed.data.clinicId, "error", "Não foi possível alterar o papel do usuário.");
   }
 
   revalidatePath(`/admin/lojas/${parsed.data.clinicId}`);
@@ -228,11 +220,6 @@ export async function removeMembershipAsPlatformAdmin(formData: FormData): Promi
   }
 
   try {
-    const clerk = await clerkClient();
-    await clerk.organizations.deleteOrganizationMembership({
-      organizationId: membership.clinic.clerkOrgId,
-      userId: membership.user.clerkUserId,
-    });
     await prisma.$transaction(async (transaction) => {
       await transaction.membership.delete({ where: { id: membership.id } });
       await writeAdminAuditLog(transaction, actor, {
@@ -241,11 +228,11 @@ export async function removeMembershipAsPlatformAdmin(formData: FormData): Promi
         targetId: membership.id,
         clinicId: membership.clinicId,
         reason: parsed.data.reason,
-        beforeSnapshot: { userId: membership.user.clerkUserId, role: membership.role },
+        beforeSnapshot: { userId: membership.user.authUserId, role: membership.role },
       });
     });
   } catch {
-    redirectToClinic(parsed.data.clinicId, "error", "Não foi possível remover o vínculo no Clerk.");
+    redirectToClinic(parsed.data.clinicId, "error", "Não foi possível remover o vínculo.");
   }
 
   revalidatePath(`/admin/lojas/${parsed.data.clinicId}`);

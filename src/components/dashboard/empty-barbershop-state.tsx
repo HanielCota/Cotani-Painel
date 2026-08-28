@@ -1,11 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { OrganizationSwitcher } from "@clerk/nextjs";
-import { Building2Icon, RefreshCwIcon } from "lucide-react";
+import { useActionState } from "react";
+import { Building2Icon } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { createClinic } from "@/server/actions/clinics";
 import {
   Empty,
   EmptyContent,
@@ -15,14 +17,8 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 
-interface EmptyBarbershopStateProps {
-  selectedOrgId?: string | null;
-  errorMessage?: string | null;
-}
-
-export function EmptyBarbershopState({ selectedOrgId, errorMessage }: EmptyBarbershopStateProps) {
-  const router = useRouter();
-  const hasSelectedOrg = Boolean(selectedOrgId);
+export function EmptyBarbershopState() {
+  const [state, action, pending] = useActionState(createClinic, { status: "success" as const, message: "" });
 
   return (
     <Empty className="min-h-[60vh] border">
@@ -30,31 +26,22 @@ export function EmptyBarbershopState({ selectedOrgId, errorMessage }: EmptyBarbe
         <EmptyMedia variant="icon">
           <Building2Icon />
         </EmptyMedia>
-        <EmptyTitle>{hasSelectedOrg ? "Barbearia não sincronizada" : "Nenhuma barbearia encontrada"}</EmptyTitle>
+        <EmptyTitle>Crie sua primeira barbearia</EmptyTitle>
         <EmptyDescription className="max-w-md">
-          {hasSelectedOrg
-            ? "A organização está selecionada, mas não foi possível sincronizá-la automaticamente. Tente selecionar outra barbearia ou peça suporte."
-            : "Selecione uma barbearia no seletor abaixo para acessar o painel."}
+          Configure sua loja para iniciar os 7 dias grátis e publicar sua agenda online.
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent className="flex max-w-md flex-col gap-4">
-        {errorMessage ? (
-          <Alert variant="destructive">
-            <AlertDescription>{errorMessage}</AlertDescription>
+        {state.message ? (
+          <Alert variant={state.status === "error" ? "destructive" : "default"}>
+            <AlertDescription>{state.message}</AlertDescription>
           </Alert>
         ) : null}
 
-        <div className="flex flex-col items-center gap-3">
-          <OrganizationSwitcher
-            hidePersonal
-            appearance={{ elements: { organizationSwitcherPopoverActions: "hidden" } }}
-          />
-
-          <Button variant="outline" size="sm" onClick={() => router.refresh()}>
-            <RefreshCwIcon className="mr-2 size-4" />
-            Tentar novamente
-          </Button>
-        </div>
+        <form action={action} className="w-full space-y-3 text-left">
+          <div className="space-y-1.5"><Label htmlFor="clinic-name">Nome da barbearia</Label><Input id="clinic-name" name="name" minLength={2} maxLength={120} required placeholder="Ex.: Barbearia Central" /></div>
+          <Button type="submit" className="w-full" disabled={pending}>{pending ? "Criando..." : "Criar barbearia"}</Button>
+        </form>
       </EmptyContent>
     </Empty>
   );

@@ -2,6 +2,7 @@ import { vi } from "vitest";
 
 export const prismaMock = {
   $transaction: vi.fn(),
+  $executeRaw: vi.fn(),
   appointment: {
     count: vi.fn(),
     findMany: vi.fn(),
@@ -14,6 +15,7 @@ export const prismaMock = {
     count: vi.fn(),
     findMany: vi.fn(),
     findUnique: vi.fn(),
+    findFirst: vi.fn(),
     findUniqueOrThrow: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
@@ -35,6 +37,7 @@ export const prismaMock = {
   adminAuditLog: {
     count: vi.fn(),
     findMany: vi.fn(),
+    findFirst: vi.fn(),
     create: vi.fn(),
   },
   notification: {
@@ -61,6 +64,7 @@ export const prismaMock = {
     update: vi.fn(),
   },
   professional: {
+    count: vi.fn(),
     findFirst: vi.fn(),
     findMany: vi.fn(),
     create: vi.fn(),

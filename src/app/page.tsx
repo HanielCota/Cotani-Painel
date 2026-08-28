@@ -1,8 +1,7 @@
-import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
-export default async function HomePage() {
-  await auth.protect();
+import { getAuthenticatedUser } from "@/server/auth";
 
-  redirect("/dashboard");
+export default async function HomePage() {
+  redirect(await getAuthenticatedUser() ? "/dashboard" : "/sign-in");
 }

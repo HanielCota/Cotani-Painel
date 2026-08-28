@@ -9,9 +9,9 @@ try {
   // .env.local pode não existir em alguns ambientes.
 }
 
-// Garante DATABASE_URL para módulos que importam o Prisma client.
-process.env.DATABASE_URL =
-  process.env.DATABASE_URL ?? "postgresql://test:test@localhost:5432/test";
+// Garante a URL do runtime Supabase para módulos que importam o Prisma client.
+process.env.SUPABASE_DATABASE_URL =
+  process.env.SUPABASE_DATABASE_URL ?? "postgresql://test:test@localhost:5432/test";
 
 process.env.NEXT_PUBLIC_APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ?? "https://localhost:3000";
