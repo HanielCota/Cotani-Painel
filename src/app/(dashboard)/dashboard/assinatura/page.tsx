@@ -6,13 +6,13 @@ import type { Metadata } from "next";
 import { CancelSubscriptionDialog } from "@/components/dashboard/cancel-subscription-dialog";
 import { SubscriptionCheckout } from "@/components/dashboard/subscription-checkout";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { SUBSCRIPTION_PLANS, getMercadoPagoPlanEnvKey } from "@/config/subscription-plans";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SubscriptionPlan, SubscriptionStatus } from "@/generated/prisma/enums";
-import { paymentStatusLabel, subscriptionPlanLabel } from "@/lib/display-labels";
-import { getPlanConfig } from "@/server/services/mercado-pago";
+import { BillingCycle, SubscriptionStatus } from "@/generated/prisma/enums";
+import { billingCycleLabel, paymentStatusLabel, subscriptionPlanLabel } from "@/lib/display-labels";
 import { getPaymentHistory } from "@/server/services/payment-history";
 import { isSubscriptionActive } from "@/server/subscription";
 import { withTenant } from "@/server/with-tenant";
@@ -20,6 +20,7 @@ import { withTenant } from "@/server/with-tenant";
 export const metadata: Metadata = { title: "Assinatura" };
 
 const statusLabel: Record<SubscriptionStatus, string> = {
+  TRIALING: "Período grátis",
   ACTIVE: "Ativa",
   INACTIVE: "Inativa",
   PAST_DUE: "Em atraso",
@@ -27,6 +28,7 @@ const statusLabel: Record<SubscriptionStatus, string> = {
 };
 
 const statusDescription: Record<SubscriptionStatus, string> = {
+  TRIALING: "Seu período grátis de 7 dias está ativo. Você pode testar a Cotani sem informar cartão.",
   ACTIVE: "Sua assinatura está em dia. O agendamento público e todas as funções estão liberadas.",
   INACTIVE: "Sua assinatura expirou. Renove agora para reativar o agendamento público e as operações.",
   PAST_DUE: "O pagamento da assinatura está em atraso. Regularize para evitar a suspensão.",
@@ -34,27 +36,12 @@ const statusDescription: Record<SubscriptionStatus, string> = {
 };
 
 function buildPlans() {
-  try {
-    const monthly = getPlanConfig(SubscriptionPlan.MONTHLY);
-    const annual = getPlanConfig(SubscriptionPlan.ANNUAL);
-
-    return [
-      {
-        id: monthly.id,
-        name: monthly.name,
-        price: monthly.price,
-        description: "Renovação automática todo mês",
-      },
-      {
-        id: annual.id,
-        name: annual.name,
-        price: annual.price,
-        description: "2 meses grátis no ano",
-      },
-    ];
-  } catch {
-    return [];
-  }
+  return Object.values(SUBSCRIPTION_PLANS).map((plan) => ({
+    ...plan,
+    configuredCycles: ([BillingCycle.MONTHLY, BillingCycle.ANNUAL] as const).filter((cycle) =>
+      Boolean(process.env[getMercadoPagoPlanEnvKey(plan.id, cycle)]?.trim()),
+    ),
+  }));
 }
 
 const paymentStatusVariant: Record<string, "default" | "secondary" | "destructive" | "outline" | "success"> = {
@@ -116,18 +103,40 @@ export default withTenant(async ({ clinic }) => {
                 </div>
               </div>
 
-              {active ? (
+              <dl className="grid gap-3 rounded-xl border bg-background/60 p-4 text-sm sm:grid-cols-3">
+                <div>
+                  <dt className="text-muted-foreground">Plano</dt>
+                  <dd className="font-medium">{subscriptionPlanLabel(clinic.subscriptionPlan)}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">Cobrança</dt>
+                  <dd className="font-medium">{billingCycleLabel(clinic.subscriptionCycle)}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">
+                    {clinic.subscriptionStatus === SubscriptionStatus.TRIALING ? "Teste grátis até" : "Próxima renovação"}
+                  </dt>
+                  <dd className="font-medium">
+                    {(clinic.subscriptionStatus === SubscriptionStatus.TRIALING ? clinic.trialEndsAt : clinic.subscriptionExpiresAt)
+                      ? format(clinic.subscriptionStatus === SubscriptionStatus.TRIALING ? clinic.trialEndsAt! : clinic.subscriptionExpiresAt!, "dd/MM/yyyy", { locale: ptBR })
+                      : "—"}
+                  </dd>
+                </div>
+              </dl>
+
+              {active && !clinic.cancelAtPeriodEnd ? (
                 <div className="flex flex-col gap-2 border-t pt-4">
                   <p className="text-sm font-medium text-foreground">Gerenciamento</p>
                   <p className="text-sm text-muted-foreground">
-                    Você pode cancelar sua assinatura a qualquer momento. O acesso permanece até o fim do período
-                    pago.
+                    {clinic.subscriptionStatus === SubscriptionStatus.TRIALING
+                      ? "Você pode encerrar o período grátis a qualquer momento. O acesso será interrompido imediatamente."
+                      : "Você pode cancelar a renovação a qualquer momento. O acesso permanece até o fim do período pago."}
                   </p>
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <CancelSubscriptionDialog />
                   </div>
                 </div>
-              ) : null}
+              ) : clinic.cancelAtPeriodEnd ? <p className="rounded-lg border border-amber-300/60 bg-amber-50 p-3 text-sm text-amber-950">Renovação cancelada. O acesso permanece ativo até {clinic.subscriptionExpiresAt ? format(clinic.subscriptionExpiresAt, "dd/MM/yyyy", { locale: ptBR }) : "o fim do período atual"}.</p> : null}
             </CardContent>
           </Card>
         </TabsContent>
@@ -184,7 +193,7 @@ export default withTenant(async ({ clinic }) => {
                           <TableCell className="text-muted-foreground">
                             {format(new Date(payment.createdAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                           </TableCell>
-                          <TableCell>{subscriptionPlanLabel(payment.plan)}</TableCell>
+                          <TableCell>{subscriptionPlanLabel(payment.plan)} · {billingCycleLabel(payment.billingCycle)}</TableCell>
                           <TableCell>
                             <Badge variant={paymentStatusVariant[payment.status] ?? "secondary"}>
                               {paymentStatusLabel(payment.status)}

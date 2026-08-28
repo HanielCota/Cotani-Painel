@@ -10,6 +10,7 @@ interface SubscriptionBannerProps {
 }
 
 const statusMessage: Record<SubscriptionStatus, { title: string; description: string }> = {
+  TRIALING: { title: "Período grátis ativo", description: "Você está testando a Cotani gratuitamente por 7 dias." },
   ACTIVE: { title: "", description: "" },
   INACTIVE: {
     title: "Assinatura inativa",
@@ -28,7 +29,7 @@ const statusMessage: Record<SubscriptionStatus, { title: string; description: st
 };
 
 export function SubscriptionBanner({ status }: SubscriptionBannerProps) {
-  if (status === SubscriptionStatus.ACTIVE) {
+  if (status === SubscriptionStatus.ACTIVE || status === SubscriptionStatus.TRIALING) {
     return null;
   }
 

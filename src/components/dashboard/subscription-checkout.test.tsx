@@ -2,47 +2,61 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { SubscriptionCheckout } from "@/components/dashboard/subscription-checkout";
+import { SubscriptionCheckout, type SubscriptionPlanData } from "@/components/dashboard/subscription-checkout";
+import { BillingCycle, SubscriptionPlan } from "@/generated/prisma/enums";
 import { render } from "@/test/utils";
 
-const plans = [
-  { id: "MONTHLY" as const, name: "Mensal", price: 29.9, description: "Renovação automática todo mês" },
-  { id: "ANNUAL" as const, name: "Anual", price: 299.9, description: "2 meses grátis no ano" },
+const plans: SubscriptionPlanData[] = [
+  {
+    id: SubscriptionPlan.ESSENTIAL,
+    name: "Essencial",
+    description: "Para profissionais autônomos",
+    monthlyPrice: 34.9,
+    annualPrice: 335.04,
+    features: ["1 profissional"],
+    selfServiceCheckout: true,
+    configuredCycles: [BillingCycle.MONTHLY, BillingCycle.ANNUAL],
+  },
+  {
+    id: SubscriptionPlan.ENTERPRISE,
+    name: "Empresa",
+    description: "Para múltiplas unidades",
+    monthlyPrice: 97.9,
+    annualPrice: 939.84,
+    features: ["Profissionais ilimitados"],
+    selfServiceCheckout: false,
+    configuredCycles: [],
+  },
 ];
 
 describe("SubscriptionCheckout", () => {
-  it("renderiza os planos disponíveis", () => {
+  it("renderiza planos e alterna o ciclo", async () => {
     render(<SubscriptionCheckout plans={plans} />);
+    expect(screen.getByText("Essencial")).toBeInTheDocument();
+    expect(screen.getByText(/R\$\s*34,90/)).toBeInTheDocument();
 
-    expect(screen.getByText("Mensal")).toBeInTheDocument();
-    expect(screen.getByText("Anual")).toBeInTheDocument();
-    expect(screen.getByText(/R\$\s*29,90/)).toBeInTheDocument();
-    expect(screen.getByText(/R\$\s*299,90/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /anual/i }));
+    expect(screen.getByText(/R\$\s*335,04/)).toBeInTheDocument();
   });
 
-  it("exibe mensagem de configuração quando não há planos", () => {
-    render(<SubscriptionCheckout plans={[]} />);
-
-    expect(screen.getByText(/checkout automático ainda não está configurado/i)).toBeInTheDocument();
+  it("exibe contratação comercial para o plano Empresa", () => {
+    render(<SubscriptionCheckout plans={plans} />);
+    expect(screen.getByRole("button", { name: /falar sobre o plano empresa/i })).toBeInTheDocument();
   });
 
-  it("dispara fetch ao clicar em assinar", async () => {
+  it("envia plano e ciclo ao checkout", async () => {
     const fetchSpy = vi.spyOn(window, "fetch").mockResolvedValueOnce(
       new Response(JSON.stringify({ checkoutUrl: "https://mp.test/checkout" }), { status: 200 }),
     );
-
     render(<SubscriptionCheckout plans={plans} />);
-
-    await userEvent.click(screen.getByRole("button", { name: /assinar mensal/i }));
-
+    await userEvent.click(screen.getByRole("button", { name: /assinar essencial/i }));
     expect(fetchSpy).toHaveBeenCalledWith(
       "/api/subscription/checkout",
       expect.objectContaining({
         method: "POST",
-        body: JSON.stringify({ plan: "MONTHLY" }),
+        body: JSON.stringify({ plan: SubscriptionPlan.ESSENTIAL, cycle: BillingCycle.MONTHLY }),
       }),
     );
-
     fetchSpy.mockRestore();
   });
 });

@@ -3,9 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
+import { getPlanPrice } from "@/config/subscription-plans";
 import {
   getInvoiceFromMercadoPago,
+  getPlanConfig,
   syncSubscriptionFromMercadoPago,
+  subscriptionPeriodEnd,
   validateMercadoPagoWebhook,
 } from "@/server/services/mercado-pago";
 
@@ -65,23 +68,53 @@ export async function POST(request: NextRequest) {
       const synced = await syncSubscriptionFromMercadoPago({ mercadoPagoSubscriptionId: dataId });
 
       await prisma.$transaction(async (tx) => {
-        const clinic = await tx.clinic.findUnique({
-          where: { mercadoPagoSubscriptionId: synced.mercadoPagoSubscriptionId },
+        const clinic = await tx.clinic.findFirst({
+          where: {
+            OR: [
+              { mercadoPagoSubscriptionId: synced.mercadoPagoSubscriptionId },
+              ...(synced.externalReference ? [{ id: synced.externalReference }] : []),
+            ],
+          },
         });
         if (!clinic) {
-          logger.warn("Assinatura do Mercado Pago não vinculada a nenhuma clínica", {
-            mercadoPagoSubscriptionId: synced.mercadoPagoSubscriptionId,
-          });
-        } else {
-          await tx.clinic.update({
-            where: { id: clinic.id },
-            data: {
-              subscriptionStatus: synced.status,
-              hasPaidOnce: synced.hasPaidOnce || clinic.hasPaidOnce,
-              subscriptionExpiresAt: synced.nextPaymentDate,
-            },
-          });
+          throw new Error("Assinatura do Mercado Pago ainda não vinculada; evento será repetido.");
         }
+
+        const selectedPlan = clinic.pendingSubscriptionPlan ?? clinic.subscriptionPlan;
+        const selectedCycle = clinic.pendingSubscriptionCycle ?? clinic.subscriptionCycle;
+        if (synced.planId && selectedPlan && selectedCycle && synced.planId !== getPlanConfig(selectedPlan, selectedCycle).mercadoPagoPlanId) {
+          throw new Error("Plano recebido do Mercado Pago não corresponde ao catálogo da clínica.");
+        }
+
+        const subscriptionApproved = synced.status === "ACTIVE";
+        const canceledWithPaidAccess = synced.status === "CANCELED" && clinic.cancelAtPeriodEnd && clinic.subscriptionExpiresAt && clinic.subscriptionExpiresAt > new Date();
+        const effectiveExpiration = subscriptionApproved ? subscriptionPeriodEnd(selectedCycle, synced.nextPaymentDate) : undefined;
+        await tx.clinic.update({
+          where: { id: clinic.id },
+          data: {
+            mercadoPagoSubscriptionId: synced.mercadoPagoSubscriptionId,
+            subscriptionStatus: canceledWithPaidAccess ? "ACTIVE" : synced.status ?? undefined,
+            hasPaidOnce: synced.hasPaidOnce || clinic.hasPaidOnce,
+            subscriptionExpiresAt: effectiveExpiration,
+            subscriptionPlan: subscriptionApproved ? selectedPlan : undefined,
+            subscriptionCycle: subscriptionApproved ? selectedCycle : undefined,
+            pendingSubscriptionPlan: subscriptionApproved ? null : undefined,
+            pendingSubscriptionCycle: subscriptionApproved ? null : undefined,
+            mercadoPagoCheckoutUrl: subscriptionApproved ? null : undefined,
+            cancelAtPeriodEnd: canceledWithPaidAccess ? true : subscriptionApproved ? false : undefined,
+          },
+        });
+        await tx.clinic.updateMany({
+          where: { billingOwnerId: clinic.id },
+          data: {
+            subscriptionStatus: canceledWithPaidAccess ? "ACTIVE" : synced.status ?? undefined,
+            hasPaidOnce: synced.hasPaidOnce || clinic.hasPaidOnce,
+            subscriptionExpiresAt: effectiveExpiration,
+            subscriptionPlan: subscriptionApproved ? selectedPlan : undefined,
+            subscriptionCycle: subscriptionApproved ? selectedCycle : undefined,
+            cancelAtPeriodEnd: canceledWithPaidAccess ? true : subscriptionApproved ? false : undefined,
+          },
+        });
 
         await tx.webhookEvent.create({
           data: { provider: "mercado-pago", eventId, type: action, payloadSnapshot: body as Prisma.InputJsonValue },
@@ -89,12 +122,19 @@ export async function POST(request: NextRequest) {
       });
     } else if (eventType === "subscription_authorized_payment") {
       const invoice = await getInvoiceFromMercadoPago(dataId);
+      const synced = await syncSubscriptionFromMercadoPago({ mercadoPagoSubscriptionId: invoice.subscriptionId });
 
       await prisma.$transaction(async (tx) => {
-        const clinic = await tx.clinic.findUnique({
-          where: { mercadoPagoSubscriptionId: invoice.subscriptionId },
+        const clinic = await tx.clinic.findFirst({
+          where: { OR: [{ mercadoPagoSubscriptionId: invoice.subscriptionId }, ...(synced.externalReference ? [{ id: synced.externalReference }] : [])] },
         });
         if (!clinic) throw new Error("Fatura sem clínica vinculada.");
+        const selectedPlan = clinic.pendingSubscriptionPlan ?? clinic.subscriptionPlan;
+        const selectedCycle = clinic.pendingSubscriptionCycle ?? clinic.subscriptionCycle;
+        if (!selectedPlan || !selectedCycle) throw new Error("Fatura sem plano local pendente para conciliação.");
+        if (synced.planId && synced.planId !== getPlanConfig(selectedPlan, selectedCycle).mercadoPagoPlanId) throw new Error("Plano da fatura diverge do catálogo local.");
+        const expectedAmount = getPlanPrice(selectedPlan, selectedCycle);
+        if (Math.abs(invoice.amount - expectedAmount) > 0.01) throw new Error("Valor da fatura diverge do catálogo local.");
 
         await tx.paymentHistory.upsert({
           where: { mercadoPagoPaymentId: invoice.paymentId },
@@ -102,7 +142,8 @@ export async function POST(request: NextRequest) {
             clinicId: clinic.id,
             amount: invoice.amount,
             status: invoice.status,
-            plan: clinic.subscriptionPlan,
+            plan: clinic.pendingSubscriptionPlan ?? clinic.subscriptionPlan,
+            billingCycle: clinic.pendingSubscriptionCycle ?? clinic.subscriptionCycle,
             mercadoPagoPaymentId: invoice.paymentId,
             mercadoPagoSubscriptionId: invoice.subscriptionId,
             paidAt: invoice.paidAt,
@@ -111,9 +152,32 @@ export async function POST(request: NextRequest) {
         });
 
         if (invoice.status === "approved") {
+          const effectiveExpiration = subscriptionPeriodEnd(selectedCycle, synced.nextPaymentDate, invoice.paidAt);
           await tx.clinic.update({
             where: { id: clinic.id },
-            data: { subscriptionStatus: "ACTIVE", hasPaidOnce: true },
+            data: {
+              subscriptionStatus: "ACTIVE",
+              hasPaidOnce: true,
+              mercadoPagoSubscriptionId: invoice.subscriptionId,
+              subscriptionPlan: selectedPlan,
+              subscriptionCycle: selectedCycle,
+              subscriptionExpiresAt: effectiveExpiration,
+              pendingSubscriptionPlan: null,
+              pendingSubscriptionCycle: null,
+              mercadoPagoCheckoutUrl: null,
+              cancelAtPeriodEnd: false,
+            },
+          });
+          await tx.clinic.updateMany({
+            where: { billingOwnerId: clinic.id },
+            data: {
+              subscriptionStatus: "ACTIVE",
+              hasPaidOnce: true,
+              subscriptionPlan: selectedPlan,
+              subscriptionCycle: selectedCycle,
+              subscriptionExpiresAt: effectiveExpiration,
+              cancelAtPeriodEnd: false,
+            },
           });
         }
 

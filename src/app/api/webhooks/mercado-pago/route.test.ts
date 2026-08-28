@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const tx = {
-  clinic: { findUnique: vi.fn(), update: vi.fn() },
+  clinic: { findUnique: vi.fn(), findFirst: vi.fn(), update: vi.fn(), updateMany: vi.fn() },
   paymentHistory: { upsert: vi.fn() },
   webhookEvent: { create: vi.fn() },
 };
@@ -16,10 +16,11 @@ vi.mock("@/server/services/mercado-pago", () => ({
   validateMercadoPagoWebhook: vi.fn(),
   syncSubscriptionFromMercadoPago: vi.fn(),
   getInvoiceFromMercadoPago: vi.fn(),
+  subscriptionPeriodEnd: vi.fn((_cycle: string, nextPaymentDate: Date | null, paidAt?: Date | null) => nextPaymentDate ?? paidAt),
 }));
 
 const { POST } = await import("@/app/api/webhooks/mercado-pago/route");
-const { getInvoiceFromMercadoPago } = await import("@/server/services/mercado-pago");
+const { getInvoiceFromMercadoPago, syncSubscriptionFromMercadoPago } = await import("@/server/services/mercado-pago");
 
 describe("webhook Mercado Pago", () => {
   beforeEach(() => {
@@ -28,15 +29,29 @@ describe("webhook Mercado Pago", () => {
   });
 
   it("concilia cada pagamento autorizado com valor e data reais", async () => {
+    vi.mocked(syncSubscriptionFromMercadoPago).mockResolvedValueOnce({
+      mercadoPagoSubscriptionId: "subscription-1",
+      status: "ACTIVE",
+      hasPaidOnce: true,
+      nextPaymentDate: new Date("2026-09-20T12:00:00.000Z"),
+      externalReference: "clinic-1",
+      rawStatus: "authorized",
+    });
     vi.mocked(getInvoiceFromMercadoPago).mockResolvedValueOnce({
       id: "invoice-1",
       subscriptionId: "subscription-1",
       paymentId: "payment-1",
-      amount: 97,
+      amount: 49.99,
       status: "approved",
       paidAt: new Date("2026-08-20T12:00:00.000Z"),
     });
-    tx.clinic.findUnique.mockResolvedValueOnce({ id: "clinic-1", subscriptionPlan: "MONTHLY" });
+    tx.clinic.findFirst.mockResolvedValueOnce({
+      id: "clinic-1",
+      subscriptionPlan: "PROFESSIONAL",
+      subscriptionCycle: "MONTHLY",
+      pendingSubscriptionPlan: null,
+      pendingSubscriptionCycle: null,
+    });
 
     const request = new NextRequest("https://painel.cotani.com.br/api/webhooks/mercado-pago", {
       method: "POST",
@@ -54,14 +69,67 @@ describe("webhook Mercado Pago", () => {
     expect(response.status).toBe(200);
     expect(tx.paymentHistory.upsert).toHaveBeenCalledWith(expect.objectContaining({
       where: { mercadoPagoPaymentId: "payment-1" },
-      create: expect.objectContaining({ amount: 97, status: "approved" }),
+      create: expect.objectContaining({ amount: 49.99, status: "approved" }),
     }));
     expect(tx.clinic.update).toHaveBeenCalledWith({
       where: { id: "clinic-1" },
-      data: { subscriptionStatus: "ACTIVE", hasPaidOnce: true },
+      data: expect.objectContaining({
+        subscriptionStatus: "ACTIVE",
+        hasPaidOnce: true,
+        subscriptionPlan: "PROFESSIONAL",
+        subscriptionCycle: "MONTHLY",
+        pendingSubscriptionPlan: null,
+        pendingSubscriptionCycle: null,
+      }),
     });
     expect(tx.webhookEvent.create).toHaveBeenCalledWith({
       data: expect.objectContaining({ eventId: "123", type: "payment.updated" }),
+    });
+  });
+
+  it("promove o plano pendente somente quando a assinatura é autorizada", async () => {
+    vi.mocked(syncSubscriptionFromMercadoPago).mockResolvedValueOnce({
+      mercadoPagoSubscriptionId: "subscription-1",
+      status: "ACTIVE",
+      hasPaidOnce: true,
+      nextPaymentDate: new Date("2026-09-26T12:00:00.000Z"),
+      rawStatus: "authorized",
+      externalReference: "clinic-1",
+    });
+    tx.clinic.findFirst.mockResolvedValueOnce({
+      id: "clinic-1",
+      hasPaidOnce: false,
+      subscriptionPlan: "ESSENTIAL",
+      subscriptionCycle: "MONTHLY",
+      pendingSubscriptionPlan: "PROFESSIONAL",
+      pendingSubscriptionCycle: "ANNUAL",
+    });
+
+    const request = new NextRequest("https://painel.cotani.com.br/api/webhooks/mercado-pago", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-request-id": "request-2" },
+      body: JSON.stringify({
+        id: 124,
+        type: "subscription_preapproval",
+        action: "updated",
+        data: { id: "subscription-1" },
+      }),
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    expect(tx.clinic.update).toHaveBeenCalledWith({
+      where: { id: "clinic-1" },
+      data: expect.objectContaining({
+        subscriptionStatus: "ACTIVE",
+        hasPaidOnce: true,
+        subscriptionExpiresAt: new Date("2026-09-26T12:00:00.000Z"),
+        subscriptionPlan: "PROFESSIONAL",
+        subscriptionCycle: "ANNUAL",
+        pendingSubscriptionPlan: null,
+        pendingSubscriptionCycle: null,
+      }),
     });
   });
 

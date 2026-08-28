@@ -1,39 +1,37 @@
-import { auth } from "@clerk/nextjs/server";
+import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
-import { SubscriptionPlan } from "@/generated/prisma/enums";
-import { createSubscriptionCheckout } from "@/server/services/mercado-pago";
-import { getTenantContext, requireRole } from "@/server/tenant";
+import { BillingCycle, SubscriptionPlan } from "@/generated/prisma/enums";
+import { getPlanEntitlements } from "@/config/subscription-plans";
+import { cancelMercadoPagoSubscription, createSubscriptionCheckout } from "@/server/services/mercado-pago";
+import { isSubscriptionActive } from "@/server/subscription";
+import { getApiTenant } from "@/server/tenant";
+import { ensureCurrentAppUser } from "@/server/auth";
 
 const checkoutSchema = z.object({
-  plan: z.enum([SubscriptionPlan.MONTHLY, SubscriptionPlan.ANNUAL]),
+  plan: z.enum([SubscriptionPlan.ESSENTIAL, SubscriptionPlan.PROFESSIONAL]),
+  cycle: z.enum([BillingCycle.MONTHLY, BillingCycle.ANNUAL]),
 });
 
 export async function POST(request: NextRequest) {
-  const parsed = checkoutSchema.safeParse(await request.json());
+  const body = await request.json().catch(() => null);
+  const parsed = checkoutSchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json({ message: "Plano inválido. Escolha mensal ou anual." }, { status: 400 });
   }
 
   try {
-    const { clinic } = requireRole(await getTenantContext(), ["ADMIN"]);
-    const { userId } = await auth();
-
-    const user = await prisma.user.findUnique({
-      where: { clerkUserId: userId ?? undefined },
-      select: { email: true },
-    });
+    const tenant = await getApiTenant(["ADMIN"]);
+    if (!tenant.ok) return NextResponse.json({ message: tenant.message }, { status: tenant.status });
+    const { clinic } = tenant.context;
+    const { appUser: user } = await ensureCurrentAppUser();
 
     if (!user?.email) {
       return NextResponse.json({ message: "Sua conta precisa ter um e-mail válido para iniciar o checkout." }, { status: 400 });
-    }
-
-    if (clinic.mercadoPagoSubscriptionId && clinic.subscriptionStatus !== "CANCELED") {
-      return NextResponse.json({ message: "Já existe uma assinatura vinculada a esta barbearia." }, { status: 409 });
     }
 
     const payerEmail = user.email;
@@ -42,35 +40,94 @@ export async function POST(request: NextRequest) {
       ? `${appUrl.replace(/\/$/, "")}/dashboard/assinatura`
       : `${request.nextUrl.origin}/dashboard/assinatura`;
 
+    const checkoutAttempt = await prisma.$transaction(async (transaction) => {
+      await transaction.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`subscription:${clinic.id}`}))`;
+      const current = await transaction.clinic.findUniqueOrThrow({ where: { id: clinic.id } });
+      if (current.hasPaidOnce && isSubscriptionActive(current)) {
+        throw new Error("Sua assinatura ainda está ativa. Alterações de plano ficam disponíveis após o período atual ou pelo suporte.");
+      }
+
+      const maxProfessionals = getPlanEntitlements(parsed.data.plan).maxProfessionals;
+      if (maxProfessionals !== null) {
+        const activeProfessionals = await transaction.professional.count({
+          where: { clinicId: clinic.id, isActive: true },
+        });
+        if (activeProfessionals > maxProfessionals) {
+          throw new Error(
+            `O plano escolhido permite até ${maxProfessionals} ${maxProfessionals === 1 ? "profissional ativo" : "profissionais ativos"}. Desative os excedentes antes de mudar de plano.`,
+          );
+        }
+      }
+
+      const reusableAfter = new Date(Date.now() - 30 * 60_000);
+      if (
+        current.mercadoPagoSubscriptionId
+        && current.mercadoPagoCheckoutUrl
+        && current.mercadoPagoCheckoutStartedAt
+        && current.mercadoPagoCheckoutStartedAt > reusableAfter
+        && current.pendingSubscriptionPlan === parsed.data.plan
+        && current.pendingSubscriptionCycle === parsed.data.cycle
+      ) {
+        return { resumeUrl: current.mercadoPagoCheckoutUrl, previousSubscriptionId: null, idempotencyKey: current.mercadoPagoCheckoutKey ?? randomUUID() };
+      }
+      const idempotencyKey = current.mercadoPagoCheckoutKey
+        && current.mercadoPagoCheckoutStartedAt
+        && current.mercadoPagoCheckoutStartedAt > reusableAfter
+        ? current.mercadoPagoCheckoutKey
+        : randomUUID();
+
+      await transaction.clinic.update({
+        where: { id: clinic.id },
+        data: {
+          mercadoPagoCheckoutKey: idempotencyKey,
+          mercadoPagoCheckoutStartedAt: new Date(),
+          pendingSubscriptionPlan: parsed.data.plan,
+          pendingSubscriptionCycle: parsed.data.cycle,
+        },
+      });
+      return { idempotencyKey, resumeUrl: null, previousSubscriptionId: current.mercadoPagoSubscriptionId };
+    });
+
+    if (checkoutAttempt.resumeUrl) return NextResponse.json({ checkoutUrl: checkoutAttempt.resumeUrl, resumed: true });
+
+    if (checkoutAttempt.previousSubscriptionId) {
+      try {
+        await cancelMercadoPagoSubscription(checkoutAttempt.previousSubscriptionId);
+      } catch (error) {
+        logger.warn("Não foi possível cancelar checkout anterior; uma nova tentativa será criada", { clinicId: clinic.id, error: error instanceof Error ? error.message : String(error) });
+      }
+    }
+
     const { checkoutUrl, mercadoPagoSubscriptionId } = await createSubscriptionCheckout({
       clinicId: clinic.id,
       plan: parsed.data.plan,
+      cycle: parsed.data.cycle,
+      idempotencyKey: checkoutAttempt.idempotencyKey,
       payerEmail,
       backUrl,
     });
 
     await prisma.clinic.update({
-      where: { id: clinic.id },
+      where: { id: clinic.id, mercadoPagoCheckoutKey: checkoutAttempt.idempotencyKey },
       data: {
         mercadoPagoSubscriptionId,
-        subscriptionPlan: parsed.data.plan,
+        mercadoPagoCheckoutUrl: checkoutUrl,
+        cancelAtPeriodEnd: false,
       },
     });
 
     return NextResponse.json({ checkoutUrl });
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Não foi possível iniciar o checkout. Tente novamente.";
     logger.error("Falha ao criar checkout de assinatura", {
-      error: error instanceof Error ? error.message : String(error),
+      error: message,
     });
 
     return NextResponse.json(
       {
-        message:
-          error instanceof Error
-            ? error.message
-            : "Não foi possível iniciar o checkout. Tente novamente.",
+        message,
       },
-      { status: 500 },
+      { status: message.startsWith("Sua assinatura ainda") || message.startsWith("O plano escolhido permite") ? 409 : 500 },
     );
   }
 }

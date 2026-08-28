@@ -9,7 +9,26 @@ import {
 
 describe("isSubscriptionActive", () => {
   it("retorna true quando status é ACTIVE", () => {
-    expect(isSubscriptionActive({ subscriptionStatus: SubscriptionStatus.ACTIVE })).toBe(true);
+    expect(isSubscriptionActive({
+      subscriptionStatus: SubscriptionStatus.ACTIVE,
+      subscriptionExpiresAt: new Date(Date.now() + 86_400_000),
+    })).toBe(true);
+  });
+
+  it("retorna true durante o período grátis", () => {
+    const now = new Date("2026-08-25T12:00:00.000Z");
+    expect(isSubscriptionActive({
+      subscriptionStatus: SubscriptionStatus.TRIALING,
+      trialEndsAt: new Date("2026-08-26T12:00:00.000Z"),
+    }, now)).toBe(true);
+  });
+
+  it("retorna false quando o período grátis venceu", () => {
+    const now = new Date("2026-08-25T12:00:00.000Z");
+    expect(isSubscriptionActive({
+      subscriptionStatus: SubscriptionStatus.TRIALING,
+      trialEndsAt: new Date("2026-08-24T12:00:00.000Z"),
+    }, now)).toBe(false);
   });
 
   it("retorna false para INACTIVE", () => {
@@ -27,7 +46,11 @@ describe("isSubscriptionActive", () => {
 
 describe("requireActiveSubscription", () => {
   it("retorna a clínica quando ativa", () => {
-    const clinic = { id: "1", subscriptionStatus: SubscriptionStatus.ACTIVE };
+    const clinic = {
+      id: "1",
+      subscriptionStatus: SubscriptionStatus.ACTIVE,
+      subscriptionExpiresAt: new Date(Date.now() + 86_400_000),
+    };
 
     expect(requireActiveSubscription(clinic)).toBe(clinic);
   });

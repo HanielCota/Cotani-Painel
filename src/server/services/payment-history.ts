@@ -6,6 +6,7 @@ export interface PaymentHistoryItem {
   amount: number;
   status: string;
   plan: string | null;
+  billingCycle: string | null;
   paidAt: string | null;
   createdAt: string;
 }
@@ -22,6 +23,7 @@ export async function getPaymentHistory(clinic: ClinicModel): Promise<PaymentHis
     amount: Number(payment.amount),
     status: payment.status,
     plan: payment.plan,
+    billingCycle: payment.billingCycle,
     paidAt: payment.paidAt?.toISOString() ?? null,
     createdAt: payment.createdAt.toISOString(),
   }));

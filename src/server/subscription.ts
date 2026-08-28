@@ -1,14 +1,27 @@
 import { SubscriptionStatus } from "@/generated/prisma/enums";
-import type { ClinicModel } from "@/generated/prisma/models/Clinic";
 
 export const SUBSCRIPTION_INACTIVE_MESSAGE =
   "Sua assinatura não está ativa. Renove o plano para continuar usando esta funcionalidade.";
 
-export function isSubscriptionActive(clinic: Pick<ClinicModel, "subscriptionStatus">): boolean {
-  return clinic.subscriptionStatus === SubscriptionStatus.ACTIVE;
+interface SubscriptionAccessState {
+  subscriptionStatus: SubscriptionStatus;
+  trialEndsAt?: Date | null;
+  subscriptionExpiresAt?: Date | null;
 }
 
-export function requireActiveSubscription<T extends Pick<ClinicModel, "subscriptionStatus">>(
+export function isSubscriptionActive(
+  clinic: SubscriptionAccessState,
+  now = new Date(),
+): boolean {
+  if (clinic.subscriptionStatus === SubscriptionStatus.ACTIVE) {
+    return clinic.subscriptionExpiresAt != null && clinic.subscriptionExpiresAt > now;
+  }
+  return clinic.subscriptionStatus === SubscriptionStatus.TRIALING
+    && clinic.trialEndsAt != null
+    && clinic.trialEndsAt > now;
+}
+
+export function requireActiveSubscription<T extends SubscriptionAccessState>(
   clinic: T,
 ): T {
   if (!isSubscriptionActive(clinic)) {

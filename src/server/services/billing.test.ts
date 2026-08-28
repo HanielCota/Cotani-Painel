@@ -24,19 +24,44 @@ describe("expireSubscriptions", () => {
   });
 
   it("aplica carência antes de desativar assinaturas", async () => {
-    prisma.clinic.updateMany.mockResolvedValueOnce({ count: 2 }).mockResolvedValueOnce({ count: 1 });
+    prisma.clinic.updateMany
+      .mockResolvedValueOnce({ count: 0 })
+      .mockResolvedValueOnce({ count: 2 })
+      .mockResolvedValueOnce({ count: 0 })
+      .mockResolvedValueOnce({ count: 1 });
 
     const now = new Date("2026-07-23T10:00:00");
     const result = await expireSubscriptions(now);
 
-    expect(result).toEqual({ pastDue: 2, expired: 1 });
-    expect(prisma.clinic.updateMany).toHaveBeenNthCalledWith(1, {
+    expect(result).toEqual({ trialsExpired: 0, pastDue: 2, expired: 1 });
+    expect(prisma.clinic.updateMany).toHaveBeenNthCalledWith(2, {
       where: {
         subscriptionExpiresAt: { lt: now },
         subscriptionStatus: SubscriptionStatus.ACTIVE,
+        cancelAtPeriodEnd: false,
         deletedAt: null,
       },
       data: { subscriptionStatus: SubscriptionStatus.PAST_DUE },
+    });
+  });
+
+  it("encerra períodos grátis vencidos", async () => {
+    prisma.clinic.updateMany
+      .mockResolvedValueOnce({ count: 3 })
+      .mockResolvedValueOnce({ count: 0 })
+      .mockResolvedValueOnce({ count: 0 })
+      .mockResolvedValueOnce({ count: 0 });
+    const now = new Date("2026-07-23T10:00:00");
+    const result = await expireSubscriptions(now);
+    expect(result.trialsExpired).toBe(3);
+    expect(prisma.clinic.updateMany).toHaveBeenNthCalledWith(1, {
+      where: {
+        trialEndsAt: { lt: now },
+        subscriptionStatus: SubscriptionStatus.TRIALING,
+        hasPaidOnce: false,
+        deletedAt: null,
+      },
+      data: { subscriptionStatus: SubscriptionStatus.INACTIVE },
     });
   });
 

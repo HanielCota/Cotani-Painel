@@ -1,6 +1,11 @@
 import { Invoice, MercadoPagoConfig, PreApproval, WebhookSignatureValidator } from "mercadopago";
 
-import { SubscriptionPlan, SubscriptionStatus } from "@/generated/prisma/enums";
+import { BillingCycle, SubscriptionPlan, SubscriptionStatus } from "@/generated/prisma/enums";
+import {
+  getMercadoPagoPlanEnvKey,
+  getPlanPrice,
+  getProductPlan,
+} from "@/config/subscription-plans";
 
 const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim();
 
@@ -14,20 +19,19 @@ function getConfig() {
 
 export interface PlanConfig {
   id: SubscriptionPlan;
+  cycle: BillingCycle;
   name: string;
   price: number;
   mercadoPagoPlanId: string;
 }
 
-const PLAN_PRICES: Record<SubscriptionPlan, number> = {
-  [SubscriptionPlan.MONTHLY]: 97,
-  [SubscriptionPlan.ANNUAL]: 970,
-};
+export function getPlanConfig(plan: SubscriptionPlan, cycle: BillingCycle): PlanConfig {
+  const product = getProductPlan(plan);
+  if (!product.selfServiceCheckout) {
+    throw new Error("O plano Empresa é contratado diretamente com a equipe Cotani.");
+  }
 
-export function getPlanConfig(plan: SubscriptionPlan): PlanConfig {
-  const envKey = plan === SubscriptionPlan.MONTHLY
-    ? "MERCADO_PAGO_MONTHLY_PLAN_ID"
-    : "MERCADO_PAGO_ANNUAL_PLAN_ID";
+  const envKey = getMercadoPagoPlanEnvKey(plan, cycle);
   const mercadoPagoPlanId = process.env[envKey]?.trim();
 
   if (!mercadoPagoPlanId) {
@@ -36,8 +40,9 @@ export function getPlanConfig(plan: SubscriptionPlan): PlanConfig {
 
   return {
     id: plan,
-    name: plan === SubscriptionPlan.MONTHLY ? "Plano Mensal" : "Plano Anual",
-    price: PLAN_PRICES[plan],
+    cycle,
+    name: `${product.name} ${cycle === BillingCycle.ANNUAL ? "Anual" : "Mensal"}`,
+    price: getPlanPrice(plan, cycle),
     mercadoPagoPlanId,
   };
 }
@@ -45,6 +50,8 @@ export function getPlanConfig(plan: SubscriptionPlan): PlanConfig {
 export interface CreateCheckoutInput {
   clinicId: string;
   plan: SubscriptionPlan;
+  cycle: BillingCycle;
+  idempotencyKey: string;
   payerEmail: string;
   backUrl: string;
 }
@@ -59,7 +66,7 @@ export async function createSubscriptionCheckout(
 ): Promise<CreateCheckoutResult> {
   const config = getConfig();
   const preApproval = new PreApproval(config);
-  const planConfig = getPlanConfig(input.plan);
+  const planConfig = getPlanConfig(input.plan, input.cycle);
 
   const response = await preApproval.create({
     body: {
@@ -70,6 +77,7 @@ export async function createSubscriptionCheckout(
       reason: `Cotani - ${planConfig.name}`,
       status: "pending",
     },
+    requestOptions: { idempotencyKey: input.idempotencyKey },
   });
 
   if (!response.id || !response.init_point) {
@@ -88,19 +96,34 @@ export interface MercadoPagoSubscription {
   payerEmail?: string;
   externalReference?: string;
   nextPaymentDate?: Date;
+  planId?: string;
 }
 
-function normalizeStatus(status?: string): SubscriptionStatus {
-  if (!status) return SubscriptionStatus.INACTIVE;
+export function normalizeSubscriptionStatus(status?: string): SubscriptionStatus | null {
+  if (!status) return null;
 
   const normalized = status.toLowerCase();
 
   if (normalized === "authorized") return SubscriptionStatus.ACTIVE;
-  if (normalized === "pending") return SubscriptionStatus.INACTIVE;
+  if (normalized === "pending") return null;
   if (normalized === "paused") return SubscriptionStatus.PAST_DUE;
   if (normalized === "cancelled" || normalized === "canceled") return SubscriptionStatus.CANCELED;
 
-  return SubscriptionStatus.INACTIVE;
+  return null;
+}
+
+function stringId(value: unknown): string | undefined {
+  if (typeof value === "string" && value.trim()) return value.trim();
+  if (typeof value === "object" && value !== null && "id" in value && typeof value.id === "string") return value.id;
+  return undefined;
+}
+
+export function subscriptionPeriodEnd(cycle: BillingCycle | null | undefined, nextPaymentDate?: Date, now = new Date()): Date {
+  if (nextPaymentDate && !Number.isNaN(nextPaymentDate.getTime()) && nextPaymentDate > now) return nextPaymentDate;
+  const end = new Date(now);
+  if (cycle === BillingCycle.ANNUAL) end.setUTCFullYear(end.getUTCFullYear() + 1);
+  else end.setUTCMonth(end.getUTCMonth() + 1);
+  return end;
 }
 
 export async function getSubscriptionFromMercadoPago(
@@ -117,6 +140,7 @@ export async function getSubscriptionFromMercadoPago(
     payerEmail: response.payer_email ?? undefined,
     externalReference: response.external_reference ?? undefined,
     nextPaymentDate: response.next_payment_date ? new Date(response.next_payment_date) : undefined,
+    planId: stringId((response as typeof response & { preapproval_plan_id?: unknown }).preapproval_plan_id),
   };
 }
 
@@ -126,23 +150,33 @@ export interface SyncSubscriptionInput {
 
 export interface SyncSubscriptionResult {
   mercadoPagoSubscriptionId: string;
-  status: SubscriptionStatus;
+  status: SubscriptionStatus | null;
   hasPaidOnce: boolean;
   nextPaymentDate?: Date;
+  externalReference?: string;
+  planId?: string;
+  rawStatus: string;
 }
 
 export async function syncSubscriptionFromMercadoPago(
   input: SyncSubscriptionInput,
 ): Promise<SyncSubscriptionResult> {
   const subscription = await getSubscriptionFromMercadoPago(input.mercadoPagoSubscriptionId);
-  const status = normalizeStatus(subscription.status);
+  const status = normalizeSubscriptionStatus(subscription.status);
 
   return {
     mercadoPagoSubscriptionId: subscription.id,
     status,
     hasPaidOnce: status === SubscriptionStatus.ACTIVE,
     nextPaymentDate: subscription.nextPaymentDate,
+    externalReference: subscription.externalReference,
+    planId: subscription.planId,
+    rawStatus: subscription.status,
   };
+}
+
+export async function cancelMercadoPagoSubscription(mercadoPagoSubscriptionId: string): Promise<void> {
+  await new PreApproval(getConfig()).update({ id: mercadoPagoSubscriptionId, body: { status: "cancelled" } });
 }
 
 export interface MercadoPagoInvoice {

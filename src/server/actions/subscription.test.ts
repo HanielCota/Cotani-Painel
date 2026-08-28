@@ -47,7 +47,7 @@ describe("cancelSubscription", () => {
     expect(result.message).toContain("Não há assinatura ativa");
   });
 
-  it("cancela assinatura localmente quando não há integração com Mercado Pago", async () => {
+  it("não simula cancelamento quando falta o vínculo com Mercado Pago", async () => {
     mockedGetTenantContext.mockResolvedValueOnce({
       clinic: {
         id: "clinic-1",
@@ -57,14 +57,10 @@ describe("cancelSubscription", () => {
       membership: { id: "membership-1" },
     } as Awaited<ReturnType<typeof tenantModule.getTenantContext>>);
 
-    mockedPrismaClinicUpdate.mockResolvedValueOnce({} as never);
-
     const result = await cancelSubscription();
 
-    expect(result.status).toBe("success");
-    expect(mockedPrismaClinicUpdate).toHaveBeenCalledWith({
-      where: { id: "clinic-1" },
-      data: { subscriptionStatus: SubscriptionStatus.CANCELED },
-    });
+    expect(result.status).toBe("error");
+    expect(result.message).toContain("Mercado Pago");
+    expect(mockedPrismaClinicUpdate).not.toHaveBeenCalled();
   });
 });
