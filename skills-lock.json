@@ -7,12 +7,6 @@
       "skillPath": "lucide-icons/SKILL.md",
       "computedHash": "73228ea1c3b27bde65735896ea53c7de8c1ed1f25838429bbca64415c0b6c257"
     },
-    "neon-postgres": {
-      "source": "neondatabase/agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/neon-postgres/SKILL.md",
-      "computedHash": "fe0e1361f906b293991050071d2fea3f9e107a2ee87857917ab15b5996d062d4"
-    },
     "nextjs-app-router-patterns": {
       "source": "wshobson/agents",
       "sourceType": "github",
