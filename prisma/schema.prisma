@@ -19,6 +19,7 @@ enum ClinicOperationalStatus {
 }
 
 enum SubscriptionStatus {
+  TRIALING
   ACTIVE
   INACTIVE
   PAST_DUE
@@ -26,6 +27,12 @@ enum SubscriptionStatus {
 }
 
 enum SubscriptionPlan {
+  ESSENTIAL
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum BillingCycle {
   MONTHLY
   ANNUAL
 }
@@ -56,6 +63,7 @@ enum NotificationKind {
   CONFIRMATION
   REMINDER_24H
   REMINDER_2H
+  RESCHEDULE_RESPONSE
 }
 
 enum NotificationStatus {
@@ -66,51 +74,65 @@ enum NotificationStatus {
 }
 
 model Clinic {
-  id                        String                  @id @default(uuid())
-  clerkOrgId                String                  @unique
-  name                      String
-  slug                      String                  @unique
-  timeZone                  String                  @default("America/Sao_Paulo")
-  subscriptionStatus        SubscriptionStatus      @default(INACTIVE)
-  subscriptionPlan          SubscriptionPlan?
-  subscriptionExpiresAt     DateTime?
-  hasPaidOnce               Boolean                 @default(false)
-  mercadoPagoSubscriptionId String?                 @unique
-  maxAppointmentsPerDay     Int?
-  operationalStatus         ClinicOperationalStatus @default(ACTIVE)
-  suspensionReason          String?
-  suspendedAt               DateTime?
-  deletedAt                 DateTime?
-  createdAt                 DateTime                @default(now())
-  updatedAt                 DateTime                @updatedAt
-  memberships               Membership[]
-  customers                 Customer[]
-  services                  Service[]
-  appointments              Appointment[]
-  notifications             Notification[]
-  businessHours             BusinessHour[]
-  professionals             Professional[]
-  paymentHistory            PaymentHistory[]
-  adminAuditLogs            AdminAuditLog[]
+  id                           String                  @id @default(uuid())
+  legacyExternalId             String?                 @unique
+  billingOwnerId               String?
+  name                         String
+  slug                         String                  @unique
+  timeZone                     String                  @default("America/Sao_Paulo")
+  subscriptionStatus           SubscriptionStatus      @default(INACTIVE)
+  subscriptionPlan             SubscriptionPlan?
+  subscriptionCycle            BillingCycle?
+  pendingSubscriptionPlan      SubscriptionPlan?
+  pendingSubscriptionCycle     BillingCycle?
+  trialEndsAt                  DateTime?
+  subscriptionExpiresAt        DateTime?
+  hasPaidOnce                  Boolean                 @default(false)
+  mercadoPagoSubscriptionId    String?                 @unique
+  mercadoPagoCheckoutKey       String?
+  mercadoPagoCheckoutStartedAt DateTime?
+  mercadoPagoCheckoutUrl       String?
+  cancelAtPeriodEnd             Boolean                 @default(false)
+  maxAppointmentsPerDay        Int?
+  operationalStatus            ClinicOperationalStatus @default(ACTIVE)
+  suspensionReason             String?
+  suspendedAt                  DateTime?
+  deletedAt                    DateTime?
+  createdAt                    DateTime                @default(now())
+  updatedAt                    DateTime                @updatedAt
+  memberships                  Membership[]
+  customers                    Customer[]
+  services                     Service[]
+  appointments                 Appointment[]
+  notifications                Notification[]
+  businessHours                BusinessHour[]
+  professionals                Professional[]
+  paymentHistory               PaymentHistory[]
+  adminAuditLogs               AdminAuditLog[]
+  invitations                  ClinicInvitation[]
+  billingOwner                 Clinic?                 @relation("ClinicBillingUnits", fields: [billingOwnerId], references: [id], onDelete: Restrict)
+  billingUnits                 Clinic[]                @relation("ClinicBillingUnits")
+
+  @@index([billingOwnerId])
 }
 
 model AdminAuditLog {
-  id               String   @id @default(uuid())
-  actorClerkUserId String
-  action           String
-  targetType       String
-  targetId         String
-  reason           String?
-  beforeSnapshot   Json?
-  afterSnapshot    Json?
-  requestId        String?
-  ipAddress        String?
-  clinicId         String?
-  clinic           Clinic?  @relation(fields: [clinicId], references: [id], onDelete: SetNull)
-  createdAt        DateTime @default(now())
+  id              String   @id @default(uuid())
+  actorAuthUserId String
+  action          String
+  targetType      String
+  targetId        String
+  reason          String?
+  beforeSnapshot  Json?
+  afterSnapshot   Json?
+  requestId       String?
+  ipAddress       String?
+  clinicId        String?
+  clinic          Clinic?  @relation(fields: [clinicId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
 
   @@index([createdAt])
-  @@index([actorClerkUserId, createdAt])
+  @@index([actorAuthUserId, createdAt])
   @@index([clinicId, createdAt])
   @@index([targetType, targetId, createdAt])
 }
@@ -122,6 +144,7 @@ model PaymentHistory {
   amount                    Decimal           @db.Decimal(10, 2)
   status                    String
   plan                      SubscriptionPlan?
+  billingCycle              BillingCycle?
   mercadoPagoPaymentId      String?           @unique
   mercadoPagoSubscriptionId String?
   paidAt                    DateTime?
@@ -149,13 +172,46 @@ model BusinessHour {
 }
 
 model User {
-  id          String       @id @default(uuid())
-  clerkUserId String       @unique
-  email       String?
-  name        String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  memberships Membership[]
+  id                   String             @id @default(uuid())
+  authUserId           String?            @unique @db.Uuid
+  legacyExternalUserId String?            @unique
+  email                String?
+  name                 String
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  trialStartedAt       DateTime?
+  memberships          Membership[]
+  sentInvitations      ClinicInvitation[] @relation("InvitationSender")
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+model ClinicInvitation {
+  id              String           @id @default(uuid())
+  clinicId        String
+  email           String
+  role            ClinicRole       @default(PROVIDER)
+  status          InvitationStatus @default(PENDING)
+  invitedByUserId String
+  authUserId      String?          @db.Uuid
+  professionalId  String?
+  expiresAt       DateTime
+  acceptedAt      DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  clinic          Clinic           @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  invitedBy       User             @relation("InvitationSender", fields: [invitedByUserId], references: [id], onDelete: Restrict)
+  professional    Professional?     @relation(fields: [professionalId], references: [id], onDelete: SetNull)
+
+  @@index([email, status])
+  @@index([clinicId, status])
+  @@index([authUserId])
+  @@index([professionalId])
 }
 
 model Membership {
@@ -215,6 +271,7 @@ model Professional {
   clinic       Clinic                @relation(fields: [clinicId], references: [id], onDelete: Restrict)
   membership   Membership?           @relation(fields: [membershipId], references: [id], onDelete: SetNull)
   appointments Appointment[]
+  invitations ClinicInvitation[]
   services     ProfessionalService[]
   createdAt    DateTime              @default(now())
   updatedAt    DateTime              @updatedAt

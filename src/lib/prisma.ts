@@ -2,10 +2,10 @@ import { PrismaPg } from "@prisma/adapter-pg";
 
 import { PrismaClient } from "@/generated/prisma/client";
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = process.env.SUPABASE_DATABASE_URL;
 
 if (!databaseUrl) {
-  throw new Error("DATABASE_URL não foi definida.");
+  throw new Error("SUPABASE_DATABASE_URL não foi definida.");
 }
 
 const globalForPrisma = globalThis as unknown as {
@@ -13,7 +13,12 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-  const adapter = new PrismaPg({ connectionString: databaseUrl });
+  const adapter = new PrismaPg({
+    connectionString: databaseUrl,
+    max: Number(process.env.DATABASE_POOL_MAX ?? 3),
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 10_000,
+  });
 
   return new PrismaClient({ adapter });
 }
