@@ -10,17 +10,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_Y2xlcmsuZXhhbXBsZS5jb20k
-      CLERK_SECRET_KEY: sk_test_ci
-      CLERK_WEBHOOK_SIGNING_SECRET: whsec_ci
-      PLATFORM_ADMIN_CLERK_USER_IDS: user_ci_admin
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cotani
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci
+      SUPABASE_SECRET_KEY: sb_secret_ci
+      SUPABASE_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cotani
+      SUPABASE_DIRECT_URL: postgresql://postgres:postgres@localhost:5432/cotani
+      PLATFORM_ADMIN_USER_IDS: 550e8400-e29b-41d4-a716-446655440000
       CRON_SECRET: ci-secret
       NEXT_PUBLIC_APP_URL: https://painel.example.com
-      NEXT_PUBLIC_CHECKOUT_URL: https://example.com/checkout
+      VERCEL_ENV: production
+      DATABASE_POOL_MAX: 3
       MERCADO_PAGO_ACCESS_TOKEN: TEST-ci
-      MERCADO_PAGO_MONTHLY_PLAN_ID: monthly-ci
-      MERCADO_PAGO_ANNUAL_PLAN_ID: annual-ci
+      MERCADO_PAGO_ESSENTIAL_MONTHLY_PLAN_ID: essential-monthly-ci
+      MERCADO_PAGO_ESSENTIAL_ANNUAL_PLAN_ID: essential-annual-ci
+      MERCADO_PAGO_PROFESSIONAL_MONTHLY_PLAN_ID: professional-monthly-ci
+      MERCADO_PAGO_PROFESSIONAL_ANNUAL_PLAN_ID: professional-annual-ci
+      MERCADO_PAGO_WEBHOOK_SECRET: mercado-pago-ci-secret
+      RESEND_API_KEY: re_ci
+      EMAIL_FROM: Cotani <agendamentos@example.com>
+      TWILIO_ACCOUNT_SID: ACci
+      TWILIO_AUTH_TOKEN: twilio-ci-secret
+      TWILIO_SMS_FROM: "+5511999999999"
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
