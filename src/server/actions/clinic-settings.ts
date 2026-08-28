@@ -1,20 +1,20 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { getClinicForRoles } from "@/server/tenant";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
+import { requireAuthenticatedUser } from "@/server/auth";
 
 const settingsSchema = z.object({
   maxAppointmentsPerDay: z.coerce.number().int().min(1).optional().or(z.literal("")),
 });
 
 export async function saveClinicSettings(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
-  await auth.protect();
+  await requireAuthenticatedUser();
 
   const rawValue = formData.get("maxAppointmentsPerDay");
   const parsed = settingsSchema.safeParse({

@@ -1,13 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { getClinicForRoles } from "@/server/tenant";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
+import { requireAuthenticatedUser } from "@/server/auth";
 
 const timeSchema = z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/);
 
@@ -20,7 +20,17 @@ const businessHourItemSchema = z.object({
   breakEnd: timeSchema.optional().or(z.literal("")),
 });
 
-const businessHoursSchema = z.array(businessHourItemSchema).length(7);
+const businessHoursSchema = z.array(businessHourItemSchema).length(7).superRefine((items, context) => {
+  const days = new Set(items.map((item) => item.dayOfWeek));
+  if (days.size !== 7 || [...days].some((day) => day < 0 || day > 6)) {
+    context.addIssue({ code: "custom", message: "Informe cada dia da semana exatamente uma vez." });
+  }
+  items.forEach((item, index) => {
+    if (Boolean(item.breakStart) !== Boolean(item.breakEnd)) {
+      context.addIssue({ code: "custom", path: [index, "breakStart"], message: "Informe o início e o fim do intervalo." });
+    }
+  });
+});
 
 function minutesFromTime(time: string): number {
   const [hours, minutes] = time.split(":").map(Number);
@@ -28,7 +38,7 @@ function minutesFromTime(time: string): number {
 }
 
 export async function saveBusinessHours(input: unknown): Promise<ActionResult> {
-  await auth.protect();
+  await requireAuthenticatedUser();
 
   const parsed = businessHoursSchema.safeParse(input);
 

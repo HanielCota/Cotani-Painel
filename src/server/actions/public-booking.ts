@@ -4,12 +4,14 @@ import { headers } from "next/headers";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
+import { getNotificationChannels } from "@/config/subscription-plans";
 import { normalizeWhatsAppPhone } from "@/lib/phone";
 import { rateLimit } from "@/lib/rate-limit";
 import { DOUBLE_BOOKING_MESSAGE, scheduleAppointment } from "@/server/services/scheduling";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
 import { isClinicOperational } from "@/server/clinic-access";
+import { isWithinBookingWindow } from "@/config/booking";
 
 const publicBookingSchema = z.object({
   slug: z.string().trim().min(1).max(120),
@@ -39,7 +41,7 @@ async function getClientIpFromHeaders(): Promise<string> {
 }
 
 /**
- * Agendamento público (self-service), sem sessão Clerk. O escopo do tenant é
+ * Agendamento público (self-service), sem sessão autenticada. O escopo do tenant é
  * resolvido pelo slug da barbearia e todo o restante segue o mesmo núcleo
  * transacional do agendamento interno: validação de conflito, exclusion
  * constraint do banco e outbox de notificações na mesma transação.
@@ -108,32 +110,19 @@ export async function createPublicAppointment(_previousState: ActionResult, form
     }
   }
 
-  if (parsed.data.startTime <= new Date()) {
-    return { status: "error", message: "Escolha um horário futuro para o atendimento." };
+  if (!isWithinBookingWindow(parsed.data.startTime)) {
+    return { status: "error", message: "Escolha um horário com pelo menos 15 minutos de antecedência e no máximo 180 dias no futuro." };
   }
-
-  const customer = await prisma.customer.upsert({
-    where: { clinicId_phone: { clinicId: clinic.id, phone: normalizedPhone } },
-    create: {
-      clinicId: clinic.id,
-      name: parsed.data.customerName,
-      phone: normalizedPhone,
-      email: parsed.data.customerEmail,
-    },
-    update: {
-      name: parsed.data.customerName,
-      ...(parsed.data.customerEmail ? { email: parsed.data.customerEmail } : {}),
-    },
-  });
 
   const result = await scheduleAppointment({
     clinicId: clinic.id,
     clinicSlug: clinic.slug,
     clinicName: clinic.name,
     timeZone: clinic.timeZone,
-    customerId: customer.id,
-    customerName: customer.name,
-    customerPhone: customer.phone,
+    customerName: parsed.data.customerName,
+    customerPhone: normalizedPhone,
+    customerEmail: parsed.data.customerEmail,
+    notificationChannels: getNotificationChannels(clinic.subscriptionPlan),
     serviceId: service.id,
     serviceName: service.name,
     serviceDuration: service.duration,
@@ -152,5 +141,5 @@ export async function createPublicAppointment(_previousState: ActionResult, form
     return { status: "error", message: "Não foi possível concluir o agendamento. Tente novamente." };
   }
 
-  return { status: "success", message: "Agendamento realizado! Você receberá uma confirmação no WhatsApp." };
+  return { status: "success", message: "Agendamento realizado! A confirmação será enviada pelos canais disponíveis." };
 }

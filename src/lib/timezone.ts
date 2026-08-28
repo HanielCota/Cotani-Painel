@@ -75,6 +75,10 @@ export function formatClinicDateTimeInput(date: Date, timeZone: string) {
   return `${parts.year}-${pad(parts.month)}-${pad(parts.day)}T${pad(parts.hour)}:${pad(parts.minute)}`;
 }
 
+export function formatClinicDateKey(date: Date, timeZone: string) {
+  return formatClinicDateTimeInput(date, timeZone).slice(0, 10);
+}
+
 export function getClinicDateBounds(timeZone: string, now = new Date()) {
   const current = getZonedDateParts(now, timeZone);
   const startOfToday = zonedDateTimeToUtc({ ...current, hour: 0, minute: 0, second: 0 }, timeZone);
@@ -110,7 +114,7 @@ export function getClinicMonthlyBounds(timeZone: string, months: number, now = n
     const end = zonedDateTimeToUtc({ ...nextMonthParts, hour: 0, minute: 0, second: 0 }, timeZone);
 
     result.push({
-      label: new Intl.DateTimeFormat("pt-BR", { month: "short" }).format(start),
+      label: new Intl.DateTimeFormat("pt-BR", { month: "short", timeZone }).format(start),
       start,
       end,
     });

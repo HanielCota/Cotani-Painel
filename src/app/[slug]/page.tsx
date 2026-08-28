@@ -56,6 +56,7 @@ export default async function PublicBookingPage({ params }: PublicBookingPagePro
       slug: true,
       timeZone: true,
       subscriptionStatus: true,
+      trialEndsAt: true,
       operationalStatus: true,
       deletedAt: true,
       services: {

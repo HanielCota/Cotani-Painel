@@ -1,18 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getUpcomingAppointments } from "@/server/services/appointments";
-import { getClinicForRoles } from "@/server/tenant";
+import prisma from "@/lib/prisma";
+import { getApiTenant } from "@/server/tenant";
+import { z } from "zod";
 
 export async function GET(request: NextRequest) {
-  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
-
-  if (!clinic) {
-    return NextResponse.json({ message: "Clínica não encontrada." }, { status: 404 });
-  }
+  const tenant = await getApiTenant(["ADMIN", "RECEPTIONIST", "PROVIDER"]);
+  if (!tenant.ok) return NextResponse.json({ message: tenant.message }, { status: tenant.status });
+  const { clinic, membership, role } = tenant.context;
+  const professional = role === "PROVIDER" ? await prisma.professional.findFirst({ where: { clinicId: clinic.id, membershipId: membership.id, isActive: true }, select: { id: true } }) : null;
+  if (role === "PROVIDER" && !professional) return NextResponse.json([]);
 
   const searchParams = request.nextUrl.searchParams;
-  const limit = Number(searchParams.get("limit") ?? "10");
+  const parsedLimit = z.coerce.number().int().min(1).max(50).safeParse(searchParams.get("limit") ?? "10");
+  const limit = parsedLimit.success ? parsedLimit.data : 10;
 
-  const appointments = await getUpcomingAppointments(clinic, Number.isNaN(limit) ? 10 : limit);
+  const appointments = await getUpcomingAppointments(clinic, limit, professional?.id);
   return NextResponse.json(appointments);
 }

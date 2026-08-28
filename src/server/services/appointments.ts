@@ -32,11 +32,13 @@ export const getUpcomingAppointments = unstable_cache(
   async function getUpcomingAppointments(
     clinic: ClinicModel,
     limit = 10,
+    professionalId?: string,
   ): Promise<AppointmentListItem[]> {
     const now = new Date();
     const appointments = await prisma.appointment.findMany({
       where: {
         clinicId: clinic.id,
+        ...(professionalId ? { professionalId } : {}),
         startTime: { gte: now },
         status: { in: ["PENDING", "CONFIRMED"] },
       },
@@ -52,12 +54,13 @@ export const getUpcomingAppointments = unstable_cache(
 );
 
 export const getTodayAppointments = unstable_cache(
-  async function getTodayAppointments(clinic: ClinicModel): Promise<AppointmentListItem[]> {
+  async function getTodayAppointments(clinic: ClinicModel, professionalId?: string): Promise<AppointmentListItem[]> {
     const { startOfToday, startOfTomorrow } = getClinicDateBounds(clinic.timeZone);
 
     const appointments = await prisma.appointment.findMany({
       where: {
         clinicId: clinic.id,
+        ...(professionalId ? { professionalId } : {}),
         startTime: { gte: startOfToday, lt: startOfTomorrow },
       },
       include: { customer: true, service: true },

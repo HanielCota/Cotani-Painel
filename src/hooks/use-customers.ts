@@ -2,6 +2,7 @@
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
+import { useActiveClinicId } from "@/components/dashboard/active-clinic-context";
 import { fetchJson } from "@/lib/fetch-json";
 import type { CustomersPage } from "@/types";
 
@@ -25,8 +26,9 @@ async function fetchCustomers({ search, page, pageSize }: UseCustomersParams): P
 }
 
 export function useCustomers(params: UseCustomersParams) {
+  const clinicId = useActiveClinicId();
   return useQuery({
-    queryKey: ["customers", params],
+    queryKey: ["customers", clinicId, params],
     queryFn: () => fetchCustomers(params),
     placeholderData: keepPreviousData,
   });

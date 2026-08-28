@@ -5,6 +5,7 @@ import { getClientIp } from "@/lib/get-client-ip";
 import prisma from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
 import { getAvailableSlots } from "@/server/services/availability";
+import { isSubscriptionActive } from "@/server/subscription";
 
 const querySchema = z.object({
   serviceId: z.uuid(),
@@ -39,14 +40,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const clinic = await prisma.clinic.findUnique({
     where: { slug, deletedAt: null },
-    select: { id: true, timeZone: true, maxAppointmentsPerDay: true, subscriptionStatus: true, operationalStatus: true },
+    select: { id: true, timeZone: true, maxAppointmentsPerDay: true, subscriptionStatus: true, subscriptionExpiresAt: true, trialEndsAt: true, operationalStatus: true },
   });
 
   if (!clinic) {
     return NextResponse.json({ message: "Barbearia não encontrada." }, { status: 404 });
   }
 
-  if (clinic.subscriptionStatus !== "ACTIVE" || clinic.operationalStatus !== "ACTIVE") {
+  if (!isSubscriptionActive(clinic) || clinic.operationalStatus !== "ACTIVE") {
     return NextResponse.json({ message: "Barbearia indisponível para agendamentos." }, { status: 403 });
   }
 

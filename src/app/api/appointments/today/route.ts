@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
 
+import prisma from "@/lib/prisma";
 import { getTodayAppointments } from "@/server/services/appointments";
-import { getClinicForRoles } from "@/server/tenant";
+import { getApiTenant } from "@/server/tenant";
 
 export async function GET() {
-  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
+  const tenant = await getApiTenant(["ADMIN", "RECEPTIONIST", "PROVIDER"]);
+  if (!tenant.ok) return NextResponse.json({ message: tenant.message }, { status: tenant.status });
+  const { clinic, membership, role } = tenant.context;
+  const professional = role === "PROVIDER" ? await prisma.professional.findFirst({ where: { clinicId: clinic.id, membershipId: membership.id, isActive: true }, select: { id: true } }) : null;
+  if (role === "PROVIDER" && !professional) return NextResponse.json([]);
 
-  if (!clinic) {
-    return NextResponse.json({ message: "Clínica não encontrada." }, { status: 404 });
-  }
-
-  const appointments = await getTodayAppointments(clinic);
+  const appointments = await getTodayAppointments(clinic, professional?.id);
   return NextResponse.json(appointments);
 }

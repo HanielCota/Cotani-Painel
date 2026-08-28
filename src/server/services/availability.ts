@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { formatClinicDateTimeInput, getClinicDateBounds, parseClinicDateTime } from "@/lib/timezone";
+import { isWithinBookingWindow } from "@/config/booking";
 
 // Resolução mínima da grade de horários. Os slots são gerados a cada 30 minutos
 // dentro do expediente configurado, desde que caibam a duração do serviço.
@@ -133,7 +134,7 @@ export async function getAvailableSlots(params: GetAvailableSlotsParams): Promis
     const label = formatTimeLabel(minutes);
     const startTime = parseClinicDateTime(`${params.date}T${label}`, params.timeZone);
 
-    if (!startTime || startTime <= now) {
+    if (!startTime || !isWithinBookingWindow(startTime, now)) {
       continue;
     }
 
@@ -259,7 +260,7 @@ export async function getAvailableDatesInMonth(params: GetAvailableDatesParams):
       const label = formatTimeLabel(minutes);
       const startTime = parseClinicDateTime(`${dayString}T${label}`, params.timeZone);
 
-      if (!startTime || startTime <= now) {
+      if (!startTime || !isWithinBookingWindow(startTime, now)) {
         continue;
       }
 

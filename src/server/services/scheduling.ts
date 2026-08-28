@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import type { Prisma } from "@/generated/prisma/client";
+import type { NotificationChannel } from "@/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { formatClinicDateTimeInput, getClinicDateBounds } from "@/lib/timezone";
 import { enqueueAppointmentNotifications, replaceAppointmentReminders } from "@/server/services/notifications";
@@ -32,9 +33,11 @@ export interface ScheduleAppointmentParams {
   clinicSlug: string;
   clinicName: string;
   timeZone: string;
-  customerId: string;
+  customerId?: string;
   customerName: string;
   customerPhone: string;
+  customerEmail?: string | null;
+  notificationChannels?: readonly NotificationChannel[];
   serviceId: string;
   serviceName: string;
   serviceDuration: number;
@@ -185,6 +188,8 @@ export async function rescheduleScheduledAppointment(
         timeZone: params.timeZone,
         customerName: params.customerName,
         customerPhone: params.customerPhone,
+        customerEmail: params.customerEmail,
+        channels: params.notificationChannels,
         serviceName: params.serviceName,
         startTime: params.startTime,
         cancellationToken: params.cancellationToken,
@@ -217,7 +222,10 @@ export async function scheduleAppointment(params: ScheduleAppointmentParams): Pr
         return null;
       }
 
-      const conflictConditions: Prisma.AppointmentWhereInput[] = [{ customerId: params.customerId }];
+      const existingCustomer = params.customerId
+        ? { id: params.customerId }
+        : await transaction.customer.findUnique({ where: { clinicId_phone: { clinicId: params.clinicId, phone: params.customerPhone } }, select: { id: true } });
+      const conflictConditions: Prisma.AppointmentWhereInput[] = existingCustomer ? [{ customerId: existingCustomer.id }] : [];
 
       if (params.professionalId) {
         conflictConditions.push({ professionalId: params.professionalId });
@@ -240,10 +248,19 @@ export async function scheduleAppointment(params: ScheduleAppointmentParams): Pr
         return null;
       }
 
+      const customer = params.customerId
+        ? { id: params.customerId, name: params.customerName, phone: params.customerPhone, email: params.customerEmail ?? null }
+        : await transaction.customer.upsert({
+            where: { clinicId_phone: { clinicId: params.clinicId, phone: params.customerPhone } },
+            create: { clinicId: params.clinicId, name: params.customerName, phone: params.customerPhone, email: params.customerEmail },
+            update: { name: params.customerName, ...(params.customerEmail ? { email: params.customerEmail } : {}) },
+            select: { id: true, name: true, phone: true, email: true },
+          });
+
       const created = await transaction.appointment.create({
         data: {
           clinicId: params.clinicId,
-          customerId: params.customerId,
+          customerId: customer.id,
           serviceId: params.serviceId,
           professionalId: params.professionalId,
           startTime: params.startTime,
@@ -261,8 +278,10 @@ export async function scheduleAppointment(params: ScheduleAppointmentParams): Pr
         clinicSlug: params.clinicSlug,
         clinicName: params.clinicName,
         timeZone: params.timeZone,
-        customerName: params.customerName,
-        customerPhone: params.customerPhone,
+        customerName: customer.name,
+        customerPhone: customer.phone,
+        customerEmail: customer.email,
+        channels: params.notificationChannels,
         serviceName: params.serviceName,
         startTime: params.startTime,
         cancellationToken,

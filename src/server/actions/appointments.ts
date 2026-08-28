@@ -1,12 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
+import { getNotificationChannels } from "@/config/subscription-plans";
 import { parseClinicDateTime } from "@/lib/timezone";
-import { getClinicForRoles } from "@/server/tenant";
+import { getClinicForRoles, getTenantContext } from "@/server/tenant";
 import {
   DOUBLE_BOOKING_MESSAGE,
   rescheduleScheduledAppointment,
@@ -15,6 +15,7 @@ import {
 import { deletePendingNotifications } from "@/server/services/notifications";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
+import { requireAuthenticatedUser } from "@/server/auth";
 
 const appointmentSchema = z.object({
   customerId: z.uuid(),
@@ -46,8 +47,19 @@ function revalidateScheduleViews() {
   revalidatePath("/dashboard/relatorios");
 }
 
+async function getAgendaActor() {
+  const tenant = await getTenantContext();
+  if (!["ADMIN", "RECEPTIONIST", "PROVIDER"].includes(tenant.role)) return null;
+  if (tenant.role !== "PROVIDER") return { ...tenant, professionalId: null as string | null };
+  const professional = await prisma.professional.findFirst({
+    where: { clinicId: tenant.clinic.id, membershipId: tenant.membership.id, isActive: true },
+    select: { id: true },
+  });
+  return professional ? { ...tenant, professionalId: professional.id } : null;
+}
+
 export async function createAppointment(input: unknown): Promise<ActionResult> {
-  await auth.protect();
+  await requireAuthenticatedUser();
 
   const parsed = appointmentSchema.safeParse(input);
 
@@ -100,6 +112,8 @@ export async function createAppointment(input: unknown): Promise<ActionResult> {
     customerId: customer.id,
     customerName: customer.name,
     customerPhone: customer.phone,
+    customerEmail: customer.email,
+    notificationChannels: getNotificationChannels(clinic.subscriptionPlan),
     serviceId: service.id,
     serviceName: service.name,
     serviceDuration: service.duration,
@@ -123,7 +137,7 @@ export async function createAppointment(input: unknown): Promise<ActionResult> {
 }
 
 export async function createAppointmentFromForm(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
-  await auth.protect();
+  await requireAuthenticatedUser();
 
   const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
 
@@ -155,7 +169,7 @@ export async function createAppointmentFromForm(_previousState: ActionResult, fo
 }
 
 export async function rescheduleAppointmentFromForm(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
-  await auth.protect();
+  await requireAuthenticatedUser();
 
   const parsed = rescheduleSchema.safeParse({
     appointmentId: formData.get("appointmentId"),
@@ -166,18 +180,18 @@ export async function rescheduleAppointmentFromForm(_previousState: ActionResult
     return { status: "error", message: "Informe uma nova data e horário válidos." };
   }
 
-  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
-
-  if (!clinic) {
+  const actor = await getAgendaActor();
+  if (!actor) {
     return { status: "error", message: "Selecione uma barbearia antes de reagendar." };
   }
+  const { clinic, professionalId } = actor;
 
   if (!isSubscriptionActive(clinic)) {
     return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
   }
 
   const appointment = await prisma.appointment.findFirst({
-    where: { id: parsed.data.appointmentId, clinicId: clinic.id },
+    where: { id: parsed.data.appointmentId, clinicId: clinic.id, ...(professionalId ? { professionalId } : {}) },
     include: { service: true, customer: true },
   });
 
@@ -204,6 +218,8 @@ export async function rescheduleAppointmentFromForm(_previousState: ActionResult
     customerId: appointment.customerId,
     customerName: appointment.customer.name,
     customerPhone: appointment.customer.phone,
+    customerEmail: appointment.customer.email,
+    notificationChannels: getNotificationChannels(clinic.subscriptionPlan),
     serviceId: appointment.serviceId,
     serviceName: appointment.service.name,
     serviceDuration: appointment.service.duration,
@@ -230,7 +246,7 @@ export async function updateAppointmentStatus(
   appointmentId: string,
   input: UpdateAppointmentStatusInput | AppointmentStatusUpdate,
 ): Promise<ActionResult> {
-  await auth.protect();
+  await requireAuthenticatedUser();
 
   const parsedInput = updateAppointmentStatusSchema.safeParse(
     typeof input === "string" ? { status: input } : input,
@@ -243,18 +259,18 @@ export async function updateAppointmentStatus(
 
   const { status: nextStatus, paymentMethod } = parsedInput.data;
 
-  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
-
-  if (!clinic) {
+  const actor = await getAgendaActor();
+  if (!actor) {
     return { status: "error", message: "Selecione uma barbearia antes de atualizar atendimentos." };
   }
+  const { clinic, professionalId } = actor;
 
   if (!isSubscriptionActive(clinic)) {
     return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
   }
 
   const appointment = await prisma.appointment.findFirst({
-    where: { id: parsedId.data, clinicId: clinic.id },
+    where: { id: parsedId.data, clinicId: clinic.id, ...(professionalId ? { professionalId } : {}) },
     select: { id: true, status: true },
   });
 

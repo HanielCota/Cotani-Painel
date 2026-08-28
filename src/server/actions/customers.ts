@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
@@ -9,6 +8,7 @@ import { normalizeWhatsAppPhone } from "@/lib/phone";
 import { getClinicForRoles } from "@/server/tenant";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
+import { requireAuthenticatedUser } from "@/server/auth";
 
 const customerSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -21,7 +21,7 @@ const updateCustomerSchema = customerSchema.extend({
 });
 
 export async function createCustomer(input: unknown): Promise<ActionResult> {
-  await auth.protect();
+  await requireAuthenticatedUser();
 
   const parsed = customerSchema.safeParse(input);
 
@@ -75,7 +75,7 @@ export async function createCustomerFromForm(_previousState: ActionResult, formD
 }
 
 export async function updateCustomer(input: unknown): Promise<ActionResult> {
-  await auth.protect();
+  await requireAuthenticatedUser();
 
   const parsed = updateCustomerSchema.safeParse(input);
 
@@ -133,7 +133,7 @@ export async function updateCustomerFromForm(_previousState: ActionResult, formD
 }
 
 export async function deleteCustomer(customerId: string): Promise<ActionResult> {
-  await auth.protect();
+  await requireAuthenticatedUser();
 
   const parsedId = z.uuid().safeParse(customerId);
 

@@ -449,7 +449,7 @@ function readSavedCustomer(slug: string): { name?: string } {
 }
 
 function CustomerStep({ isPending, slug, clinicName, service, professional, date, slot }: CustomerStepProps) {
-  const savedCustomer = readSavedCustomer(slug);
+  const [customerName, setCustomerName] = useState(() => readSavedCustomer(slug).name ?? "");
   const [phone, setPhone] = useState("");
   const [phoneError, setPhoneError] = useState(false);
 
@@ -492,7 +492,8 @@ function CustomerStep({ isPending, slug, clinicName, service, professional, date
             autoComplete="name"
             disabled={isPending}
             placeholder="Seu nome completo"
-            defaultValue={savedCustomer.name}
+            value={customerName}
+            onChange={(event) => setCustomerName(event.target.value)}
             className="h-12"
           />
         </Field>

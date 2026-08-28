@@ -2,17 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { checkApiRateLimit } from "@/lib/api-rate-limit";
 import prisma from "@/lib/prisma";
-import { getClinicForRoles } from "@/server/tenant";
+import { getApiTenant } from "@/server/tenant";
 
 export async function GET(request: NextRequest) {
+  const tenant = await getApiTenant(["ADMIN", "RECEPTIONIST"]);
+  if (!tenant.ok) return NextResponse.json({ message: tenant.message }, { status: tenant.status });
+  const { clinic } = tenant.context;
   const rateLimitResponse = await checkApiRateLimit(request, "services");
   if (rateLimitResponse) return rateLimitResponse;
-
-  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
-
-  if (!clinic) {
-    return NextResponse.json({ message: "A barbearia ativa ainda não foi sincronizada." }, { status: 404 });
-  }
 
   const services = await prisma.service.findMany({
     where: { clinicId: clinic.id },

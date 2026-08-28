@@ -4,7 +4,7 @@ import { z } from "zod";
 import { checkApiRateLimit } from "@/lib/api-rate-limit";
 import prisma from "@/lib/prisma";
 import type { CustomersPage } from "@/types";
-import { getClinicForRoles } from "@/server/tenant";
+import { getApiTenant } from "@/server/tenant";
 
 const querySchema = z.object({
   search: z.string().trim().max(120).optional().default(""),
@@ -13,9 +13,6 @@ const querySchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
-  const rateLimitResponse = await checkApiRateLimit(request, "customers");
-  if (rateLimitResponse) return rateLimitResponse;
-
   const parsed = querySchema.safeParse({
     search: request.nextUrl.searchParams.get("search") ?? undefined,
     page: request.nextUrl.searchParams.get("page") ?? undefined,
@@ -26,11 +23,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: "Parâmetros de consulta inválidos." }, { status: 400 });
   }
 
-  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
-
-  if (!clinic) {
-    return NextResponse.json({ message: "A barbearia ativa ainda não foi sincronizada." }, { status: 404 });
-  }
+  const tenant = await getApiTenant(["ADMIN", "RECEPTIONIST"]);
+  if (!tenant.ok) return NextResponse.json({ message: tenant.message }, { status: tenant.status });
+  const { clinic } = tenant.context;
+  const rateLimitResponse = await checkApiRateLimit(request, "customers");
+  if (rateLimitResponse) return rateLimitResponse;
 
   const { search, page, pageSize } = parsed.data;
   const where = {

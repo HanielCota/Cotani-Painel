@@ -11,7 +11,7 @@ export async function fetchJson<T>(input: RequestInfo | URL, init?: RequestInit)
 
   const contentType = response.headers.get("content-type") ?? "";
 
-  if (response.redirected || contentType.includes("text/html")) {
+  if (response.status === 401 || response.redirected || contentType.includes("text/html")) {
     if (typeof window !== "undefined") {
       // Este utilitário roda fora da árvore React; a troca completa garante a limpeza da sessão expirada.
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
@@ -22,7 +22,10 @@ export async function fetchJson<T>(input: RequestInfo | URL, init?: RequestInit)
   }
 
   if (!response.ok) {
-    throw new Error(`Falha na requisição (${response.status}).`);
+    const body = contentType.includes("application/json") && typeof response.json === "function"
+      ? await response.json().catch(() => null) as { message?: string } | null
+      : null;
+    throw new Error(body?.message ?? `Falha na requisição (${response.status}).`);
   }
 
   return response.json() as Promise<T>;

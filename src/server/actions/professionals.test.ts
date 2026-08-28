@@ -9,18 +9,16 @@ import {
   updateProfessionalFromForm,
 } from "@/server/actions/professionals";
 
-vi.mock("@clerk/nextjs/server", () => {
-  const protect = vi.fn();
-  return {
-    auth: Object.assign(vi.fn(() => ({ protect })), { protect }),
-  };
-});
+vi.mock("@/server/auth", () => ({ requireAuthenticatedUser: vi.fn().mockResolvedValue({ id: "user-1" }) }));
+vi.mock("@/server/services/media-storage", () => ({
+  persistPublicImage: vi.fn(async ({ value }: { value: string | null }) => value),
+  removePublicImage: vi.fn(),
+}));
 
 vi.mock("@/server/tenant", () => ({
   getClinicForRoles: vi.fn(),
 }));
 
-const { auth } = await import("@clerk/nextjs/server");
 const { getClinicForRoles } = await import("@/server/tenant");
 
 const activeClinic = {
@@ -29,6 +27,9 @@ const activeClinic = {
   slug: "barbearia",
   timeZone: "America/Sao_Paulo",
   subscriptionStatus: "ACTIVE",
+  subscriptionExpiresAt: new Date("2099-01-01T00:00:00.000Z"),
+  subscriptionPlan: "PROFESSIONAL",
+  trialEndsAt: null,
 };
 
 const validProfessional = {
@@ -54,8 +55,9 @@ function createFormData(overrides: Record<string, string | null> = {}) {
 describe("createProfessional", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (auth.protect as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "user-1", orgId: "org-1" });
     (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
+    prismaMock.professional.count.mockResolvedValue(0);
+    prismaMock.$transaction.mockImplementation(async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock));
   });
 
   it("retorna erro para dados inválidos", async () => {
@@ -110,7 +112,6 @@ describe("createProfessional", () => {
 describe("updateProfessional", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (auth.protect as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "user-1", orgId: "org-1" });
     (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
     prismaMock.$transaction.mockImplementation(async (callback: unknown) => {
       if (typeof callback === "function") {
@@ -161,8 +162,8 @@ describe("updateProfessional", () => {
 describe("toggleProfessionalActive", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (auth.protect as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "user-1", orgId: "org-1" });
     (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
+    prismaMock.$transaction.mockImplementation(async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock));
   });
 
   it("retorna erro para ID inválido", async () => {
@@ -198,5 +199,35 @@ describe("toggleProfessionalActive", () => {
 
     expect(result.status).toBe("error");
     expect(prismaMock.professional.update).not.toHaveBeenCalled();
+  });
+
+  it("impede reativação acima do limite do plano", async () => {
+    prismaMock.professional.findFirst.mockResolvedValueOnce({
+      id: "550e8400-e29b-41d4-a716-446655440002",
+      isActive: false,
+    });
+    prismaMock.professional.count.mockResolvedValueOnce(3);
+
+    const result = await toggleProfessionalActive("550e8400-e29b-41d4-a716-446655440002");
+
+    expect(result.status).toBe("error");
+    expect(result.message).toContain("até 3 profissionais ativos");
+    expect(prismaMock.professional.update).not.toHaveBeenCalled();
+  });
+
+  it("reativa profissional quando há vaga no plano", async () => {
+    prismaMock.professional.findFirst.mockResolvedValueOnce({
+      id: "550e8400-e29b-41d4-a716-446655440002",
+      isActive: false,
+    });
+    prismaMock.professional.count.mockResolvedValueOnce(2);
+
+    const result = await toggleProfessionalActive("550e8400-e29b-41d4-a716-446655440002");
+
+    expect(result.status).toBe("success");
+    expect(prismaMock.professional.update).toHaveBeenCalledWith({
+      where: { id: "550e8400-e29b-41d4-a716-446655440002" },
+      data: { isActive: true },
+    });
   });
 });

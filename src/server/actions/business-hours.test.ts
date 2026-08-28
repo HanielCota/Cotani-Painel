@@ -3,18 +3,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { prismaMock } from "@/test/mocks/prisma";
 import { saveBusinessHours, saveBusinessHoursFromForm } from "@/server/actions/business-hours";
 
-vi.mock("@clerk/nextjs/server", () => {
-  const protect = vi.fn();
-  return {
-    auth: Object.assign(vi.fn(() => ({ protect })), { protect }),
-  };
-});
+vi.mock("@/server/auth", () => ({ requireAuthenticatedUser: vi.fn().mockResolvedValue({ id: "user-1" }) }));
 
 vi.mock("@/server/tenant", () => ({
   getClinicForRoles: vi.fn(),
 }));
 
-const { auth } = await import("@clerk/nextjs/server");
 const { getClinicForRoles } = await import("@/server/tenant");
 
 const activeClinic = {
@@ -23,6 +17,7 @@ const activeClinic = {
   slug: "barbearia",
   timeZone: "America/Sao_Paulo",
   subscriptionStatus: "ACTIVE",
+  subscriptionExpiresAt: new Date("2099-01-01T00:00:00.000Z"),
 };
 
 function createValidHours() {
@@ -40,7 +35,6 @@ function createValidHours() {
 describe("saveBusinessHours", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (auth.protect as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "user-1", orgId: "org-1" });
     (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
     prismaMock.$transaction.mockImplementation(async (items: Array<Promise<unknown>>) =>
       Promise.all(items),

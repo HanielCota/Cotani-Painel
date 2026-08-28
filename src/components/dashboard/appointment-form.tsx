@@ -6,6 +6,7 @@ import { CalendarPlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { createAppointmentFromForm } from "@/server/actions/appointments";
+import { useActiveClinicId } from "@/components/dashboard/active-clinic-context";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,13 +38,14 @@ interface AppointmentFormProps {
 }
 
 export function AppointmentForm({ customers, services, minStartTime, timeZone, className, onSuccess }: AppointmentFormProps) {
+  const clinicId = useActiveClinicId();
   const [state, formAction, isPending] = useActionState(createAppointmentFromForm, initialState);
   const [serviceId, setServiceId] = useState("");
   const [professionalId, setProfessionalId] = useState("");
   const queryClient = useQueryClient();
 
   const { data: professionals, isFetching: isProfessionalsFetching } = useQuery({
-    queryKey: ["professionals"],
+    queryKey: ["professionals", clinicId],
     queryFn: () => fetchJson<ProfessionalListItem[]>("/api/professionals"),
   });
 

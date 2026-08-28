@@ -43,7 +43,7 @@ describe("/api/public/[slug]/availability", () => {
   });
 
   it("retorna slots quando parâmetros são válidos", async () => {
-    prisma.clinic.findUnique.mockResolvedValueOnce({ id: "clinic-1", timeZone: "America/Sao_Paulo", maxAppointmentsPerDay: null, subscriptionStatus: "ACTIVE", operationalStatus: "ACTIVE", deletedAt: null });
+    prisma.clinic.findUnique.mockResolvedValueOnce({ id: "clinic-1", timeZone: "America/Sao_Paulo", maxAppointmentsPerDay: null, subscriptionStatus: "ACTIVE", subscriptionExpiresAt: new Date("2099-01-01T00:00:00.000Z"), operationalStatus: "ACTIVE", deletedAt: null });
     prisma.service.findFirst.mockResolvedValueOnce({ duration: 30 });
     (getAvailableSlots as ReturnType<typeof vi.fn>).mockResolvedValueOnce(["10:00", "10:30"]);
 

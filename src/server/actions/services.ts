@@ -1,13 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { getClinicForRoles } from "@/server/tenant";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
+import { requireAuthenticatedUser } from "@/server/auth";
+import { persistPublicImage, removePublicImage } from "@/server/services/media-storage";
 
 const MAX_IMAGE_SIZE_CHARS = 2_000_000;
 
@@ -21,9 +22,7 @@ const imageUrlSchema = z
   .refine(
     (value) =>
       value === null ||
-      value.startsWith("data:image/") ||
-      value.startsWith("http://") ||
-      value.startsWith("https://"),
+      value.startsWith("data:image/") || value.startsWith("https://"),
     { message: "A imagem deve ser um arquivo de imagem válido ou uma URL." },
   );
 
@@ -45,7 +44,7 @@ function revalidateServiceViews() {
 }
 
 export async function createService(input: unknown): Promise<ActionResult> {
-  await auth.protect();
+  await requireAuthenticatedUser();
 
   const parsed = serviceSchema.safeParse(input);
 
@@ -64,13 +63,14 @@ export async function createService(input: unknown): Promise<ActionResult> {
   }
 
   try {
+    const imageUrl = await persistPublicImage({ clinicId: clinic.id, kind: "services", value: parsed.data.imageUrl });
     await prisma.service.create({
       data: {
         clinicId: clinic.id,
         name: parsed.data.name,
         duration: parsed.data.duration,
         price: parsed.data.price,
-        imageUrl: parsed.data.imageUrl,
+        imageUrl,
       },
     });
   } catch {
@@ -91,7 +91,7 @@ export async function createServiceFromForm(_previousState: ActionResult, formDa
 }
 
 export async function updateService(input: unknown): Promise<ActionResult> {
-  await auth.protect();
+  await requireAuthenticatedUser();
 
   const parsed = updateServiceSchema.safeParse(input);
 
@@ -111,7 +111,7 @@ export async function updateService(input: unknown): Promise<ActionResult> {
 
   const service = await prisma.service.findFirst({
     where: { id: parsed.data.serviceId, clinicId: clinic.id },
-    select: { id: true },
+    select: { id: true, imageUrl: true },
   });
 
   if (!service) {
@@ -119,15 +119,17 @@ export async function updateService(input: unknown): Promise<ActionResult> {
   }
 
   try {
+    const imageUrl = await persistPublicImage({ clinicId: clinic.id, kind: "services", value: parsed.data.imageUrl, currentUrl: service.imageUrl });
     await prisma.service.update({
       where: { id: service.id },
       data: {
         name: parsed.data.name,
         duration: parsed.data.duration,
         price: parsed.data.price,
-        imageUrl: parsed.data.imageUrl,
+        imageUrl,
       },
     });
+    if (service.imageUrl !== imageUrl) await removePublicImage(service.imageUrl);
   } catch {
     return { status: "error", message: "Não foi possível atualizar este serviço. Tente novamente." };
   }
@@ -147,7 +149,7 @@ export async function updateServiceFromForm(_previousState: ActionResult, formDa
 }
 
 export async function toggleServiceActive(serviceId: string): Promise<ActionResult> {
-  await auth.protect();
+  await requireAuthenticatedUser();
 
   const parsedId = z.uuid().safeParse(serviceId);
 

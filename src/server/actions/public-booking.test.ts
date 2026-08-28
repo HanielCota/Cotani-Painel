@@ -87,6 +87,7 @@ describe("createPublicAppointment", () => {
       name: "Barbearia",
       timeZone: "America/Sao_Paulo",
       subscriptionStatus: "ACTIVE",
+      subscriptionExpiresAt: new Date("2099-01-01T00:00:00.000Z"),
       operationalStatus: "ACTIVE",
       deletedAt: null,
     });
@@ -105,6 +106,7 @@ describe("createPublicAppointment", () => {
       name: "Barbearia",
       timeZone: "America/Sao_Paulo",
       subscriptionStatus: "ACTIVE",
+      subscriptionExpiresAt: new Date("2099-01-01T00:00:00.000Z"),
       operationalStatus: "ACTIVE",
       deletedAt: null,
     });
