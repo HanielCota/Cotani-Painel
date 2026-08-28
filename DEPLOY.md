@@ -1,114 +1,127 @@
-# Checklist de Deploy — Cotani
+# Checklist de produção
 
-Este documento lista tudo o que precisa ser feito para colocar o Cotani em produção.
+O deploy na Vercel deve ser feito somente depois que os itens abaixo estiverem concluídos.
 
-## 1. Código e qualidade (já concluído)
+## 1. Supabase Database
 
-- [x] Build de produção passa (`npm run build`)
-- [x] Testes unitários passam (`npm test` — 240 testes)
-- [x] Testes E2E passam (`npx playwright test` — 6 testes)
-- [x] Rota `/seed` removida
-- [x] Páginas placeholder removidas (`/dashboard/automacoes`, `/dashboard/ai`)
-- [x] Histórico de pagamentos implementado
+- Confirme que o projeto está na região desejada.
+- Em **Connect**, copie a URI do pooler de transações (porta 6543) para `SUPABASE_DATABASE_URL` e acrescente `pgbouncer=true&uselibpqcompat=true&sslmode=require` aos parâmetros da URL.
+- Copie a URI do pooler de sessão (porta 5432) para `SUPABASE_DIRECT_URL` e acrescente `uselibpqcompat=true&sslmode=require` aos parâmetros da URL.
+- Substitua `[YOUR-PASSWORD]` pela senha do banco com URL encoding quando necessário.
+- Aplique o schema: `pnpm prisma migrate deploy`.
+- Confirme que todas as tabelas públicas estão com RLS habilitado. Não crie políticas públicas para as tabelas da aplicação.
 
-## 2. Banco de dados
+O Prisma usa `SUPABASE_DATABASE_URL` no runtime e `SUPABASE_DIRECT_URL` para migrations. `DATABASE_URL`, quando presente localmente, é apenas a origem histórica do script de migração e não deve ser adicionada à Vercel.
 
-- [ ] Criar banco PostgreSQL de produção (Neon, Supabase, RDS, etc.)
-- [ ] Aplicar migrations: `npx prisma migrate deploy`
-- [ ] Confirmar que a tabela `WebhookEvent` existe (idempotência dos webhooks)
-- [ ] Confirmar que a tabela `PaymentHistory` existe
+## 2. Supabase Auth
 
-## 3. Variáveis de ambiente
+Em **Authentication → URL Configuration**:
 
-Copie `.env.example` para `.env` (ou configure no painel da Vercel) e preencha:
+- Site URL: `https://painel.cotani.com.br`
+- Redirect URL: `https://painel.cotani.com.br/**`
 
-### Clerk (produção)
-- [ ] `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` — chave `pk_live_...`
-- [ ] `CLERK_SECRET_KEY` — chave `sk_live_...`
-- [ ] `CLERK_WEBHOOK_SIGNING_SECRET` — signing secret do webhook de produção
+Em **Authentication → Providers → Google**:
 
-### Banco
-- [ ] `DATABASE_URL` — connection string pooled com `sslmode=require`
+- Habilite Google.
+- Informe o Client ID e Client Secret do Google Cloud.
+- No Google Cloud, autorize a callback fornecida pelo Supabase: `https://SEU-PROJETO.supabase.co/auth/v1/callback`.
+- Adicione `https://painel.cotani.com.br` às origens JavaScript autorizadas, se solicitado pelo Google.
 
-### Cron
-- [ ] `CRON_SECRET` — segredo forte para autorizar os jobs (`openssl rand -hex 32`)
+Configure SMTP próprio em **Authentication → Emails/SMTP** para confirmação de cadastro, recuperação e convite. Personalize os templates e teste cada fluxo. A URL da aplicação para callback é `/auth/callback`; convites terminam em `/update-password`.
 
-### WhatsApp
-- [ ] `WHATSAPP_SENDER_MODE` — `manual` (padrão) ou `api`
+Em **Authentication → Security/Attack Protection**:
 
-### URLs públicas
-- [ ] `NEXT_PUBLIC_APP_URL` — ex.: `https://painel.cotani.com`
-- [ ] `NEXT_PUBLIC_CLERK_SIGN_IN_URL` — `/sign-in`
-- [ ] `NEXT_PUBLIC_CHECKOUT_URL` — URL da landing/checkout real
+- mantenha confirmação de e-mail obrigatória e senha mínima de 8 caracteres;
+- use OTP de 6 dígitos com expiração de 1 hora;
+- habilite proteção contra senhas vazadas;
+- habilite CAPTCHA em cadastro, login e recuperação antes de abrir inscrições públicas;
+- defina tempo máximo e inatividade das sessões conforme a política comercial.
 
-### Mercado Pago (produção)
-- [ ] `MERCADO_PAGO_ACCESS_TOKEN` — access token de produção
-- [ ] `MERCADO_PAGO_WEBHOOK_SECRET` — **obrigatório** em produção
-- [ ] `MERCADO_PAGO_MONTHLY_PLAN_ID` — ID do plano mensal
-- [ ] `MERCADO_PAGO_ANNUAL_PLAN_ID` — ID do plano anual
+Depois que o primeiro administrador entrar, copie seu UUID em **Authentication → Users** para `PLATFORM_ADMIN_USER_IDS`. Use vírgulas para mais de um administrador global.
 
-### Validação rápida
-Execute: `node scripts/check-env.mjs`
+## 3. Mercado Pago
 
-## 4. Clerk Dashboard
+- Use o Access Token de produção da aplicação correta.
+- Execute `pnpm mercado-pago:plans` com a URL final e o token de produção.
+- Cadastre na Vercel os quatro IDs impressos pelo script: Essencial mensal/anual e Profissional mensal/anual.
+- O plano Empresa permanece como contratação comercial, sem ID automático.
+- Em **Webhooks**, use `https://painel.cotani.com.br/api/webhooks/mercado-pago`.
+- Marque eventos de planos/assinaturas e pagamentos relacionados a assinaturas.
+- Copie a assinatura secreta para `MERCADO_PAGO_WEBHOOK_SECRET`.
+- Faça uma compra real controlada, valide ativação e depois valide cancelamento/atraso.
 
-- [ ] Mudar instância para **Production**
-- [ ] Adicionar domínio de produção em **Allowed Origins**
-- [ ] Configurar **Redirect URLs**:
-  - `https://SEU-DOMINIO/sign-in`
-  - `https://SEU-DOMINIO/dashboard`
-- [ ] Criar webhook em **Webhooks**:
-  - Endpoint: `https://SEU-DOMINIO/api/webhooks/clerk`
-  - Eventos: `organization.created`, `organization.updated`, `organization.deleted`, `organizationMembership.created`, `organizationMembership.updated`, `organizationMembership.deleted`, `user.created`, `user.updated`, `user.deleted`
-- [ ] Copiar signing secret para `CLERK_WEBHOOK_SIGNING_SECRET`
-- [ ] Confirmar que **Organizations** está habilitado
-- [ ] Confirmar que **Sign-up with email** está desativado (invite-only)
+## 4. Resend e DNS
 
-## 5. Mercado Pago
+- Mantenha o domínio `cotani.com.br` como Verified.
+- Configure `RESEND_API_KEY` e um remetente autorizado em `EMAIL_FROM`, por exemplo `Cotani <agendamentos@cotani.com.br>`.
+- Envie um e-mail real e confira autenticação SPF/DKIM/DMARC nos cabeçalhos.
 
-- [ ] Criar conta de vendedor ou usar a existente
-- [ ] Criar planos de assinatura (PreApproval Plan):
-  - Mensal: R$ 97,00
-  - Anual: R$ 970,00
-- [ ] Configurar webhook:
-  - URL: `https://SEU-DOMINIO/api/webhooks/mercado-pago`
-  - Evento: `subscription_preapproval`
-- [ ] Copiar access token e webhook secret para as variáveis de ambiente
-- [ ] Testar em modo sandbox antes de ir para produção
+O Resend atende às mensagens operacionais da aplicação. Os e-mails de autenticação do Supabase usam o SMTP configurado no próprio Supabase; podem usar as credenciais SMTP do Resend, mas essa configuração é feita no painel do Supabase.
 
-## 6. Vercel / Hosting
+## 5. Variáveis na Vercel
 
-- [ ] Importar repositório
-- [ ] Configurar todas as variáveis de ambiente
-- [ ] Confirmar que `vercel.json` está na raiz (crons já configurados):
-  - `/api/jobs/notifications` — a cada minuto
-  - `/api/jobs/billing/expire-subscriptions` — diariamente às 6h
-- [ ] Deploy em staging primeiro
+Cadastre em **Project → Settings → Environment Variables**, no ambiente Production:
 
-## 7. Validação em staging
+```text
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+SUPABASE_SECRET_KEY
+SUPABASE_DATABASE_URL
+SUPABASE_DIRECT_URL
+DATABASE_POOL_MAX=3
+PLATFORM_ADMIN_USER_IDS
+CRON_SECRET
+NEXT_PUBLIC_APP_URL=https://painel.cotani.com.br
+MERCADO_PAGO_ACCESS_TOKEN
+MERCADO_PAGO_WEBHOOK_SECRET
+MERCADO_PAGO_ESSENTIAL_MONTHLY_PLAN_ID
+MERCADO_PAGO_ESSENTIAL_ANNUAL_PLAN_ID
+MERCADO_PAGO_PROFESSIONAL_MONTHLY_PLAN_ID
+MERCADO_PAGO_PROFESSIONAL_ANNUAL_PLAN_ID
+SUBSCRIPTION_GRACE_PERIOD_DAYS=3
+RESEND_API_KEY
+EMAIL_FROM
+WHATSAPP_SENDER_MODE=manual
+TWILIO_ACCOUNT_SID
+TWILIO_AUTH_TOKEN
+TWILIO_SMS_FROM
+```
 
-- [ ] Login com conta de teste funciona
-- [ ] Dashboard carrega sem erros
-- [ ] Link público `/{slug}` abre o quiz de agendamento
-- [ ] Agendamento cria notificação na página Comunicações
-- [ ] Webhook do Clerk cria/atualiza barbearia no banco
-- [ ] Webhook do Mercado Pago atualiza status da assinatura
-- [ ] Job de expiração de assinatura roda sem erro
-- [ ] Cancelamento de agendamento pelo cliente funciona
-- [ ] Cancelamento de assinatura pelo barbeiro funciona
+Não use valores de teste em Production. Não exponha `SUPABASE_SECRET_KEY`, strings do banco, Access Token do Mercado Pago ou segredos de webhook em variáveis `NEXT_PUBLIC_*`.
 
-## 8. Produção
+`CRON_SECRET` deve ser um segredo aleatório forte. A Vercel o envia como Bearer token aos jobs descritos em `vercel.json`.
 
-- [ ] Apontar domínio final para a Vercel
-- [ ] Repetir validação de staging em produção
-- [ ] Monitorar logs nas primeiras 24h
-- [ ] Configurar backup do banco de dados
+As credenciais Twilio são necessárias antes de ativar o plano Empresa, pois esse plano inclui SMS. No modo manual de WhatsApp, não configure as variáveis `META_WHATSAPP_*`.
 
-## 9. Integração com o dev de pagamentos
+## 6. Validação antes do deploy
 
-O outro dev precisa saber que:
+```bash
+pnpm check
+pnpm build
+```
 
-- O webhook `/api/webhooks/mercado-pago` já está pronto e idempotente.
-- O checkout é iniciado por `POST /api/subscription/checkout` com `{ plan: "MONTHLY" | "ANNUAL" }`.
-- O histórico de pagamentos é gravado automaticamente quando a assinatura vira `ACTIVE`.
-- Para testar, basta criar uma assinatura de teste no Mercado Pago e observar o webhook.
+Confirme também:
+
+- migrations aplicadas sem drift;
+- `git status` contém somente mudanças esperadas;
+- `.env.local` não está versionado;
+- nenhum segredo aparece em logs, commits ou screenshots;
+- DNS de `painel.cotani.com.br` aponta para a Vercel em modo DNS only, quando exigido pelo provedor.
+- os cinco CNAMEs antigos de autenticação (`clerk`, `accounts`, `clkmail`, `clk._domainkey` e `clk2._domainkey` sob `painel`) foram removidos do DNS após validar o Supabase em produção.
+
+## 7. Testes depois do deploy
+
+1. Criar conta por e-mail, confirmar e fazer login.
+2. Recuperar senha.
+3. Entrar com Google.
+4. Criar a primeira loja e alternar entre duas lojas.
+5. Convidar membro, aceitar convite, definir senha e verificar papel.
+6. Confirmar que um membro não acessa outra loja alterando URL/cookie.
+7. Criar serviços, horários, clientes e agendamentos.
+8. Confirmar o limite de profissionais de cada plano.
+9. Completar checkout real do Mercado Pago e conferir webhook/idempotência.
+10. Executar os jobs de notificações e cobrança com autenticação correta.
+11. Enviar e receber e-mails de autenticação e e-mails operacionais.
+12. Validar páginas `/admin` somente com UUID autorizado.
+
+Se qualquer item falhar, corrija antes de divulgar a URL ou aceitar pagamentos de clientes.
