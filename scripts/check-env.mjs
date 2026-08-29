@@ -38,10 +38,9 @@ const productionOnly = [
   "PLATFORM_ADMIN_USER_IDS",
   "RESEND_API_KEY",
   "EMAIL_FROM",
-  "TWILIO_ACCOUNT_SID",
-  "TWILIO_AUTH_TOKEN",
-  "TWILIO_SMS_FROM",
 ];
+
+const twilioKeys = ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_SMS_FROM"];
 
 const isProduction = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
 
@@ -112,6 +111,12 @@ if (whatsAppMode === "api") {
       hasError = true;
     }
   }
+}
+
+const configuredTwilioKeys = twilioKeys.filter((key) => process.env[key]?.trim());
+if (configuredTwilioKeys.length > 0 && configuredTwilioKeys.length < twilioKeys.length) {
+  console.error("✗ Twilio — configure TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN e TWILIO_SMS_FROM juntos, ou deixe os três vazios");
+  hasError = true;
 }
 
 if (hasError) {

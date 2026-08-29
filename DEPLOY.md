@@ -82,16 +82,13 @@ SUBSCRIPTION_GRACE_PERIOD_DAYS=3
 RESEND_API_KEY
 EMAIL_FROM
 WHATSAPP_SENDER_MODE=manual
-TWILIO_ACCOUNT_SID
-TWILIO_AUTH_TOKEN
-TWILIO_SMS_FROM
 ```
 
 Não use valores de teste em Production. Não exponha `SUPABASE_SECRET_KEY`, strings do banco, Access Token do Mercado Pago ou segredos de webhook em variáveis `NEXT_PUBLIC_*`.
 
 `CRON_SECRET` deve ser um segredo aleatório forte. A Vercel o envia como Bearer token aos jobs descritos em `vercel.json`.
 
-As credenciais Twilio são necessárias antes de ativar o plano Empresa, pois esse plano inclui SMS. No modo manual de WhatsApp, não configure as variáveis `META_WHATSAPP_*`.
+As credenciais `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` e `TWILIO_SMS_FROM` são opcionais no lançamento e devem ser configuradas juntas antes de ativar SMS no plano Empresa. No modo manual de WhatsApp, não configure as variáveis `META_WHATSAPP_*`.
 
 ## 6. Validação antes do deploy
 
