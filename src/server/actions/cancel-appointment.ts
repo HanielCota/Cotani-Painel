@@ -27,7 +27,7 @@ export async function cancelAppointmentByToken(input: unknown): Promise<ActionRe
   });
 
   if (!clinic) {
-    return { status: "error", message: "Barbearia não encontrada." };
+    return { status: "error", message: "Loja não encontrada." };
   }
 
   const appointment = await prisma.appointment.findFirst({

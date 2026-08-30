@@ -9,7 +9,7 @@ import { AuthenticationRequiredError, ensureCurrentAppUser } from "@/server/auth
 
 export const ACTIVE_CLINIC_COOKIE = "cotani_active_clinic";
 
-/** Lançado quando não há barbearia ativa ou o vínculo do usuário ainda não foi sincronizado. */
+/** Lançado quando não há loja ativa ou o vínculo do usuário ainda não foi sincronizado. */
 export class TenantResolutionError extends Error {
   constructor(message: string) {
     super(message);
@@ -64,7 +64,7 @@ export const getTenantContext = cache(async (): Promise<TenantContext> => {
   }
 
   if (!membership) {
-    throw new TenantResolutionError("Nenhuma barbearia acessível foi encontrada para esta conta.");
+    throw new TenantResolutionError("Nenhuma loja acessível foi encontrada para esta conta.");
   }
 
   return { clinic: membership.clinic, membership, role: membership.role };
@@ -97,7 +97,7 @@ export async function getClinicForRoles(roles: readonly ClinicRole[]) {
 
 /**
  * Variante legada que retorna `null` em vez de lançar, usada pelas Server Actions
- * atuais que convertem a ausência de barbearia em `ActionResult` de erro.
+ * atuais que convertem a ausência de loja em `ActionResult` de erro.
  */
 export async function requireActiveClinic() {
   try {
@@ -119,7 +119,7 @@ export async function getApiTenant(roles: readonly ClinicRole[]): Promise<ApiTen
     const context = await getTenantContext();
     requireRole(context, roles);
     if (context.clinic.deletedAt || context.clinic.operationalStatus !== "ACTIVE") {
-      return { ok: false, status: 404, message: "Barbearia ativa não encontrada." };
+      return { ok: false, status: 404, message: "Loja ativa não encontrada." };
     }
     return { ok: true, context };
   } catch (error) {
@@ -130,7 +130,7 @@ export async function getApiTenant(roles: readonly ClinicRole[]): Promise<ApiTen
       return { ok: false, status: 403, message: "Seu perfil não permite acessar este recurso." };
     }
     if (error instanceof TenantResolutionError) {
-      return { ok: false, status: 404, message: "Barbearia ativa não encontrada." };
+      return { ok: false, status: 404, message: "Loja ativa não encontrada." };
     }
     throw error;
   }

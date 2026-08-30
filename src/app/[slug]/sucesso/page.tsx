@@ -58,7 +58,7 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
             <div className="flex items-center justify-between gap-4 border-b pb-3">
               <dt className="flex items-center gap-2 text-muted-foreground">
                 <MapPinIcon aria-hidden="true" className="size-4 shrink-0" />
-                Barbearia
+                Loja
               </dt>
               <dd className="min-w-0 truncate text-right font-medium">{clinic.name}</dd>
             </div>
@@ -102,7 +102,7 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
           <p className="text-center text-sm leading-relaxed text-muted-foreground">
-            Guarde os dados deste agendamento. Se precisar alterar ou cancelar, entre em contato com a barbearia.
+            Guarde os dados deste agendamento. Se precisar alterar ou cancelar, entre em contato com a loja.
           </p>
           <SuccessActions
             slug={slug}

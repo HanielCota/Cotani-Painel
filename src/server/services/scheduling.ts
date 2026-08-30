@@ -61,7 +61,7 @@ function minutesFromTime(time: string): number {
 }
 
 /**
- * Serializa alterações da agenda da mesma barbearia/dia. A trava evita que
+ * Serializa alterações da agenda da mesma loja/dia. A trava evita que
  * duas transações ultrapassem juntas o limite diário ou passem pelo mesmo
  * check de disponibilidade antes de gravar.
  */

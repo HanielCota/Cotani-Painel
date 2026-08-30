@@ -13,7 +13,7 @@ export default function SignInPage() {
           </span>
           <div>
             <p className="text-xl font-semibold tracking-tight">Cotani</p>
-            <p className="text-sm text-muted-foreground">Gestão simples para sua barbearia</p>
+            <p className="text-sm text-muted-foreground">Gestão simples para sua loja</p>
           </div>
         </div>
         <AuthForm />

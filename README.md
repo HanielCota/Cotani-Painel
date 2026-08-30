@@ -1,6 +1,6 @@
 # Cotani Painel
 
-Painel SaaS multiempresa para barbearias gerenciarem agenda, clientes, profissionais, serviços, horários, comunicação, financeiro, relatórios e assinatura.
+Painel SaaS multiempresa para lojas gerenciarem agenda, clientes, profissionais, serviços, horários, comunicação, financeiro, relatórios e assinatura.
 
 ## Stack
 

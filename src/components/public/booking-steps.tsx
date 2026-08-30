@@ -385,7 +385,7 @@ function BookingSummary({ clinicName, service, professional, date, slot }: Booki
       <h3 className="mb-3 font-semibold">Resumo do agendamento</h3>
       <dl className="flex flex-col gap-2">
         <div className="flex justify-between gap-4">
-          <dt className="text-muted-foreground">Barbearia</dt>
+          <dt className="text-muted-foreground">Loja</dt>
           <dd className="font-medium">{clinicName}</dd>
         </div>
         {service ? (
@@ -514,7 +514,7 @@ function CustomerStep({ isPending, slug, clinicName, service, professional, date
             onBlur={handlePhoneBlur}
             className="h-12"
           />
-          <FieldDescription>Usado pela barbearia para identificar e entrar em contato com você.</FieldDescription>
+          <FieldDescription>Usado pela loja para identificar e entrar em contato com você.</FieldDescription>
           {phoneError ? (
             <p className="text-xs text-destructive">Informe um WhatsApp válido com DDD.</p>
           ) : null}
@@ -533,7 +533,7 @@ function CustomerStep({ isPending, slug, clinicName, service, professional, date
         </Field>
         <Field>
           <FieldLabel htmlFor="notes">Observações (opcional)</FieldLabel>
-          <Textarea id="notes" name="notes" maxLength={2000} disabled={isPending} placeholder="Alguma observação para o barbeiro?" />
+          <Textarea id="notes" name="notes" maxLength={2000} disabled={isPending} placeholder="Alguma observação para o profissional?" />
         </Field>
       </FieldGroup>
     </div>

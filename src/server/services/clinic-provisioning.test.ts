@@ -9,7 +9,7 @@ import { SubscriptionStatus } from "@/generated/prisma/enums";
 
 describe("slugify", () => {
   it("converte nome simples para slug", () => {
-    expect(slugify("Barbearia do Zé")).toBe("barbearia-do-ze");
+    expect(slugify("Loja do Zé")).toBe("loja-do-ze");
   });
 
   it("remove acentos e caracteres especiais", () => {
@@ -21,7 +21,7 @@ describe("slugify", () => {
   });
 
   it("converte para minúsculas", () => {
-    expect(slugify("BARBEARIA TOP")).toBe("barbearia-top");
+    expect(slugify("LOJA TOP")).toBe("loja-top");
   });
 
   it("retorna string vazia para entrada vazia", () => {
@@ -31,14 +31,14 @@ describe("slugify", () => {
 
 describe("generateClinicSlug", () => {
   it("gera slug composto por nome e sufixo único", () => {
-    const slug = generateClinicSlug("Barbearia do Zé", "org_1234567890abcdef");
+    const slug = generateClinicSlug("Loja do Zé", "org_1234567890abcdef");
 
-    expect(slug).toBe("barbearia-do-ze-abcdef");
+    expect(slug).toBe("loja-do-ze-abcdef");
   });
 
   it("gera slugs únicos para organizações diferentes com mesmo nome", () => {
-    const slugA = generateClinicSlug("Barbearia Top", "org_aaaaaaaaaaaaaaaa");
-    const slugB = generateClinicSlug("Barbearia Top", "org_bbbbbbbbbbbbbbbb");
+    const slugA = generateClinicSlug("Loja Top", "org_aaaaaaaaaaaaaaaa");
+    const slugB = generateClinicSlug("Loja Top", "org_bbbbbbbbbbbbbbbb");
 
     expect(slugA).not.toBe(slugB);
   });

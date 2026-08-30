@@ -12,10 +12,10 @@ import {
 } from "@/components/ui/empty";
 
 interface PaymentRequiredStateProps {
-  barbershopName?: string;
+  clinicName?: string;
 }
 
-export function PaymentRequiredState({ barbershopName }: PaymentRequiredStateProps) {
+export function PaymentRequiredState({ clinicName }: PaymentRequiredStateProps) {
   return (
     <Empty className="min-h-[60vh] border">
       <EmptyHeader>
@@ -24,8 +24,8 @@ export function PaymentRequiredState({ barbershopName }: PaymentRequiredStatePro
         </EmptyMedia>
         <EmptyTitle>Assinatura necessária</EmptyTitle>
         <EmptyDescription className="max-w-md">
-          {barbershopName
-            ? `A barbearia ${barbershopName} ainda não tem um pagamento confirmado. Contrate um plano para liberar o painel.`
+          {clinicName
+            ? `A loja ${clinicName} ainda não tem um pagamento confirmado. Contrate um plano para liberar o painel.`
             : "Esta conta ainda não tem um pagamento confirmado. Contrate um plano para liberar o painel."}
         </EmptyDescription>
       </EmptyHeader>

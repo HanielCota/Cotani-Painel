@@ -44,11 +44,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   });
 
   if (!clinic) {
-    return NextResponse.json({ message: "Barbearia não encontrada." }, { status: 404 });
+    return NextResponse.json({ message: "Loja não encontrada." }, { status: 404 });
   }
 
   if (!isSubscriptionActive(clinic) || clinic.operationalStatus !== "ACTIVE") {
-    return NextResponse.json({ message: "Barbearia indisponível para agendamentos." }, { status: 403 });
+    return NextResponse.json({ message: "Loja indisponível para agendamentos." }, { status: 403 });
   }
 
   const service = await prisma.service.findFirst({

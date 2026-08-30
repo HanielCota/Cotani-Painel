@@ -28,7 +28,7 @@ export async function saveClinicSettings(_previousState: ActionResult, formData:
   const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma barbearia antes de salvar." };
+    return { status: "error", message: "Selecione uma loja antes de salvar." };
   }
 
   if (!isSubscriptionActive(clinic)) {

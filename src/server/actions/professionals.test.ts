@@ -23,8 +23,8 @@ const { getClinicForRoles } = await import("@/server/tenant");
 
 const activeClinic = {
   id: "550e8400-e29b-41d4-a716-446655440000",
-  name: "Barbearia",
-  slug: "barbearia",
+  name: "Loja",
+  slug: "loja",
   timeZone: "America/Sao_Paulo",
   subscriptionStatus: "ACTIVE",
   subscriptionExpiresAt: new Date("2099-01-01T00:00:00.000Z"),
@@ -66,13 +66,13 @@ describe("createProfessional", () => {
     expect(result.status).toBe("error");
   });
 
-  it("retorna erro quando não há barbearia", async () => {
+  it("retorna erro quando não há loja", async () => {
     (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
 
     const result = await createProfessional(validProfessional);
 
     expect(result.status).toBe("error");
-    expect(result.message).toContain("Selecione uma barbearia");
+    expect(result.message).toContain("Selecione uma loja");
   });
 
   it("retorna erro quando serviço selecionado é inválido", async () => {

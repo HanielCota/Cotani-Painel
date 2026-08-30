@@ -15,8 +15,8 @@ describe("enqueueAppointmentNotifications", () => {
   const baseParams = {
     appointmentId: "app-1",
     clinicId: "clinic-1",
-    clinicSlug: "barbearia-teste",
-    clinicName: "Barbearia Teste",
+    clinicSlug: "loja-teste",
+    clinicName: "Loja Teste",
     timeZone: "America/Sao_Paulo",
     customerName: "João",
     customerPhone: "11999999999",
@@ -36,7 +36,7 @@ describe("enqueueAppointmentNotifications", () => {
     }>;
 
     expect(data.some((item) => item.kind === "CONFIRMATION")).toBe(true);
-    expect(data[0].content).toContain("Barbearia Teste");
+    expect(data[0].content).toContain("Loja Teste");
     expect(data[0].content).toContain("Corte");
   });
 

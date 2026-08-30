@@ -10,7 +10,7 @@ export interface ExpireSubscriptionsResult {
 /**
  * Desativa assinaturas expiradas.
  *
- * Marca como INACTIVE todas as barbearias cujo `subscriptionExpiresAt` já
+ * Marca como INACTIVE todas as lojas cujo `subscriptionExpiresAt` já
  * passou e cujo status ainda é ACTIVE ou PAST_DUE. Essa função é acionada
  * diariamente pelo cron do Vercel.
  */

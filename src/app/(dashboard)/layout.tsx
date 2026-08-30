@@ -3,7 +3,7 @@ import type { ClinicRole, SubscriptionPlan } from "@/generated/prisma/enums";
 
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { ActiveClinicProvider } from "@/components/dashboard/active-clinic-context";
-import { EmptyBarbershopState } from "@/components/dashboard/empty-barbershop-state";
+import { EmptyClinicState } from "@/components/dashboard/empty-clinic-state";
 import { PaymentRequiredState } from "@/components/dashboard/payment-required-state";
 import { ClinicSuspendedState } from "@/components/dashboard/clinic-suspended-state";
 import { SubscriptionBanner } from "@/components/dashboard/subscription-banner";
@@ -66,7 +66,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
   if (memberships.length === 0) {
     return (
       <DashboardShell {...sidebarProps}>
-        <EmptyBarbershopState />
+        <EmptyClinicState />
       </DashboardShell>
     );
   }
@@ -87,7 +87,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
   if (tenantResolutionFailed || !tenant) {
     return (
       <DashboardShell {...sidebarProps}>
-        <EmptyBarbershopState />
+        <EmptyClinicState />
       </DashboardShell>
     );
   }
@@ -105,7 +105,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
   if (!clinic.hasPaidOnce && !isSubscriptionActive(clinic)) {
     return (
       <DashboardShell {...sidebarProps}>
-        <PaymentRequiredState barbershopName={clinic.name} />
+        <PaymentRequiredState clinicName={clinic.name} />
       </DashboardShell>
     );
   }

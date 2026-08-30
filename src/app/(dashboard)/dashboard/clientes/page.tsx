@@ -18,7 +18,7 @@ export default withTenant(async ({ clinic }) => {
       <Card>
         <CardHeader className="border-b">
           <CardTitle>Base de clientes</CardTitle>
-          <CardDescription>Busque, pagine e gerencie os clientes da barbearia.</CardDescription>
+          <CardDescription>Busque, pagine e gerencie os clientes da loja.</CardDescription>
         </CardHeader>
         <CardContent>
           <CustomersTable />

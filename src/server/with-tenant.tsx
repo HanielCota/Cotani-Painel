@@ -2,7 +2,7 @@ import type { ReactElement } from "react";
 import { redirect } from "next/navigation";
 import type { ClinicRole } from "@/generated/prisma/enums";
 
-import { EmptyBarbershopState } from "@/components/dashboard/empty-barbershop-state";
+import { EmptyClinicState } from "@/components/dashboard/empty-clinic-state";
 import { getTenantContext, TenantResolutionError, type TenantContext } from "@/server/tenant";
 
 export function withTenant<TProps extends object = Record<string, never>>(
@@ -18,7 +18,7 @@ export function withTenant<TProps extends object = Record<string, never>>(
       return await handler(ctx, props);
     } catch (error) {
       if (error instanceof TenantResolutionError) {
-        return <EmptyBarbershopState />;
+        return <EmptyClinicState />;
       }
 
       throw error;

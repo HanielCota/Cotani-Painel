@@ -52,7 +52,7 @@ export function BusinessHoursSettings({ businessHours }: BusinessHoursSettingsPr
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
-      <p className="text-sm text-muted-foreground">Configure os dias e horários de funcionamento da barbearia.</p>
+      <p className="text-sm text-muted-foreground">Configure os dias e horários de funcionamento da loja.</p>
 
       <div className="overflow-hidden rounded-xl border border-border/80">
         <div className="flex flex-col divide-y">

@@ -10,7 +10,7 @@ import { getMessageSender } from "@/server/services/messaging/message-sender";
  * Acionado pelo Vercel Cron (vercel.json). O Cron envia GET com o header
  * `Authorization: Bearer ${CRON_SECRET}`; POST é aceito para disparo manual.
  *
- * WhatsApp no modo "manual" é pulado pelo dispatcher: o barbeiro envia
+ * WhatsApp no modo "manual" é pulado pelo dispatcher: o profissional envia
  * as mensagens pelo próprio WhatsApp via link wa.me no CRM de comunicações.
  */
 

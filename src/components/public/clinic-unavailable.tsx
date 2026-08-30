@@ -23,7 +23,7 @@ export function ClinicUnavailable({ clinicName }: ClinicUnavailableProps) {
           <EmptyTitle>{clinicName} está temporariamente indisponível</EmptyTitle>
           <EmptyDescription>
             Os agendamentos online estão suspensos no momento. Entre em contato
-            diretamente com a barbearia para mais informações.
+            diretamente com a loja para mais informações.
           </EmptyDescription>
         </EmptyHeader>
       </Empty>

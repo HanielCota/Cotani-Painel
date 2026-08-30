@@ -21,7 +21,7 @@ export async function markWhatsAppNotificationAsSent(notificationId: string): Pr
   const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma barbearia antes de continuar." };
+    return { status: "error", message: "Selecione uma loja antes de continuar." };
   }
 
   if (!isSubscriptionActive(clinic)) {

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { formatClinicDateTimeInput, getClinicDateBounds, parseClinicDateTime } from "@/lib/timezone";
 
 describe("parseClinicDateTime", () => {
-  it("converte data/hora no fuso da barbearia para UTC", () => {
+  it("converte data/hora no fuso da loja para UTC", () => {
     const result = parseClinicDateTime("2026-07-20T10:00", "America/Sao_Paulo");
 
     expect(result).toBeInstanceOf(Date);
@@ -27,7 +27,7 @@ describe("parseClinicDateTime", () => {
 });
 
 describe("formatClinicDateTimeInput", () => {
-  it("formata data UTC no fuso da barbearia", () => {
+  it("formata data UTC no fuso da loja", () => {
     const date = new Date("2026-07-20T13:00:00.000Z");
     const formatted = formatClinicDateTimeInput(date, "America/Sao_Paulo");
 

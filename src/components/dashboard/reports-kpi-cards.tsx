@@ -34,7 +34,7 @@ export function ReportsKpiCards({ metrics }: ReportsKpiCardsProps) {
       <MetricCard
         title="Total de agendamentos"
         value={String(metrics.totalAppointments)}
-        description="Agendamentos históricos da barbearia."
+        description="Agendamentos históricos da loja."
         icon={CalendarDaysIcon}
         accent="default"
       />

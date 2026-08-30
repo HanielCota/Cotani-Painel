@@ -23,7 +23,7 @@ describe("createPublicAppointment", () => {
 
   function createFormData(overrides: Record<string, string> = {}) {
     const formData = new FormData();
-    formData.set("slug", "barbearia-teste");
+    formData.set("slug", "loja-teste");
     formData.set("serviceId", "550e8400-e29b-41d4-a716-446655440001");
     formData.set("customerName", "João Silva");
     formData.set("customerPhone", "11999999999");
@@ -55,20 +55,20 @@ describe("createPublicAppointment", () => {
     expect(result.status).toBe("error");
   });
 
-  it("retorna erro quando barbearia não existe", async () => {
+  it("retorna erro quando loja não existe", async () => {
     prismaMock.clinic.findUnique.mockResolvedValueOnce(null);
 
     const result = await createPublicAppointment({ status: "success", message: "" }, createFormData());
 
     expect(result.status).toBe("error");
-    expect(result.message).toContain("Barbearia não encontrada");
+    expect(result.message).toContain("Loja não encontrada");
   });
 
   it("retorna erro quando assinatura não está ativa", async () => {
     prismaMock.clinic.findUnique.mockResolvedValueOnce({
       id: "clinic-1",
-      slug: "barbearia-teste",
-      name: "Barbearia",
+      slug: "loja-teste",
+      name: "Loja",
       timeZone: "America/Sao_Paulo",
       subscriptionStatus: "INACTIVE",
       operationalStatus: "ACTIVE",
@@ -83,8 +83,8 @@ describe("createPublicAppointment", () => {
   it("retorna erro quando serviço está indisponível", async () => {
     prismaMock.clinic.findUnique.mockResolvedValueOnce({
       id: "clinic-1",
-      slug: "barbearia-teste",
-      name: "Barbearia",
+      slug: "loja-teste",
+      name: "Loja",
       timeZone: "America/Sao_Paulo",
       subscriptionStatus: "ACTIVE",
       subscriptionExpiresAt: new Date("2099-01-01T00:00:00.000Z"),
@@ -102,8 +102,8 @@ describe("createPublicAppointment", () => {
     vi.setSystemTime(new Date("2026-07-19T10:00:00.000Z"));
     prismaMock.clinic.findUnique.mockResolvedValueOnce({
       id: "clinic-1",
-      slug: "barbearia-teste",
-      name: "Barbearia",
+      slug: "loja-teste",
+      name: "Loja",
       timeZone: "America/Sao_Paulo",
       subscriptionStatus: "ACTIVE",
       subscriptionExpiresAt: new Date("2099-01-01T00:00:00.000Z"),

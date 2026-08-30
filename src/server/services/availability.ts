@@ -9,7 +9,7 @@ const SLOT_STEP_MINUTES = 30;
 export interface AvailabilitySlot {
   /** Instante de início do slot em ISO 8601 (UTC). */
   startTime: string;
-  /** Rótulo no formato HH:mm, na hora local da barbearia. */
+  /** Rótulo no formato HH:mm, na hora local da loja. */
   label: string;
 }
 
@@ -18,11 +18,11 @@ export interface GetAvailableSlotsParams {
   timeZone: string;
   /** Duração do serviço em minutos. */
   serviceDuration: number;
-  /** Data no formato YYYY-MM-DD, interpretada no fuso da barbearia. */
+  /** Data no formato YYYY-MM-DD, interpretada no fuso da loja. */
   date: string;
-  /** Profissional responsável pelos slots. Quando omitido, calcula contra todos os agendamentos da barbearia (modo legado). */
+  /** Profissional responsável pelos slots. Quando omitido, calcula contra todos os agendamentos da loja (modo legado). */
   professionalId?: string;
-  /** Limite diário de atendimentos da barbearia. Quando omitido, não aplica limite. */
+  /** Limite diário de atendimentos da loja. Quando omitido, não aplica limite. */
   maxAppointmentsPerDay?: number | null;
 }
 
@@ -162,7 +162,7 @@ export interface GetAvailableDatesParams {
   serviceDuration: number;
   yearMonth: string; // YYYY-MM
   professionalId?: string;
-  /** Limite diário de atendimentos da barbearia. Quando omitido, não aplica limite. */
+  /** Limite diário de atendimentos da loja. Quando omitido, não aplica limite. */
   maxAppointmentsPerDay?: number | null;
 }
 

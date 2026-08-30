@@ -30,7 +30,7 @@ function activeClinicCookieOptions() {
 }
 
 async function uniqueSlug(name: string) {
-  const base = slugify(name) || "barbearia";
+  const base = slugify(name) || "loja";
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const suffix = randomUUID().replaceAll("-", "").slice(0, 6);
     const slug = `${base}-${suffix}`.slice(0, 120);
@@ -41,7 +41,7 @@ async function uniqueSlug(name: string) {
 
 export async function createClinic(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
   const parsed = clinicSchema.safeParse({ name: formData.get("name") });
-  if (!parsed.success) return { status: "error", message: "Informe um nome válido para a barbearia." };
+  if (!parsed.success) return { status: "error", message: "Informe um nome válido para a loja." };
   const { appUser } = await ensureCurrentAppUser();
   const slug = await uniqueSlug(parsed.data.name);
   const result = await prisma.$transaction(async (transaction) => {
@@ -50,7 +50,7 @@ export async function createClinic(_previousState: ActionResult, formData: FormD
       transaction.user.findUnique({ where: { id: appUser.id }, select: { trialStartedAt: true } }),
       transaction.membership.count({ where: { userId: appUser.id } }),
     ]);
-    if (membershipCount > 0) return { ok: false, error: "Sua conta já possui uma barbearia. Unidades adicionais são liberadas somente no plano Empresa." } as const;
+    if (membershipCount > 0) return { ok: false, error: "Sua conta já possui uma loja. Unidades adicionais são liberadas somente no plano Empresa." } as const;
     if (user?.trialStartedAt) return { ok: false, error: "O período grátis desta conta já foi utilizado." } as const;
     const trialStartedAt = new Date();
     const created = await transaction.clinic.create({
@@ -155,7 +155,7 @@ export async function inviteClinicMember(_previousState: ActionResult, formData:
   const existingUser = await prisma.user.findFirst({ where: { email: { equals: parsed.data.email, mode: "insensitive" } } });
   if (existingUser) {
     const existingMembership = await prisma.membership.findUnique({ where: { clinicId_userId: { clinicId: tenant.clinic.id, userId: existingUser.id } } });
-    if (existingMembership) return { status: "error", message: "Este usuário já faz parte da barbearia." };
+    if (existingMembership) return { status: "error", message: "Este usuário já faz parte da loja." };
     await prisma.$transaction(async (transaction) => {
       const membership = await transaction.membership.create({ data: { clinicId: tenant.clinic.id, userId: existingUser.id, role: parsed.data.role } });
       if (selectedProfessional) await transaction.professional.update({ where: { id: selectedProfessional.id }, data: { membershipId: membership.id } });

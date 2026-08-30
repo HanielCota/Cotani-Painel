@@ -56,7 +56,7 @@ export default withTenant<ConfiguracoesPageProps>(async ({ clinic, membership },
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <SettingsIcon />
-            Configurações da barbearia
+            Configurações da loja
           </CardTitle>
           <CardDescription>Ajuste os serviços oferecidos, profissionais e os horários de funcionamento.</CardDescription>
         </CardHeader>

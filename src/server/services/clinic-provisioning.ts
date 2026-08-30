@@ -11,7 +11,7 @@ export function slugify(value: string) {
 }
 
 export function generateClinicSlug(name: string, uniqueSuffix: string) {
-  return `${slugify(name) || "barbearia"}-${uniqueSuffix.replaceAll("-", "").slice(-6).toLowerCase()}`;
+  return `${slugify(name) || "loja"}-${uniqueSuffix.replaceAll("-", "").slice(-6).toLowerCase()}`;
 }
 
 export function mapSubscriptionStatus(value: unknown): SubscriptionStatus {

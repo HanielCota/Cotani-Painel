@@ -27,7 +27,7 @@ describe("getAvailableSlots", () => {
     expect(result).toBeNull();
   });
 
-  it("retorna lista vazia quando barbearia está fechada", async () => {
+  it("retorna lista vazia quando loja está fechada", async () => {
     vi.setSystemTime(new Date("2026-07-20T10:00:00.000Z"));
 
     prismaMock.businessHour.findUnique.mockResolvedValueOnce({

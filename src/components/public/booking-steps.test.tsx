@@ -75,8 +75,8 @@ const professionals = [
 function setup() {
   return render(
     <BookingSteps
-      slug="barbearia-teste"
-      clinicName="Barbearia Teste"
+      slug="loja-teste"
+      clinicName="Loja Teste"
       services={services}
       professionals={professionals}
       minDate="2026-07-21"
@@ -138,7 +138,7 @@ describe("BookingSteps", () => {
     await userEvent.click(screen.getByRole("button", { name: /continuar/i }));
 
     expect(screen.getByText("Resumo do agendamento")).toBeInTheDocument();
-    expect(screen.getByText("Barbearia Teste")).toBeInTheDocument();
+    expect(screen.getByText("Loja Teste")).toBeInTheDocument();
     expect(screen.getByText("Barba")).toBeInTheDocument();
     expect(screen.getByText("Ana")).toBeInTheDocument();
     expect(screen.getByText("10:00")).toBeInTheDocument();
@@ -214,7 +214,7 @@ describe("BookingSteps", () => {
       expect(createPublicAppointment).toHaveBeenCalled();
     });
 
-    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining("/barbearia-teste/sucesso"));
+    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining("/loja-teste/sucesso"));
   });
 
   it("salva apenas o nome na sessão após agendamento", async () => {
@@ -255,13 +255,13 @@ describe("BookingSteps", () => {
       expect(createPublicAppointment).toHaveBeenCalled();
     });
 
-    const saved = JSON.parse(storage.get("cotani:customer:barbearia-teste") ?? "{}");
+    const saved = JSON.parse(storage.get("cotani:customer:loja-teste") ?? "{}");
     expect(saved.name).toBe("João Silva");
     expect(saved.phone).toBeUndefined();
   });
 
   it("pré-preenche somente o nome salvo na sessão", async () => {
-    storage.set("cotani:customer:barbearia-teste", JSON.stringify({ name: "Maria Souza" }));
+    storage.set("cotani:customer:loja-teste", JSON.stringify({ name: "Maria Souza" }));
 
     (useQuery as ReturnType<typeof vi.fn>).mockReturnValue({
       data: {

@@ -41,7 +41,7 @@ describe("webhook Meta WhatsApp", () => {
       appointment: {
         id: "appointment-1",
         cancellationToken: "cancel-token",
-        clinic: { name: "Barbearia", slug: "barbearia" },
+        clinic: { name: "Loja", slug: "loja" },
       },
     });
     const payload = {

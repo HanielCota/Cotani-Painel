@@ -11,7 +11,7 @@ vi.mock("next/headers", () => ({ cookies: vi.fn() }));
 
 const { cookies } = await import("next/headers");
 
-const clinic = { id: "clinic-1", name: "Barbearia", operationalStatus: "ACTIVE", deletedAt: null };
+const clinic = { id: "clinic-1", name: "Loja", operationalStatus: "ACTIVE", deletedAt: null };
 const membership = { id: "membership-1", clinicId: clinic.id, userId: "user-1", role: "ADMIN", clinic };
 
 describe("tenant", () => {

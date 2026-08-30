@@ -49,7 +49,7 @@ export async function saveBusinessHours(input: unknown): Promise<ActionResult> {
   const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma barbearia antes de salvar o expediente." };
+    return { status: "error", message: "Selecione uma loja antes de salvar o expediente." };
   }
 
   if (!isSubscriptionActive(clinic)) {

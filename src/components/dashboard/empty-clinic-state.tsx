@@ -17,7 +17,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 
-export function EmptyBarbershopState() {
+export function EmptyClinicState() {
   const [state, action, pending] = useActionState(createClinic, { status: "success" as const, message: "" });
 
   return (
@@ -26,7 +26,7 @@ export function EmptyBarbershopState() {
         <EmptyMedia variant="icon">
           <Building2Icon />
         </EmptyMedia>
-        <EmptyTitle>Crie sua primeira barbearia</EmptyTitle>
+        <EmptyTitle>Crie sua primeira loja</EmptyTitle>
         <EmptyDescription className="max-w-md">
           Configure sua loja para iniciar os 7 dias grátis e publicar sua agenda online.
         </EmptyDescription>
@@ -39,8 +39,8 @@ export function EmptyBarbershopState() {
         ) : null}
 
         <form action={action} className="w-full space-y-3 text-left">
-          <div className="space-y-1.5"><Label htmlFor="clinic-name">Nome da barbearia</Label><Input id="clinic-name" name="name" minLength={2} maxLength={120} required placeholder="Ex.: Barbearia Central" /></div>
-          <Button type="submit" className="w-full" disabled={pending}>{pending ? "Criando..." : "Criar barbearia"}</Button>
+          <div className="space-y-1.5"><Label htmlFor="clinic-name">Nome da loja</Label><Input id="clinic-name" name="name" minLength={2} maxLength={120} required placeholder="Ex.: Espaço Central" /></div>
+          <Button type="submit" className="w-full" disabled={pending}>{pending ? "Criando..." : "Criar loja"}</Button>
         </form>
       </EmptyContent>
     </Empty>

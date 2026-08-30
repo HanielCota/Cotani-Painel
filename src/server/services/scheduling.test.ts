@@ -29,8 +29,8 @@ describe("scheduleAppointment", () => {
 
   const baseParams = {
     clinicId: "clinic-1",
-    clinicSlug: "barbearia-teste",
-    clinicName: "Barbearia Teste",
+    clinicSlug: "loja-teste",
+    clinicName: "Loja Teste",
     timeZone: "America/Sao_Paulo",
     customerId: "cust-1",
     customerName: "João",

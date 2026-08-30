@@ -33,11 +33,11 @@ describe("/api/public/[slug]/availability", () => {
     prisma.rateLimit.upsert.mockResolvedValueOnce({ count: 61, id: "rl-1", key: "key", windowStart: new Date(), resetAt: new Date(), createdAt: new Date(), updatedAt: new Date() });
 
     const request = new NextRequest(
-      "http://localhost/api/public/barbearia/availability?serviceId=550e8400-e29b-41d4-a716-446655440001&date=2026-07-23",
+      "http://localhost/api/public/loja/availability?serviceId=550e8400-e29b-41d4-a716-446655440001&date=2026-07-23",
       { headers: { "x-forwarded-for": "127.0.0.1" } },
     );
 
-    const response = await GET(request, { params: Promise.resolve({ slug: "barbearia" }) });
+    const response = await GET(request, { params: Promise.resolve({ slug: "loja" }) });
 
     expect(response.status).toBe(429);
   });
@@ -48,11 +48,11 @@ describe("/api/public/[slug]/availability", () => {
     (getAvailableSlots as ReturnType<typeof vi.fn>).mockResolvedValueOnce(["10:00", "10:30"]);
 
     const request = new NextRequest(
-      "http://localhost/api/public/barbearia/availability?serviceId=550e8400-e29b-41d4-a716-446655440001&date=2026-07-23",
+      "http://localhost/api/public/loja/availability?serviceId=550e8400-e29b-41d4-a716-446655440001&date=2026-07-23",
       { headers: { "x-forwarded-for": "127.0.0.1" } },
     );
 
-    const response = await GET(request, { params: Promise.resolve({ slug: "barbearia" }) });
+    const response = await GET(request, { params: Promise.resolve({ slug: "loja" }) });
     const body = await response.json();
 
     expect(response.status).toBe(200);

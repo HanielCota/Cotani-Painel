@@ -19,8 +19,8 @@ const { getClinicForRoles } = await import("@/server/tenant");
 
 const activeClinic = {
   id: "550e8400-e29b-41d4-a716-446655440000",
-  name: "Barbearia",
-  slug: "barbearia",
+  name: "Loja",
+  slug: "loja",
   timeZone: "America/Sao_Paulo",
   subscriptionStatus: "ACTIVE",
   subscriptionExpiresAt: new Date("2099-01-01T00:00:00.000Z"),
@@ -59,13 +59,13 @@ describe("createCustomer", () => {
     expect(result.status).toBe("error");
   });
 
-  it("retorna erro quando não há barbearia", async () => {
+  it("retorna erro quando não há loja", async () => {
     (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
 
     const result = await createCustomer(validCustomer);
 
     expect(result.status).toBe("error");
-    expect(result.message).toContain("Selecione uma barbearia");
+    expect(result.message).toContain("Selecione uma loja");
   });
 
   it("cria cliente com sucesso", async () => {

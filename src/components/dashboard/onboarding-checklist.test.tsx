@@ -31,7 +31,7 @@ describe("OnboardingChecklist", () => {
   it("renderiza todos os passos", () => {
     render(
       <OnboardingChecklist
-        bookingUrl="https://localhost:3000/barbearia-teste"
+        bookingUrl="https://localhost:3000/loja-teste"
         hasServices={false}
         hasBusinessHours={false}
         isSubscriptionActive={false}
@@ -49,7 +49,7 @@ describe("OnboardingChecklist", () => {
 
     render(
       <OnboardingChecklist
-        bookingUrl="https://localhost:3000/barbearia-teste"
+        bookingUrl="https://localhost:3000/loja-teste"
         hasServices={true}
         hasBusinessHours={true}
         isSubscriptionActive={true}
@@ -62,7 +62,7 @@ describe("OnboardingChecklist", () => {
   it("persiste no localStorage ao copiar o link de agendamento", async () => {
     const { rerender } = render(
       <OnboardingChecklist
-        bookingUrl="https://localhost:3000/barbearia-teste"
+        bookingUrl="https://localhost:3000/loja-teste"
         hasServices={true}
         hasBusinessHours={true}
         isSubscriptionActive={true}
@@ -74,13 +74,13 @@ describe("OnboardingChecklist", () => {
     const button = screen.getByRole("button", { name: /copiar link/i });
     fireEvent.click(button);
 
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith("https://localhost:3000/barbearia-teste");
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith("https://localhost:3000/loja-teste");
     expect(storage.get("cotani:onboarding:link-shared")).toBe("true");
 
     // Re-renderiza para validar que o estado foi lido do localStorage.
     rerender(
       <OnboardingChecklist
-        bookingUrl="https://localhost:3000/barbearia-teste"
+        bookingUrl="https://localhost:3000/loja-teste"
         hasServices={true}
         hasBusinessHours={true}
         isSubscriptionActive={true}

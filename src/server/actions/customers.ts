@@ -34,7 +34,7 @@ export async function createCustomer(input: unknown): Promise<ActionResult> {
   const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma barbearia antes de cadastrar clientes." };
+    return { status: "error", message: "Selecione uma loja antes de cadastrar clientes." };
   }
 
   if (!isSubscriptionActive(clinic)) {
@@ -88,7 +88,7 @@ export async function updateCustomer(input: unknown): Promise<ActionResult> {
   const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma barbearia antes de atualizar clientes." };
+    return { status: "error", message: "Selecione uma loja antes de atualizar clientes." };
   }
 
   if (!isSubscriptionActive(clinic)) {
@@ -144,7 +144,7 @@ export async function deleteCustomer(customerId: string): Promise<ActionResult> 
   const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma barbearia antes de remover clientes." };
+    return { status: "error", message: "Selecione uma loja antes de remover clientes." };
   }
 
   if (!isSubscriptionActive(clinic)) {

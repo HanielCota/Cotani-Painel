@@ -21,7 +21,7 @@ export default function AccessDeniedPage() {
         </CardHeader>
         <CardContent>
           <p className="text-center text-sm leading-relaxed text-muted-foreground">
-            Volte ao painel para usar as funções liberadas ao seu papel ou peça a um administrador da barbearia para ajustar seu acesso.
+            Volte ao painel para usar as funções liberadas ao seu papel ou peça a um administrador da loja para ajustar seu acesso.
           </p>
         </CardContent>
         <CardFooter>

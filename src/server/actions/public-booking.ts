@@ -42,7 +42,7 @@ async function getClientIpFromHeaders(): Promise<string> {
 
 /**
  * Agendamento público (self-service), sem sessão autenticada. O escopo do tenant é
- * resolvido pelo slug da barbearia e todo o restante segue o mesmo núcleo
+ * resolvido pelo slug da loja e todo o restante segue o mesmo núcleo
  * transacional do agendamento interno: validação de conflito, exclusion
  * constraint do banco e outbox de notificações na mesma transação.
  */
@@ -76,7 +76,7 @@ export async function createPublicAppointment(_previousState: ActionResult, form
   });
 
   if (!clinic) {
-    return { status: "error", message: "Barbearia não encontrada." };
+    return { status: "error", message: "Loja não encontrada." };
   }
 
   if (!isClinicOperational(clinic)) {

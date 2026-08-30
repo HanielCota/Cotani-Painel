@@ -76,7 +76,7 @@ function generateIcsContent(event: {
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Cotani//Barbearia//PT",
+    "PRODID:-//Cotani//Loja//PT",
     "BEGIN:VEVENT",
     `UID:${uid}`,
     `DTSTAMP:${formatDate(new Date())}`,
@@ -122,7 +122,7 @@ export function SuccessActions({
   const eventStart = date && time ? parseLocalDateTime(date, time, timeZone) : null;
   const eventEnd = eventStart && service ? new Date(eventStart.getTime() + 60 * 60 * 1000) : null;
 
-  const eventTitle = service ? `Atendimento: ${service}` : "Agendamento na barbearia";
+  const eventTitle = service ? `Atendimento: ${service}` : "Agendamento na loja";
   const eventDetails = [
     service ? `Serviço: ${service}` : "",
     professional ? `Profissional: ${professional}` : "",

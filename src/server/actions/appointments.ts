@@ -70,7 +70,7 @@ export async function createAppointment(input: unknown): Promise<ActionResult> {
   const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma barbearia antes de criar agendamentos." };
+    return { status: "error", message: "Selecione uma loja antes de criar agendamentos." };
   }
 
   if (!isSubscriptionActive(clinic)) {
@@ -93,7 +93,7 @@ export async function createAppointment(input: unknown): Promise<ActionResult> {
   ]);
 
   if (!customer || !service) {
-    return { status: "error", message: "O cliente ou o serviço não pertence à barbearia ativa." };
+    return { status: "error", message: "O cliente ou o serviço não pertence à loja ativa." };
   }
 
   if (parsed.data.professionalId && !professional) {
@@ -142,7 +142,7 @@ export async function createAppointmentFromForm(_previousState: ActionResult, fo
   const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma barbearia antes de criar agendamentos." };
+    return { status: "error", message: "Selecione uma loja antes de criar agendamentos." };
   }
 
   if (!isSubscriptionActive(clinic)) {
@@ -182,7 +182,7 @@ export async function rescheduleAppointmentFromForm(_previousState: ActionResult
 
   const actor = await getAgendaActor();
   if (!actor) {
-    return { status: "error", message: "Selecione uma barbearia antes de reagendar." };
+    return { status: "error", message: "Selecione uma loja antes de reagendar." };
   }
   const { clinic, professionalId } = actor;
 
@@ -261,7 +261,7 @@ export async function updateAppointmentStatus(
 
   const actor = await getAgendaActor();
   if (!actor) {
-    return { status: "error", message: "Selecione uma barbearia antes de atualizar atendimentos." };
+    return { status: "error", message: "Selecione uma loja antes de atualizar atendimentos." };
   }
   const { clinic, professionalId } = actor;
 

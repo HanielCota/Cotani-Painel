@@ -19,20 +19,20 @@ describe("cancelAppointmentByToken", () => {
     expect(result.status).toBe("error");
   });
 
-  it("retorna erro quando barbearia não existe", async () => {
+  it("retorna erro quando loja não existe", async () => {
     prismaMock.clinic.findUnique.mockResolvedValueOnce(null);
 
     const result = await cancelAppointmentByToken({ slug: "inexistente", token: "token-1" });
 
     expect(result.status).toBe("error");
-    expect(result.message).toContain("Barbearia não encontrada");
+    expect(result.message).toContain("Loja não encontrada");
   });
 
   it("retorna erro quando agendamento não existe", async () => {
     prismaMock.clinic.findUnique.mockResolvedValueOnce({ id: "clinic-1" });
     prismaMock.appointment.findFirst.mockResolvedValueOnce(null);
 
-    const result = await cancelAppointmentByToken({ slug: "barbearia", token: "token-1" });
+    const result = await cancelAppointmentByToken({ slug: "loja", token: "token-1" });
 
     expect(result.status).toBe("error");
   });
@@ -45,7 +45,7 @@ describe("cancelAppointmentByToken", () => {
       startTime: new Date("2026-07-20T14:00:00.000Z"),
     });
 
-    const result = await cancelAppointmentByToken({ slug: "barbearia", token: "token-1" });
+    const result = await cancelAppointmentByToken({ slug: "loja", token: "token-1" });
 
     expect(result.status).toBe("success");
   });
@@ -59,7 +59,7 @@ describe("cancelAppointmentByToken", () => {
       startTime: new Date("2026-07-20T14:00:00.000Z"),
     });
 
-    const result = await cancelAppointmentByToken({ slug: "barbearia", token: "token-1" });
+    const result = await cancelAppointmentByToken({ slug: "loja", token: "token-1" });
 
     expect(result.status).toBe("error");
   });
@@ -76,7 +76,7 @@ describe("cancelAppointmentByToken", () => {
       return callback(prismaMock);
     });
 
-    const result = await cancelAppointmentByToken({ slug: "barbearia", token: "token-1" });
+    const result = await cancelAppointmentByToken({ slug: "loja", token: "token-1" });
 
     expect(result.status).toBe("success");
     expect(prismaMock.appointment.update).toHaveBeenCalledWith({
