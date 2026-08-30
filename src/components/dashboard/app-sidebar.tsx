@@ -43,6 +43,7 @@ import {
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -389,6 +390,23 @@ export function AppSidebar({ subscriptionPlan, role, user, clinics, activeClinic
           className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-10 bg-gradient-to-t from-background/80 to-transparent opacity-0 transition-opacity data-[visible=true]:opacity-100"
         />
       </SidebarContent>
+
+      <SidebarFooter className="border-t border-sidebar-border px-3 py-3">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <form action={signOut} className="w-full">
+              <SidebarMenuButton
+                type="submit"
+                tooltip="Sair"
+                className="h-10 rounded-lg border border-destructive/20 bg-destructive/10 px-3 text-destructive transition-colors hover:bg-destructive/20 hover:text-destructive focus-visible:ring-destructive/30"
+              >
+                <LogOutIcon className="size-4 shrink-0" />
+                <span className="truncate">Sair</span>
+              </SidebarMenuButton>
+            </form>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
 
       <SidebarRail />
     </Sidebar>
