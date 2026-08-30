@@ -108,7 +108,10 @@ export function ProfessionalFormDialog({ professional }: ProfessionalFormDialogP
 
     const formData = new FormData(event.currentTarget);
     formData.set("imageUrl", preview ?? "");
-    selectedServiceIds.forEach((serviceId) => formData.append("serviceIds", serviceId));
+    // Checkboxes already contribute their values to FormData. Rebuild this
+    // field from state so each selected service is submitted exactly once.
+    formData.delete("serviceIds");
+    new Set(selectedServiceIds).forEach((serviceId) => formData.append("serviceIds", serviceId));
 
     startTransition(async () => {
       const nextResult = await action({ status: "success", message: "" }, formData);

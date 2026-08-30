@@ -31,7 +31,8 @@ const { createProfessionalFromForm } = await import("@/server/actions/profession
 
 describe("ProfessionalFormDialog", () => {
   it("abre diálogo e cadastra novo profissional", async () => {
-    (createProfessionalFromForm as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    const createProfessionalMock = createProfessionalFromForm as ReturnType<typeof vi.fn>;
+    createProfessionalMock.mockResolvedValueOnce({
       status: "success",
       message: "Profissional cadastrado.",
     });
@@ -49,8 +50,11 @@ describe("ProfessionalFormDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: /cadastrar profissional/i }));
 
     await waitFor(() => {
-      expect(createProfessionalFromForm).toHaveBeenCalled();
+      expect(createProfessionalMock).toHaveBeenCalledTimes(1);
     });
+
+    const submittedFormData = createProfessionalMock.mock.calls[0][1] as FormData;
+    expect(submittedFormData.getAll("serviceIds")).toEqual(["svc-1"]);
   });
 
   it("preenche dados ao editar profissional", () => {

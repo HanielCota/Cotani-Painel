@@ -30,7 +30,10 @@ const imageUrlSchema = z
 const professionalSchema = z.object({
   name: z.string().trim().min(2).max(120),
   imageUrl: imageUrlSchema,
-  serviceIds: z.array(z.uuid()).min(1, "Selecione ao menos um serviço atendido pelo profissional."),
+  serviceIds: z
+    .array(z.uuid())
+    .min(1, "Selecione ao menos um serviço atendido pelo profissional.")
+    .transform((serviceIds) => [...new Set(serviceIds)]),
 });
 
 const updateProfessionalSchema = professionalSchema.extend({

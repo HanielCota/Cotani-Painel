@@ -107,6 +107,27 @@ describe("createProfessional", () => {
       }),
     });
   });
+
+  it("ignora IDs de serviço duplicados ao criar profissional", async () => {
+    prismaMock.service.findMany.mockResolvedValueOnce([{ id: validProfessional.serviceIds[0] }]);
+    prismaMock.professional.create.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440002" });
+    const formData = createFormData();
+    formData.append("serviceIds", validProfessional.serviceIds[0]);
+
+    const result = await createProfessionalFromForm(
+      { status: "success", message: "" },
+      formData,
+    );
+
+    expect(result.status).toBe("success");
+    expect(prismaMock.professional.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        services: {
+          create: [{ serviceId: validProfessional.serviceIds[0] }],
+        },
+      }),
+    });
+  });
 });
 
 describe("updateProfessional", () => {
