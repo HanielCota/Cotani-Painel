@@ -7,7 +7,7 @@ import { render } from "@/test/utils";
 const services = [
   { name: "Serviço A", count: 12, revenue: 600 },
   { name: "Serviço B", count: 8, revenue: 280 },
-  { name: "Sobrancelha", count: 3, revenue: 90 },
+  { name: "Serviço C", count: 3, revenue: 90 },
 ];
 
 describe("ReportsTopServices", () => {
