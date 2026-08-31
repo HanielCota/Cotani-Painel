@@ -44,7 +44,7 @@ function createAppointment(overrides: {
   professionalId?: string;
   professionalName?: string | null;
 }) {
-  const serviceId = overrides.serviceId ?? `svc-${overrides.serviceName ?? "Corte"}`;
+  const serviceId = overrides.serviceId ?? `svc-${overrides.serviceName ?? "Serviço A"}`;
   const professionalId = overrides.professionalName ? (overrides.professionalId ?? `prof-${overrides.professionalName}`) : null;
 
   return {
@@ -62,7 +62,7 @@ function createAppointment(overrides: {
     createdAt: new Date(),
     updatedAt: new Date(),
     customer: { name: "Cliente" },
-    service: { name: overrides.serviceName ?? "Corte", price: overrides.price },
+    service: { name: overrides.serviceName ?? "Serviço A", price: overrides.price },
     professional: overrides.professionalName ? { name: overrides.professionalName } : null,
   };
 }
@@ -81,10 +81,10 @@ describe("getReportsMetrics", () => {
     prismaMock.customer.count.mockResolvedValueOnce(5);
     prismaMock.service.count.mockResolvedValueOnce(3);
     prismaMock.appointment.findMany.mockResolvedValueOnce([
-      createAppointment({ id: "app-1", status: "CONFIRMED", price: 50, startTime: new Date(startOfMonth.getTime() + 60 * 60_000), serviceName: "Corte" }),
-      createAppointment({ id: "app-2", status: "COMPLETED", price: 70, startTime: new Date(startOfMonth.getTime() + 2 * 60 * 60_000), serviceName: "Barba" }),
-      createAppointment({ id: "app-3", status: "NO_SHOW", price: 40, startTime: new Date(startOfMonth.getTime() + 3 * 60 * 60_000), serviceName: "Corte" }),
-      createAppointment({ id: "app-4", status: "CANCELED", price: 30, startTime: new Date(startOfMonth.getTime() + 4 * 60 * 60_000), serviceName: "Barba" }),
+      createAppointment({ id: "app-1", status: "CONFIRMED", price: 50, startTime: new Date(startOfMonth.getTime() + 60 * 60_000), serviceName: "Serviço A" }),
+      createAppointment({ id: "app-2", status: "COMPLETED", price: 70, startTime: new Date(startOfMonth.getTime() + 2 * 60 * 60_000), serviceName: "Serviço B" }),
+      createAppointment({ id: "app-3", status: "NO_SHOW", price: 40, startTime: new Date(startOfMonth.getTime() + 3 * 60 * 60_000), serviceName: "Serviço A" }),
+      createAppointment({ id: "app-4", status: "CANCELED", price: 30, startTime: new Date(startOfMonth.getTime() + 4 * 60 * 60_000), serviceName: "Serviço B" }),
     ]);
     prismaMock.appointment.findMany.mockResolvedValueOnce([]);
 
@@ -98,7 +98,7 @@ describe("getReportsMetrics", () => {
     expect(metrics.noShowRate).toBe(33); // 1 no-show de 3 atendimentos não cancelados
     expect(metrics.monthAppointments).toHaveLength(4);
     expect(metrics.topServices).toHaveLength(2);
-    expect(metrics.topServices[0]?.name).toBe("Corte");
+    expect(metrics.topServices[0]?.name).toBe("Serviço A");
     expect(metrics.topServices[0]?.count).toBe(2);
   });
 

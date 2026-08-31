@@ -9,7 +9,7 @@ const appointments: FinanceAppointment[] = [
   {
     id: "app-1",
     customerName: "João Silva",
-    serviceName: "Corte",
+    serviceName: "Serviço A",
     professionalName: "Carlos",
     startTime: "2026-07-21T10:00:00.000Z",
     endTime: "2026-07-21T10:30:00.000Z",
@@ -20,7 +20,7 @@ const appointments: FinanceAppointment[] = [
   {
     id: "app-2",
     customerName: "Maria Souza",
-    serviceName: "Barba",
+    serviceName: "Serviço B",
     professionalName: null,
     startTime: "2026-07-22T14:00:00.000Z",
     endTime: "2026-07-22T14:30:00.000Z",
@@ -37,7 +37,7 @@ describe("FinanceTransactionsTable", () => {
     expect(screen.getByText("Transações recentes")).toBeInTheDocument();
     expect(screen.getByText("João Silva")).toBeInTheDocument();
     expect(screen.getByText("Maria Souza")).toBeInTheDocument();
-    expect(screen.getByText("Corte")).toBeInTheDocument();
+    expect(screen.getByText("Serviço A")).toBeInTheDocument();
     expect(screen.getByText("Carlos")).toBeInTheDocument();
     expect(screen.getByText("R$ 50,00")).toBeInTheDocument();
   });

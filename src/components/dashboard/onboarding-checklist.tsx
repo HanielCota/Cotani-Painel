@@ -68,7 +68,7 @@ export function OnboardingChecklist({
     {
       id: "services",
       label: "Cadastrar serviços",
-      description: "Adicione cortes, barba e outros serviços com preço e duração.",
+      description: "Adicione os serviços oferecidos com preço e duração.",
       done: hasServices,
       href: "/dashboard/configuracoes",
       icon: TagIcon,

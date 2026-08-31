@@ -36,7 +36,7 @@ describe("scheduleAppointment", () => {
     customerName: "João",
     customerPhone: "11999999999",
     serviceId: "svc-1",
-    serviceName: "Corte",
+    serviceName: "Serviço A",
     serviceDuration: 30,
     servicePrice: 50,
     startTime: new Date("2099-07-20T14:00:00.000Z"),

@@ -13,8 +13,8 @@ vi.mock("@/server/actions/professionals", () => ({
 vi.mock("@/hooks/use-services", () => ({
   useServices: () => ({
     data: [
-      { id: "svc-1", name: "Corte", duration: 30, isActive: true },
-      { id: "svc-2", name: "Barba", duration: 20, isActive: true },
+      { id: "svc-1", name: "Serviço A", duration: 30, isActive: true },
+      { id: "svc-2", name: "Serviço B", duration: 20, isActive: true },
     ],
     isPending: false,
   }),
@@ -45,7 +45,7 @@ describe("ProfessionalFormDialog", () => {
     expect(screen.getByRole("heading", { name: /novo profissional/i })).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText(/nome/i), { target: { value: "Carlos" } });
-    fireEvent.click(screen.getByLabelText(/corte/i));
+    fireEvent.click(screen.getByLabelText(/serviço a/i));
 
     fireEvent.click(screen.getByRole("button", { name: /cadastrar profissional/i }));
 
@@ -71,7 +71,7 @@ describe("ProfessionalFormDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "" }));
 
     expect(screen.getByDisplayValue("Ana")).toBeInTheDocument();
-    expect(screen.getByLabelText(/barba/i)).toBeChecked();
+    expect(screen.getByLabelText(/serviço b/i)).toBeChecked();
   });
 
 

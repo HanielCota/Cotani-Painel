@@ -17,7 +17,7 @@ const mockAppointments = [
   {
     id: "app-1",
     customerName: "João Silva",
-    serviceName: "Corte",
+    serviceName: "Serviço A",
     professionalName: null,
     startTime: "2026-07-22T14:00:00",
     endTime: "2026-07-22T14:30:00",
@@ -27,7 +27,7 @@ const mockAppointments = [
   {
     id: "app-2",
     customerName: "Pedro Souza",
-    serviceName: "Barba",
+    serviceName: "Serviço B",
     professionalName: "Carlos",
     startTime: "2026-07-23T15:30:00",
     endTime: "2026-07-23T15:45:00",
@@ -37,7 +37,7 @@ const mockAppointments = [
   {
     id: "app-3",
     customerName: "Maria Santos",
-    serviceName: "Corte + Barba",
+    serviceName: "Serviço combinado",
     professionalName: null,
     startTime: "2026-07-24T10:00:00",
     endTime: "2026-07-24T10:45:00",

@@ -63,8 +63,8 @@ beforeAll(() => {
 });
 
 const services = [
-  { id: "svc-1", name: "Corte", duration: 30, price: 50, imageUrl: null },
-  { id: "svc-2", name: "Barba", duration: 20, price: 35, imageUrl: null },
+  { id: "svc-1", name: "Serviço A", duration: 30, price: 50, imageUrl: null },
+  { id: "svc-2", name: "Serviço B", duration: 20, price: 35, imageUrl: null },
 ];
 
 const professionals = [
@@ -106,7 +106,7 @@ describe("BookingSteps", () => {
   it("seleciona serviço e profissional e avança para data/hora", async () => {
     setup();
 
-    await userEvent.click(screen.getByText("Corte"));
+    await userEvent.click(screen.getByText("Serviço A"));
     await userEvent.click(screen.getByText("Carlos"));
     await userEvent.click(screen.getByRole("button", { name: /continuar/i }));
 
@@ -125,7 +125,7 @@ describe("BookingSteps", () => {
 
     setup();
 
-    await userEvent.click(screen.getByText("Barba"));
+    await userEvent.click(screen.getByText("Serviço B"));
     await userEvent.click(screen.getByText("Ana"));
     await userEvent.click(screen.getByRole("button", { name: /continuar/i }));
     await userEvent.type(screen.getByTestId("calendar-mock"), "2026-07-21");
@@ -139,7 +139,7 @@ describe("BookingSteps", () => {
 
     expect(screen.getByText("Resumo do agendamento")).toBeInTheDocument();
     expect(screen.getByText("Loja Teste")).toBeInTheDocument();
-    expect(screen.getByText("Barba")).toBeInTheDocument();
+    expect(screen.getByText("Serviço B")).toBeInTheDocument();
     expect(screen.getByText("Ana")).toBeInTheDocument();
     expect(screen.getByText("10:00")).toBeInTheDocument();
     expect(screen.getByText(/R\$\s*35,00/)).toBeInTheDocument();
@@ -157,7 +157,7 @@ describe("BookingSteps", () => {
 
     setup();
 
-    await userEvent.click(screen.getByText("Barba"));
+    await userEvent.click(screen.getByText("Serviço B"));
     await userEvent.click(screen.getByText("Ana"));
     await userEvent.click(screen.getByRole("button", { name: /continuar/i }));
     await userEvent.type(screen.getByTestId("calendar-mock"), "2026-07-21");
@@ -192,7 +192,7 @@ describe("BookingSteps", () => {
 
     setup();
 
-    await userEvent.click(screen.getByText("Barba"));
+    await userEvent.click(screen.getByText("Serviço B"));
     await userEvent.click(screen.getByText("Ana"));
     await userEvent.click(screen.getByRole("button", { name: /continuar/i }));
 
@@ -234,7 +234,7 @@ describe("BookingSteps", () => {
 
     setup();
 
-    await userEvent.click(screen.getByText("Barba"));
+    await userEvent.click(screen.getByText("Serviço B"));
     await userEvent.click(screen.getByText("Ana"));
     await userEvent.click(screen.getByRole("button", { name: /continuar/i }));
     await userEvent.type(screen.getByTestId("calendar-mock"), "2026-07-21");
@@ -274,7 +274,7 @@ describe("BookingSteps", () => {
 
     setup();
 
-    await userEvent.click(screen.getByText("Barba"));
+    await userEvent.click(screen.getByText("Serviço B"));
     await userEvent.click(screen.getByText("Ana"));
     await userEvent.click(screen.getByRole("button", { name: /continuar/i }));
     await userEvent.type(screen.getByTestId("calendar-mock"), "2026-07-21");
@@ -308,7 +308,7 @@ describe("BookingSteps", () => {
 
     setup();
 
-    await userEvent.click(screen.getByText("Barba"));
+    await userEvent.click(screen.getByText("Serviço B"));
     await userEvent.click(screen.getByText("Ana"));
     await userEvent.click(screen.getByRole("button", { name: /continuar/i }));
     await userEvent.type(screen.getByTestId("calendar-mock"), "2026-07-21");

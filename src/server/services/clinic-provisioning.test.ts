@@ -13,7 +13,7 @@ describe("slugify", () => {
   });
 
   it("remove acentos e caracteres especiais", () => {
-    expect(slugify("Cortes & Cia - São Paulo!!!")).toBe("cortes-cia-sao-paulo");
+    expect(slugify("Espaço & Cia - São Paulo!!!")).toBe("espaco-cia-sao-paulo");
   });
 
   it("remove hifens no início e no fim", () => {

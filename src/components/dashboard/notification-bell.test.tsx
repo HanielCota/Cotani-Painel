@@ -45,7 +45,7 @@ describe("NotificationBell", () => {
         {
           id: "app-1",
           customerName: "João Silva",
-          serviceName: "Corte",
+          serviceName: "Serviço A",
           startTime: "2026-07-22T14:00:00",
           status: "CONFIRMED",
         },
@@ -73,7 +73,7 @@ describe("NotificationBell", () => {
         {
           id: "app-1",
           customerName: "João Silva",
-          serviceName: "Corte",
+          serviceName: "Serviço A",
           startTime: "2026-07-22T14:00:00",
           status: "CONFIRMED",
         },

@@ -58,7 +58,7 @@ function createAppointment(overrides: {
     createdAt: new Date(),
     updatedAt: new Date(),
     customer: { name: overrides.customerName ?? "Cliente" },
-    service: { name: overrides.serviceName ?? "Corte", price: overrides.price },
+    service: { name: overrides.serviceName ?? "Serviço A", price: overrides.price },
     professional: overrides.professionalName ? { name: overrides.professionalName } : null,
   };
 }

@@ -5,8 +5,8 @@ import { ReportsTopServices } from "@/components/dashboard/reports-top-services"
 import { render } from "@/test/utils";
 
 const services = [
-  { name: "Corte", count: 12, revenue: 600 },
-  { name: "Barba", count: 8, revenue: 280 },
+  { name: "Serviço A", count: 12, revenue: 600 },
+  { name: "Serviço B", count: 8, revenue: 280 },
   { name: "Sobrancelha", count: 3, revenue: 90 },
 ];
 
@@ -15,8 +15,8 @@ describe("ReportsTopServices", () => {
     render(<ReportsTopServices services={services} />);
 
     expect(screen.getByText("Serviços mais vendidos")).toBeInTheDocument();
-    expect(screen.getByText("Corte")).toBeInTheDocument();
-    expect(screen.getByText("Barba")).toBeInTheDocument();
+    expect(screen.getByText("Serviço A")).toBeInTheDocument();
+    expect(screen.getByText("Serviço B")).toBeInTheDocument();
     expect(screen.getByText("12x")).toBeInTheDocument();
     expect(screen.getByText("8x")).toBeInTheDocument();
   });

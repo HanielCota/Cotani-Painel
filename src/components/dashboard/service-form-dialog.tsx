@@ -139,7 +139,7 @@ export function ServiceFormDialog({ service }: ServiceFormDialogProps) {
               <Input
                 id={isEditing ? `edit-service-name-${service?.id}` : "service-name"}
                 name="name"
-                placeholder="Ex.: Corte de cabelo"
+                placeholder="Ex.: Serviço principal"
                 defaultValue={service?.name}
                 required
                 minLength={2}

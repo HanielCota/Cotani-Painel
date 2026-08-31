@@ -31,7 +31,7 @@ const activeClinic = {
 };
 
 const validService = {
-  name: "Corte",
+  name: "Serviço A",
   duration: 30,
   price: 50,
   imageUrl: null,

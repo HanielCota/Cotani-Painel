@@ -7,7 +7,7 @@ describe("buildAppointmentsCsv", () => {
     const csv = buildAppointmentsCsv([{
       id: "appointment-1",
       customerName: "João, da Silva",
-      serviceName: "Corte",
+      serviceName: "Serviço A",
       professionalName: "Maria",
       startTime: "2026-08-26T15:00:00.000Z",
       status: "CONFIRMED",
@@ -24,7 +24,7 @@ describe("buildAppointmentsCsv", () => {
     const csv = buildAppointmentsCsv([{
       id: "appointment-1",
       customerName: "=HYPERLINK(\"https://example.com\")",
-      serviceName: "Corte",
+      serviceName: "Serviço A",
       professionalName: null,
       startTime: "2026-08-26T15:00:00.000Z",
       status: "PENDING",

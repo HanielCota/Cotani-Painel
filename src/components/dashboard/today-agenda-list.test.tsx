@@ -28,14 +28,14 @@ describe("TodayAgendaList", () => {
         {
           id: "app-1",
           customerName: "João Silva",
-          serviceName: "Corte",
+          serviceName: "Serviço A",
           startTime: "2026-07-21T14:00:00",
           status: "CONFIRMED",
         },
         {
           id: "app-2",
           customerName: "Pedro Souza",
-          serviceName: "Barba",
+          serviceName: "Serviço B",
           startTime: "2026-07-21T15:30:00",
           status: "PENDING",
         },
@@ -48,9 +48,9 @@ describe("TodayAgendaList", () => {
       expect(screen.getByText("João Silva")).toBeInTheDocument();
     });
 
-    expect(screen.getByText("Corte")).toBeInTheDocument();
+    expect(screen.getByText("Serviço A")).toBeInTheDocument();
     expect(screen.getByText("Pedro Souza")).toBeInTheDocument();
-    expect(screen.getByText("Barba")).toBeInTheDocument();
+    expect(screen.getByText("Serviço B")).toBeInTheDocument();
     expect(screen.getByText("14:00")).toBeInTheDocument();
     expect(screen.getByText("15:30")).toBeInTheDocument();
   });

@@ -35,7 +35,7 @@ describe("ServiceFormDialog", () => {
     expect(screen.getByRole("button", { name: /selecionar imagem/i })).toBeInTheDocument();
     expect(screen.getByText(/nenhum arquivo selecionado/i)).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText(/nome/i), { target: { value: "Corte" } });
+    fireEvent.change(screen.getByLabelText(/nome/i), { target: { value: "Serviço A" } });
     fireEvent.change(screen.getByLabelText(/duração/i), { target: { value: "30" } });
     fireEvent.change(screen.getByLabelText(/valor/i), { target: { value: "50" } });
 
@@ -49,7 +49,7 @@ describe("ServiceFormDialog", () => {
   it("preenche dados ao editar serviço", () => {
     const service: ServiceListItem = {
       id: "svc-1",
-      name: "Barba",
+      name: "Serviço B",
       duration: 20,
       price: 35,
       imageUrl: null,
@@ -60,7 +60,7 @@ describe("ServiceFormDialog", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /editar/i }));
 
-    expect(screen.getByDisplayValue("Barba")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Serviço B")).toBeInTheDocument();
     expect(screen.getByDisplayValue("20")).toBeInTheDocument();
     expect(screen.getByDisplayValue("35")).toBeInTheDocument();
   });
@@ -89,7 +89,7 @@ describe("ServiceFormDialog", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /novo serviço/i }));
 
-    fireEvent.change(screen.getByLabelText(/nome/i), { target: { value: "Corte" } });
+    fireEvent.change(screen.getByLabelText(/nome/i), { target: { value: "Serviço A" } });
     fireEvent.change(screen.getByLabelText(/duração/i), { target: { value: "30" } });
     fireEvent.change(screen.getByLabelText(/valor/i), { target: { value: "50" } });
 

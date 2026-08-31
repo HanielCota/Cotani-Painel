@@ -48,7 +48,7 @@ describe("getUpcomingAppointments", () => {
         startTime: future,
         status: "CONFIRMED",
         customer: { name: "João" },
-        service: { name: "Corte" },
+        service: { name: "Serviço A" },
       },
     ]);
 
@@ -58,7 +58,7 @@ describe("getUpcomingAppointments", () => {
     expect(result[0]).toEqual({
       id: "app-1",
       customerName: "João",
-      serviceName: "Corte",
+      serviceName: "Serviço A",
       startTime: future,
       status: "CONFIRMED",
     });
@@ -89,7 +89,7 @@ describe("getTodayAppointments", () => {
         startTime: new Date(startOfToday.getTime() + 60 * 60 * 1000),
         status: "PENDING",
         customer: { name: "Maria" },
-        service: { name: "Barba" },
+        service: { name: "Serviço B" },
       },
     ]);
 
@@ -97,6 +97,6 @@ describe("getTodayAppointments", () => {
 
     expect(result).toHaveLength(1);
     expect(result[0].customerName).toBe("Maria");
-    expect(result[0].serviceName).toBe("Barba");
+    expect(result[0].serviceName).toBe("Serviço B");
   });
 });

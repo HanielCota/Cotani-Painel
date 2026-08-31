@@ -31,14 +31,14 @@ describe("UpcomingAppointmentsList", () => {
         {
           id: "app-1",
           customerName: "João Silva",
-          serviceName: "Corte",
+          serviceName: "Serviço A",
           startTime: "2026-07-22T14:00:00",
           status: "CONFIRMED",
         },
         {
           id: "app-2",
           customerName: "Pedro Souza",
-          serviceName: "Barba",
+          serviceName: "Serviço B",
           startTime: "2026-07-23T15:30:00",
           status: "PENDING",
         },

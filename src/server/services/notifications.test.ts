@@ -20,7 +20,7 @@ describe("enqueueAppointmentNotifications", () => {
     timeZone: "America/Sao_Paulo",
     customerName: "João",
     customerPhone: "11999999999",
-    serviceName: "Corte",
+    serviceName: "Serviço A",
     startTime: new Date("2026-07-20T14:00:00.000Z"),
     cancellationToken: "token-1",
   };
@@ -37,7 +37,7 @@ describe("enqueueAppointmentNotifications", () => {
 
     expect(data.some((item) => item.kind === "CONFIRMATION")).toBe(true);
     expect(data[0].content).toContain("Loja Teste");
-    expect(data[0].content).toContain("Corte");
+    expect(data[0].content).toContain("Serviço A");
   });
 
   it("cria lembretes 24h e 2h quando o horário está no futuro", async () => {
