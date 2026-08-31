@@ -32,6 +32,8 @@ describe("ServiceFormDialog", () => {
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /novo serviço/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /selecionar imagem/i })).toBeInTheDocument();
+    expect(screen.getByText(/nenhum arquivo selecionado/i)).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText(/nome/i), { target: { value: "Corte" } });
     fireEvent.change(screen.getByLabelText(/duração/i), { target: { value: "30" } });
@@ -97,6 +99,8 @@ describe("ServiceFormDialog", () => {
     await waitFor(() => {
       expect(screen.getByAltText(/preview do serviço/i)).toHaveAttribute("src", "data:image/jpeg;base64,dummy");
     });
+    expect(screen.getByText("service.jpg")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /trocar imagem/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /cadastrar serviço/i }));
 

@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ImageIcon, PencilIcon, PlusIcon, TagIcon, XIcon } from "lucide-react";
+import { ImageIcon, PencilIcon, PlusIcon, TagIcon, UploadIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { createServiceFromForm, updateServiceFromForm } from "@/server/actions/services";
@@ -44,6 +44,7 @@ export function ServiceFormDialog({ service }: ServiceFormDialogProps) {
   const [result, setResult] = useState<ActionResult | null>(null);
   const [isPending, startTransition] = useTransition();
   const [imagePreview, setImagePreview] = useState<string | null>(service?.imageUrl ?? null);
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
@@ -56,24 +57,29 @@ export function ServiceFormDialog({ service }: ServiceFormDialogProps) {
 
     if (!ALLOWED_TYPES.includes(file.type)) {
       toast.error("Use uma imagem JPG, PNG ou WebP.");
+      event.target.value = "";
       return;
     }
 
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
       toast.error(`A imagem deve ter no máximo ${MAX_FILE_SIZE_MB} MB.`);
+      event.target.value = "";
       return;
     }
 
     try {
       const base64 = await fileToBase64(file);
       setImagePreview(base64);
+      setSelectedFileName(file.name);
     } catch {
       toast.error("Não foi possível ler a imagem.");
+      event.target.value = "";
     }
   }
 
   function handleRemoveImage() {
     setImagePreview(null);
+    setSelectedFileName(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -98,6 +104,7 @@ export function ServiceFormDialog({ service }: ServiceFormDialogProps) {
       setOpen(false);
       formRef.current?.reset();
       setImagePreview(null);
+      setSelectedFileName(null);
       toast.success(nextResult.message);
     });
   }
@@ -207,10 +214,27 @@ export function ServiceFormDialog({ service }: ServiceFormDialogProps) {
                   ref={fileInputRef}
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
+                  aria-describedby="service-image-help"
                   onChange={handleFileChange}
                   disabled={isPending}
+                  className="sr-only"
                 />
-                <p className="text-xs text-muted-foreground">
+                <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-fit"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isPending}
+                  >
+                    <UploadIcon data-icon="inline-start" />
+                    {imagePreview ? "Trocar imagem" : "Selecionar imagem"}
+                  </Button>
+                  <span className="truncate text-sm text-muted-foreground">
+                    {selectedFileName ?? (imagePreview ? "Imagem atual" : "Nenhum arquivo selecionado")}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground" id="service-image-help">
                   JPG, PNG ou WebP. Máximo {MAX_FILE_SIZE_MB} MB.
                 </p>
               </div>
