@@ -34,6 +34,20 @@ export const prismaMock = {
     update: vi.fn(),
     delete: vi.fn(),
   },
+  user: {
+    findUnique: vi.fn(),
+    findFirst: vi.fn(),
+    findMany: vi.fn(),
+    upsert: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+  },
+  clinicInvitation: {
+    findFirst: vi.fn(),
+    findMany: vi.fn(),
+    update: vi.fn(),
+    updateMany: vi.fn(),
+  },
   adminAuditLog: {
     count: vi.fn(),
     findMany: vi.fn(),

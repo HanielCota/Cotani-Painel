@@ -42,6 +42,53 @@ export const ensureCurrentAppUser = cache(async () => {
   const email = authUser.email?.trim().toLowerCase() ?? null;
   const name = getUserName(authUser);
 
+  // O dashboard pode disparar várias renderizações de Server Components logo
+  // após o login. Evite abrir uma transação interativa em cada uma delas: o
+  // caminho comum (usuário já sincronizado ou cadastro realmente novo) é
+  // idempotente e pode ser resolvido com operações simples.
+  const existingAppUser = await prisma.user.findUnique({ where: { authUserId: authUser.id } });
+  const pendingInvitation = email && authUser.email_confirmed_at
+    ? await prisma.clinicInvitation.findFirst({
+        where: {
+          email: { equals: email, mode: "insensitive" },
+          status: "PENDING",
+          expiresAt: { gt: new Date() },
+          clinic: { deletedAt: null },
+        },
+        select: { id: true },
+      })
+    : null;
+
+  if (existingAppUser && !pendingInvitation) {
+    const appUser = existingAppUser.email !== email || existingAppUser.name !== name
+      ? await prisma.user.update({
+          where: { id: existingAppUser.id },
+          data: { email, name },
+        })
+      : existingAppUser;
+
+    return { authUser, appUser };
+  }
+
+  if (!existingAppUser && !pendingInvitation) {
+    const legacyUser = email && authUser.email_confirmed_at
+      ? await prisma.user.findFirst({
+          where: { authUserId: null, email: { equals: email, mode: "insensitive" } },
+          select: { id: true },
+        })
+      : null;
+
+    if (!legacyUser) {
+      const appUser = await prisma.user.upsert({
+        where: { authUserId: authUser.id },
+        create: { authUserId: authUser.id, email, name },
+        update: { email, name },
+      });
+
+      return { authUser, appUser };
+    }
+  }
+
   return prisma.$transaction(async (transaction) => {
     let appUser = await transaction.user.findUnique({ where: { authUserId: authUser.id } });
 
@@ -125,5 +172,5 @@ export const ensureCurrentAppUser = cache(async () => {
     }
 
     return { authUser, appUser };
-  });
+  }, { maxWait: 10_000, timeout: 20_000 });
 });
