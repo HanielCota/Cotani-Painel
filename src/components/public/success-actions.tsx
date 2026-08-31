@@ -15,12 +15,19 @@ interface SuccessActionsProps {
   timeZone: string;
 }
 
-function parseLocalDateTime(date: string, time: string, timeZone: string): Date | null {
+export function parseLocalDateTime(date: string, time: string, timeZone: string): Date | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) return null;
   const [hours, minutes] = time.split(":").map(Number);
   const [year, month, day] = date.split("-").map(Number);
+  if (hours > 23 || minutes > 59 || month < 1 || month > 12 || day < 1 || day > 31) return null;
 
   try {
     const dateTime = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+    if (
+      dateTime.getUTCFullYear() !== year
+      || dateTime.getUTCMonth() !== month - 1
+      || dateTime.getUTCDate() !== day
+    ) return null;
     const offsetFormatter = new Intl.DateTimeFormat("en-US", {
       timeZone,
       timeZoneName: "longOffset",
@@ -63,14 +70,22 @@ function formatGoogleCalendarUrl(event: {
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
-function generateIcsContent(event: {
+function escapeIcsText(value: string): string {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\r\n|\r|\n/g, "\\n")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,");
+}
+
+export function generateIcsContent(event: {
   title: string;
   start: Date;
   end: Date;
   description: string;
   location: string;
 }): string {
-  const formatDate = (date: Date) => date.toISOString().replace(/[-:]/g, "").split(".")[0];
+  const formatDate = (date: Date) => `${date.toISOString().replace(/[-:]/g, "").split(".")[0]}Z`;
   const uid = `${Date.now()}-${Math.random().toString(36).slice(2)}@cotani.app`;
 
   return [
@@ -82,9 +97,9 @@ function generateIcsContent(event: {
     `DTSTAMP:${formatDate(new Date())}`,
     `DTSTART:${formatDate(event.start)}`,
     `DTEND:${formatDate(event.end)}`,
-    `SUMMARY:${event.title}`,
-    `DESCRIPTION:${event.description}`,
-    `LOCATION:${event.location}`,
+    `SUMMARY:${escapeIcsText(event.title)}`,
+    `DESCRIPTION:${escapeIcsText(event.description)}`,
+    `LOCATION:${escapeIcsText(event.location)}`,
     "END:VEVENT",
     "END:VCALENDAR",
   ].join("\r\n");

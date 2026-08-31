@@ -48,5 +48,9 @@ export async function updateSupabaseSession(request: NextRequest) {
     return redirectWithSession(dashboardUrl);
   }
 
+  if (pathname.startsWith("/api/")) {
+    response.headers.set("Cache-Control", "private, no-store");
+  }
+
   return response;
 }

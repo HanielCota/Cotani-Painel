@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { matchesBearerSecret } from "@/lib/secure-compare";
 import { expireSubscriptions } from "@/server/services/billing";
 
 const cronSecretSchema = z.string().min(1);
@@ -12,7 +13,7 @@ async function dispatch(request: NextRequest) {
     return NextResponse.json({ message: "CRON_SECRET não está configurado." }, { status: 500 });
   }
 
-  if (request.headers.get("authorization") !== `Bearer ${parsedSecret.data}`) {
+  if (!matchesBearerSecret(request.headers.get("authorization"), parsedSecret.data)) {
     return NextResponse.json({ message: "Não autorizado." }, { status: 401 });
   }
 

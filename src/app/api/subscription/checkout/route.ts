@@ -118,16 +118,20 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ checkoutUrl });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Não foi possível iniciar o checkout. Tente novamente.";
+    const internalMessage = error instanceof Error ? error.message : String(error);
+    const isBusinessConflict = internalMessage.startsWith("Sua assinatura ainda") || internalMessage.startsWith("O plano escolhido permite");
+    const publicMessage = isBusinessConflict
+      ? internalMessage
+      : "Não foi possível iniciar o checkout. Tente novamente.";
     logger.error("Falha ao criar checkout de assinatura", {
-      error: message,
+      error: internalMessage,
     });
 
     return NextResponse.json(
       {
-        message,
+        message: publicMessage,
       },
-      { status: message.startsWith("Sua assinatura ainda") || message.startsWith("O plano escolhido permite") ? 409 : 500 },
+      { status: isBusinessConflict ? 409 : 500 },
     );
   }
 }

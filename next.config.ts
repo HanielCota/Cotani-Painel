@@ -2,6 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  poweredByHeader: false,
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "3mb",
+    },
+  },
   async headers() {
     const supabaseOrigin = (() => { try { return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").origin; } catch { return ""; } })();
     const contentSecurityPolicy = [

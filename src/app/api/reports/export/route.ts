@@ -1,14 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { getPlanEntitlements } from "@/config/subscription-plans";
+import { checkApiRateLimit } from "@/lib/api-rate-limit";
 import { buildAppointmentsCsv } from "@/server/services/reports-export";
 import { getReportsMetrics } from "@/server/services/reports";
 import { isSubscriptionActive } from "@/server/subscription";
 import { getApiTenant } from "@/server/tenant";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const tenant = await getApiTenant(["ADMIN"]);
   if (!tenant.ok) return NextResponse.json({ message: tenant.message }, { status: tenant.status });
+  const rateLimitResponse = await checkApiRateLimit(request, "reports-export", 10, 60_000);
+  if (rateLimitResponse) return rateLimitResponse;
   const { clinic } = tenant.context;
 
   if (!isSubscriptionActive(clinic)) {

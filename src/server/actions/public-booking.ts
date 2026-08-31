@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { getNotificationChannels } from "@/config/subscription-plans";
+import { getClientIpFromHeaders } from "@/lib/get-client-ip";
 import { normalizeWhatsAppPhone } from "@/lib/phone";
 import { rateLimit } from "@/lib/rate-limit";
 import { DOUBLE_BOOKING_MESSAGE, scheduleAppointment } from "@/server/services/scheduling";
@@ -29,17 +30,6 @@ const BOOKING_RATE_LIMIT = {
   windowMs: 15 * 60_000,
 };
 
-async function getClientIpFromHeaders(): Promise<string> {
-  const headersList = await headers();
-  const forwardedFor = headersList.get("x-forwarded-for");
-
-  if (forwardedFor) {
-    return forwardedFor.split(",")[0]?.trim() ?? "unknown";
-  }
-
-  return "unknown";
-}
-
 /**
  * Agendamento público (self-service), sem sessão autenticada. O escopo do tenant é
  * resolvido pelo slug da loja e todo o restante segue o mesmo núcleo
@@ -47,7 +37,7 @@ async function getClientIpFromHeaders(): Promise<string> {
  * constraint do banco e outbox de notificações na mesma transação.
  */
 export async function createPublicAppointment(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
-  const ip = await getClientIpFromHeaders();
+  const ip = getClientIpFromHeaders(await headers());
   const limit = await rateLimit({ key: `public-booking:${ip}`, ...BOOKING_RATE_LIMIT });
 
   if (!limit.success) {

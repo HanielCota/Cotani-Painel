@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
+import { matchesBearerSecret } from "@/lib/secure-compare";
 import type { NotificationModel } from "@/generated/prisma/models/Notification";
 import { getMessageSender } from "@/server/services/messaging/message-sender";
 
@@ -107,7 +108,7 @@ async function dispatch(request: NextRequest) {
     return NextResponse.json({ message: "CRON_SECRET não está configurado." }, { status: 500 });
   }
 
-  if (request.headers.get("authorization") !== `Bearer ${parsedSecret.data}`) {
+  if (!matchesBearerSecret(request.headers.get("authorization"), parsedSecret.data)) {
     return NextResponse.json({ message: "Não autorizado." }, { status: 401 });
   }
 

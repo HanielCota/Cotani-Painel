@@ -1,18 +1,30 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { z } from "zod";
 
+import { getClientIpFromHeaders } from "@/lib/get-client-ip";
 import prisma from "@/lib/prisma";
+import { rateLimit } from "@/lib/rate-limit";
 import { deletePendingNotifications } from "@/server/services/notifications";
 import type { ActionResult } from "@/types";
 
 const cancelSchema = z.object({
   slug: z.string().trim().min(1).max(120),
-  token: z.string().trim().min(1),
+  token: z.uuid(),
 });
 
+const CANCEL_RATE_LIMIT = { limit: 10, windowMs: 15 * 60_000 };
+
 export async function cancelAppointmentByToken(input: unknown): Promise<ActionResult> {
+  const ip = getClientIpFromHeaders(await headers());
+  const limit = await rateLimit({ key: `public-cancel:${ip}`, ...CANCEL_RATE_LIMIT });
+
+  if (!limit.success) {
+    return { status: "error", message: "Muitas tentativas de cancelamento. Tente novamente em alguns minutos." };
+  }
+
   const parsed = cancelSchema.safeParse(input);
 
   if (!parsed.success) {

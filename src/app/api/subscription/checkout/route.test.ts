@@ -62,4 +62,15 @@ describe("checkout de assinatura", () => {
     expect(response.status).toBe(409);
     expect(transaction.clinic.update).not.toHaveBeenCalled();
   });
+
+  it("não expõe detalhes internos em falhas inesperadas", async () => {
+    vi.mocked(getApiTenant).mockRejectedValueOnce(new Error("postgresql://usuario:senha@host/banco"));
+
+    const response = await POST(request(JSON.stringify({ plan: "ESSENTIAL", cycle: "MONTHLY" })));
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body.message).toBe("Não foi possível iniciar o checkout. Tente novamente.");
+    expect(body.message).not.toContain("postgresql");
+  });
 });
