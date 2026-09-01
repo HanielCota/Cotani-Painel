@@ -1,4 +1,5 @@
 import { CalendarCheckIcon } from "lucide-react";
+import { Suspense } from "react";
 
 import { AuthForm } from "@/components/auth/auth-form";
 
@@ -15,7 +16,9 @@ export default function SignInPage() {
             <p className="text-sm text-muted-foreground">Gestão simples para sua loja</p>
           </div>
         </div>
-        <AuthForm />
+        <Suspense fallback={<div className="h-[25rem] w-full animate-pulse rounded-2xl border border-border/80 bg-card" aria-label="Carregando formulário de acesso" />}>
+          <AuthForm />
+        </Suspense>
         <p className="max-w-sm text-center text-xs leading-relaxed text-muted-foreground">
           Crie sua conta para iniciar o período grátis ou use o e-mail do convite da sua equipe.
         </p>
