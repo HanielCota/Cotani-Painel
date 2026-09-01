@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import type { Prisma } from "@/generated/prisma/client";
 import type { NotificationChannel } from "@/generated/prisma/enums";
+import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import { formatClinicDateTimeInput, getClinicDateBounds } from "@/lib/timezone";
 import { enqueueAppointmentNotifications, replaceAppointmentReminders } from "@/server/services/notifications";
@@ -66,7 +67,25 @@ function minutesFromTime(time: string): number {
  * check de disponibilidade antes de gravar.
  */
 async function lockClinicDay(transaction: Prisma.TransactionClient, clinicId: string, day: string) {
-  await transaction.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`${clinicId}:${day}`}))`;
+  // A função de lock retorna o pseudo-tipo PostgreSQL `void`, que o adapter-pg
+  // não desserializa. A comparação preserva o lock e devolve um booleano suportado.
+  await transaction.$queryRaw<{ locked: boolean }[]>`
+    SELECT pg_advisory_xact_lock(hashtext(${`${clinicId}:${day}`})) IS NULL AS locked
+  `;
+}
+
+function getErrorMetadata(error: unknown) {
+  let current: unknown = error;
+
+  while (current !== null && typeof current === "object") {
+    const code = (current as { code?: unknown }).code;
+    if (typeof code === "string") {
+      return { errorCode: code, errorName: error instanceof Error ? error.name : "UnknownError" };
+    }
+    current = (current as { cause?: unknown }).cause;
+  }
+
+  return { errorName: error instanceof Error ? error.name : "UnknownError" };
 }
 
 async function isValidBusinessSlot(
@@ -147,6 +166,7 @@ export async function rescheduleScheduledAppointment(
   params: RescheduleAppointmentParams,
 ): Promise<Exclude<ScheduleAppointmentResult, { status: "success" }> | { status: "success" }> {
   const endTime = new Date(params.startTime.getTime() + params.serviceDuration * 60_000);
+  let stage = "slot-validation";
 
   try {
     const result = await prisma.$transaction(async (transaction) => {
@@ -175,11 +195,13 @@ export async function rescheduleScheduledAppointment(
 
       if (conflict) return "conflict" as const;
 
+      stage = "appointment-update";
       await transaction.appointment.update({
         where: { id: params.appointmentId },
         data: { startTime: params.startTime, endTime },
       });
 
+      stage = "notification-outbox";
       await replaceAppointmentReminders(transaction, {
         appointmentId: params.appointmentId,
         clinicId: params.clinicId,
@@ -201,6 +223,13 @@ export async function rescheduleScheduledAppointment(
     return { status: result };
   } catch (error) {
     if (isDoubleBookingError(error)) return { status: "conflict" };
+
+    logger.error("Falha transacional ao reagendar atendimento", {
+      stage,
+      clinicId: params.clinicId,
+      appointmentId: params.appointmentId,
+      ...getErrorMetadata(error),
+    });
     return { status: "error" };
   }
 }
@@ -215,6 +244,7 @@ export async function rescheduleScheduledAppointment(
 export async function scheduleAppointment(params: ScheduleAppointmentParams): Promise<ScheduleAppointmentResult> {
   const endTime = new Date(params.startTime.getTime() + params.serviceDuration * 60_000);
   const cancellationToken = randomUUID();
+  let stage = "slot-validation";
 
   try {
     const appointment = await prisma.$transaction(async (transaction) => {
@@ -248,6 +278,7 @@ export async function scheduleAppointment(params: ScheduleAppointmentParams): Pr
         return null;
       }
 
+      stage = "customer-upsert";
       const customer = params.customerId
         ? { id: params.customerId, name: params.customerName, phone: params.customerPhone, email: params.customerEmail ?? null }
         : await transaction.customer.upsert({
@@ -257,6 +288,7 @@ export async function scheduleAppointment(params: ScheduleAppointmentParams): Pr
             select: { id: true, name: true, phone: true, email: true },
           });
 
+      stage = "appointment-create";
       const created = await transaction.appointment.create({
         data: {
           clinicId: params.clinicId,
@@ -272,6 +304,7 @@ export async function scheduleAppointment(params: ScheduleAppointmentParams): Pr
         },
       });
 
+      stage = "notification-outbox";
       await enqueueAppointmentNotifications(transaction, {
         appointmentId: created.id,
         clinicId: params.clinicId,
@@ -300,6 +333,13 @@ export async function scheduleAppointment(params: ScheduleAppointmentParams): Pr
       return { status: "conflict" };
     }
 
+    logger.error("Falha transacional ao criar agendamento", {
+      stage,
+      clinicId: params.clinicId,
+      serviceId: params.serviceId,
+      professionalId: params.professionalId ?? null,
+      ...getErrorMetadata(error),
+    });
     return { status: "error" };
   }
 }

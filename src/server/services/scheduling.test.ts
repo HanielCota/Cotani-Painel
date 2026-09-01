@@ -66,6 +66,8 @@ describe("scheduleAppointment", () => {
 
     expect(result.status).toBe("success");
     expect(result).toMatchObject({ appointmentId: "app-1", cancellationToken: "token-1" });
+    const [lockQuery] = prismaMock.$queryRaw.mock.calls[0] ?? [];
+    expect(Array.from(lockQuery as TemplateStringsArray).join("")).toContain("IS NULL AS locked");
   });
 
   it("retorna conflict quando há agendamento sobreposto", async () => {
