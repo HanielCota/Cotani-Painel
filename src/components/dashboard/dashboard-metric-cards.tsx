@@ -1,4 +1,4 @@
-import { CalendarCheck2Icon, CalendarRangeIcon, CircleDollarSignIcon, UserPlusIcon, UserRoundXIcon, UsersIcon } from "lucide-react";
+import { CalendarCheck2Icon, CalendarRangeIcon, CheckCircle2Icon, UsersIcon } from "lucide-react";
 
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -7,12 +7,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { ClinicModel } from "@/generated/prisma/models/Clinic";
 import { getDashboardMetrics } from "@/server/services/metrics";
 
-const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-
 export function DashboardMetricCardsSkeleton() {
   return (
-    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      {Array.from({ length: 7 }, (_, card) => (
+    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {Array.from({ length: 4 }, (_, card) => (
         <Card key={card}>
           <CardContent className="flex items-center gap-4">
             <Skeleton className="size-10 rounded-lg" />
@@ -50,15 +48,8 @@ export async function DashboardMetricCards({ clinic }: DashboardMetricCardsProps
     );
   }
 
-  const appointmentComparison = metrics.appointmentsPreviousMonth > 0
-    ? Math.round(((metrics.appointmentsThisMonth - metrics.appointmentsPreviousMonth) / metrics.appointmentsPreviousMonth) * 100)
-    : null;
-  const revenueComparison = metrics.completedRevenuePreviousMonth > 0
-    ? Math.round(((metrics.completedRevenueThisMonth - metrics.completedRevenuePreviousMonth) / metrics.completedRevenuePreviousMonth) * 100)
-    : null;
-
   return (
-    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <MetricCard
         title="Agendamentos hoje"
         value={String(metrics.appointmentsToday)}
@@ -66,13 +57,7 @@ export async function DashboardMetricCards({ clinic }: DashboardMetricCardsProps
         icon={CalendarCheck2Icon}
         accent="default"
       />
-      <MetricCard
-        title="Faturamento estimado"
-        value={priceFormatter.format(metrics.estimatedRevenueToday)}
-        description="Receita prevista com os agendamentos de hoje"
-        icon={CircleDollarSignIcon}
-        accent="success"
-      />
+      <MetricCard title="Confirmados hoje" value={String(metrics.confirmedToday)} description="Horários já confirmados para hoje" icon={CheckCircle2Icon} accent="success" />
       <MetricCard
         title="Clientes atendidos"
         value={String(metrics.customersServedToday)}
@@ -83,29 +68,8 @@ export async function DashboardMetricCards({ clinic }: DashboardMetricCardsProps
       <MetricCard
         title="Agendamentos no mês"
         value={String(metrics.appointmentsThisMonth)}
-        description={appointmentComparison === null ? "Ainda sem base no mês anterior" : `${appointmentComparison >= 0 ? "+" : ""}${appointmentComparison}% em relação ao mês anterior`}
+        description="Movimento operacional do mês atual"
         icon={CalendarRangeIcon}
-        accent="default"
-      />
-      <MetricCard
-        title="Receita concluída no mês"
-        value={priceFormatter.format(metrics.completedRevenueThisMonth)}
-        description={revenueComparison === null ? "Ainda sem base no mês anterior" : `${revenueComparison >= 0 ? "+" : ""}${revenueComparison}% em relação ao mês anterior`}
-        icon={CircleDollarSignIcon}
-        accent="success"
-      />
-      <MetricCard
-        title="Cancelamentos no mês"
-        value={String(metrics.cancellationsThisMonth)}
-        description="Horários cancelados no período atual"
-        icon={UserRoundXIcon}
-        accent={metrics.cancellationsThisMonth > 0 ? "destructive" : "success"}
-      />
-      <MetricCard
-        title="Clientes novos no mês"
-        value={String(metrics.newCustomersThisMonth)}
-        description="Novos contatos adicionados à base"
-        icon={UserPlusIcon}
         accent="default"
       />
     </section>

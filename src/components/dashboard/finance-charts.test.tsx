@@ -13,7 +13,7 @@ import { render } from "@/test/utils";
 describe("FinanceCharts", () => {
   it("renderiza gráfico de desempenho de vendas", () => {
     render(<SalesPerformanceChart data={[{ date: "21/07", value: 150 }]} />);
-    expect(screen.getByText("Desempenho de vendas")).toBeInTheDocument();
+    expect(screen.getByText("Receita realizada no período")).toBeInTheDocument();
   });
 
   it("renderiza gráfico de evolução mensal", () => {
@@ -37,17 +37,17 @@ describe("FinanceCharts", () => {
         data={[{ name: "Confirmado", value: 5, color: "#82D951" }]}
       />,
     );
-    expect(screen.getByText("Status de pagamento")).toBeInTheDocument();
+    expect(screen.getByText("Status dos agendamentos")).toBeInTheDocument();
   });
 
   it("renderiza calendário de vendas", () => {
     render(
       <SalesCalendarHeatmap
         data={[
-          { day: "Seg", values: [0, 100, 200, 0, 0, 0] },
+          { day: "Seg", value: 300 },
         ]}
       />,
     );
-    expect(screen.getByText("Calendário de vendas")).toBeInTheDocument();
+    expect(screen.getByText("Receita por dia da semana")).toBeInTheDocument();
   });
 });

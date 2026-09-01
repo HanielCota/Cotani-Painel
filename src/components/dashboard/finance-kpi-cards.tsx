@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, BarChart3, DollarSign, ShoppingBag } from "lucide-react";
+import { AlertTriangle, BarChart3, CircleDollarSign, DollarSign } from "lucide-react";
 
 import { Sparkline } from "@/components/dashboard/sparkline";
 
@@ -45,15 +45,17 @@ function FinanceKpiCard({ title, value, change, icon: Icon, iconBg = "bg-primary
 
 interface FinanceKpiCardsProps {
   currentMonthRevenue: number;
+  expectedRevenue: number;
   previousMonthRevenue: number;
   monthAppointmentsTotal: number;
+  monthPendingCount: number;
   monthConfirmedCount: number;
   monthCompletedCount: number;
   monthCanceledCount: number;
   monthNoShowCount: number;
   kpiSeries?: {
     revenue: number[];
-    sales: number[];
+    forecast: number[];
     ticket: number[];
     cancellations: number[];
   };
@@ -63,8 +65,10 @@ const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", curre
 
 export function FinanceKpiCards({
   currentMonthRevenue,
+  expectedRevenue,
   previousMonthRevenue,
   monthAppointmentsTotal,
+  monthPendingCount,
   monthConfirmedCount,
   monthCompletedCount,
   monthCanceledCount,
@@ -79,7 +83,7 @@ export function FinanceKpiCards({
   return (
     <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <FinanceKpiCard
-        title="Receita do mês"
+        title="Receita realizada"
         value={priceFormatter.format(currentMonthRevenue)}
         change={
           revenueChangePercent !== null
@@ -91,20 +95,17 @@ export function FinanceKpiCards({
         sparklineData={kpiSeries?.revenue}
       />
       <FinanceKpiCard
-        title="Total de vendas"
-        value={String(monthAppointmentsTotal)}
-        change={{
-          value: `${monthConfirmedCount + monthCompletedCount} confirmados`,
-          isPositive: true,
-        }}
-        icon={ShoppingBag}
+        title="Receita em aberto"
+        value={priceFormatter.format(expectedRevenue)}
+        change={{ value: `${monthPendingCount + monthConfirmedCount} agendamentos`, isPositive: true }}
+        icon={CircleDollarSign}
         iconBg="bg-blue-500/10"
-        sparklineData={kpiSeries?.sales}
+        sparklineData={kpiSeries?.forecast}
       />
       <FinanceKpiCard
         title="Ticket médio"
         value={priceFormatter.format(
-          monthAppointmentsTotal > 0 ? currentMonthRevenue / monthAppointmentsTotal : 0,
+          monthCompletedCount > 0 ? currentMonthRevenue / monthCompletedCount : 0,
         )}
         icon={BarChart3}
         iconBg="bg-purple-500/10"

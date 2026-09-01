@@ -13,16 +13,28 @@ import { FinanceTransactionsTable } from "@/components/dashboard/finance-transac
 import { PageHeader } from "@/components/dashboard/page-header";
 import { PlanUpgradeRequired } from "@/components/dashboard/plan-upgrade-required";
 import { getPlanEntitlements } from "@/config/subscription-plans";
-import { getFinanceMetrics } from "@/server/services/finance";
+import { financePeriodLabels, getFinanceMetrics, type FinancePeriod } from "@/server/services/finance";
 import { withTenant } from "@/server/with-tenant";
 
 export const metadata: Metadata = { title: "Financeiro" };
 
-export default withTenant(async ({ clinic }) => {
+interface FinancePageProps {
+  searchParams: Promise<{ period?: string | string[] }>;
+}
+
+const financePeriods = new Set<FinancePeriod>(["today", "7days", "30days", "month", "year"]);
+
+export default withTenant<FinancePageProps>(async ({ clinic }, { searchParams }) => {
   if (!getPlanEntitlements(clinic.subscriptionPlan).finance) {
     return <PlanUpgradeRequired feature="Controle financeiro" />;
   }
-  const metrics = await getFinanceMetrics(clinic);
+  const rawPeriod = (await searchParams).period;
+  const requestedPeriod = Array.isArray(rawPeriod) ? rawPeriod[0] : rawPeriod;
+  const period: FinancePeriod = requestedPeriod && financePeriods.has(requestedPeriod as FinancePeriod)
+    ? requestedPeriod as FinancePeriod
+    : "month";
+  const metrics = await getFinanceMetrics(clinic, period);
+  const periodLabel = financePeriodLabels[period].toLocaleLowerCase("pt-BR");
 
   return (
     <div className="flex flex-col gap-5">
@@ -32,13 +44,15 @@ export default withTenant(async ({ clinic }) => {
       />
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <FinanceDateTabs />
+        <FinanceDateTabs activePeriod={period} />
       </div>
 
       <FinanceKpiCards
         currentMonthRevenue={metrics.currentMonthRevenue}
+        expectedRevenue={metrics.expectedRevenue}
         previousMonthRevenue={metrics.previousMonthRevenue}
         monthAppointmentsTotal={metrics.monthAppointmentsTotal}
+        monthPendingCount={metrics.monthPendingCount}
         monthConfirmedCount={metrics.monthConfirmedCount}
         monthCompletedCount={metrics.monthCompletedCount}
         monthCanceledCount={metrics.monthCanceledCount}
@@ -47,7 +61,7 @@ export default withTenant(async ({ clinic }) => {
       />
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-base font-semibold text-foreground">Desempenho e calendário</h2>
+        <h2 className="text-base font-semibold text-foreground">Desempenho em {periodLabel}</h2>
         <div className="grid gap-4 lg:grid-cols-12">
           <SalesPerformanceChart data={metrics.dailyRevenue} />
           <SalesCalendarHeatmap data={metrics.calendarHeatmap} />
@@ -55,7 +69,7 @@ export default withTenant(async ({ clinic }) => {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-base font-semibold text-foreground">Análise mensal</h2>
+        <h2 className="text-base font-semibold text-foreground">Contexto e composição</h2>
         <div className="grid gap-4 lg:grid-cols-3">
           <MrrEvolutionChart data={metrics.monthlyRevenue} />
           <PaymentMethodsChart data={metrics.paymentMethodDistribution} />
@@ -64,8 +78,8 @@ export default withTenant(async ({ clinic }) => {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-base font-semibold text-foreground">Transações recentes</h2>
-        <FinanceTransactionsTable appointments={metrics.monthAppointments} />
+        <h2 className="text-base font-semibold text-foreground">Movimentações em {periodLabel}</h2>
+        <FinanceTransactionsTable appointments={metrics.monthAppointments.slice(0, 50)} />
       </section>
     </div>
   );

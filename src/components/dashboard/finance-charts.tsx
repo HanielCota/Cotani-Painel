@@ -4,10 +4,11 @@ import {
   Area,
   AreaChart,
   Bar,
-  BarChart,
   CartesianGrid,
   Cell,
+  ComposedChart,
   Legend,
+  Line,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -35,7 +36,7 @@ export interface DistributionData {
 
 export interface CalendarHeatmapData {
   day: string;
-  values: number[];
+  value: number;
 }
 
 function ChartCard({
@@ -59,10 +60,12 @@ function ChartTooltip({
   active,
   payload,
   label,
+  format = "currency",
 }: {
   active?: boolean;
   payload?: Array<{ value: number; name?: string }>;
   label?: string;
+  format?: "currency" | "number";
 }) {
   if (active && payload && payload.length) {
     return (
@@ -71,7 +74,9 @@ function ChartTooltip({
         {payload.map((entry, index) => (
           <p key={index}>
             {entry.name ? `${entry.name}: ` : ""}
-            {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(entry.value)}
+            {format === "currency"
+              ? new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(entry.value)
+              : new Intl.NumberFormat("pt-BR").format(entry.value)}
           </p>
         ))}
       </div>
@@ -86,7 +91,7 @@ interface SalesPerformanceChartProps {
 
 export function SalesPerformanceChart({ data }: SalesPerformanceChartProps) {
   return (
-    <ChartCard title="Desempenho de vendas" className="lg:col-span-8">
+    <ChartCard title="Receita realizada no período" className="lg:col-span-8">
       <div className="h-64 w-full sm:h-80">
         {data.length === 0 ? (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
@@ -140,7 +145,7 @@ export function MrrEvolutionChart({ data }: MrrEvolutionChartProps) {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <ComposedChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
               <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} dy={10} />
               <YAxis
@@ -151,7 +156,8 @@ export function MrrEvolutionChart({ data }: MrrEvolutionChartProps) {
               />
               <Tooltip content={<ChartTooltip />} />
               <Bar dataKey="revenue" fill="var(--primary)" radius={[4, 4, 0, 0]} />
-            </BarChart>
+              <Line type="monotone" dataKey="ticket" stroke="var(--chart-2)" strokeWidth={2} dot={false} />
+            </ComposedChart>
           </ResponsiveContainer>
         )}
       </div>
@@ -198,7 +204,7 @@ interface PaymentStatusChartProps {
 
 export function PaymentStatusChart({ data }: PaymentStatusChartProps) {
   return (
-    <ChartCard title="Status de pagamento">
+    <ChartCard title="Status dos agendamentos">
       <div className="h-64 w-full sm:h-80">
         {data.length === 0 ? (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
@@ -220,7 +226,7 @@ export function PaymentStatusChart({ data }: PaymentStatusChartProps) {
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip content={<ChartTooltip />} />
+              <Tooltip content={<ChartTooltip format="number" />} />
               <Legend verticalAlign="bottom" height={36} iconType="circle" />
             </PieChart>
           </ResponsiveContainer>
@@ -244,33 +250,27 @@ interface SalesCalendarHeatmapProps {
 }
 
 export function SalesCalendarHeatmap({ data }: SalesCalendarHeatmapProps) {
-  const weekCount = data[0]?.values.length ?? 0;
+  const maximum = Math.max(...data.map((item) => item.value), 0);
 
   return (
-    <ChartCard title="Calendário de vendas" className="lg:col-span-4">
-      <div className="w-full lg:w-[350px]">
-        <div className="flex flex-col gap-2">
-          <div className="grid grid-cols-8 gap-1 text-xs text-muted-foreground">
-            <div />
-            {Array.from({ length: weekCount }, (_, i) => (
-              <div key={i} className="text-center">
-                {i + 1}ª
-              </div>
-            ))}
-          </div>
-          {data.map((row) => (
-            <div key={row.day} className="grid grid-cols-8 items-center gap-1">
-              <span className="text-xs font-medium text-muted-foreground">{row.day}</span>
-              {row.values.map((value, index) => (
-                <div
-                  key={index}
-                  className={`aspect-square rounded-md ${getHeatmapColor(value)} transition-colors`}
-                  title={new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value)}
-                />
-              ))}
+    <ChartCard title="Receita por dia da semana" className="lg:col-span-4">
+      <div className="flex h-64 flex-col justify-center gap-3 sm:h-80">
+        {maximum === 0 ? (
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Nenhuma receita no período</div>
+        ) : data.map((row) => (
+          <div key={row.day} className="grid grid-cols-[2.5rem_1fr_auto] items-center gap-3">
+            <span className="text-xs font-medium text-muted-foreground">{row.day}</span>
+            <div className="h-2.5 overflow-hidden rounded-full bg-muted">
+              <div
+                className={`h-full rounded-full ${getHeatmapColor(row.value)} transition-all`}
+                style={{ width: `${Math.max((row.value / maximum) * 100, row.value > 0 ? 4 : 0)}%` }}
+              />
             </div>
-          ))}
-        </div>
+            <span className="text-xs font-medium text-foreground">
+              {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(row.value)}
+            </span>
+          </div>
+        ))}
       </div>
     </ChartCard>
   );

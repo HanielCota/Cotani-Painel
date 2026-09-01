@@ -86,7 +86,9 @@ describe("getFinanceMetrics", () => {
     const metrics = await getFinanceMetrics(clinic);
 
     expect(metrics.currentMonthRevenue).toBe(70); // receita realizada: apenas concluídos
+    expect(metrics.expectedRevenue).toBe(110); // pendentes e confirmados
     expect(metrics.monthAppointmentsTotal).toBe(5);
+    expect(metrics.monthPendingCount).toBe(1);
     expect(metrics.monthConfirmedCount).toBe(1);
     expect(metrics.monthCompletedCount).toBe(1);
     expect(metrics.monthCanceledCount).toBe(1);
@@ -138,5 +140,21 @@ describe("getFinanceMetrics", () => {
     expect(metrics.dailyRevenue[1]?.value).toBe(30);
     expect(metrics.paymentMethodDistribution.find((m) => m.name === "Pix")?.value).toBe(80);
     expect(metrics.paymentMethodDistribution.find((m) => m.name === "Dinheiro")?.value).toBe(20);
+  });
+
+  it("aplica o intervalo selecionado também nas consultas financeiras", async () => {
+    prismaMock.appointment.findMany.mockResolvedValueOnce([]);
+    prismaMock.appointment.findMany.mockResolvedValueOnce([]);
+    prismaMock.appointment.findMany.mockResolvedValueOnce([]);
+
+    await getFinanceMetrics(clinic, "7days");
+
+    const selectedWhere = prismaMock.appointment.findMany.mock.calls[0]?.[0]?.where?.startTime as { gte: Date; lt: Date };
+    const previousWhere = prismaMock.appointment.findMany.mock.calls[1]?.[0]?.where?.startTime as { gte: Date; lt: Date };
+    const selectedDurationInDays = (selectedWhere.lt.getTime() - selectedWhere.gte.getTime()) / (24 * 60 * 60 * 1_000);
+
+    expect(selectedDurationInDays).toBeGreaterThanOrEqual(6.9);
+    expect(selectedDurationInDays).toBeLessThanOrEqual(7.1);
+    expect(previousWhere.lt).toEqual(selectedWhere.gte);
   });
 });
