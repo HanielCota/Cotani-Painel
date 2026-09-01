@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
@@ -42,6 +42,22 @@ describe("OnboardingChecklist", () => {
     expect(screen.getByText("Definir expediente")).toBeInTheDocument();
     expect(screen.getByText("Cadastrar serviços")).toBeInTheDocument();
     expect(screen.getByText("Divulgar link de agendamento")).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "Configurar" })[0]).toHaveAttribute("href", "/dashboard/assinatura");
+  });
+
+  it("leva cada revisão diretamente à configuração correta", () => {
+    render(
+      <OnboardingChecklist
+        bookingUrl="https://localhost:3000/loja-teste"
+        hasServices
+        hasBusinessHours
+        isSubscriptionActive={false}
+      />
+    );
+
+    const reviewLinks = screen.getAllByRole("link", { name: "Revisar" });
+    expect(reviewLinks[0]).toHaveAttribute("href", "/dashboard/configuracoes?tab=business-hours");
+    expect(reviewLinks[1]).toHaveAttribute("href", "/dashboard/configuracoes?tab=services");
   });
 
   it("marca passos concluídos com base nas props", () => {
@@ -74,8 +90,10 @@ describe("OnboardingChecklist", () => {
     const button = screen.getByRole("button", { name: /copiar link/i });
     fireEvent.click(button);
 
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith("https://localhost:3000/loja-teste");
-    expect(storage.get("cotani:onboarding:link-shared")).toBe("true");
+    await waitFor(() => {
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith("https://localhost:3000/loja-teste");
+      expect(storage.get("cotani:onboarding:link-shared")).toBe("true");
+    });
 
     // Re-renderiza para validar que o estado foi lido do localStorage.
     rerender(

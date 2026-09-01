@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { CheckIcon, ClockIcon, LinkIcon, SettingsIcon, TagIcon, TriangleAlertIcon } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface OnboardingChecklistProps {
   bookingUrl: string;
@@ -40,6 +42,27 @@ function useLinkStepDone() {
   return { done, markDone };
 }
 
+async function copyText(value: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(value);
+    return true;
+  } catch {
+    const textarea = document.createElement("textarea");
+    textarea.value = value;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+
+    try {
+      return document.execCommand("copy");
+    } finally {
+      textarea.remove();
+    }
+  }
+}
+
 export function OnboardingChecklist({
   bookingUrl,
   hasServices,
@@ -62,7 +85,7 @@ export function OnboardingChecklist({
       label: "Definir expediente",
       description: "Informe os dias e horários de funcionamento.",
       done: hasBusinessHours,
-      href: "/dashboard/configuracoes",
+      href: "/dashboard/configuracoes?tab=business-hours",
       icon: ClockIcon,
     },
     {
@@ -70,7 +93,7 @@ export function OnboardingChecklist({
       label: "Cadastrar serviços",
       description: "Adicione os serviços oferecidos com preço e duração.",
       done: hasServices,
-      href: "/dashboard/configuracoes",
+      href: "/dashboard/configuracoes?tab=services",
       icon: TagIcon,
     },
     {
@@ -133,25 +156,32 @@ export function OnboardingChecklist({
                 </div>
                 {step.external ? (
                   <Button
+                    type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      void navigator.clipboard.writeText(step.href);
+                    onClick={async () => {
+                      const copied = await copyText(step.href);
+                      if (!copied) {
+                        toast.error("Não foi possível copiar o link. Abra a página pública e copie o endereço do navegador.");
+                        return;
+                      }
                       markDone();
+                      toast.success("Link de agendamento copiado.");
                     }}
                   >
                     <LinkIcon className="mr-1.5 size-3.5" />
                     Copiar link
                   </Button>
                 ) : (
-                  <Button
-                    variant={step.done ? "outline" : "default"}
-                    size="sm"
-                    nativeButton={false}
-                    render={<Link href={step.href} />}
+                  <Link
+                    href={step.href}
+                    className={cn(
+                      buttonVariants({ variant: step.done ? "outline" : "default", size: "sm" }),
+                      "shrink-0",
+                    )}
                   >
                     {step.done ? "Revisar" : "Configurar"}
-                  </Button>
+                  </Link>
                 )}
               </li>
             );
