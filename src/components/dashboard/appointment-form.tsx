@@ -67,6 +67,15 @@ export function AppointmentForm({ customers, services, minStartTime, timeZone, c
   const availableProfessionals = professionals?.filter(
     (professional) => professional.isActive && professional.serviceIds.includes(serviceId),
   );
+  const customerItems = customers.map((customer) => ({ value: customer.id, label: customer.name }));
+  const serviceItems = services.map((service) => ({
+    value: service.id,
+    label: `${service.name} · ${service.duration} min`,
+  }));
+  const professionalItems = (availableProfessionals ?? []).map((professional) => ({
+    value: professional.id,
+    label: professional.name,
+  }));
 
   function handleServiceChange(value: unknown) {
     setServiceId(String(value));
@@ -88,7 +97,7 @@ export function AppointmentForm({ customers, services, minStartTime, timeZone, c
           <FieldGroup className="md:grid md:grid-cols-2">
             <Field>
               <FieldLabel htmlFor="customerId">Cliente</FieldLabel>
-              <Select name="customerId" defaultValue="" disabled={isPending} required>
+              <Select name="customerId" defaultValue="" items={customerItems} disabled={isPending} required>
                 <SelectTrigger id="customerId" className="w-full">
                   <SelectValue placeholder="Selecione um cliente" />
                 </SelectTrigger>
@@ -107,6 +116,7 @@ export function AppointmentForm({ customers, services, minStartTime, timeZone, c
                 name="serviceId"
                 value={serviceId}
                 onValueChange={handleServiceChange}
+                items={serviceItems}
                 disabled={isPending}
                 required
               >
@@ -131,6 +141,7 @@ export function AppointmentForm({ customers, services, minStartTime, timeZone, c
                   name="professionalId"
                   value={professionalId}
                   onValueChange={handleProfessionalChange}
+                  items={professionalItems}
                   disabled={isPending || !serviceId || (availableProfessionals?.length ?? 0) === 0}
                 >
                   <SelectTrigger id="professionalId" className="w-full">
