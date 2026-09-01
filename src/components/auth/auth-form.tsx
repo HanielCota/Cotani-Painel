@@ -84,9 +84,9 @@ export function AuthForm() {
 
   return (
     <div className="w-full rounded-2xl border border-border/80 bg-card p-6 shadow-lg">
-      <div className="mb-5 grid grid-cols-2 rounded-lg bg-muted p-1">
-        <button type="button" onClick={() => setMode("sign-in")} className={`rounded-md px-3 py-2 text-sm font-medium ${mode === "sign-in" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>Entrar</button>
-        <button type="button" onClick={() => setMode("sign-up")} className={`rounded-md px-3 py-2 text-sm font-medium ${mode === "sign-up" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>Criar conta</button>
+      <div role="group" aria-label="Tipo de acesso" className="mb-5 grid grid-cols-2 rounded-lg bg-muted p-1">
+        <button type="button" aria-pressed={mode === "sign-in"} onClick={() => setMode("sign-in")} className={`min-h-10 rounded-md px-3 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${mode === "sign-in" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>Entrar</button>
+        <button type="button" aria-pressed={mode === "sign-up"} onClick={() => setMode("sign-up")} className={`min-h-10 rounded-md px-3 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${mode === "sign-up" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>Criar conta</button>
       </div>
 
       <Button type="button" variant="outline" className="w-full" disabled={pending} onClick={handleGoogle}>

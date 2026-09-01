@@ -38,7 +38,7 @@ function DashboardShell({ children, insetClassName = "bg-background", subscripti
     <ActiveClinicProvider clinicId={activeClinicId}>
     <SidebarProvider className="min-h-svh">
       <AppSidebar subscriptionPlan={subscriptionPlan} role={role} user={user} clinics={clinics} activeClinicId={activeClinicId} />
-      <SidebarInset className={insetClassName}>
+      <SidebarInset id="main-content" tabIndex={-1} className={insetClassName}>
         <div className="px-4 pt-4 md:hidden">
           <SidebarTrigger className="size-9 border border-border/60 bg-card shadow-sm" />
         </div>

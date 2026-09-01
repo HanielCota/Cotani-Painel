@@ -22,7 +22,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
   }, [error]);
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-2xl items-center justify-center p-6">
+    <main id="main-content" tabIndex={-1} className="mx-auto flex min-h-screen w-full max-w-2xl items-center justify-center p-6 outline-none">
       <Card className="w-full">
         <CardHeader className="text-center">
           <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-destructive/10 text-destructive">

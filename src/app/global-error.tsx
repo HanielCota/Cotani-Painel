@@ -14,7 +14,7 @@ export default function GlobalError({ error, unstable_retry }: { error: Error & 
   return (
     <html lang="pt-BR">
       <body className="bg-background text-foreground antialiased">
-        <main className="relative flex min-h-screen items-center justify-center overflow-hidden p-6">
+        <main id="main-content" tabIndex={-1} className="relative flex min-h-screen items-center justify-center overflow-hidden p-6 outline-none">
           <div aria-hidden="true" className="absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top,oklch(0.91_0.08_165_/_0.45),transparent_68%)]" />
           <div className="relative flex w-full max-w-md flex-col items-center gap-4 rounded-2xl border border-border/80 bg-card p-8 text-center shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
             <span className="flex size-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive"><TriangleAlertIcon aria-hidden="true" className="size-6" /></span>

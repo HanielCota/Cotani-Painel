@@ -162,7 +162,7 @@ function ProfileCompanyCard({ user, clinics, activeClinicId }: { user: SidebarId
 
   const profileMenu = (
     <DropdownMenu>
-      <DropdownMenuTrigger className="rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      <DropdownMenuTrigger aria-label="Abrir menu da conta" className="rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
         <Avatar className="size-9 rounded-lg border border-input"><AvatarFallback className="rounded-lg bg-primary/10 text-xs font-semibold text-primary">{initials}</AvatarFallback></Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-64">
@@ -173,7 +173,7 @@ function ProfileCompanyCard({ user, clinics, activeClinicId }: { user: SidebarId
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <form action={signOut}><button type="submit" className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm hover:bg-muted"><LogOutIcon className="size-4" />Sair</button></form>
+        <form action={signOut}><button type="submit" className="flex min-h-10 w-full items-center gap-2 rounded-md px-2 py-2 text-sm outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"><LogOutIcon aria-hidden="true" className="size-4" />Sair</button></form>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -188,7 +188,7 @@ function ProfileCompanyCard({ user, clinics, activeClinicId }: { user: SidebarId
         {profileMenu}
         {activeClinic ? (
           <DropdownMenu>
-            <DropdownMenuTrigger className="h-9 min-w-0 flex-1 truncate rounded-lg border border-input bg-background px-3 text-left text-sm hover:bg-muted">
+            <DropdownMenuTrigger aria-label={`Trocar de loja. Loja atual: ${activeClinic.name}`} className="h-10 min-w-0 flex-1 truncate rounded-lg border border-input bg-background px-3 text-left text-sm outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
               {activeClinic.name}
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -197,7 +197,7 @@ function ProfileCompanyCard({ user, clinics, activeClinicId }: { user: SidebarId
                 {clinics.map((clinic) => (
                   <form action={switchActiveClinic} key={clinic.id}>
                     <input type="hidden" name="clinicId" value={clinic.id} />
-                    <button type="submit" className={`w-full rounded-md px-2 py-2 text-left text-sm hover:bg-muted ${clinic.id === activeClinic.id ? "font-semibold text-primary" : ""}`}>
+                    <button type="submit" aria-current={clinic.id === activeClinic.id ? "true" : undefined} className={`min-h-10 w-full rounded-md px-2 py-2 text-left text-sm outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset ${clinic.id === activeClinic.id ? "font-semibold text-primary" : ""}`}>
                       {clinic.name}
                     </button>
                   </form>

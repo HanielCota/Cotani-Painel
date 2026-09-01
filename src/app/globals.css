@@ -55,7 +55,7 @@
   --card-foreground: #17211e;
   --popover: #ffffff;
   --popover-foreground: #17211e;
-  --primary: #0f9f7a;
+  --primary: #08745a;
   --primary-foreground: #ffffff;
   --secondary: #eef2f1;
   --secondary-foreground: #34423d;
@@ -66,7 +66,7 @@
   --destructive: #dc2626;
   --border: #e2e6ea;
   --input: #d7ddda;
-  --ring: #0f9f7a;
+  --ring: #08745a;
   --chart-1: #0f9f7a;
   --chart-2: #2563eb;
   --chart-3: #d97706;
@@ -176,4 +176,15 @@
 
 .animate-fade-in-up {
   animation: fade-in-up 250ms ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

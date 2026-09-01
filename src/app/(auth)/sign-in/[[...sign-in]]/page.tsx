@@ -4,15 +4,15 @@ import { AuthForm } from "@/components/auth/auth-form";
 
 export default function SignInPage() {
   return (
-    <main className="relative flex min-h-svh items-center justify-center overflow-hidden bg-background px-4 py-10">
+    <main id="main-content" tabIndex={-1} className="relative flex min-h-svh items-center justify-center overflow-hidden bg-background px-4 py-10 outline-none">
       <div aria-hidden="true" className="absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top,oklch(0.91_0.08_165_/_0.55),transparent_68%)]" />
       <div className="relative flex w-full max-w-md flex-col items-center gap-5">
         <div className="flex flex-col items-center gap-2 text-center">
           <span className="flex size-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
-            <CalendarCheckIcon className="size-6" />
+            <CalendarCheckIcon aria-hidden="true" className="size-6" />
           </span>
           <div>
-            <p className="text-xl font-semibold tracking-tight">Cotani</p>
+            <h1 className="text-xl font-semibold tracking-tight">Cotani</h1>
             <p className="text-sm text-muted-foreground">Gestão simples para sua loja</p>
           </div>
         </div>

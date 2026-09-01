@@ -7,7 +7,7 @@ import Link from "next/link";
 
 import { SuccessActions } from "@/components/public/success-actions";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/components/ui/card";
 import prisma from "@/lib/prisma";
 
 interface SuccessPageProps {
@@ -41,15 +41,15 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
   const formattedDate = date ? format(parseISO(date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : null;
 
   return (
-    <main className="relative mx-auto flex min-h-svh w-full max-w-2xl flex-col justify-center gap-6 overflow-x-hidden px-4 py-8 sm:py-10">
+    <main id="main-content" tabIndex={-1} className="relative mx-auto flex min-h-svh w-full max-w-2xl flex-col justify-center gap-6 overflow-x-hidden px-4 py-8 outline-none sm:py-10">
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_top,oklch(0.91_0.08_165_/_0.45),transparent_68%)]" />
-      <Card role="status">
+      <Card>
         <CardHeader className="items-center gap-2 text-center">
           <span className="flex size-12 items-center justify-center rounded-2xl bg-accent text-primary"><CalendarCheckIcon aria-hidden="true" className="size-7" /></span>
-          <CardTitle className="text-xl sm:text-2xl">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
             Agendamento confirmado
-          </CardTitle>
-          <CardDescription>
+          </h1>
+          <CardDescription role="status">
             Seu atendimento em <strong>{clinic.name}</strong> foi reservado com sucesso.
           </CardDescription>
         </CardHeader>

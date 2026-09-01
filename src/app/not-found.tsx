@@ -6,7 +6,7 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia } from "
 
 export default function NotFound() {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-3xl items-center p-6">
+    <main id="main-content" tabIndex={-1} className="mx-auto flex min-h-screen w-full max-w-3xl items-center p-6 outline-none">
       <Empty>
         <EmptyHeader>
           <EmptyMedia variant="icon"><FileQuestionIcon /></EmptyMedia>

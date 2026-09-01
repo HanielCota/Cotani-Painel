@@ -64,13 +64,14 @@ function StepIndicator({ current }: { current: Step }) {
   const currentIndex = steps.findIndex((step) => step.id === current);
 
   return (
-    <nav aria-label="Progresso do agendamento" className="flex w-full min-w-0 items-center gap-2 sm:justify-between">
+    <nav aria-label="Progresso do agendamento">
+      <ol className="flex w-full min-w-0 items-center gap-2 sm:justify-between">
       {steps.map((step, index) => {
         const isActive = index <= currentIndex;
         const isCurrent = step.id === current;
 
         return (
-          <div key={step.id} className="flex min-w-0 flex-1 flex-col items-center gap-2">
+          <li key={step.id} aria-current={isCurrent ? "step" : undefined} className="flex min-w-0 flex-1 flex-col items-center gap-2">
             <div
               className={`flex size-8 items-center justify-center rounded-full text-sm font-semibold ${
                 isCurrent
@@ -80,18 +81,19 @@ function StepIndicator({ current }: { current: Step }) {
                     : "bg-muted text-muted-foreground"
               }`}
             >
-              {isActive && !isCurrent ? <CheckIcon className="size-4" /> : index + 1}
+              {isActive && !isCurrent ? <CheckIcon aria-hidden="true" className="size-4" /> : index + 1}
             </div>
             <span
-              className={`truncate px-1 text-center text-[11px] sm:text-xs ${
+              className={`truncate px-1 text-center text-xs ${
                 isCurrent ? "font-semibold text-foreground" : "text-muted-foreground"
               }`}
             >
               {step.label}
             </span>
-          </div>
+          </li>
         );
       })}
+      </ol>
     </nav>
   );
 }
@@ -131,8 +133,9 @@ function ServiceProfessionalStep({
             <button
               key={service.id}
               type="button"
+              aria-pressed={selected}
               onClick={() => onServiceSelect(service)}
-              className={`flex min-h-[5.5rem] min-w-0 items-center gap-4 overflow-hidden rounded-xl border p-4 text-left transition-all active:scale-[0.99] ${
+              className={`flex min-h-[5.5rem] min-w-0 items-center gap-4 overflow-hidden rounded-xl border p-4 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.99] ${
                 selected
                   ? "border-primary bg-primary/5 ring-1 ring-primary"
                   : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"
@@ -184,8 +187,9 @@ function ServiceProfessionalStep({
                   <button
                     key={professional.id}
                     type="button"
+                    aria-pressed={selected}
                     onClick={() => onProfessionalSelect(professional)}
-                    className={`flex min-h-[4.5rem] min-w-0 items-center gap-4 overflow-hidden rounded-xl border p-4 text-left transition-all active:scale-[0.99] ${
+                    className={`flex min-h-[4.5rem] min-w-0 items-center gap-4 overflow-hidden rounded-xl border p-4 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.99] ${
                       selected
                         ? "border-primary bg-primary/5 ring-1 ring-primary"
                         : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"
@@ -512,11 +516,13 @@ function CustomerStep({ isPending, slug, clinicName, service, professional, date
             value={phone}
             onChange={handlePhoneChange}
             onBlur={handlePhoneBlur}
+            aria-invalid={phoneError}
+            aria-describedby={phoneError ? "customer-phone-description customer-phone-error" : "customer-phone-description"}
             className="h-12"
           />
-          <FieldDescription>Usado pela loja para identificar e entrar em contato com você.</FieldDescription>
+          <FieldDescription id="customer-phone-description">Usado pela loja para identificar e entrar em contato com você.</FieldDescription>
           {phoneError ? (
-            <p className="text-xs text-destructive">Informe um WhatsApp válido com DDD.</p>
+            <p id="customer-phone-error" role="alert" className="text-xs text-destructive">Informe um WhatsApp válido com DDD.</p>
           ) : null}
         </Field>
         <Field>

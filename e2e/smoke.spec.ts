@@ -4,7 +4,12 @@ test.describe("Smoke tests", () => {
   test("página de login é carregada", async ({ page }) => {
     await page.goto("/sign-in");
 
-    await expect(page.locator("text=Cotani").first()).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Cotani" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Pular para o conteúdo principal" })).toHaveAttribute("href", "#main-content");
+    await expect(page.getByRole("group", { name: "Tipo de acesso" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Entrar", pressed: true })).toBeVisible();
+    await expect(page.getByLabel("E-mail")).toBeVisible();
+    await expect(page.getByLabel("Senha")).toBeVisible();
   });
 
   test("página inicial redireciona para login quando não autenticado", async ({ page }) => {

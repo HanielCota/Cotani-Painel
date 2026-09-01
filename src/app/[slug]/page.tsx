@@ -81,7 +81,7 @@ export default async function PublicBookingPage({ params }: PublicBookingPagePro
   }
 
   return (
-    <main className="relative mx-auto flex min-h-svh w-full max-w-3xl flex-col gap-6 overflow-x-hidden px-4 py-8 sm:py-12">
+    <main id="main-content" tabIndex={-1} className="relative mx-auto flex min-h-svh w-full max-w-3xl flex-col gap-6 overflow-x-hidden px-4 py-8 outline-none sm:py-12">
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_top,oklch(0.91_0.08_165_/_0.45),transparent_68%)]" />
       <header className="flex flex-col items-center gap-2 text-center">
         <span className="rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">Agendamento on-line</span>
