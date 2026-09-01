@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { CheckIcon, ClockIcon, LinkIcon, SettingsIcon, TagIcon, TriangleAlertIcon } from "lucide-react";
-import { useState } from "react";
+import { CalendarCheckIcon, CheckIcon, ClockIcon, LinkIcon, SettingsIcon, TagIcon, TriangleAlertIcon, UsersIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -13,6 +13,8 @@ interface OnboardingChecklistProps {
   bookingUrl: string;
   hasServices: boolean;
   hasBusinessHours: boolean;
+  hasProfessionals: boolean;
+  hasAppointments: boolean;
   isSubscriptionActive: boolean;
 }
 
@@ -28,7 +30,12 @@ function readLinkStepDone(): boolean {
 }
 
 function useLinkStepDone() {
-  const [done, setDone] = useState(readLinkStepDone);
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setDone(readLinkStepDone()), 0);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   function markDone() {
     try {
@@ -67,6 +74,8 @@ export function OnboardingChecklist({
   bookingUrl,
   hasServices,
   hasBusinessHours,
+  hasProfessionals,
+  hasAppointments,
   isSubscriptionActive,
 }: OnboardingChecklistProps) {
   const { done: linkShared, markDone } = useLinkStepDone();
@@ -97,6 +106,14 @@ export function OnboardingChecklist({
       icon: TagIcon,
     },
     {
+      id: "professionals",
+      label: "Cadastrar profissionais",
+      description: "Defina quem realizará os serviços da loja.",
+      done: hasProfessionals,
+      href: "/dashboard/configuracoes?tab=professionals",
+      icon: UsersIcon,
+    },
+    {
       id: "link",
       label: "Divulgar link de agendamento",
       description: "Copie o link e publique no Instagram, WhatsApp ou site.",
@@ -105,9 +122,19 @@ export function OnboardingChecklist({
       icon: LinkIcon,
       external: true,
     },
+    {
+      id: "first-appointment",
+      label: "Receber o primeiro agendamento",
+      description: "O passo final é ter um horário reservado na agenda.",
+      done: hasAppointments,
+      href: "/dashboard/agenda",
+      icon: CalendarCheckIcon,
+    },
   ];
 
   const completedCount = steps.filter((step) => step.done).length;
+
+  if (completedCount === steps.length) return null;
 
   return (
     <Card className="border border-primary/20 bg-primary/5 shadow-sm">

@@ -81,6 +81,18 @@ export default withTenant(async ({ clinic }) => {
             <strong className="font-medium text-foreground">Clientes ativos no mês:</strong> clientes com ao menos um
             atendimento no mês, exceto cancelados.
           </p>
+          <p>
+            <strong className="font-medium text-foreground">Receita concluída e ticket médio:</strong> consideram apenas
+            atendimentos concluídos; o ticket é a receita dividida pela quantidade desses atendimentos.
+          </p>
+          <p>
+            <strong className="font-medium text-foreground">Taxa de cancelamento:</strong> cancelamentos sobre todos os
+            agendamentos criados no mês.
+          </p>
+          <p>
+            <strong className="font-medium text-foreground">Clientes recorrentes:</strong> clientes com dois ou mais
+            atendimentos não cancelados no mês.
+          </p>
         </CardContent>
       </Card>
     </div>

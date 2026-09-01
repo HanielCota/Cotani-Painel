@@ -15,12 +15,14 @@ export async function GET(request: NextRequest) {
     : null;
   if (role === "PROVIDER" && !professional) return NextResponse.json([]);
 
+  const historyStart = new Date();
+  historyStart.setDate(historyStart.getDate() - 30);
+
   const appointments = await prisma.appointment.findMany({
     where: {
       clinicId: clinic.id,
       ...(professional ? { professionalId: professional.id } : {}),
-      startTime: { gte: new Date() },
-      status: { in: ["PENDING", "CONFIRMED"] },
+      startTime: { gte: historyStart },
     },
     include: {
       customer: true,
@@ -28,7 +30,7 @@ export async function GET(request: NextRequest) {
       professional: true,
     },
     orderBy: { startTime: "asc" },
-    take: 50,
+    take: 250,
   });
 
   return NextResponse.json(

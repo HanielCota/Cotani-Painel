@@ -18,6 +18,10 @@ export interface CustomerListItem {
   email: string | null;
   phone: string;
   createdAt: string;
+  appointmentCount: number;
+  lastAppointmentAt: string | null;
+  lastServiceName: string | null;
+  relationship: "NEW" | "ACTIVE" | "RECURRING" | "INACTIVE";
 }
 
 export interface CustomersPage {
@@ -39,6 +43,12 @@ export interface DashboardMetrics {
   appointmentsToday: number;
   estimatedRevenueToday: number;
   customersServedToday: number;
+  appointmentsThisMonth: number;
+  appointmentsPreviousMonth: number;
+  completedRevenueThisMonth: number;
+  completedRevenuePreviousMonth: number;
+  cancellationsThisMonth: number;
+  newCustomersThisMonth: number;
 }
 
 export interface ServiceListItem {

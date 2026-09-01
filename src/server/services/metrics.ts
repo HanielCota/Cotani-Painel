@@ -8,7 +8,7 @@ import type { DashboardMetrics } from "@/types";
 
 export const getDashboardMetrics = unstable_cache(
   async function getDashboardMetrics(clinic: ClinicModel): Promise<DashboardMetrics> {
-  const { startOfToday, startOfTomorrow, startOfMonth, startOfNextMonth } = getClinicDateBounds(clinic.timeZone);
+  const { startOfToday, startOfTomorrow, startOfMonth, startOfNextMonth, startOfPreviousMonth } = getClinicDateBounds(clinic.timeZone);
 
   const monthAppointments: Prisma.AppointmentWhereInput = {
     clinicId: clinic.id,
@@ -32,6 +32,11 @@ export const getDashboardMetrics = unstable_cache(
     confirmedOrCompletedThisMonth,
     activeCustomers,
     todayAppointments,
+    previousMonthAppointmentsTotal,
+    cancellationsThisMonth,
+    newCustomersThisMonth,
+    currentMonthRevenue,
+    previousMonthRevenue,
   ] = await Promise.all([
     prisma.appointment.count({ where: { clinicId: clinic.id } }),
     prisma.appointment.count({
@@ -47,6 +52,25 @@ export const getDashboardMetrics = unstable_cache(
       where: todayAppointmentsWhere,
       include: { service: true },
       orderBy: { startTime: "asc" },
+    }),
+    prisma.appointment.count({
+      where: {
+        clinicId: clinic.id,
+        startTime: { gte: startOfPreviousMonth, lt: startOfMonth },
+        status: { not: "CANCELED" },
+      },
+    }),
+    prisma.appointment.count({
+      where: { clinicId: clinic.id, startTime: { gte: startOfMonth, lt: startOfNextMonth }, status: "CANCELED" },
+    }),
+    prisma.customer.count({ where: { clinicId: clinic.id, createdAt: { gte: startOfMonth, lt: startOfNextMonth } } }),
+    prisma.appointment.aggregate({
+      where: { clinicId: clinic.id, startTime: { gte: startOfMonth, lt: startOfNextMonth }, status: "COMPLETED" },
+      _sum: { totalPrice: true },
+    }),
+    prisma.appointment.aggregate({
+      where: { clinicId: clinic.id, startTime: { gte: startOfPreviousMonth, lt: startOfMonth }, status: "COMPLETED" },
+      _sum: { totalPrice: true },
     }),
   ]);
 
@@ -69,6 +93,12 @@ export const getDashboardMetrics = unstable_cache(
     appointmentsToday,
     estimatedRevenueToday,
     customersServedToday,
+    appointmentsThisMonth: monthAppointmentsTotal,
+    appointmentsPreviousMonth: previousMonthAppointmentsTotal,
+    completedRevenueThisMonth: Number(currentMonthRevenue._sum.totalPrice ?? 0),
+    completedRevenuePreviousMonth: Number(previousMonthRevenue._sum.totalPrice ?? 0),
+    cancellationsThisMonth,
+    newCustomersThisMonth,
   };
   },
   ["dashboard-metrics"],

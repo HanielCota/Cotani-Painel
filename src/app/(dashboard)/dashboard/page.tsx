@@ -37,15 +37,18 @@ export const metadata: Metadata = { title: "Visão geral" };
 export default withTenant(async ({ clinic }) => {
   const bookingUrl = await getPublicBookingUrl(clinic.slug);
 
-  const [servicesCount, businessHoursCount] = await Promise.all([
+  const [servicesCount, businessHoursCount, professionalsCount, appointmentsCount] = await Promise.all([
     prisma.service.count({ where: { clinicId: clinic.id, isActive: true } }),
     prisma.businessHour.count({ where: { clinicId: clinic.id, isOpen: true } }),
+    prisma.professional.count({ where: { clinicId: clinic.id, isActive: true } }),
+    prisma.appointment.count({ where: { clinicId: clinic.id } }),
   ]);
 
   const hasServices = servicesCount > 0;
   const hasBusinessHours = businessHoursCount > 0;
+  const hasProfessionals = professionalsCount > 0;
+  const hasAppointments = appointmentsCount > 0;
   const subscriptionActive = isSubscriptionActive(clinic);
-  const showOnboarding = !subscriptionActive || !hasServices || !hasBusinessHours;
 
   return (
     <div className="flex flex-col gap-6">
@@ -60,14 +63,14 @@ export default withTenant(async ({ clinic }) => {
         }
       />
 
-      {showOnboarding ? (
-        <OnboardingChecklist
-          bookingUrl={bookingUrl}
-          hasServices={hasServices}
-          hasBusinessHours={hasBusinessHours}
-          isSubscriptionActive={subscriptionActive}
-        />
-      ) : null}
+      <OnboardingChecklist
+        bookingUrl={bookingUrl}
+        hasServices={hasServices}
+        hasBusinessHours={hasBusinessHours}
+        hasProfessionals={hasProfessionals}
+        hasAppointments={hasAppointments}
+        isSubscriptionActive={subscriptionActive}
+      />
 
       <Suspense fallback={<DashboardMetricCardsSkeleton />}>
         <DashboardMetricCards clinic={clinic} />

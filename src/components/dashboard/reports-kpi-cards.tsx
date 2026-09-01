@@ -1,4 +1,4 @@
-import { CalendarDaysIcon, TrendingUpIcon, UserRoundXIcon, UsersIcon } from "lucide-react";
+import { CircleDollarSignIcon, ReceiptTextIcon, RotateCcwIcon, TrendingUpIcon, UserRoundXIcon, UsersIcon } from "lucide-react";
 
 import { MetricCard } from "@/components/dashboard/metric-card";
 import type { ReportsMetrics } from "@/server/services/reports";
@@ -8,6 +8,8 @@ interface ReportsKpiCardsProps {
 }
 
 export function ReportsKpiCards({ metrics }: ReportsKpiCardsProps) {
+  const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+
   return (
     <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
       <MetricCard
@@ -32,24 +34,31 @@ export function ReportsKpiCards({ metrics }: ReportsKpiCardsProps) {
         accent="default"
       />
       <MetricCard
-        title="Total de agendamentos"
-        value={String(metrics.totalAppointments)}
-        description="Agendamentos históricos da loja."
-        icon={CalendarDaysIcon}
+        title="Receita concluída"
+        value={priceFormatter.format(metrics.completedRevenue)}
+        description="Soma dos atendimentos concluídos no mês."
+        icon={CircleDollarSignIcon}
+        accent="success"
+      />
+      <MetricCard
+        title="Ticket médio"
+        value={priceFormatter.format(metrics.averageTicket)}
+        description="Valor médio por atendimento concluído."
+        icon={ReceiptTextIcon}
         accent="default"
       />
       <MetricCard
-        title="Base de clientes"
-        value={String(metrics.totalCustomers)}
-        description="Clientes cadastrados no sistema."
-        icon={UsersIcon}
-        accent="default"
+        title="Taxa de cancelamento"
+        value={`${metrics.cancellationRate}%`}
+        description="Cancelamentos sobre todos os horários do mês."
+        icon={UserRoundXIcon}
+        accent={metrics.cancellationRate > 0 ? "destructive" : "success"}
       />
       <MetricCard
-        title="Serviços ativos"
-        value={String(metrics.totalServices)}
-        description="Serviços disponíveis para agendamento."
-        icon={CalendarDaysIcon}
+        title="Clientes recorrentes"
+        value={String(metrics.returningCustomers)}
+        description="Clientes com dois ou mais atendimentos no mês."
+        icon={RotateCcwIcon}
         accent="default"
       />
     </section>

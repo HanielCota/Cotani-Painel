@@ -11,6 +11,10 @@ const baseMetrics: ReportsMetrics = {
   activeCustomersThisMonth: 30,
   confirmationRate: 85,
   noShowRate: 5,
+  cancellationRate: 4,
+  completedRevenue: 3_000,
+  averageTicket: 100,
+  returningCustomers: 12,
   monthlyData: [],
   topServices: [],
   topProfessionals: [],
@@ -27,11 +31,13 @@ describe("ReportsKpiCards", () => {
     expect(getByText("5%")).toBeInTheDocument();
     expect(getByText("Clientes ativos no mês")).toBeInTheDocument();
     expect(getByText("30")).toBeInTheDocument();
-    expect(getByText("Total de agendamentos")).toBeInTheDocument();
-    expect(getByText("120")).toBeInTheDocument();
-    expect(getByText("Base de clientes")).toBeInTheDocument();
-    expect(getByText("45")).toBeInTheDocument();
-    expect(getByText("Serviços ativos")).toBeInTheDocument();
-    expect(getByText("6")).toBeInTheDocument();
+    expect(getByText("Receita concluída")).toBeInTheDocument();
+    expect(getByText(/R\$\s*3\.000,00/)).toBeInTheDocument();
+    expect(getByText("Ticket médio")).toBeInTheDocument();
+    expect(getByText(/R\$\s*100,00/)).toBeInTheDocument();
+    expect(getByText("Taxa de cancelamento")).toBeInTheDocument();
+    expect(getByText("4%")).toBeInTheDocument();
+    expect(getByText("Clientes recorrentes")).toBeInTheDocument();
+    expect(getByText("12")).toBeInTheDocument();
   });
 });

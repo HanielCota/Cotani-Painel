@@ -34,6 +34,8 @@ describe("OnboardingChecklist", () => {
         bookingUrl="https://localhost:3000/loja-teste"
         hasServices={false}
         hasBusinessHours={false}
+        hasProfessionals={false}
+        hasAppointments={false}
         isSubscriptionActive={false}
       />
     );
@@ -41,7 +43,9 @@ describe("OnboardingChecklist", () => {
     expect(screen.getByText("Assinatura ativa")).toBeInTheDocument();
     expect(screen.getByText("Definir expediente")).toBeInTheDocument();
     expect(screen.getByText("Cadastrar serviços")).toBeInTheDocument();
+    expect(screen.getByText("Cadastrar profissionais")).toBeInTheDocument();
     expect(screen.getByText("Divulgar link de agendamento")).toBeInTheDocument();
+    expect(screen.getByText("Receber o primeiro agendamento")).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Configurar" })[0]).toHaveAttribute("href", "/dashboard/assinatura");
   });
 
@@ -51,6 +55,8 @@ describe("OnboardingChecklist", () => {
         bookingUrl="https://localhost:3000/loja-teste"
         hasServices
         hasBusinessHours
+        hasProfessionals={false}
+        hasAppointments={false}
         isSubscriptionActive={false}
       />
     );
@@ -60,7 +66,7 @@ describe("OnboardingChecklist", () => {
     expect(reviewLinks[1]).toHaveAttribute("href", "/dashboard/configuracoes?tab=services");
   });
 
-  it("marca passos concluídos com base nas props", () => {
+  it("oculta o checklist quando todos os passos estão concluídos", async () => {
     storage.set("cotani:onboarding:link-shared", "true");
 
     render(
@@ -68,11 +74,13 @@ describe("OnboardingChecklist", () => {
         bookingUrl="https://localhost:3000/loja-teste"
         hasServices={true}
         hasBusinessHours={true}
+        hasProfessionals={true}
+        hasAppointments={true}
         isSubscriptionActive={true}
       />
     );
 
-    expect(screen.getByTestId("onboarding-progress")).toHaveTextContent("4de 4 concluídos");
+    await waitFor(() => expect(screen.queryByTestId("onboarding-progress")).not.toBeInTheDocument());
   });
 
   it("persiste no localStorage ao copiar o link de agendamento", async () => {
@@ -81,11 +89,13 @@ describe("OnboardingChecklist", () => {
         bookingUrl="https://localhost:3000/loja-teste"
         hasServices={true}
         hasBusinessHours={true}
+        hasProfessionals={true}
+        hasAppointments={false}
         isSubscriptionActive={true}
       />
     );
 
-    expect(screen.getByTestId("onboarding-progress")).toHaveTextContent("3de 4 concluídos");
+    expect(screen.getByTestId("onboarding-progress")).toHaveTextContent("4de 6 concluídos");
 
     const button = screen.getByRole("button", { name: /copiar link/i });
     fireEvent.click(button);
@@ -101,10 +111,14 @@ describe("OnboardingChecklist", () => {
         bookingUrl="https://localhost:3000/loja-teste"
         hasServices={true}
         hasBusinessHours={true}
+        hasProfessionals={true}
+        hasAppointments={false}
         isSubscriptionActive={true}
       />
     );
 
-    expect(screen.getByTestId("onboarding-progress")).toHaveTextContent("4de 4 concluídos");
+    await waitFor(() => {
+      expect(screen.getByTestId("onboarding-progress")).toHaveTextContent("5de 6 concluídos");
+    });
   });
 });

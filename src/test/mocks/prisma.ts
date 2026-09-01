@@ -4,6 +4,7 @@ export const prismaMock = {
   $transaction: vi.fn(),
   $executeRaw: vi.fn(),
   appointment: {
+    aggregate: vi.fn(),
     count: vi.fn(),
     findMany: vi.fn(),
     findFirst: vi.fn(),
@@ -69,6 +70,7 @@ export const prismaMock = {
     update: vi.fn(),
     delete: vi.fn(),
     findFirst: vi.fn(),
+    findMany: vi.fn(),
   },
   service: {
     count: vi.fn(),

@@ -10,6 +10,7 @@ import { ChevronLeftIcon, ChevronRightIcon, SearchIcon } from "lucide-react";
 import { DeleteCustomerDialog } from "@/components/dashboard/delete-customer-dialog";
 import { EditCustomerDialog } from "@/components/dashboard/edit-customer-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,6 +19,13 @@ import { useCustomers } from "@/hooks/use-customers";
 import type { CustomerListItem } from "@/types";
 
 const PAGE_SIZE = 10;
+
+const relationshipLabels = {
+  NEW: "Novo",
+  ACTIVE: "Ativo",
+  RECURRING: "Recorrente",
+  INACTIVE: "Inativo há 60+ dias",
+} as const;
 
 function formatPhone(value: string) {
   const digits = value.replace(/\D/g, "");
@@ -50,7 +58,7 @@ export function CustomersTable() {
     return () => clearTimeout(timeout);
   }, [search]);
 
-  const { data, isPending, isError, isFetching } = useCustomers({
+  const { data, isPending, isError, isFetching, refetch } = useCustomers({
     search: debouncedSearch,
     page: pagination.pageIndex + 1,
     pageSize: pagination.pageSize,
@@ -70,9 +78,28 @@ export function CustomersTable() {
         cell: ({ getValue }) => formatPhone(getValue<string>()),
       },
       {
-        accessorKey: "createdAt",
-        header: "Cliente desde",
-        cell: ({ getValue }) => new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date(getValue<string>())),
+        accessorKey: "relationship",
+        header: "Relacionamento",
+        cell: ({ row }) => (
+          <Badge variant={row.original.relationship === "INACTIVE" ? "secondary" : row.original.relationship === "RECURRING" ? "success" : "outline"}>
+            {relationshipLabels[row.original.relationship]}
+          </Badge>
+        ),
+      },
+      {
+        accessorKey: "appointmentCount",
+        header: "Atendimentos",
+        cell: ({ getValue }) => <span className="tabular-nums">{getValue<number>()}</span>,
+      },
+      {
+        accessorKey: "lastAppointmentAt",
+        header: "Último atendimento",
+        cell: ({ row }) => row.original.lastAppointmentAt ? (
+          <div>
+            <p>{new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date(row.original.lastAppointmentAt))}</p>
+            <p className="max-w-40 truncate text-xs text-muted-foreground">{row.original.lastServiceName}</p>
+          </div>
+        ) : "—",
       },
       {
         id: "actions",
@@ -103,6 +130,7 @@ export function CustomersTable() {
       <div className="relative w-full max-w-md">
         <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
+          aria-label="Buscar clientes"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Buscar por nome, e-mail ou telefone"
@@ -121,7 +149,10 @@ export function CustomersTable() {
       {!isPending && isError ? (
         <Alert variant="destructive">
           <AlertTitle>Não foi possível carregar os clientes</AlertTitle>
-          <AlertDescription>Verifique sua conexão e tente novamente em instantes.</AlertDescription>
+          <AlertDescription className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span>Verifique sua conexão. Seus dados continuam preservados.</span>
+            <Button type="button" size="sm" variant="outline" onClick={() => void refetch()}>Tentar novamente</Button>
+          </AlertDescription>
         </Alert>
       ) : null}
 

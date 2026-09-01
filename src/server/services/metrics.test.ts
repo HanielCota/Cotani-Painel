@@ -51,6 +51,12 @@ describe("getDashboardMetrics", () => {
     prismaMock.service.count.mockResolvedValueOnce(8); // totalServices
     prismaMock.appointment.count.mockResolvedValueOnce(40); // monthAppointmentsTotal
     prismaMock.appointment.count.mockResolvedValueOnce(35); // confirmedOrCompletedThisMonth
+    prismaMock.appointment.count.mockResolvedValueOnce(32); // previousMonthAppointmentsTotal
+    prismaMock.appointment.count.mockResolvedValueOnce(3); // cancellationsThisMonth
+    prismaMock.customer.count.mockResolvedValueOnce(4); // newCustomersThisMonth
+    prismaMock.appointment.aggregate
+      .mockResolvedValueOnce({ _sum: { totalPrice: 1_200 } })
+      .mockResolvedValueOnce({ _sum: { totalPrice: 900 } });
     prismaMock.appointment.findMany.mockResolvedValueOnce([{ customerId: "cust-1" }, { customerId: "cust-2" }]); // activeCustomers
     prismaMock.appointment.findMany.mockResolvedValueOnce([
       {
@@ -84,11 +90,20 @@ describe("getDashboardMetrics", () => {
     expect(metrics.appointmentsToday).toBe(2);
     expect(metrics.estimatedRevenueToday).toBe(120);
     expect(metrics.customersServedToday).toBe(2);
+    expect(metrics.appointmentsThisMonth).toBe(40);
+    expect(metrics.appointmentsPreviousMonth).toBe(32);
+    expect(metrics.completedRevenueThisMonth).toBe(1_200);
+    expect(metrics.completedRevenuePreviousMonth).toBe(900);
+    expect(metrics.cancellationsThisMonth).toBe(3);
+    expect(metrics.newCustomersThisMonth).toBe(4);
   });
 
   it("retorna zero quando não há agendamentos no mês", async () => {
     prismaMock.appointment.count.mockResolvedValue(0);
+    prismaMock.customer.count.mockResolvedValue(0);
+    prismaMock.service.count.mockResolvedValue(0);
     prismaMock.appointment.findMany.mockResolvedValue([]);
+    prismaMock.appointment.aggregate.mockResolvedValue({ _sum: { totalPrice: null } });
 
     const metrics = await getDashboardMetrics(clinic);
 
@@ -97,5 +112,6 @@ describe("getDashboardMetrics", () => {
     expect(metrics.appointmentsToday).toBe(0);
     expect(metrics.estimatedRevenueToday).toBe(0);
     expect(metrics.customersServedToday).toBe(0);
+    expect(metrics.completedRevenueThisMonth).toBe(0);
   });
 });

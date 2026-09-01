@@ -46,6 +46,15 @@ export async function GET(request: NextRequest) {
   const [customers, total] = await Promise.all([
     prisma.customer.findMany({
       where,
+      include: {
+        _count: { select: { appointments: true } },
+        appointments: {
+          where: { status: { not: "CANCELED" } },
+          orderBy: { startTime: "desc" },
+          take: 1,
+          select: { startTime: true, service: { select: { name: true } } },
+        },
+      },
       orderBy: { name: "asc" },
       skip: (page - 1) * pageSize,
       take: pageSize,
@@ -54,13 +63,29 @@ export async function GET(request: NextRequest) {
   ]);
 
   const body: CustomersPage = {
-    items: customers.map((customer) => ({
-      id: customer.id,
-      name: customer.name,
-      email: customer.email,
-      phone: customer.phone,
-      createdAt: customer.createdAt.toISOString(),
-    })),
+    items: customers.map((customer) => {
+      const lastAppointment = customer.appointments[0] ?? null;
+      const inactiveSince = new Date(Date.now() - 60 * 24 * 60 * 60 * 1_000);
+      const relationship = !lastAppointment
+        ? "NEW" as const
+        : lastAppointment.startTime < inactiveSince
+          ? "INACTIVE" as const
+          : customer._count.appointments >= 2
+            ? "RECURRING" as const
+            : "ACTIVE" as const;
+
+      return {
+        id: customer.id,
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone,
+        createdAt: customer.createdAt.toISOString(),
+        appointmentCount: customer._count.appointments,
+        lastAppointmentAt: lastAppointment?.startTime.toISOString() ?? null,
+        lastServiceName: lastAppointment?.service.name ?? null,
+        relationship,
+      };
+    }),
     total,
     page,
     pageSize,

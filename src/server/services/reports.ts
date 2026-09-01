@@ -36,6 +36,10 @@ export interface ReportsMetrics {
   activeCustomersThisMonth: number;
   confirmationRate: number;
   noShowRate: number;
+  cancellationRate: number;
+  completedRevenue: number;
+  averageTicket: number;
+  returningCustomers: number;
   monthlyData: MonthlyReportData[];
   topServices: TopServiceData[];
   topProfessionals: TopProfessionalData[];
@@ -82,6 +86,16 @@ export async function getReportsMetrics(clinic: ClinicModel): Promise<ReportsMet
     ["CONFIRMED", "COMPLETED"].includes(a.status),
   ).length;
   const noShowsThisMonth = monthAppointmentsResult.filter((a) => a.status === "NO_SHOW").length;
+  const canceledThisMonth = monthAppointmentsResult.filter((a) => a.status === "CANCELED").length;
+  const completedThisMonth = monthAppointmentsResult.filter((a) => a.status === "COMPLETED");
+  const completedRevenue = completedThisMonth.reduce((sum, appointment) => sum + Number(appointment.totalPrice), 0);
+  const averageTicket = completedThisMonth.length > 0 ? completedRevenue / completedThisMonth.length : 0;
+  const appointmentsByCustomer = new Map<string, number>();
+  for (const appointment of monthAppointmentsResult) {
+    if (appointment.status === "CANCELED") continue;
+    appointmentsByCustomer.set(appointment.customerId, (appointmentsByCustomer.get(appointment.customerId) ?? 0) + 1);
+  }
+  const returningCustomers = Array.from(appointmentsByCustomer.values()).filter((count) => count >= 2).length;
   const activeCustomersThisMonth = new Set(
     monthAppointmentsResult.filter((a) => a.status !== "CANCELED").map((a) => a.customerId),
   ).size;
@@ -92,6 +106,9 @@ export async function getReportsMetrics(clinic: ClinicModel): Promise<ReportsMet
       : 0;
   const noShowRate =
     monthAppointmentsTotal > 0 ? Math.round((noShowsThisMonth / monthAppointmentsTotal) * 100) : 0;
+  const cancellationRate = monthAppointmentsResult.length > 0
+    ? Math.round((canceledThisMonth / monthAppointmentsResult.length) * 100)
+    : 0;
 
   // Dados mensais: agendamentos e receita por mês.
   const monthlyData: MonthlyReportData[] = monthlyBounds.map(({ label, start, end }) => {
@@ -161,6 +178,10 @@ export async function getReportsMetrics(clinic: ClinicModel): Promise<ReportsMet
     activeCustomersThisMonth,
     confirmationRate,
     noShowRate,
+    cancellationRate,
+    completedRevenue,
+    averageTicket,
+    returningCustomers,
     monthlyData,
     topServices,
     topProfessionals,

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppointments } from "@/hooks/use-appointments";
-import { formatClinicDateTimeInput } from "@/lib/timezone";
+import { formatClinicDateKey, formatClinicDateTimeInput } from "@/lib/timezone";
 import type { AgendaAppointment } from "@/types";
 
 export const appointmentStatusLabel = {
@@ -41,6 +41,16 @@ const filters: Array<{ status: AppointmentStatus | "ALL"; label: string }> = [
   { status: "NO_SHOW", label: "Faltas" },
 ];
 
+type PeriodFilter = "ALL" | "TODAY" | "WEEK" | "UPCOMING" | "HISTORY";
+
+const periodFilters: Array<{ value: PeriodFilter; label: string }> = [
+  { value: "ALL", label: "Todos os períodos" },
+  { value: "TODAY", label: "Hoje" },
+  { value: "WEEK", label: "Próximos 7 dias" },
+  { value: "UPCOMING", label: "Todos os próximos" },
+  { value: "HISTORY", label: "Últimos 30 dias" },
+];
+
 interface AgendaAppointmentsListProps {
   timeZone: string;
   minStartTime: string;
@@ -48,8 +58,9 @@ interface AgendaAppointmentsListProps {
 }
 
 export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule }: AgendaAppointmentsListProps) {
-  const { data: appointments, isPending, isError } = useAppointments();
+  const { data: appointments, isPending, isError, refetch } = useAppointments();
   const [statusFilter, setStatusFilter] = useState<AppointmentStatus | "ALL">("ALL");
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>("ALL");
 
   if (isPending) {
     return (
@@ -65,7 +76,10 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule }: 
     return (
       <Alert variant="destructive">
         <AlertTitle>Não foi possível carregar os atendimentos</AlertTitle>
-        <AlertDescription>Verifique sua conexão e tente novamente em instantes.</AlertDescription>
+        <AlertDescription className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <span>Verifique sua conexão. Nenhuma alteração foi realizada.</span>
+          <Button type="button" size="sm" variant="outline" onClick={() => void refetch()}>Tentar novamente</Button>
+        </AlertDescription>
       </Alert>
     );
   }
@@ -84,13 +98,40 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule }: 
     );
   }
 
-  const filteredAppointments =
-    statusFilter === "ALL"
-      ? appointments
-      : appointments.filter((appointment) => appointment.status === statusFilter);
+  const now = new Date();
+  const todayKey = formatClinicDateKey(now, timeZone);
+  const weekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1_000);
+  const filteredAppointments = appointments.filter((appointment) => {
+    const startTime = new Date(appointment.startTime);
+    const matchesStatus = statusFilter === "ALL" || appointment.status === statusFilter;
+    const matchesPeriod = periodFilter === "ALL"
+      ? true
+      : periodFilter === "TODAY"
+        ? formatClinicDateKey(startTime, timeZone) === todayKey
+        : periodFilter === "WEEK"
+          ? startTime >= now && startTime <= weekEnd
+          : periodFilter === "UPCOMING"
+            ? startTime >= now
+            : startTime < now;
+    return matchesStatus && matchesPeriod;
+  });
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar por período">
+        {periodFilters.map((filter) => (
+          <Button
+            key={filter.value}
+            type="button"
+            size="sm"
+            variant={periodFilter === filter.value ? "default" : "outline"}
+            aria-pressed={periodFilter === filter.value}
+            onClick={() => setPeriodFilter(filter.value)}
+          >
+            {filter.label}
+          </Button>
+        ))}
+      </div>
       <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar por status">
         {filters.map((filter) => (
           <Button
@@ -98,6 +139,7 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule }: 
             type="button"
             size="sm"
             variant={statusFilter === filter.status ? "default" : "outline"}
+            aria-pressed={statusFilter === filter.status}
             onClick={() => setStatusFilter(filter.status)}
           >
             {filter.label}
