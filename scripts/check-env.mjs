@@ -42,7 +42,10 @@ const productionOnly = [
 
 const twilioKeys = ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_SMS_FROM"];
 
-const isProduction = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
+// `next build` sempre define NODE_ENV=production, inclusive quando a build é
+// executada no computador para testes. VERCEL_ENV identifica o deploy real;
+// APP_ENV cobre uma eventual hospedagem própria.
+const isProduction = process.env.VERCEL_ENV === "production" || process.env.APP_ENV === "production";
 
 let hasError = false;
 
