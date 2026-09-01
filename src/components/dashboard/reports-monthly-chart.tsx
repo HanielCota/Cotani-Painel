@@ -56,13 +56,13 @@ export function ReportsMonthlyChart({ data }: ReportsMonthlyChartProps) {
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} dy={10} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} dy={10} />
               <YAxis
                 yAxisId="left"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
                 allowDecimals={false}
               />
               <YAxis
@@ -70,7 +70,7 @@ export function ReportsMonthlyChart({ data }: ReportsMonthlyChartProps) {
                 orientation="right"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
                 tickFormatter={(value) => `R$${value}`}
               />
               <Tooltip content={<ChartTooltip />} />
@@ -79,7 +79,7 @@ export function ReportsMonthlyChart({ data }: ReportsMonthlyChartProps) {
                 yAxisId="left"
                 dataKey="appointments"
                 name="Agendamentos"
-                fill="hsl(var(--primary))"
+                fill="var(--primary)"
                 radius={[4, 4, 0, 0]}
               />
               <Line
@@ -87,7 +87,7 @@ export function ReportsMonthlyChart({ data }: ReportsMonthlyChartProps) {
                 type="monotone"
                 dataKey="revenue"
                 name="Receita"
-                stroke="hsl(var(--chart-2))"
+                stroke="var(--chart-2)"
                 strokeWidth={3}
                 dot={false}
               />

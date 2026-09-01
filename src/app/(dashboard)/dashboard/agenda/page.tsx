@@ -52,7 +52,7 @@ export default withTenant(async ({ clinic, membership, role }) => {
       {role !== "PROVIDER" ? <AgendaSetup needsCustomers={customers.length === 0} needsServices={services.length === 0} /> : null}
 
       {role === "PROVIDER" && !providerProfessional ? (
-        <div className="rounded-xl border border-amber-300/60 bg-amber-50 p-4 text-sm text-amber-950">
+        <div className="rounded-xl border border-amber-300/60 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
           Seu acesso ainda não foi vinculado a um profissional ativo. Peça a um administrador para concluir o vínculo.
         </div>
       ) : null}

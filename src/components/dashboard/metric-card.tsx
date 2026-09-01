@@ -12,8 +12,8 @@ interface MetricCardProps {
 
 const accentClasses: Record<NonNullable<MetricCardProps["accent"]>, string> = {
   default: "bg-primary/10 text-primary",
-  success: "bg-green-50 text-green-700",
-  warning: "bg-amber-50 text-amber-700",
+  success: "bg-green-50 text-green-700 dark:bg-green-500/15 dark:text-green-300",
+  warning: "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
   destructive: "bg-destructive/10 text-destructive",
 };
 

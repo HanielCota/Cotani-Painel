@@ -41,15 +41,15 @@ export function Sparkline({ data, className, width = 120, height = 40 }: Sparkli
     >
       <defs>
         <linearGradient id="sparklineGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.25} />
-          <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+          <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.25} />
+          <stop offset="100%" stopColor="var(--primary)" stopOpacity={0} />
         </linearGradient>
       </defs>
       <path d={areaPath} fill="url(#sparklineGradient)" />
       <path
         d={linePath}
         fill="none"
-        stroke="hsl(var(--primary))"
+        stroke="var(--primary)"
         strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"

@@ -136,7 +136,7 @@ export default withTenant(async ({ clinic }) => {
                     <CancelSubscriptionDialog />
                   </div>
                 </div>
-              ) : clinic.cancelAtPeriodEnd ? <p className="rounded-lg border border-amber-300/60 bg-amber-50 p-3 text-sm text-amber-950">Renovação cancelada. O acesso permanece ativo até {clinic.subscriptionExpiresAt ? format(clinic.subscriptionExpiresAt, "dd/MM/yyyy", { locale: ptBR }) : "o fim do período atual"}.</p> : null}
+              ) : clinic.cancelAtPeriodEnd ? <p className="rounded-lg border border-amber-300/60 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">Renovação cancelada. O acesso permanece ativo até {clinic.subscriptionExpiresAt ? format(clinic.subscriptionExpiresAt, "dd/MM/yyyy", { locale: ptBR }) : "o fim do período atual"}.</p> : null}
             </CardContent>
           </Card>
         </TabsContent>

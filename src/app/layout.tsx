@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { AppProviders } from "@/app/providers";
+import { ThemeToggle } from "@/components/theme-toggle";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -50,7 +51,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         >
           Pular para o conteúdo principal
         </a>
-        <AppProviders>{children}</AppProviders>
+        <AppProviders>
+          {children}
+          <ThemeToggle />
+        </AppProviders>
         <Analytics />
       </body>
     </html>

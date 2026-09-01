@@ -342,7 +342,7 @@ function DateTimeStep({
           )}
         </div>
         {selectedDate && !isFetching && slots.length > 0 && slots.length <= 3 ? (
-          <p className="text-xs font-medium text-amber-600">
+          <p className="text-xs font-medium text-amber-700 dark:text-amber-300">
             Apenas {slots.length} {slots.length === 1 ? "horário disponível" : "horários disponíveis"} para este dia.
           </p>
         ) : null}
