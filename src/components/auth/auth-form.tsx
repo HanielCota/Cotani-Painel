@@ -98,7 +98,7 @@ export function AuthForm() {
       <form action={handleCredentials} className="space-y-4">
         <div className="space-y-1.5"><Label htmlFor="email">E-mail</Label><Input id="email" name="email" type="email" autoComplete="email" required /></div>
         <div className="space-y-1.5"><Label htmlFor="password">Senha</Label><Input id="password" name="password" type="password" autoComplete={mode === "sign-in" ? "current-password" : "new-password"} minLength={8} required /></div>
-        {mode === "sign-in" ? <Link href="/forgot-password" className="block text-right text-sm text-primary hover:underline">Esqueci minha senha</Link> : <p className="text-xs text-muted-foreground">Use ao menos 8 caracteres. Você receberá a confirmação por e-mail.</p>}
+        {mode === "sign-in" ? <Link href="/forgot-password" className="block text-right text-sm text-primary hover:underline">Esqueci minha senha</Link> : <p className="text-center text-xs text-muted-foreground">Use ao menos 8 caracteres. Você receberá a confirmação por e-mail.</p>}
         <Button type="submit" className="w-full" disabled={pending}>{pending ? "Aguarde..." : mode === "sign-in" ? "Entrar" : "Criar conta e testar grátis"}</Button>
       </form>
     </div>
