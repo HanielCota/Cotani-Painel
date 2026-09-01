@@ -163,7 +163,9 @@ function ProfileCompanyCard({ user, clinics, activeClinicId }: { user: SidebarId
   const profileMenu = (
     <DropdownMenu>
       <DropdownMenuTrigger aria-label="Abrir menu da conta" className="rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-        <Avatar className="size-9 rounded-lg border border-input"><AvatarFallback className="rounded-lg bg-primary/10 text-xs font-semibold text-primary">{initials}</AvatarFallback></Avatar>
+        <Avatar className="size-9 border border-input">
+          <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">{initials}</AvatarFallback>
+        </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-64">
         <DropdownMenuGroup>
