@@ -87,7 +87,7 @@ export default async function PublicBookingPage({ params }: PublicBookingPagePro
         <span className="rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">Agendamento on-line</span>
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{clinic.name}</h1>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          Agende seu atendimento em poucos passos. Horários exibidos no fuso {clinic.timeZone}.
+          Agende seu atendimento em poucos passos. Os horários seguem o fuso local da loja.
         </p>
       </header>
       <BookingSteps
