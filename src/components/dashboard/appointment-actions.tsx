@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -72,9 +73,17 @@ const paymentMethodLabels: Record<PaymentMethod, string> = {
   OTHER: "Outro",
 };
 
-const actionConfirmations: Partial<Record<AppointmentStatus, string>> = {
-  CANCELED: "Tem certeza que deseja cancelar este atendimento? O horário será liberado.",
-  NO_SHOW: "Deseja marcar este atendimento como falta?",
+const actionConfirmations: Partial<Record<AppointmentStatus, { title: string; description: string; confirmLabel: string }>> = {
+  CANCELED: {
+    title: "Cancelar atendimento?",
+    description: "O atendimento será cancelado e o horário ficará disponível novamente.",
+    confirmLabel: "Cancelar atendimento",
+  },
+  NO_SHOW: {
+    title: "Marcar como falta?",
+    description: "O atendimento será registrado como não comparecimento no histórico do cliente.",
+    confirmLabel: "Marcar como falta",
+  },
 };
 
 export function AppointmentActions({ appointmentId, status }: AppointmentActionsProps) {
@@ -83,6 +92,7 @@ export function AppointmentActions({ appointmentId, status }: AppointmentActions
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [confirmationStatus, setConfirmationStatus] = useState<NextAppointmentStatus | null>(null);
   const queryClient = useQueryClient();
 
   if (status === "COMPLETED" || status === "CANCELED" || status === "NO_SHOW") {
@@ -90,20 +100,26 @@ export function AppointmentActions({ appointmentId, status }: AppointmentActions
   }
 
   const actions = actionsByStatus[status];
+  const confirmation = confirmationStatus ? actionConfirmations[confirmationStatus] : null;
 
   function handleStatusChange(nextStatus: NextAppointmentStatus) {
-    const confirmation = actionConfirmations[nextStatus];
-
-    if (confirmation && !window.confirm(confirmation)) {
-      return;
-    }
-
     if (nextStatus === "COMPLETED") {
       setDropdownOpen(false);
       setCompleteDialogOpen(true);
       return;
     }
 
+    if (actionConfirmations[nextStatus]) {
+      setResult(null);
+      setDropdownOpen(false);
+      setConfirmationStatus(nextStatus);
+      return;
+    }
+
+    updateStatus(nextStatus);
+  }
+
+  function updateStatus(nextStatus: NextAppointmentStatus) {
     startTransition(async () => {
       const nextResult = await updateAppointmentStatus(appointmentId, { status: nextStatus });
 
@@ -111,6 +127,7 @@ export function AppointmentActions({ appointmentId, status }: AppointmentActions
 
       if (nextResult.status === "success") {
         setDropdownOpen(false);
+        setConfirmationStatus(null);
         await queryClient.invalidateQueries({ queryKey: ["appointments"] });
       }
     });
@@ -168,12 +185,48 @@ export function AppointmentActions({ appointmentId, status }: AppointmentActions
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {result?.message ? (
+      {result?.message && !confirmationStatus ? (
         <Alert variant={result.status === "error" ? "destructive" : "default"} className="max-w-sm py-1.5">
           <CircleOffIcon aria-hidden="true" />
           <AlertDescription>{result.message}</AlertDescription>
         </Alert>
       ) : null}
+
+      <Dialog
+        open={confirmationStatus !== null}
+        onOpenChange={(open) => {
+          if (!open && !isPending) setConfirmationStatus(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{confirmation?.title}</DialogTitle>
+            <DialogDescription>{confirmation?.description}</DialogDescription>
+          </DialogHeader>
+
+          {result?.status === "error" && result.message ? (
+            <Alert variant="destructive">
+              <AlertDescription>{result.message}</AlertDescription>
+            </Alert>
+          ) : null}
+
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" disabled={isPending} />}>
+              Voltar
+            </DialogClose>
+            <Button
+              variant="destructive"
+              disabled={isPending || !confirmationStatus}
+              onClick={() => {
+                if (confirmationStatus) updateStatus(confirmationStatus);
+              }}
+            >
+              {isPending ? <Spinner data-icon="inline-start" /> : null}
+              {confirmation?.confirmLabel}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={completeDialogOpen} onOpenChange={setCompleteDialogOpen}>
         <DialogContent>

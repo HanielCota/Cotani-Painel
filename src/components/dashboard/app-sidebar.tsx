@@ -340,7 +340,6 @@ export function AppSidebar({ subscriptionPlan, role, user, clinics, activeClinic
   const visibleOperationItems = operationItems.filter((item) => {
     if (role === "PROVIDER") return item.href === "/dashboard/agenda";
     if (role === "RECEPTIONIST" && ["/dashboard/financeiro", "/dashboard/relatorios"].includes(item.href)) return false;
-    if (item.href === "/dashboard/financeiro") return entitlements.finance;
     if (item.href === "/dashboard/relatorios") return entitlements.monthlyReports;
     return true;
   });
