@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
-import { CheckCircle2Icon, MailCheckIcon } from "lucide-react";
+import { AlertCircleIcon, CheckCircle2Icon, MailCheckIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -12,10 +12,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
 
+function recoveryErrorMessage(error: { code?: string; message: string }, mode: "request" | "update") {
+  if (mode === "request") return "Não foi possível enviar o e-mail agora. Tente novamente em instantes.";
+
+  const details = `${error.code ?? ""} ${error.message}`.toLowerCase();
+  if (details.includes("password should be at least") || details.includes("weak_password")) {
+    return "Use uma senha com pelo menos 8 caracteres.";
+  }
+  if (details.includes("same_password") || details.includes("same password")) {
+    return "A nova senha deve ser diferente da senha anterior.";
+  }
+  if (details.includes("session") || details.includes("jwt") || details.includes("expired")) {
+    return "Este link expirou ou já foi utilizado. Solicite um novo e-mail de recuperação.";
+  }
+  return "Não foi possível atualizar a senha. Solicite um novo link e tente novamente.";
+}
+
 export function PasswordRecoveryForm({ mode }: { mode: "request" | "update" }) {
   const [pending, setPending] = useState(false);
   const [ready, setReady] = useState(mode === "request");
   const [requestedEmail, setRequestedEmail] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -43,6 +60,7 @@ export function PasswordRecoveryForm({ mode }: { mode: "request" | "update" }) {
 
   async function submit(formData: FormData) {
     setPending(true);
+    setSubmitError(null);
     const supabase = createClient();
     const email = String(formData.get("email") ?? "").trim();
     const error = mode === "request"
@@ -50,7 +68,9 @@ export function PasswordRecoveryForm({ mode }: { mode: "request" | "update" }) {
       : (await supabase.auth.updateUser({ password: String(formData.get("password") ?? "") })).error;
     setPending(false);
     if (error) {
-      toast.error("Não foi possível concluir. Revise os dados e tente novamente.");
+      const message = recoveryErrorMessage(error, mode);
+      setSubmitError(message);
+      toast.error(message);
       return;
     }
     if (mode === "request") {
@@ -112,8 +132,15 @@ export function PasswordRecoveryForm({ mode }: { mode: "request" | "update" }) {
             disabled={!ready}
           />
         </div>
+        {submitError ? (
+          <Alert variant="destructive">
+            <AlertCircleIcon aria-hidden="true" />
+            <AlertTitle>Não foi possível atualizar</AlertTitle>
+            <AlertDescription>{submitError}</AlertDescription>
+          </Alert>
+        ) : null}
         <Button type="submit" className="w-full" disabled={pending || !ready}>
-          {pending ? "Enviando..." : mode === "request" ? "Enviar e-mail de recuperação" : "Atualizar senha"}
+          {pending ? (mode === "request" ? "Enviando..." : "Atualizando...") : mode === "request" ? "Enviar e-mail de recuperação" : "Atualizar senha"}
         </Button>
         <Button type="button" variant="ghost" className="w-full" onClick={() => router.push("/sign-in")}>Voltar</Button>
       </form>

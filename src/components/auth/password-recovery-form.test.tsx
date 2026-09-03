@@ -6,6 +6,8 @@ import { render } from "@/test/utils";
 
 const routerPush = vi.hoisted(() => vi.fn());
 const resetPasswordForEmail = vi.hoisted(() => vi.fn());
+const updateUser = vi.hoisted(() => vi.fn());
+const getSession = vi.hoisted(() => vi.fn());
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: routerPush, refresh: vi.fn() }),
@@ -14,8 +16,10 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({
     auth: {
+      getSession,
+      onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
       resetPasswordForEmail,
-      updateUser: vi.fn(),
+      updateUser,
     },
   }),
 }));
@@ -28,6 +32,8 @@ describe("PasswordRecoveryForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetPasswordForEmail.mockResolvedValue({ error: null });
+    updateUser.mockResolvedValue({ error: null });
+    getSession.mockResolvedValue({ data: { session: { user: { id: "user-1" } } }, error: null });
   });
 
   it("confirma visualmente o envio das instruções de recuperação", async () => {
@@ -55,5 +61,19 @@ describe("PasswordRecoveryForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Enviar novamente" }));
 
     await waitFor(() => expect(screen.getByLabelText("E-mail")).toBeInTheDocument());
+  });
+
+  it("explica quando a política do Supabase rejeita a nova senha", async () => {
+    updateUser.mockResolvedValue({
+      error: { code: "weak_password", message: "Password should be at least 8 characters." },
+    });
+    render(<PasswordRecoveryForm mode="update" />);
+
+    const password = await screen.findByLabelText("Nova senha");
+    await waitFor(() => expect(password).toBeEnabled());
+    fireEvent.change(password, { target: { value: "senha123" } });
+    fireEvent.submit(screen.getByRole("button", { name: "Atualizar senha" }).closest("form")!);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Use uma senha com pelo menos 8 caracteres.");
   });
 });
