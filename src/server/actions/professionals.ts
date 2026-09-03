@@ -10,6 +10,7 @@ import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/su
 import type { ActionResult } from "@/types";
 import { requireAuthenticatedUser } from "@/server/auth";
 import { persistPublicImage, removePublicImage } from "@/server/services/media-storage";
+import { allowMediaUpload } from "@/server/services/action-rate-limit";
 
 const MAX_IMAGE_SIZE_CHARS = 2_000_000;
 
@@ -48,7 +49,7 @@ function revalidateProfessionalViews() {
 }
 
 export async function createProfessional(input: unknown): Promise<ActionResult> {
-  await requireAuthenticatedUser();
+  const authUser = await requireAuthenticatedUser();
 
   const parsed = professionalSchema.safeParse(input);
 
@@ -66,8 +67,15 @@ export async function createProfessional(input: unknown): Promise<ActionResult> 
     return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
   }
 
+  if (parsed.data.imageUrl?.startsWith("data:") && !(await allowMediaUpload(authUser.id))) {
+    return { status: "error", message: "Muitos envios de imagem. Aguarde antes de tentar novamente." };
+  }
+
+  let uploadedImageUrl: string | null = null;
+
   try {
     const imageUrl = await persistPublicImage({ clinicId: clinic.id, kind: "professionals", value: parsed.data.imageUrl });
+    if (parsed.data.imageUrl?.startsWith("data:")) uploadedImageUrl = imageUrl;
     const outcome = await prisma.$transaction(async (transaction) => {
       await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
       const maxProfessionals = getPlanEntitlements(clinic.subscriptionPlan).maxProfessionals;
@@ -81,11 +89,16 @@ export async function createProfessional(input: unknown): Promise<ActionResult> 
       return "created" as const;
     });
     if (outcome === "limit") {
+      await removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "professionals" });
       const max = getPlanEntitlements(clinic.subscriptionPlan).maxProfessionals!;
       return { status: "error", message: `Seu plano permite até ${max} ${max === 1 ? "profissional" : "profissionais"}. Faça upgrade para adicionar mais.` };
     }
-    if (outcome === "services") return { status: "error", message: "Um ou mais serviços selecionados são inválidos." };
+    if (outcome === "services") {
+      await removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "professionals" });
+      return { status: "error", message: "Um ou mais serviços selecionados são inválidos." };
+    }
   } catch {
+    await removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "professionals" }).catch(() => undefined);
     return { status: "error", message: "Não foi possível cadastrar o profissional. Tente novamente." };
   }
 
@@ -104,7 +117,7 @@ export async function createProfessionalFromForm(_previousState: ActionResult, f
 }
 
 export async function updateProfessional(input: unknown): Promise<ActionResult> {
-  await requireAuthenticatedUser();
+  const authUser = await requireAuthenticatedUser();
 
   const parsed = updateProfessionalSchema.safeParse(input);
 
@@ -120,6 +133,10 @@ export async function updateProfessional(input: unknown): Promise<ActionResult> 
 
   if (!isSubscriptionActive(clinic)) {
     return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
+  }
+
+  if (parsed.data.imageUrl?.startsWith("data:") && !(await allowMediaUpload(authUser.id))) {
+    return { status: "error", message: "Muitos envios de imagem. Aguarde antes de tentar novamente." };
   }
 
   const professional = await prisma.professional.findFirst({
@@ -140,8 +157,12 @@ export async function updateProfessional(input: unknown): Promise<ActionResult> 
     return { status: "error", message: "Um ou mais serviços selecionados são inválidos." };
   }
 
+  let imageUrl: string | null = professional.imageUrl;
+  let uploadedImageUrl: string | null = null;
+
   try {
-    const imageUrl = await persistPublicImage({ clinicId: clinic.id, kind: "professionals", value: parsed.data.imageUrl, currentUrl: professional.imageUrl });
+    imageUrl = await persistPublicImage({ clinicId: clinic.id, kind: "professionals", value: parsed.data.imageUrl, currentUrl: professional.imageUrl });
+    if (parsed.data.imageUrl?.startsWith("data:")) uploadedImageUrl = imageUrl;
     await prisma.$transaction(async (transaction) => {
       await transaction.professionalService.deleteMany({
         where: { professionalId: professional.id },
@@ -158,9 +179,13 @@ export async function updateProfessional(input: unknown): Promise<ActionResult> 
         },
       });
     });
-    if (professional.imageUrl !== imageUrl) await removePublicImage(professional.imageUrl);
   } catch {
+    await removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "professionals" }).catch(() => undefined);
     return { status: "error", message: "Não foi possível atualizar o profissional. Tente novamente." };
+  }
+
+  if (professional.imageUrl !== imageUrl) {
+    await removePublicImage({ url: professional.imageUrl, clinicId: clinic.id, kind: "professionals" }).catch(() => undefined);
   }
 
   revalidateProfessionalViews();

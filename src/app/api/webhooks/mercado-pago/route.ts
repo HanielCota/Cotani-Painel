@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
+import { readRequestText, RequestBodyTooLargeError } from "@/lib/request-body";
 import { getPlanPrice } from "@/config/subscription-plans";
 import {
   getInvoiceFromMercadoPago,
@@ -19,6 +20,8 @@ interface MercadoPagoWebhookBody {
   data?: { id?: string | number };
 }
 
+const MAX_WEBHOOK_BODY_BYTES = 256 * 1024;
+
 function isUniqueConstraintError(error: unknown): boolean {
   return typeof error === "object" && error !== null && "code" in error && error.code === "P2002";
 }
@@ -26,8 +29,12 @@ function isUniqueConstraintError(error: unknown): boolean {
 export async function POST(request: NextRequest) {
   let body: MercadoPagoWebhookBody;
   try {
-    body = (await request.json()) as MercadoPagoWebhookBody;
-  } catch {
+    const rawBody = await readRequestText(request, MAX_WEBHOOK_BODY_BYTES);
+    body = rawBody ? JSON.parse(rawBody) as MercadoPagoWebhookBody : {};
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json({ message: "Corpo do webhook muito grande." }, { status: 413 });
+    }
     body = {};
   }
 

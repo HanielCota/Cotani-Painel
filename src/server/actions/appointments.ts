@@ -291,9 +291,9 @@ export async function updateAppointmentStatus(
     return { status: "error", message: "Informe o método de pagamento para concluir o atendimento." };
   }
 
-  await prisma.$transaction(async (transaction) => {
-    await transaction.appointment.update({
-      where: { id: appointment.id },
+  const updated = await prisma.$transaction(async (transaction) => {
+    const result = await transaction.appointment.updateMany({
+      where: { id: appointment.id, clinicId: clinic.id, status: appointment.status },
       data: {
         status: nextStatus,
         ...(paymentMethod ? { paymentMethod } : {}),
@@ -301,10 +301,16 @@ export async function updateAppointmentStatus(
       },
     });
 
-    if (["COMPLETED", "CANCELED", "NO_SHOW"].includes(nextStatus)) {
+    if (result.count === 1 && ["COMPLETED", "CANCELED", "NO_SHOW"].includes(nextStatus)) {
       await deletePendingNotifications(transaction, appointment.id);
     }
+
+    return result.count === 1;
   });
+
+  if (!updated) {
+    return { status: "error", message: "Este atendimento foi alterado por outra operação. Atualize a agenda e tente novamente." };
+  }
 
   revalidateScheduleViews();
   return { status: "success", message: "Status do atendimento atualizado." };

@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
+import { readRequestText, RequestBodyTooLargeError } from "@/lib/request-body";
 import { BillingCycle, SubscriptionPlan } from "@/generated/prisma/enums";
 import { getPlanEntitlements } from "@/config/subscription-plans";
 import { cancelMercadoPagoSubscription, createSubscriptionCheckout } from "@/server/services/mercado-pago";
@@ -17,18 +18,27 @@ const checkoutSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const body = await request.json().catch(() => null);
-  const parsed = checkoutSchema.safeParse(body);
-
-  if (!parsed.success) {
-    return NextResponse.json({ message: "Plano inválido. Escolha mensal ou anual." }, { status: 400 });
-  }
-
   try {
     const tenant = await getApiTenant(["ADMIN"]);
     if (!tenant.ok) return NextResponse.json({ message: tenant.message }, { status: tenant.status });
     const { clinic } = tenant.context;
     const { appUser: user } = await ensureCurrentAppUser();
+
+    let body: unknown;
+    try {
+      const rawBody = await readRequestText(request, 8 * 1024);
+      body = rawBody ? JSON.parse(rawBody) : null;
+    } catch (error) {
+      if (error instanceof RequestBodyTooLargeError) {
+        return NextResponse.json({ message: "Corpo da requisição muito grande." }, { status: 413 });
+      }
+      return NextResponse.json({ message: "Corpo da requisição inválido." }, { status: 400 });
+    }
+
+    const parsed = checkoutSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ message: "Plano inválido. Escolha mensal ou anual." }, { status: 400 });
+    }
 
     if (!user?.email) {
       return NextResponse.json({ message: "Sua conta precisa ter um e-mail válido para iniciar o checkout." }, { status: 400 });

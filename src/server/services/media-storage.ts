@@ -28,11 +28,34 @@ function publicPrefix() {
   return base ? `${base}/storage/v1/object/public/${BUCKET}/` : "";
 }
 
+function objectPathFromPublicUrl(url: string): string | null {
+  const prefix = publicPrefix();
+  if (!prefix || !url.startsWith(prefix)) return null;
+
+  try {
+    return decodeURIComponent(url.slice(prefix.length));
+  } catch {
+    return null;
+  }
+}
+
+function isOwnedObjectPath(path: string, clinicId: string, kind: "services" | "professionals"): boolean {
+  const prefix = `${clinicId}/${kind}/`;
+  if (!path.startsWith(prefix)) return false;
+  const fileName = path.slice(prefix.length);
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(?:jpg|png|webp)$/i.test(fileName);
+}
+
 export async function persistPublicImage(input: { clinicId: string; kind: "services" | "professionals"; value: string | null; currentUrl?: string | null }) {
   if (!input.value) return null;
   if (input.value === input.currentUrl) return input.value;
-  const prefix = publicPrefix();
-  if (prefix && input.value.startsWith(prefix)) return input.value;
+  const existingPath = objectPathFromPublicUrl(input.value);
+  if (existingPath) {
+    if (!isOwnedObjectPath(existingPath, input.clinicId, input.kind)) {
+      throw new Error("A imagem informada não pertence a esta loja.");
+    }
+    throw new Error("Envie novamente o arquivo em vez de reutilizar outra imagem armazenada.");
+  }
 
   const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(input.value);
   if (!match) throw new Error("Envie uma imagem JPG, PNG ou WebP válida.");
@@ -47,8 +70,13 @@ export async function persistPublicImage(input: { clinicId: string; kind: "servi
   return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
 }
 
-export async function removePublicImage(url: string | null | undefined) {
-  const prefix = publicPrefix();
-  if (!url || !prefix || !url.startsWith(prefix)) return;
-  await createAdminClient().storage.from(BUCKET).remove([decodeURIComponent(url.slice(prefix.length))]);
+export async function removePublicImage(input: {
+  url: string | null | undefined;
+  clinicId: string;
+  kind: "services" | "professionals";
+}) {
+  if (!input.url) return;
+  const path = objectPathFromPublicUrl(input.url);
+  if (!path || !isOwnedObjectPath(path, input.clinicId, input.kind)) return;
+  await createAdminClient().storage.from(BUCKET).remove([path]);
 }

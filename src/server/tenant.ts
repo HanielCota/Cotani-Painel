@@ -1,3 +1,5 @@
+import "server-only";
+
 import { cache } from "react";
 import { cookies } from "next/headers";
 
@@ -42,8 +44,10 @@ export interface TenantContext {
  * validada no banco. Um cookie apenas sugere a loja ativa; ele nunca concede acesso.
  */
 export const getTenantContext = cache(async (): Promise<TenantContext> => {
-  const { appUser } = await ensureCurrentAppUser();
-  const selectedClinicId = await getSelectedClinicId();
+  const [{ appUser }, selectedClinicId] = await Promise.all([
+    ensureCurrentAppUser(),
+    getSelectedClinicId(),
+  ]);
 
   let membership = await prisma.membership.findFirst({
     where: {

@@ -9,6 +9,7 @@ import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/su
 import type { ActionResult } from "@/types";
 import { requireAuthenticatedUser } from "@/server/auth";
 import { persistPublicImage, removePublicImage } from "@/server/services/media-storage";
+import { allowMediaUpload } from "@/server/services/action-rate-limit";
 
 const MAX_IMAGE_SIZE_CHARS = 2_000_000;
 
@@ -44,7 +45,7 @@ function revalidateServiceViews() {
 }
 
 export async function createService(input: unknown): Promise<ActionResult> {
-  await requireAuthenticatedUser();
+  const authUser = await requireAuthenticatedUser();
 
   const parsed = serviceSchema.safeParse(input);
 
@@ -62,8 +63,15 @@ export async function createService(input: unknown): Promise<ActionResult> {
     return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
   }
 
+  if (parsed.data.imageUrl?.startsWith("data:") && !(await allowMediaUpload(authUser.id))) {
+    return { status: "error", message: "Muitos envios de imagem. Aguarde antes de tentar novamente." };
+  }
+
+  let uploadedImageUrl: string | null = null;
+
   try {
     const imageUrl = await persistPublicImage({ clinicId: clinic.id, kind: "services", value: parsed.data.imageUrl });
+    if (parsed.data.imageUrl?.startsWith("data:")) uploadedImageUrl = imageUrl;
     await prisma.service.create({
       data: {
         clinicId: clinic.id,
@@ -74,6 +82,7 @@ export async function createService(input: unknown): Promise<ActionResult> {
       },
     });
   } catch {
+    await removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "services" }).catch(() => undefined);
     return { status: "error", message: "Não foi possível cadastrar este serviço. Tente novamente." };
   }
 
@@ -91,7 +100,7 @@ export async function createServiceFromForm(_previousState: ActionResult, formDa
 }
 
 export async function updateService(input: unknown): Promise<ActionResult> {
-  await requireAuthenticatedUser();
+  const authUser = await requireAuthenticatedUser();
 
   const parsed = updateServiceSchema.safeParse(input);
 
@@ -109,6 +118,10 @@ export async function updateService(input: unknown): Promise<ActionResult> {
     return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
   }
 
+  if (parsed.data.imageUrl?.startsWith("data:") && !(await allowMediaUpload(authUser.id))) {
+    return { status: "error", message: "Muitos envios de imagem. Aguarde antes de tentar novamente." };
+  }
+
   const service = await prisma.service.findFirst({
     where: { id: parsed.data.serviceId, clinicId: clinic.id },
     select: { id: true, imageUrl: true },
@@ -118,8 +131,12 @@ export async function updateService(input: unknown): Promise<ActionResult> {
     return { status: "error", message: "Serviço não encontrado." };
   }
 
+  let imageUrl: string | null = service.imageUrl;
+  let uploadedImageUrl: string | null = null;
+
   try {
-    const imageUrl = await persistPublicImage({ clinicId: clinic.id, kind: "services", value: parsed.data.imageUrl, currentUrl: service.imageUrl });
+    imageUrl = await persistPublicImage({ clinicId: clinic.id, kind: "services", value: parsed.data.imageUrl, currentUrl: service.imageUrl });
+    if (parsed.data.imageUrl?.startsWith("data:")) uploadedImageUrl = imageUrl;
     await prisma.service.update({
       where: { id: service.id },
       data: {
@@ -129,9 +146,13 @@ export async function updateService(input: unknown): Promise<ActionResult> {
         imageUrl,
       },
     });
-    if (service.imageUrl !== imageUrl) await removePublicImage(service.imageUrl);
   } catch {
+    await removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "services" }).catch(() => undefined);
     return { status: "error", message: "Não foi possível atualizar este serviço. Tente novamente." };
+  }
+
+  if (service.imageUrl !== imageUrl) {
+    await removePublicImage({ url: service.imageUrl, clinicId: clinic.id, kind: "services" }).catch(() => undefined);
   }
 
   revalidateServiceViews();

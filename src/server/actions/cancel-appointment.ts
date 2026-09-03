@@ -67,14 +67,27 @@ export async function cancelAppointmentByToken(input: unknown): Promise<ActionRe
   }
 
   try {
-    await prisma.$transaction(async (transaction) => {
-      await transaction.appointment.update({
-        where: { id: appointment.id },
+    const canceled = await prisma.$transaction(async (transaction) => {
+      const result = await transaction.appointment.updateMany({
+        where: {
+          id: appointment.id,
+          clinicId: clinic.id,
+          status: appointment.status,
+          startTime: { gt: new Date() },
+        },
         data: { status: "CANCELED" },
       });
 
-      await deletePendingNotifications(transaction, appointment.id);
+      if (result.count === 1) {
+        await deletePendingNotifications(transaction, appointment.id);
+      }
+
+      return result.count === 1;
     });
+
+    if (!canceled) {
+      return { status: "error", message: "Este agendamento foi alterado e não pode mais ser cancelado por este link." };
+    }
   } catch {
     return { status: "error", message: "Não foi possível cancelar o agendamento. Tente novamente." };
   }

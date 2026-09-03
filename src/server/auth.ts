@@ -46,9 +46,10 @@ export const ensureCurrentAppUser = cache(async () => {
   // após o login. Evite abrir uma transação interativa em cada uma delas: o
   // caminho comum (usuário já sincronizado ou cadastro realmente novo) é
   // idempotente e pode ser resolvido com operações simples.
-  const existingAppUser = await prisma.user.findUnique({ where: { authUserId: authUser.id } });
-  const pendingInvitation = email && authUser.email_confirmed_at
-    ? await prisma.clinicInvitation.findFirst({
+  const [existingAppUser, pendingInvitation] = await Promise.all([
+    prisma.user.findUnique({ where: { authUserId: authUser.id } }),
+    email && authUser.email_confirmed_at
+      ? prisma.clinicInvitation.findFirst({
         where: {
           email: { equals: email, mode: "insensitive" },
           status: "PENDING",
@@ -57,7 +58,8 @@ export const ensureCurrentAppUser = cache(async () => {
         },
         select: { id: true },
       })
-    : null;
+      : Promise.resolve(null),
+  ]);
 
   if (existingAppUser && !pendingInvitation) {
     const appUser = existingAppUser.email !== email || existingAppUser.name !== name

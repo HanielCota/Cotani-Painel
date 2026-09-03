@@ -12,8 +12,9 @@ import {
 vi.mock("@/server/auth", () => ({ requireAuthenticatedUser: vi.fn().mockResolvedValue({ id: "user-1" }) }));
 vi.mock("@/server/services/media-storage", () => ({
   persistPublicImage: vi.fn(async ({ value }: { value: string | null }) => value),
-  removePublicImage: vi.fn(),
+  removePublicImage: vi.fn().mockResolvedValue(undefined),
 }));
+vi.mock("@/server/services/action-rate-limit", () => ({ allowMediaUpload: vi.fn().mockResolvedValue(true) }));
 
 vi.mock("@/server/tenant", () => ({
   getClinicForRoles: vi.fn(),

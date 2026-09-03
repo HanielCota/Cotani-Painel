@@ -13,6 +13,7 @@ describe("cancelAppointmentByToken", () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     vi.mocked(rateLimit).mockResolvedValue({ success: true, limit: 10, remaining: 9, resetAt: new Date() });
+    prismaMock.appointment.updateMany.mockResolvedValue({ count: 1 });
   });
 
   afterEach(() => {
@@ -85,10 +86,32 @@ describe("cancelAppointmentByToken", () => {
     const result = await cancelAppointmentByToken({ slug: "loja", token: TOKEN });
 
     expect(result.status).toBe("success");
-    expect(prismaMock.appointment.update).toHaveBeenCalledWith({
-      where: { id: "app-1" },
+    expect(prismaMock.appointment.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: "app-1",
+        clinicId: "clinic-1",
+        status: "CONFIRMED",
+        startTime: { gt: expect.any(Date) },
+      },
       data: { status: "CANCELED" },
     });
+  });
+
+  it("não sobrescreve uma alteração concorrente", async () => {
+    vi.setSystemTime(new Date("2026-07-19T10:00:00.000Z"));
+    prismaMock.clinic.findUnique.mockResolvedValueOnce({ id: "clinic-1" });
+    prismaMock.appointment.findFirst.mockResolvedValueOnce({
+      id: "app-1",
+      status: "CONFIRMED",
+      startTime: new Date("2026-07-20T14:00:00.000Z"),
+    });
+    prismaMock.appointment.updateMany.mockResolvedValueOnce({ count: 0 });
+    prismaMock.$transaction.mockImplementationOnce(async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock));
+
+    const result = await cancelAppointmentByToken({ slug: "loja", token: TOKEN });
+
+    expect(result.status).toBe("error");
+    expect(result.message).toContain("alterado");
   });
 
   it("bloqueia excesso de tentativas antes de consultar o agendamento", async () => {

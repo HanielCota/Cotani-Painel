@@ -39,6 +39,7 @@ describe("updateAppointmentStatus", () => {
       clinic: activeClinic,
     });
     prismaMock.$transaction.mockImplementation(async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock));
+    prismaMock.appointment.updateMany.mockResolvedValue({ count: 1 });
   });
 
   it("retorna erro para ID inválido", async () => {
@@ -66,8 +67,8 @@ describe("updateAppointmentStatus", () => {
     const result = await updateAppointmentStatus("550e8400-e29b-41d4-a716-446655440002", { status: "CONFIRMED" });
 
     expect(result.status).toBe("success");
-    expect(prismaMock.appointment.update).toHaveBeenCalledWith({
-      where: { id: "550e8400-e29b-41d4-a716-446655440002" },
+    expect(prismaMock.appointment.updateMany).toHaveBeenCalledWith({
+      where: { id: "550e8400-e29b-41d4-a716-446655440002", clinicId: "clinic-1", status: "PENDING" },
       data: { status: "CONFIRMED" },
     });
   });
@@ -92,10 +93,20 @@ describe("updateAppointmentStatus", () => {
     });
 
     expect(result.status).toBe("success");
-    expect(prismaMock.appointment.update).toHaveBeenCalledWith({
-      where: { id: "550e8400-e29b-41d4-a716-446655440002" },
+    expect(prismaMock.appointment.updateMany).toHaveBeenCalledWith({
+      where: { id: "550e8400-e29b-41d4-a716-446655440002", clinicId: "clinic-1", status: "CONFIRMED" },
       data: expect.objectContaining({ status: "COMPLETED", paymentMethod: "PIX", paidAt: expect.any(Date) }),
     });
+  });
+
+  it("rejeita uma atualização concorrente do mesmo atendimento", async () => {
+    prismaMock.appointment.findFirst.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440002", status: "PENDING" });
+    prismaMock.appointment.updateMany.mockResolvedValueOnce({ count: 0 });
+
+    const result = await updateAppointmentStatus("550e8400-e29b-41d4-a716-446655440002", { status: "CONFIRMED" });
+
+    expect(result.status).toBe("error");
+    expect(result.message).toContain("outra operação");
   });
 });
 

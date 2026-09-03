@@ -15,10 +15,27 @@ export async function cancelSubscription(): Promise<ActionResult> {
       return { status: "error", message: "Nenhuma loja encontrada para este usuário." };
     }
 
-    const { clinic } = tenant;
-    const billingClinic = clinic.billingOwnerId
-      ? await prisma.clinic.findUnique({ where: { id: clinic.billingOwnerId } })
-      : clinic;
+    const { clinic, membership: actorMembership } = tenant;
+    let billingClinic: typeof clinic | null = clinic;
+
+    if (clinic.billingOwnerId) {
+      const ownerMembership = await prisma.membership.findUnique({
+        where: {
+          clinicId_userId: {
+            clinicId: clinic.billingOwnerId,
+            userId: actorMembership.userId,
+          },
+        },
+        select: { role: true },
+      });
+
+      if (ownerMembership?.role !== "ADMIN") {
+        return { status: "error", message: "Somente um administrador da unidade principal pode cancelar esta assinatura." };
+      }
+
+      billingClinic = await prisma.clinic.findUnique({ where: { id: clinic.billingOwnerId } });
+    }
+
     if (!billingClinic) return { status: "error", message: "A unidade principal da assinatura não foi encontrada." };
 
     if (billingClinic.subscriptionStatus !== SubscriptionStatus.TRIALING && billingClinic.subscriptionStatus !== SubscriptionStatus.ACTIVE && billingClinic.subscriptionStatus !== SubscriptionStatus.PAST_DUE) {

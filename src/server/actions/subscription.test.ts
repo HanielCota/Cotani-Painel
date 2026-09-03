@@ -13,7 +13,11 @@ vi.mock("@/server/tenant", () => ({
 vi.mock("@/lib/prisma", () => ({
   default: {
     clinic: {
+      findUnique: vi.fn(),
       update: vi.fn(),
+    },
+    membership: {
+      findUnique: vi.fn(),
     },
   },
 }));
@@ -62,5 +66,23 @@ describe("cancelSubscription", () => {
     expect(result.status).toBe("error");
     expect(result.message).toContain("Mercado Pago");
     expect(mockedPrismaClinicUpdate).not.toHaveBeenCalled();
+  });
+
+  it("impede que administrador de filial cancele a assinatura da unidade principal", async () => {
+    mockedGetTenantContext.mockResolvedValueOnce({
+      clinic: {
+        id: "branch-1",
+        billingOwnerId: "owner-1",
+        subscriptionStatus: SubscriptionStatus.ACTIVE,
+      },
+      membership: { id: "membership-1", userId: "user-branch" },
+    } as Awaited<ReturnType<typeof tenantModule.getTenantContext>>);
+    vi.mocked(prisma.membership.findUnique).mockResolvedValueOnce(null);
+
+    const result = await cancelSubscription();
+
+    expect(result.status).toBe("error");
+    expect(result.message).toContain("unidade principal");
+    expect(prisma.clinic.findUnique).not.toHaveBeenCalled();
   });
 });

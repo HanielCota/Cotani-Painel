@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { allowClinicInvitation } from "@/server/services/action-rate-limit";
 import { ensureCurrentAppUser } from "@/server/auth";
 import { getTenantContext, requireRole, ACTIVE_CLINIC_COOKIE } from "@/server/tenant";
 import { slugify } from "@/server/services/clinic-provisioning";
@@ -146,12 +147,15 @@ export async function inviteClinicMember(_previousState: ActionResult, formData:
   const parsed = inviteSchema.safeParse({ email: formData.get("email"), role: formData.get("role"), professionalId: formData.get("professionalId") || undefined });
   if (!parsed.success) return { status: "error", message: "Revise o e-mail e o papel do convite." };
   const tenant = requireRole(await getTenantContext(), ["ADMIN"]);
+  const { authUser, appUser } = await ensureCurrentAppUser();
+  if (!(await allowClinicInvitation(tenant.clinic.id, authUser.id))) {
+    return { status: "error", message: "Muitos convites enviados. Aguarde antes de tentar novamente." };
+  }
   if (parsed.data.role === "PROVIDER" && !parsed.data.professionalId) return { status: "error", message: "Selecione qual profissional usará este acesso." };
   const selectedProfessional = parsed.data.professionalId
     ? await prisma.professional.findFirst({ where: { id: parsed.data.professionalId, clinicId: tenant.clinic.id, isActive: true }, select: { id: true, membershipId: true } })
     : null;
   if (parsed.data.professionalId && (!selectedProfessional || selectedProfessional.membershipId)) return { status: "error", message: "O profissional selecionado não está disponível para vínculo." };
-  const { appUser } = await ensureCurrentAppUser();
   const existingUser = await prisma.user.findFirst({ where: { email: { equals: parsed.data.email, mode: "insensitive" } } });
   if (existingUser) {
     const existingMembership = await prisma.membership.findUnique({ where: { clinicId_userId: { clinicId: tenant.clinic.id, userId: existingUser.id } } });

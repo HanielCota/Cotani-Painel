@@ -5,6 +5,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { normalizeWhatsAppPhone } from "@/lib/phone";
 import { logger } from "@/lib/logger";
+import { readRequestText, RequestBodyTooLargeError } from "@/lib/request-body";
 
 interface MetaMessage {
   id?: string;
@@ -16,6 +17,8 @@ interface MetaMessage {
 interface MetaWebhookPayload {
   entry?: Array<{ changes?: Array<{ value?: { messages?: MetaMessage[] } }> }>;
 }
+
+const MAX_WEBHOOK_BODY_BYTES = 256 * 1024;
 
 function verifySignature(rawBody: string, signature: string | null): boolean {
   const secret = process.env.META_APP_SECRET?.trim();
@@ -38,7 +41,16 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const rawBody = await request.text();
+  let rawBody: string;
+  try {
+    rawBody = await readRequestText(request, MAX_WEBHOOK_BODY_BYTES);
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json({ message: "Corpo do webhook muito grande." }, { status: 413 });
+    }
+    return NextResponse.json({ message: "Corpo inválido." }, { status: 400 });
+  }
+
   if (!verifySignature(rawBody, request.headers.get("x-hub-signature-256"))) {
     return NextResponse.json({ message: "Assinatura inválida." }, { status: 401 });
   }

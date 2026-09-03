@@ -1,3 +1,5 @@
+import "server-only";
+
 import { SubscriptionStatus } from "@/generated/prisma/enums";
 
 export const SUBSCRIPTION_INACTIVE_MESSAGE =

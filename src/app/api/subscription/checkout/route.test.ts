@@ -37,6 +37,8 @@ describe("checkout de assinatura", () => {
   });
 
   it("rejeita JSON inválido", async () => {
+    vi.mocked(getApiTenant).mockResolvedValueOnce({ ok: true, context: { clinic: { id: "clinic-1" } } } as never);
+    vi.mocked(ensureCurrentAppUser).mockResolvedValueOnce({ appUser: { email: "cliente@cotani.com.br" } } as never);
     const response = await POST(request("{"));
     expect(response.status).toBe(400);
   });
