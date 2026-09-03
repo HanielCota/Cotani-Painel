@@ -63,6 +63,23 @@ describe("PasswordRecoveryForm", () => {
     await waitFor(() => expect(screen.getByLabelText("E-mail")).toBeInTheDocument());
   });
 
+  it("envia apenas uma solicitação mesmo com submissões repetidas", async () => {
+    let resolveRequest!: (value: { error: null }) => void;
+    resetPasswordForEmail.mockReturnValue(new Promise((resolve) => {
+      resolveRequest = resolve;
+    }));
+    render(<PasswordRecoveryForm mode="request" />);
+
+    fireEvent.change(screen.getByLabelText("E-mail"), { target: { value: "teste@cotani.com.br" } });
+    const form = screen.getByRole("button", { name: "Enviar e-mail de recuperação" }).closest("form")!;
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+
+    expect(resetPasswordForEmail).toHaveBeenCalledTimes(1);
+    resolveRequest({ error: null });
+    expect(await screen.findByRole("heading", { name: "Verifique seu e-mail" })).toBeInTheDocument();
+  });
+
   it("explica quando a política do Supabase rejeita a nova senha", async () => {
     updateUser.mockResolvedValue({
       error: { code: "weak_password", message: "Password should be at least 8 characters." },

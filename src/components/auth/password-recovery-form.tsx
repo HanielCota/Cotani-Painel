@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { AlertCircleIcon, CheckCircle2Icon, MailCheckIcon } from "lucide-react";
@@ -33,6 +33,7 @@ export function PasswordRecoveryForm({ mode }: { mode: "request" | "update" }) {
   const [ready, setReady] = useState(mode === "request");
   const [requestedEmail, setRequestedEmail] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const submittingRef = useRef(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -59,25 +60,50 @@ export function PasswordRecoveryForm({ mode }: { mode: "request" | "update" }) {
   }, [mode]);
 
   async function submit(formData: FormData) {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setPending(true);
     setSubmitError(null);
-    const supabase = createClient();
-    const email = String(formData.get("email") ?? "").trim();
-    const error = mode === "request"
-      ? (await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/auth/callback?next=/update-password` })).error
-      : (await supabase.auth.updateUser({ password: String(formData.get("password") ?? "") })).error;
-    setPending(false);
-    if (error) {
-      const message = recoveryErrorMessage(error, mode);
+    let succeeded = false;
+
+    try {
+      const supabase = createClient();
+      const email = String(formData.get("email") ?? "").trim();
+      const error = mode === "request"
+        ? (await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/auth/callback?next=/update-password` })).error
+        : (await supabase.auth.updateUser({ password: String(formData.get("password") ?? "") })).error;
+
+      if (error) {
+        const message = recoveryErrorMessage(error, mode);
+        setSubmitError(message);
+        toast.error(message);
+        return;
+      }
+
+      succeeded = true;
+      if (mode === "request") {
+        setRequestedEmail(email);
+        toast.success("Solicitação enviada. Verifique sua caixa de entrada.");
+      } else {
+        toast.success("Senha atualizada.");
+        router.push("/dashboard");
+        router.refresh();
+      }
+    } catch {
+      const message = mode === "request"
+        ? "Não foi possível enviar o e-mail agora. Verifique sua conexão e tente novamente."
+        : "Não foi possível atualizar a senha. Verifique sua conexão e tente novamente.";
       setSubmitError(message);
       toast.error(message);
-      return;
+    } finally {
+      setPending(false);
+      if (!succeeded) submittingRef.current = false;
     }
-    if (mode === "request") {
-      setRequestedEmail(email);
-      toast.success("Solicitação enviada. Verifique sua caixa de entrada.");
-    }
-    else { toast.success("Senha atualizada."); router.push("/dashboard"); router.refresh(); }
+  }
+
+  function resetRequest() {
+    submittingRef.current = false;
+    setRequestedEmail(null);
   }
 
   if (mode === "request" && requestedEmail) {
@@ -107,7 +133,7 @@ export function PasswordRecoveryForm({ mode }: { mode: "request" | "update" }) {
 
         <div className="space-y-2">
           <Button type="button" className="w-full" onClick={() => router.push("/sign-in")}>Voltar para entrar</Button>
-          <Button type="button" variant="ghost" className="w-full" onClick={() => setRequestedEmail(null)}>Enviar novamente</Button>
+          <Button type="button" variant="ghost" className="w-full" onClick={resetRequest}>Enviar novamente</Button>
         </div>
       </div>
     );
