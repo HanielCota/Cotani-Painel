@@ -346,17 +346,17 @@ export function AppSidebar({ subscriptionPlan, role, user, clinics, activeClinic
 
   return (
     <Sidebar collapsible="icon" variant="sidebar" className="top-0 h-svh border-r border-sidebar-border bg-sidebar">
-      <SidebarHeader className="px-4 pt-5 pb-3">
+      <SidebarHeader className="overflow-hidden px-4 pt-5 pb-3 transition-[padding] duration-300 ease-in-out motion-reduce:transition-none group-data-[collapsible=icon]:px-2">
         <div className="flex items-center justify-between group-data-[collapsible=icon]:justify-center">
-          <div className="flex items-center gap-2">
+          <div className="flex max-w-44 min-w-0 items-center gap-2 overflow-hidden opacity-100 transition-[max-width,opacity,transform] duration-300 ease-in-out motion-reduce:transition-none group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:-translate-x-2 group-data-[collapsible=icon]:opacity-0">
             <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
               <Building2Icon className="size-5" />
             </div>
-            <span className="text-lg font-bold tracking-tight text-foreground group-data-[collapsible=icon]:hidden">
+            <span className="truncate text-lg font-bold tracking-tight text-foreground">
               Cotani
             </span>
           </div>
-          <SidebarTrigger className="size-8 text-muted-foreground hover:text-foreground group-data-[collapsible=icon]:hidden" />
+          <SidebarTrigger className="size-8 shrink-0 text-muted-foreground hover:text-foreground" />
         </div>
         <ProfileCompanyCard user={user} clinics={clinics} activeClinicId={activeClinicId} />
       </SidebarHeader>
