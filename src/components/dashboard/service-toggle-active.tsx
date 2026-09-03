@@ -28,8 +28,10 @@ export function ServiceToggleActive({ service }: ServiceToggleActiveProps) {
       const nextResult = await toggleServiceActive(service.id);
 
       if (nextResult.status === "success") {
-        queryClient.invalidateQueries({ queryKey: ["services"] });
-        queryClient.invalidateQueries({ queryKey: ["appointments"] });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["services"] }),
+          queryClient.invalidateQueries({ queryKey: ["appointments"] }),
+        ]);
         setOpen(false);
         toast.success(nextResult.message);
         return;

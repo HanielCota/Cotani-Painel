@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 
 export default function DashboardError({ error, unstable_retry }: { error: Error & { digest?: string }; unstable_retry: () => void }) {
   useEffect(() => {
-    console.error(error);
+    if (process.env.NODE_ENV === "development") console.error(error);
+    else console.error("[dashboard-error]", { digest: error.digest });
   }, [error]);
 
   return (

@@ -8,7 +8,8 @@ import "./globals.css";
 
 export default function GlobalError({ error, unstable_retry }: { error: Error & { digest?: string }; unstable_retry: () => void }) {
   useEffect(() => {
-    console.error(error);
+    if (process.env.NODE_ENV === "development") console.error(error);
+    else console.error("[global-error]", { digest: error.digest });
   }, [error]);
 
   return (

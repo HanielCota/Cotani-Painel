@@ -28,7 +28,7 @@ export function DeleteCustomerDialog({ customerId, customerName }: DeleteCustome
       const nextResult = await deleteCustomer(customerId);
 
       if (nextResult.status === "success") {
-        queryClient.invalidateQueries({ queryKey: ["customers"] });
+        await queryClient.invalidateQueries({ queryKey: ["customers"] });
         setOpen(false);
         return;
       }

@@ -1,3 +1,5 @@
+import "server-only";
+
 import { Invoice, MercadoPagoConfig, PreApproval, WebhookSignatureValidator } from "mercadopago";
 
 import { BillingCycle, SubscriptionPlan, SubscriptionStatus } from "@/generated/prisma/enums";

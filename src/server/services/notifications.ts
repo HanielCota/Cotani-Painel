@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { Prisma } from "@/generated/prisma/client";
 import type { NotificationChannel, NotificationKind } from "@/generated/prisma/enums";
 

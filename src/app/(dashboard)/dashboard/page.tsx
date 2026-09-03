@@ -35,9 +35,8 @@ import { withTenant } from "@/server/with-tenant";
 export const metadata: Metadata = { title: "Visão geral" };
 
 export default withTenant(async ({ clinic }) => {
-  const bookingUrl = await getPublicBookingUrl(clinic.slug);
-
-  const [servicesCount, businessHoursCount, professionalsCount, appointmentsCount] = await Promise.all([
+  const [bookingUrl, servicesCount, businessHoursCount, professionalsCount, appointmentsCount] = await Promise.all([
+    getPublicBookingUrl(clinic.slug),
     prisma.service.count({ where: { clinicId: clinic.id, isActive: true } }),
     prisma.businessHour.count({ where: { clinicId: clinic.id, isOpen: true } }),
     prisma.professional.count({ where: { clinicId: clinic.id, isActive: true } }),

@@ -111,7 +111,7 @@ export function AppointmentActions({ appointmentId, status }: AppointmentActions
 
       if (nextResult.status === "success") {
         setDropdownOpen(false);
-        queryClient.invalidateQueries({ queryKey: ["appointments"] });
+        await queryClient.invalidateQueries({ queryKey: ["appointments"] });
       }
     });
   }
@@ -133,7 +133,7 @@ export function AppointmentActions({ appointmentId, status }: AppointmentActions
       if (nextResult.status === "success") {
         setCompleteDialogOpen(false);
         setPaymentMethod("");
-        queryClient.invalidateQueries({ queryKey: ["appointments"] });
+        await queryClient.invalidateQueries({ queryKey: ["appointments"] });
       }
     });
   }

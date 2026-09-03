@@ -26,8 +26,7 @@ export async function generateMetadata({ params }: SuccessPageProps): Promise<Me
 }
 
 export default async function SuccessPage({ params, searchParams }: SuccessPageProps) {
-  const { slug } = await params;
-  const { service, professional, date, time } = await searchParams;
+  const [{ slug }, { service, professional, date, time }] = await Promise.all([params, searchParams]);
 
   const clinic = await prisma.clinic.findUnique({
     where: { slug },

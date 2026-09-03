@@ -59,7 +59,9 @@ export function AppointmentForm({ customers, services, minStartTime, timeZone, c
       return;
     }
 
-    queryClient.invalidateQueries({ queryKey: ["appointments"] });
+    void queryClient.invalidateQueries({ queryKey: ["appointments"] }).catch(() => {
+      toast.error("O atendimento foi salvo, mas a lista não pôde ser atualizada.");
+    });
     toast.success(state.message);
     onSuccess?.();
   }, [state, queryClient, onSuccess]);

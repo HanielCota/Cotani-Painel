@@ -1,3 +1,5 @@
+import "server-only";
+
 import { randomUUID } from "node:crypto";
 
 import type { Prisma } from "@/generated/prisma/client";
@@ -196,10 +198,16 @@ export async function rescheduleScheduledAppointment(
       if (conflict) return "conflict" as const;
 
       stage = "appointment-update";
-      await transaction.appointment.update({
-        where: { id: params.appointmentId },
+      const updated = await transaction.appointment.updateMany({
+        where: {
+          id: params.appointmentId,
+          clinicId: params.clinicId,
+          status: { in: ["PENDING", "CONFIRMED"] },
+        },
         data: { startTime: params.startTime, endTime },
       });
+
+      if (updated.count !== 1) return "error" as const;
 
       stage = "notification-outbox";
       await replaceAppointmentReminders(transaction, {

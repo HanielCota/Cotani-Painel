@@ -34,7 +34,9 @@ export function EditCustomerDialog({ customer }: EditCustomerDialogProps) {
       return;
     }
 
-    queryClient.invalidateQueries({ queryKey: ["customers"] });
+    void queryClient.invalidateQueries({ queryKey: ["customers"] }).catch(() => {
+      toast.error("O cliente foi salvo, mas a lista não pôde ser atualizada.");
+    });
   }, [state, queryClient]);
 
   return (

@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { NotificationChannel, NotificationKind } from "@/generated/prisma/enums";
 import { normalizeWhatsAppPhone } from "@/lib/phone";
 

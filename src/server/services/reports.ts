@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { ClinicModel } from "@/generated/prisma/models/Clinic";
 import prisma from "@/lib/prisma";
 import { getClinicDateBounds, getClinicMonthlyBounds } from "@/lib/timezone";

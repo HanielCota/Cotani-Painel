@@ -14,11 +14,11 @@ interface GlobalErrorProps {
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
-    console.error("[global-error]", {
-      message: error.message,
-      digest: error.digest,
-      stack: error.stack,
-    });
+    if (process.env.NODE_ENV === "development") {
+      console.error("[global-error]", { message: error.message, digest: error.digest, stack: error.stack });
+    } else {
+      console.error("[global-error]", { digest: error.digest });
+    }
   }, [error]);
 
   return (

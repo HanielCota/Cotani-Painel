@@ -1,6 +1,7 @@
 "use client";
 
 import { CalendarIcon, CalendarPlusIcon, Share2Icon, SmartphoneIcon } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
@@ -150,16 +151,27 @@ export function SuccessActions({
 
   const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/${slug}` : "";
 
-  function handleShare() {
-    if (navigator.share) {
-      void navigator.share({
-        title: `Agendamento confirmado em ${clinicName}`,
-        text: eventDetails,
-        url: publicUrl,
-      });
-    } else if (navigator.clipboard) {
-      void navigator.clipboard.writeText(publicUrl);
-      alert("Link copiado para a área de transferência.");
+  async function handleShare() {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `Agendamento confirmado em ${clinicName}`,
+          text: eventDetails,
+          url: publicUrl,
+        });
+        return;
+      }
+
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(publicUrl);
+        toast.success("Link copiado para a área de transferência.");
+        return;
+      }
+
+      toast.error("O compartilhamento não está disponível neste navegador.");
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      toast.error("Não foi possível compartilhar o link.");
     }
   }
 

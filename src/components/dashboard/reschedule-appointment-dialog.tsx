@@ -37,7 +37,9 @@ export function RescheduleAppointmentDialog({ appointmentId, currentStartTime, m
       return;
     }
 
-    queryClient.invalidateQueries({ queryKey: ["appointments"] });
+    void queryClient.invalidateQueries({ queryKey: ["appointments"] }).catch(() => {
+      toast.error("O atendimento foi reagendado, mas a lista não pôde ser atualizada.");
+    });
   }, [state, queryClient]);
 
   return (

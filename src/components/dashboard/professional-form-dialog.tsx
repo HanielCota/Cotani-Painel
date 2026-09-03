@@ -122,8 +122,10 @@ export function ProfessionalFormDialog({ professional }: ProfessionalFormDialogP
         return;
       }
 
-      queryClient.invalidateQueries({ queryKey: ["professionals"] });
-      queryClient.invalidateQueries({ queryKey: ["services"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["professionals"] }),
+        queryClient.invalidateQueries({ queryKey: ["services"] }),
+      ]);
       setOpen(false);
       formRef.current?.reset();
       setPreview(null);

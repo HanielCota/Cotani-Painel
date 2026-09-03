@@ -1,3 +1,5 @@
+import "server-only";
+
 import prisma from "@/lib/prisma";
 
 const DAY = 24 * 60 * 60 * 1000;

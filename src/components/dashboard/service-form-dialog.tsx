@@ -100,7 +100,7 @@ export function ServiceFormDialog({ service }: ServiceFormDialogProps) {
       }
 
       setResult(nextResult);
-      queryClient.invalidateQueries({ queryKey: ["services"] });
+      await queryClient.invalidateQueries({ queryKey: ["services"] });
       setOpen(false);
       formRef.current?.reset();
       setImagePreview(null);

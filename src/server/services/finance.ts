@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { AppointmentStatus } from "@/generated/prisma/enums";
 
 import type { ClinicModel } from "@/generated/prisma/models/Clinic";

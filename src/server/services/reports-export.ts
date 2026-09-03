@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { ReportAppointment } from "@/server/services/reports";
 
 const statusLabels: Record<string, string> = {

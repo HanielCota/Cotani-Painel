@@ -1,3 +1,5 @@
+import "server-only";
+
 import { unstable_cache } from "next/cache";
 
 import type { Prisma } from "@/generated/prisma/client";

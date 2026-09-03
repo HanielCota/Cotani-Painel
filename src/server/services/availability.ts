@@ -1,3 +1,5 @@
+import "server-only";
+
 import prisma from "@/lib/prisma";
 import { formatClinicDateTimeInput, getClinicDateBounds, parseClinicDateTime } from "@/lib/timezone";
 import { isWithinBookingWindow } from "@/config/booking";

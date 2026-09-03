@@ -28,11 +28,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    logger.error("Erro capturado por ErrorBoundary", {
-      message: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack,
-    });
+    logger.error(
+      "Erro capturado por ErrorBoundary",
+      process.env.NODE_ENV === "development"
+        ? { message: error.message, stack: error.stack, componentStack: errorInfo.componentStack }
+        : undefined,
+    );
   }
 
   handleReset = () => {
@@ -50,7 +51,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           <AlertTriangleIcon className="size-4" />
           <AlertTitle>Erro ao carregar este componente</AlertTitle>
           <AlertDescription className="flex flex-col gap-2">
-            <span>{this.state.error?.message ?? "Erro desconhecido"}</span>
+            <span>
+              {process.env.NODE_ENV === "development"
+                ? this.state.error?.message ?? "Erro desconhecido"
+                : "Ocorreu uma falha inesperada. Tente novamente."}
+            </span>
             <Button variant="outline" size="sm" onClick={this.handleReset} className="w-fit">
               Tentar novamente
             </Button>
