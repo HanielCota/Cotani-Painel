@@ -92,6 +92,7 @@ model Clinic {
   mercadoPagoCheckoutKey       String?
   mercadoPagoCheckoutStartedAt DateTime?
   mercadoPagoCheckoutUrl       String?
+  billingReconciledAt          DateTime?
   cancelAtPeriodEnd             Boolean                 @default(false)
   maxAppointmentsPerDay        Int?
   operationalStatus            ClinicOperationalStatus @default(ACTIVE)
@@ -108,6 +109,7 @@ model Clinic {
   businessHours                BusinessHour[]
   professionals                Professional[]
   paymentHistory               PaymentHistory[]
+  billingContracts             BillingContract[]
   adminAuditLogs               AdminAuditLog[]
   invitations                  ClinicInvitation[]
   billingOwner                 Clinic?                 @relation("ClinicBillingUnits", fields: [billingOwnerId], references: [id], onDelete: Restrict)
@@ -148,10 +150,33 @@ model PaymentHistory {
   mercadoPagoPaymentId      String?           @unique
   mercadoPagoSubscriptionId String?
   paidAt                    DateTime?
+  periodEndsAt              DateTime?
+  mercadoPagoInvoiceId      String?
   createdAt                 DateTime          @default(now())
   updatedAt                 DateTime          @updatedAt
 
   @@index([clinicId, createdAt])
+}
+
+model BillingContract {
+  id                         String           @id
+  clinicId                   String
+  clinic                     Clinic           @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  plan                       SubscriptionPlan
+  cycle                      BillingCycle
+  amount                     Decimal          @db.Decimal(10, 2)
+  currency                   String           @default("BRL")
+  remotePlanId               String
+  remoteId                   String?          @unique
+  checkoutUrl                String?
+  state                      String           @default("CREATING")
+  lastReconciledAt            DateTime?
+  reconciliationOffset       Int              @default(0)
+  createdAt                  DateTime         @default(now())
+  updatedAt                  DateTime         @updatedAt
+
+  @@index([clinicId, createdAt])
+  @@index([lastReconciledAt])
 }
 
 model BusinessHour {

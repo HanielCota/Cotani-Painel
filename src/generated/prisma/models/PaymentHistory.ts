@@ -44,6 +44,8 @@ export type PaymentHistoryMinAggregateOutputType = {
   mercadoPagoPaymentId: string | null
   mercadoPagoSubscriptionId: string | null
   paidAt: Date | null
+  periodEndsAt: Date | null
+  mercadoPagoInvoiceId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -58,6 +60,8 @@ export type PaymentHistoryMaxAggregateOutputType = {
   mercadoPagoPaymentId: string | null
   mercadoPagoSubscriptionId: string | null
   paidAt: Date | null
+  periodEndsAt: Date | null
+  mercadoPagoInvoiceId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -72,6 +76,8 @@ export type PaymentHistoryCountAggregateOutputType = {
   mercadoPagoPaymentId: number
   mercadoPagoSubscriptionId: number
   paidAt: number
+  periodEndsAt: number
+  mercadoPagoInvoiceId: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -96,6 +102,8 @@ export type PaymentHistoryMinAggregateInputType = {
   mercadoPagoPaymentId?: true
   mercadoPagoSubscriptionId?: true
   paidAt?: true
+  periodEndsAt?: true
+  mercadoPagoInvoiceId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -110,6 +118,8 @@ export type PaymentHistoryMaxAggregateInputType = {
   mercadoPagoPaymentId?: true
   mercadoPagoSubscriptionId?: true
   paidAt?: true
+  periodEndsAt?: true
+  mercadoPagoInvoiceId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -124,6 +134,8 @@ export type PaymentHistoryCountAggregateInputType = {
   mercadoPagoPaymentId?: true
   mercadoPagoSubscriptionId?: true
   paidAt?: true
+  periodEndsAt?: true
+  mercadoPagoInvoiceId?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -225,6 +237,8 @@ export type PaymentHistoryGroupByOutputType = {
   mercadoPagoPaymentId: string | null
   mercadoPagoSubscriptionId: string | null
   paidAt: Date | null
+  periodEndsAt: Date | null
+  mercadoPagoInvoiceId: string | null
   createdAt: Date
   updatedAt: Date
   _count: PaymentHistoryCountAggregateOutputType | null
@@ -262,6 +276,8 @@ export type PaymentHistoryWhereInput = {
   mercadoPagoPaymentId?: Prisma.StringNullableFilter<"PaymentHistory"> | string | null
   mercadoPagoSubscriptionId?: Prisma.StringNullableFilter<"PaymentHistory"> | string | null
   paidAt?: Prisma.DateTimeNullableFilter<"PaymentHistory"> | Date | string | null
+  periodEndsAt?: Prisma.DateTimeNullableFilter<"PaymentHistory"> | Date | string | null
+  mercadoPagoInvoiceId?: Prisma.StringNullableFilter<"PaymentHistory"> | string | null
   createdAt?: Prisma.DateTimeFilter<"PaymentHistory"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PaymentHistory"> | Date | string
   clinic?: Prisma.XOR<Prisma.ClinicScalarRelationFilter, Prisma.ClinicWhereInput>
@@ -277,6 +293,8 @@ export type PaymentHistoryOrderByWithRelationInput = {
   mercadoPagoPaymentId?: Prisma.SortOrderInput | Prisma.SortOrder
   mercadoPagoSubscriptionId?: Prisma.SortOrderInput | Prisma.SortOrder
   paidAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  periodEndsAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  mercadoPagoInvoiceId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   clinic?: Prisma.ClinicOrderByWithRelationInput
@@ -295,6 +313,8 @@ export type PaymentHistoryWhereUniqueInput = Prisma.AtLeast<{
   billingCycle?: Prisma.EnumBillingCycleNullableFilter<"PaymentHistory"> | $Enums.BillingCycle | null
   mercadoPagoSubscriptionId?: Prisma.StringNullableFilter<"PaymentHistory"> | string | null
   paidAt?: Prisma.DateTimeNullableFilter<"PaymentHistory"> | Date | string | null
+  periodEndsAt?: Prisma.DateTimeNullableFilter<"PaymentHistory"> | Date | string | null
+  mercadoPagoInvoiceId?: Prisma.StringNullableFilter<"PaymentHistory"> | string | null
   createdAt?: Prisma.DateTimeFilter<"PaymentHistory"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PaymentHistory"> | Date | string
   clinic?: Prisma.XOR<Prisma.ClinicScalarRelationFilter, Prisma.ClinicWhereInput>
@@ -310,6 +330,8 @@ export type PaymentHistoryOrderByWithAggregationInput = {
   mercadoPagoPaymentId?: Prisma.SortOrderInput | Prisma.SortOrder
   mercadoPagoSubscriptionId?: Prisma.SortOrderInput | Prisma.SortOrder
   paidAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  periodEndsAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  mercadoPagoInvoiceId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.PaymentHistoryCountOrderByAggregateInput
@@ -332,6 +354,8 @@ export type PaymentHistoryScalarWhereWithAggregatesInput = {
   mercadoPagoPaymentId?: Prisma.StringNullableWithAggregatesFilter<"PaymentHistory"> | string | null
   mercadoPagoSubscriptionId?: Prisma.StringNullableWithAggregatesFilter<"PaymentHistory"> | string | null
   paidAt?: Prisma.DateTimeNullableWithAggregatesFilter<"PaymentHistory"> | Date | string | null
+  periodEndsAt?: Prisma.DateTimeNullableWithAggregatesFilter<"PaymentHistory"> | Date | string | null
+  mercadoPagoInvoiceId?: Prisma.StringNullableWithAggregatesFilter<"PaymentHistory"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PaymentHistory"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PaymentHistory"> | Date | string
 }
@@ -345,6 +369,8 @@ export type PaymentHistoryCreateInput = {
   mercadoPagoPaymentId?: string | null
   mercadoPagoSubscriptionId?: string | null
   paidAt?: Date | string | null
+  periodEndsAt?: Date | string | null
+  mercadoPagoInvoiceId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   clinic: Prisma.ClinicCreateNestedOneWithoutPaymentHistoryInput
@@ -360,6 +386,8 @@ export type PaymentHistoryUncheckedCreateInput = {
   mercadoPagoPaymentId?: string | null
   mercadoPagoSubscriptionId?: string | null
   paidAt?: Date | string | null
+  periodEndsAt?: Date | string | null
+  mercadoPagoInvoiceId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -373,6 +401,8 @@ export type PaymentHistoryUpdateInput = {
   mercadoPagoPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mercadoPagoInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   clinic?: Prisma.ClinicUpdateOneRequiredWithoutPaymentHistoryNestedInput
@@ -388,6 +418,8 @@ export type PaymentHistoryUncheckedUpdateInput = {
   mercadoPagoPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mercadoPagoInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -402,6 +434,8 @@ export type PaymentHistoryCreateManyInput = {
   mercadoPagoPaymentId?: string | null
   mercadoPagoSubscriptionId?: string | null
   paidAt?: Date | string | null
+  periodEndsAt?: Date | string | null
+  mercadoPagoInvoiceId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -415,6 +449,8 @@ export type PaymentHistoryUpdateManyMutationInput = {
   mercadoPagoPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mercadoPagoInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -429,6 +465,8 @@ export type PaymentHistoryUncheckedUpdateManyInput = {
   mercadoPagoPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mercadoPagoInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -453,6 +491,8 @@ export type PaymentHistoryCountOrderByAggregateInput = {
   mercadoPagoPaymentId?: Prisma.SortOrder
   mercadoPagoSubscriptionId?: Prisma.SortOrder
   paidAt?: Prisma.SortOrder
+  periodEndsAt?: Prisma.SortOrder
+  mercadoPagoInvoiceId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -471,6 +511,8 @@ export type PaymentHistoryMaxOrderByAggregateInput = {
   mercadoPagoPaymentId?: Prisma.SortOrder
   mercadoPagoSubscriptionId?: Prisma.SortOrder
   paidAt?: Prisma.SortOrder
+  periodEndsAt?: Prisma.SortOrder
+  mercadoPagoInvoiceId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -485,6 +527,8 @@ export type PaymentHistoryMinOrderByAggregateInput = {
   mercadoPagoPaymentId?: Prisma.SortOrder
   mercadoPagoSubscriptionId?: Prisma.SortOrder
   paidAt?: Prisma.SortOrder
+  periodEndsAt?: Prisma.SortOrder
+  mercadoPagoInvoiceId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -552,6 +596,8 @@ export type PaymentHistoryCreateWithoutClinicInput = {
   mercadoPagoPaymentId?: string | null
   mercadoPagoSubscriptionId?: string | null
   paidAt?: Date | string | null
+  periodEndsAt?: Date | string | null
+  mercadoPagoInvoiceId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -565,6 +611,8 @@ export type PaymentHistoryUncheckedCreateWithoutClinicInput = {
   mercadoPagoPaymentId?: string | null
   mercadoPagoSubscriptionId?: string | null
   paidAt?: Date | string | null
+  periodEndsAt?: Date | string | null
+  mercadoPagoInvoiceId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -608,6 +656,8 @@ export type PaymentHistoryScalarWhereInput = {
   mercadoPagoPaymentId?: Prisma.StringNullableFilter<"PaymentHistory"> | string | null
   mercadoPagoSubscriptionId?: Prisma.StringNullableFilter<"PaymentHistory"> | string | null
   paidAt?: Prisma.DateTimeNullableFilter<"PaymentHistory"> | Date | string | null
+  periodEndsAt?: Prisma.DateTimeNullableFilter<"PaymentHistory"> | Date | string | null
+  mercadoPagoInvoiceId?: Prisma.StringNullableFilter<"PaymentHistory"> | string | null
   createdAt?: Prisma.DateTimeFilter<"PaymentHistory"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PaymentHistory"> | Date | string
 }
@@ -621,6 +671,8 @@ export type PaymentHistoryCreateManyClinicInput = {
   mercadoPagoPaymentId?: string | null
   mercadoPagoSubscriptionId?: string | null
   paidAt?: Date | string | null
+  periodEndsAt?: Date | string | null
+  mercadoPagoInvoiceId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -634,6 +686,8 @@ export type PaymentHistoryUpdateWithoutClinicInput = {
   mercadoPagoPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mercadoPagoInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -647,6 +701,8 @@ export type PaymentHistoryUncheckedUpdateWithoutClinicInput = {
   mercadoPagoPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mercadoPagoInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -660,6 +716,8 @@ export type PaymentHistoryUncheckedUpdateManyWithoutClinicInput = {
   mercadoPagoPaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  periodEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mercadoPagoInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -676,6 +734,8 @@ export type PaymentHistorySelect<ExtArgs extends runtime.Types.Extensions.Intern
   mercadoPagoPaymentId?: boolean
   mercadoPagoSubscriptionId?: boolean
   paidAt?: boolean
+  periodEndsAt?: boolean
+  mercadoPagoInvoiceId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   clinic?: boolean | Prisma.ClinicDefaultArgs<ExtArgs>
@@ -691,6 +751,8 @@ export type PaymentHistorySelectCreateManyAndReturn<ExtArgs extends runtime.Type
   mercadoPagoPaymentId?: boolean
   mercadoPagoSubscriptionId?: boolean
   paidAt?: boolean
+  periodEndsAt?: boolean
+  mercadoPagoInvoiceId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   clinic?: boolean | Prisma.ClinicDefaultArgs<ExtArgs>
@@ -706,6 +768,8 @@ export type PaymentHistorySelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   mercadoPagoPaymentId?: boolean
   mercadoPagoSubscriptionId?: boolean
   paidAt?: boolean
+  periodEndsAt?: boolean
+  mercadoPagoInvoiceId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   clinic?: boolean | Prisma.ClinicDefaultArgs<ExtArgs>
@@ -721,11 +785,13 @@ export type PaymentHistorySelectScalar = {
   mercadoPagoPaymentId?: boolean
   mercadoPagoSubscriptionId?: boolean
   paidAt?: boolean
+  periodEndsAt?: boolean
+  mercadoPagoInvoiceId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type PaymentHistoryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clinicId" | "amount" | "status" | "plan" | "billingCycle" | "mercadoPagoPaymentId" | "mercadoPagoSubscriptionId" | "paidAt" | "createdAt" | "updatedAt", ExtArgs["result"]["paymentHistory"]>
+export type PaymentHistoryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clinicId" | "amount" | "status" | "plan" | "billingCycle" | "mercadoPagoPaymentId" | "mercadoPagoSubscriptionId" | "paidAt" | "periodEndsAt" | "mercadoPagoInvoiceId" | "createdAt" | "updatedAt", ExtArgs["result"]["paymentHistory"]>
 export type PaymentHistoryInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   clinic?: boolean | Prisma.ClinicDefaultArgs<ExtArgs>
 }
@@ -751,6 +817,8 @@ export type $PaymentHistoryPayload<ExtArgs extends runtime.Types.Extensions.Inte
     mercadoPagoPaymentId: string | null
     mercadoPagoSubscriptionId: string | null
     paidAt: Date | null
+    periodEndsAt: Date | null
+    mercadoPagoInvoiceId: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["paymentHistory"]>
@@ -1186,6 +1254,8 @@ export interface PaymentHistoryFieldRefs {
   readonly mercadoPagoPaymentId: Prisma.FieldRef<"PaymentHistory", 'String'>
   readonly mercadoPagoSubscriptionId: Prisma.FieldRef<"PaymentHistory", 'String'>
   readonly paidAt: Prisma.FieldRef<"PaymentHistory", 'DateTime'>
+  readonly periodEndsAt: Prisma.FieldRef<"PaymentHistory", 'DateTime'>
+  readonly mercadoPagoInvoiceId: Prisma.FieldRef<"PaymentHistory", 'String'>
   readonly createdAt: Prisma.FieldRef<"PaymentHistory", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"PaymentHistory", 'DateTime'>
 }

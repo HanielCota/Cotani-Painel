@@ -33,6 +33,11 @@ export type AdminAuditLog = Prisma.AdminAuditLogModel
  */
 export type PaymentHistory = Prisma.PaymentHistoryModel
 /**
+ * Model BillingContract
+ * 
+ */
+export type BillingContract = Prisma.BillingContractModel
+/**
  * Model BusinessHour
  * 
  */

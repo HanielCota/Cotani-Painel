@@ -11,6 +11,7 @@
 export type * from './models/Clinic'
 export type * from './models/AdminAuditLog'
 export type * from './models/PaymentHistory'
+export type * from './models/BillingContract'
 export type * from './models/BusinessHour'
 export type * from './models/User'
 export type * from './models/ClinicInvitation'

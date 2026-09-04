@@ -400,6 +400,7 @@ export const ModelName = {
   Clinic: 'Clinic',
   AdminAuditLog: 'AdminAuditLog',
   PaymentHistory: 'PaymentHistory',
+  BillingContract: 'BillingContract',
   BusinessHour: 'BusinessHour',
   User: 'User',
   ClinicInvitation: 'ClinicInvitation',
@@ -427,7 +428,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "clinic" | "adminAuditLog" | "paymentHistory" | "businessHour" | "user" | "clinicInvitation" | "membership" | "customer" | "service" | "professional" | "professionalService" | "appointment" | "notification" | "webhookEvent" | "rateLimit"
+    modelProps: "clinic" | "adminAuditLog" | "paymentHistory" | "billingContract" | "businessHour" | "user" | "clinicInvitation" | "membership" | "customer" | "service" | "professional" | "professionalService" | "appointment" | "notification" | "webhookEvent" | "rateLimit"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -650,6 +651,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.PaymentHistoryCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.PaymentHistoryCountAggregateOutputType> | number
+        }
+      }
+    }
+    BillingContract: {
+      payload: Prisma.$BillingContractPayload<ExtArgs>
+      fields: Prisma.BillingContractFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BillingContractFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingContractPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BillingContractFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingContractPayload>
+        }
+        findFirst: {
+          args: Prisma.BillingContractFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingContractPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BillingContractFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingContractPayload>
+        }
+        findMany: {
+          args: Prisma.BillingContractFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingContractPayload>[]
+        }
+        create: {
+          args: Prisma.BillingContractCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingContractPayload>
+        }
+        createMany: {
+          args: Prisma.BillingContractCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BillingContractCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingContractPayload>[]
+        }
+        delete: {
+          args: Prisma.BillingContractDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingContractPayload>
+        }
+        update: {
+          args: Prisma.BillingContractUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingContractPayload>
+        }
+        deleteMany: {
+          args: Prisma.BillingContractDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BillingContractUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BillingContractUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingContractPayload>[]
+        }
+        upsert: {
+          args: Prisma.BillingContractUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingContractPayload>
+        }
+        aggregate: {
+          args: Prisma.BillingContractAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBillingContract>
+        }
+        groupBy: {
+          args: Prisma.BillingContractGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BillingContractGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BillingContractCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BillingContractCountAggregateOutputType> | number
         }
       }
     }
@@ -1599,6 +1674,7 @@ export const ClinicScalarFieldEnum = {
   mercadoPagoCheckoutKey: 'mercadoPagoCheckoutKey',
   mercadoPagoCheckoutStartedAt: 'mercadoPagoCheckoutStartedAt',
   mercadoPagoCheckoutUrl: 'mercadoPagoCheckoutUrl',
+  billingReconciledAt: 'billingReconciledAt',
   cancelAtPeriodEnd: 'cancelAtPeriodEnd',
   maxAppointmentsPerDay: 'maxAppointmentsPerDay',
   operationalStatus: 'operationalStatus',
@@ -1640,11 +1716,33 @@ export const PaymentHistoryScalarFieldEnum = {
   mercadoPagoPaymentId: 'mercadoPagoPaymentId',
   mercadoPagoSubscriptionId: 'mercadoPagoSubscriptionId',
   paidAt: 'paidAt',
+  periodEndsAt: 'periodEndsAt',
+  mercadoPagoInvoiceId: 'mercadoPagoInvoiceId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type PaymentHistoryScalarFieldEnum = (typeof PaymentHistoryScalarFieldEnum)[keyof typeof PaymentHistoryScalarFieldEnum]
+
+
+export const BillingContractScalarFieldEnum = {
+  id: 'id',
+  clinicId: 'clinicId',
+  plan: 'plan',
+  cycle: 'cycle',
+  amount: 'amount',
+  currency: 'currency',
+  remotePlanId: 'remotePlanId',
+  remoteId: 'remoteId',
+  checkoutUrl: 'checkoutUrl',
+  state: 'state',
+  lastReconciledAt: 'lastReconciledAt',
+  reconciliationOffset: 'reconciliationOffset',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BillingContractScalarFieldEnum = (typeof BillingContractScalarFieldEnum)[keyof typeof BillingContractScalarFieldEnum]
 
 
 export const BusinessHourScalarFieldEnum = {
@@ -2274,6 +2372,7 @@ export type GlobalOmitConfig = {
   clinic?: Prisma.ClinicOmit
   adminAuditLog?: Prisma.AdminAuditLogOmit
   paymentHistory?: Prisma.PaymentHistoryOmit
+  billingContract?: Prisma.BillingContractOmit
   businessHour?: Prisma.BusinessHourOmit
   user?: Prisma.UserOmit
   clinicInvitation?: Prisma.ClinicInvitationOmit

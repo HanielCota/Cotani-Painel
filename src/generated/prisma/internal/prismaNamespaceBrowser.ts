@@ -54,6 +54,7 @@ export const ModelName = {
   Clinic: 'Clinic',
   AdminAuditLog: 'AdminAuditLog',
   PaymentHistory: 'PaymentHistory',
+  BillingContract: 'BillingContract',
   BusinessHour: 'BusinessHour',
   User: 'User',
   ClinicInvitation: 'ClinicInvitation',
@@ -103,6 +104,7 @@ export const ClinicScalarFieldEnum = {
   mercadoPagoCheckoutKey: 'mercadoPagoCheckoutKey',
   mercadoPagoCheckoutStartedAt: 'mercadoPagoCheckoutStartedAt',
   mercadoPagoCheckoutUrl: 'mercadoPagoCheckoutUrl',
+  billingReconciledAt: 'billingReconciledAt',
   cancelAtPeriodEnd: 'cancelAtPeriodEnd',
   maxAppointmentsPerDay: 'maxAppointmentsPerDay',
   operationalStatus: 'operationalStatus',
@@ -144,11 +146,33 @@ export const PaymentHistoryScalarFieldEnum = {
   mercadoPagoPaymentId: 'mercadoPagoPaymentId',
   mercadoPagoSubscriptionId: 'mercadoPagoSubscriptionId',
   paidAt: 'paidAt',
+  periodEndsAt: 'periodEndsAt',
+  mercadoPagoInvoiceId: 'mercadoPagoInvoiceId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type PaymentHistoryScalarFieldEnum = (typeof PaymentHistoryScalarFieldEnum)[keyof typeof PaymentHistoryScalarFieldEnum]
+
+
+export const BillingContractScalarFieldEnum = {
+  id: 'id',
+  clinicId: 'clinicId',
+  plan: 'plan',
+  cycle: 'cycle',
+  amount: 'amount',
+  currency: 'currency',
+  remotePlanId: 'remotePlanId',
+  remoteId: 'remoteId',
+  checkoutUrl: 'checkoutUrl',
+  state: 'state',
+  lastReconciledAt: 'lastReconciledAt',
+  reconciliationOffset: 'reconciliationOffset',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BillingContractScalarFieldEnum = (typeof BillingContractScalarFieldEnum)[keyof typeof BillingContractScalarFieldEnum]
 
 
 export const BusinessHourScalarFieldEnum = {

@@ -519,14 +519,6 @@ export type BusinessHourUncheckedUpdateManyWithoutClinicNestedInput = {
   deleteMany?: Prisma.BusinessHourScalarWhereInput | Prisma.BusinessHourScalarWhereInput[]
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type BusinessHourCreateWithoutClinicInput = {
   id?: string
   dayOfWeek: number
