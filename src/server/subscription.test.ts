@@ -8,6 +8,17 @@ import {
 } from "@/server/subscription";
 
 describe("isSubscriptionActive", () => {
+  it("bloqueia unidade que reteve status ativo após downgrade", () => {
+    expect(isSubscriptionActive({ subscriptionStatus: "ACTIVE", subscriptionExpiresAt: new Date("2099-01-01"), billingOwnerId: "owner", subscriptionPlan: "PROFESSIONAL" })).toBe(false);
+  });
+  it("não aceita vigência em cache da unidade se o titular venceu", () => {
+    expect(isSubscriptionActive({ subscriptionStatus: "ACTIVE", subscriptionExpiresAt: new Date("2099-01-01"), billingOwnerId: "owner", subscriptionPlan: "ENTERPRISE",
+      billingOwner: { subscriptionStatus: "INACTIVE", subscriptionPlan: "ENTERPRISE", operationalStatus: "ACTIVE" } })).toBe(false);
+  });
+  it("bloqueia exatamente no instante do vencimento", () => {
+    const now = new Date();
+    expect(isSubscriptionActive({ subscriptionStatus: "ACTIVE", subscriptionExpiresAt: now }, now)).toBe(false);
+  });
   it("retorna true quando status é ACTIVE", () => {
     expect(isSubscriptionActive({
       subscriptionStatus: SubscriptionStatus.ACTIVE,

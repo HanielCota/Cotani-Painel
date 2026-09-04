@@ -15,6 +15,7 @@ import { PlanUpgradeRequired } from "@/components/dashboard/plan-upgrade-require
 import { getPlanEntitlements } from "@/config/subscription-plans";
 import { financePeriodLabels, getFinanceMetrics, type FinancePeriod } from "@/server/services/finance";
 import { withTenant } from "@/server/with-tenant";
+import { isSubscriptionActive } from "@/server/subscription";
 
 export const metadata: Metadata = { title: "Financeiro" };
 
@@ -25,7 +26,7 @@ interface FinancePageProps {
 const financePeriods = new Set<FinancePeriod>(["today", "7days", "30days", "month", "year"]);
 
 export default withTenant<FinancePageProps>(async ({ clinic }, { searchParams }) => {
-  if (!getPlanEntitlements(clinic.subscriptionPlan).finance) {
+  if (!isSubscriptionActive(clinic) || !getPlanEntitlements(clinic.subscriptionPlan).finance) {
     return <PlanUpgradeRequired feature="Controle financeiro" />;
   }
   const rawPeriod = (await searchParams).period;

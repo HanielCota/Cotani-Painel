@@ -55,14 +55,14 @@ export const getTenantContext = cache(async (): Promise<TenantContext> => {
       clinicId: selectedClinicId ?? undefined,
       clinic: { deletedAt: null },
     },
-    include: { clinic: true },
+    include: { clinic: { include: { billingOwner: true } } },
     orderBy: { createdAt: "asc" },
   });
 
   if (!membership && selectedClinicId) {
     membership = await prisma.membership.findFirst({
       where: { userId: appUser.id, clinic: { deletedAt: null } },
-      include: { clinic: true },
+      include: { clinic: { include: { billingOwner: true } } },
       orderBy: { createdAt: "asc" },
     });
   }

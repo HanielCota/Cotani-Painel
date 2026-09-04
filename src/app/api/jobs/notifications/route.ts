@@ -5,6 +5,8 @@ import prisma from "@/lib/prisma";
 import { matchesBearerSecret } from "@/lib/secure-compare";
 import type { NotificationModel } from "@/generated/prisma/models/Notification";
 import { getMessageSender } from "@/server/services/messaging/message-sender";
+import { isSubscriptionActive } from "@/server/subscription";
+import { getPlanEntitlements } from "@/config/subscription-plans";
 
 /**
  * Dispatcher da fila de notificações (docs/ARCHITECTURE.md, seção 5.3).
@@ -119,9 +121,16 @@ async function dispatch(request: NextRequest) {
   // Envio sequencial intencional: lote pequeno, respeita rate limits dos provedores
   // e mantém a duração da função bem abaixo do limite da Vercel.
   for (const notification of batch) {
-    const sender = getMessageSender(notification.channel);
-
     try {
+      const clinic = await prisma.clinic.findUnique({ where: { id: notification.clinicId }, include: { billingOwner: true } });
+      if (!clinic || clinic.deletedAt || clinic.operationalStatus !== "ACTIVE" || !isSubscriptionActive(clinic)
+        || (notification.channel === "SMS" && !getPlanEntitlements(clinic.subscriptionPlan).sms)) {
+        await prisma.notification.update({ where: { id: notification.id }, data: {
+          status: "CANCELED", lockedAt: null, error: "Envio não permitido pelo plano ou situação atual da loja.",
+        } });
+        continue;
+      }
+      const sender = getMessageSender(notification.channel);
       const result = await sender.send({
         channel: notification.channel,
         recipient: notification.recipient,

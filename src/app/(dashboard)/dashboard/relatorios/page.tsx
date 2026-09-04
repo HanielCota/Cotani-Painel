@@ -13,12 +13,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { getReportsMetrics } from "@/server/services/reports";
 import { withTenant } from "@/server/with-tenant";
+import { isSubscriptionActive } from "@/server/subscription";
 
 export const metadata: Metadata = { title: "Relatórios" };
 
 export default withTenant(async ({ clinic }) => {
   const entitlements = getPlanEntitlements(clinic.subscriptionPlan);
-  if (!entitlements.monthlyReports) {
+  if (!isSubscriptionActive(clinic) || !entitlements.monthlyReports) {
     return <PlanUpgradeRequired feature="Relatórios mensais" />;
   }
   const metrics = await getReportsMetrics(clinic);

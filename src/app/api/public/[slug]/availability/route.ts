@@ -40,7 +40,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const clinic = await prisma.clinic.findUnique({
     where: { slug, deletedAt: null },
-    select: { id: true, timeZone: true, maxAppointmentsPerDay: true, subscriptionStatus: true, subscriptionExpiresAt: true, trialEndsAt: true, operationalStatus: true },
+    select: { id: true, timeZone: true, maxAppointmentsPerDay: true, subscriptionStatus: true, subscriptionExpiresAt: true, trialEndsAt: true, operationalStatus: true, subscriptionPlan: true, billingOwnerId: true, billingOwner: true },
   });
 
   if (!clinic) {

@@ -9,12 +9,20 @@ interface SubscriptionAccessState {
   subscriptionStatus: SubscriptionStatus;
   trialEndsAt?: Date | null;
   subscriptionExpiresAt?: Date | null;
+  billingOwnerId?: string | null;
+  subscriptionPlan?: string | null;
+  billingOwner?: (SubscriptionAccessState & { deletedAt?: Date | null; operationalStatus?: string }) | null;
 }
 
 export function isSubscriptionActive(
   clinic: SubscriptionAccessState,
   now = new Date(),
 ): boolean {
+  if (clinic.billingOwnerId && clinic.subscriptionPlan !== "ENTERPRISE") return false;
+  if (clinic.billingOwnerId && "billingOwner" in clinic) {
+    const owner = clinic.billingOwner;
+    if (!owner || owner.deletedAt || owner.operationalStatus !== "ACTIVE" || owner.subscriptionPlan !== "ENTERPRISE" || !isSubscriptionActive(owner, now)) return false;
+  }
   if (clinic.subscriptionStatus === SubscriptionStatus.ACTIVE) {
     return clinic.subscriptionExpiresAt != null && clinic.subscriptionExpiresAt > now;
   }
