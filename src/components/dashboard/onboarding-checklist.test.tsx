@@ -62,8 +62,8 @@ describe("OnboardingChecklist", () => {
     );
 
     const reviewLinks = screen.getAllByRole("link", { name: "Revisar" });
-    expect(reviewLinks[0]).toHaveAttribute("href", "/dashboard/configuracoes?tab=business-hours");
-    expect(reviewLinks[1]).toHaveAttribute("href", "/dashboard/configuracoes?tab=services");
+    expect(reviewLinks[0]).toHaveAttribute("href", "/dashboard/negocio/horarios");
+    expect(reviewLinks[1]).toHaveAttribute("href", "/dashboard/negocio/servicos");
   });
 
   it("oculta o checklist quando todos os passos estão concluídos", async () => {

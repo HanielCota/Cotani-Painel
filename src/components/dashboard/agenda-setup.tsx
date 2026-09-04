@@ -69,11 +69,11 @@ function ServiceSetupHint() {
       </CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground">
-          O cadastro de serviços agora fica em Configurações. Cadastre pelo menos um serviço para liberar a agenda.
+          Cadastre pelo menos um serviço em Seu negócio para liberar a agenda.
         </p>
       </CardContent>
       <CardFooter>
-        <Button nativeButton={false} render={<Link href="/dashboard/configuracoes" />}>
+        <Button nativeButton={false} render={<Link href="/dashboard/negocio/servicos" />}>
           Abrir configurações
         </Button>
       </CardFooter>

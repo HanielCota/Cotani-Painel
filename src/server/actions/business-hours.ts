@@ -110,7 +110,7 @@ export async function saveBusinessHours(input: unknown): Promise<ActionResult> {
     return { status: "error", message: "Não foi possível salvar o expediente. Tente novamente." };
   }
 
-  revalidatePath("/dashboard/configuracoes");
+  revalidatePath("/dashboard/negocio/horarios");
   return { status: "success", message: "Expediente salvo." };
 }
 

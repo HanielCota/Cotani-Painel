@@ -48,6 +48,6 @@ export async function saveClinicSettings(_previousState: ActionResult, formData:
     return { status: "error", message: "Não foi possível salvar as configurações. Tente novamente." };
   }
 
-  revalidatePath("/dashboard/configuracoes");
+  revalidatePath("/dashboard/negocio/horarios");
   return { status: "success", message: "Configurações salvas." };
 }

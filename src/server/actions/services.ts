@@ -41,7 +41,7 @@ const updateServiceSchema = serviceSchema.extend({
 function revalidateServiceViews() {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/agenda");
-  revalidatePath("/dashboard/configuracoes");
+  revalidatePath("/dashboard/negocio/servicos");
 }
 
 export async function createService(input: unknown): Promise<ActionResult> {

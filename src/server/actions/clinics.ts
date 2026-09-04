@@ -169,7 +169,7 @@ export async function inviteClinicMember(_previousState: ActionResult, formData:
       const membership = await transaction.membership.create({ data: { clinicId: tenant.clinic.id, userId: existingUser.id, role: parsed.data.role } });
       if (selectedProfessional) await transaction.professional.update({ where: { id: selectedProfessional.id }, data: { membershipId: membership.id } });
     });
-    revalidatePath("/dashboard/configuracoes");
+    revalidatePath("/dashboard/negocio/equipe");
     return { status: "success", message: "Acesso adicionado à conta existente." };
   }
 
@@ -188,13 +188,14 @@ export async function inviteClinicMember(_previousState: ActionResult, formData:
   if (error) {
     const alreadyRegistered = `${error.code ?? ""} ${error.message}`.toLowerCase().match(/already|registered|exists|existente/);
     if (alreadyRegistered) {
-      revalidatePath("/dashboard/configuracoes");
+      revalidatePath("/dashboard/negocio/equipe");
       return { status: "success", message: "Convite registrado. Como essa pessoa já possui conta, peça para ela entrar novamente com o mesmo e-mail." };
     }
     await prisma.clinicInvitation.update({ where: { id: invitation.id }, data: { status: "REVOKED" } });
     return { status: "error", message: "Não foi possível enviar o convite. Tente novamente em instantes." };
   }
   await prisma.clinicInvitation.update({ where: { id: invitation.id }, data: { authUserId: data.user.id } });
+  revalidatePath("/dashboard/negocio/equipe");
   return { status: "success", message: "Convite enviado por e-mail." };
 }
 
@@ -221,7 +222,7 @@ export async function updateClinicMemberRole(formData: FormData) {
       await transaction.professional.update({ where: { id: professional.id }, data: { membershipId: membership.id } });
     }
   });
-  revalidatePath("/dashboard/configuracoes");
+  revalidatePath("/dashboard/negocio/equipe");
 }
 
 export async function removeClinicMember(formData: FormData) {
@@ -240,7 +241,7 @@ export async function removeClinicMember(formData: FormData) {
     }
     await transaction.membership.delete({ where: { id: current.id } });
   });
-  revalidatePath("/dashboard/configuracoes");
+  revalidatePath("/dashboard/negocio/equipe");
 }
 
 export async function revokeClinicInvitation(formData: FormData) {
@@ -258,5 +259,5 @@ export async function revokeClinicInvitation(formData: FormData) {
       if (data.user && !data.user.email_confirmed_at) await supabase.auth.admin.deleteUser(invitation.authUserId);
     }
   }
-  revalidatePath("/dashboard/configuracoes");
+  revalidatePath("/dashboard/negocio/equipe");
 }

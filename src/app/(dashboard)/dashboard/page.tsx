@@ -95,7 +95,7 @@ export default withTenant(async ({ clinic }) => {
           </div>
 
           <Link
-            href="/dashboard/configuracoes?tab=business-hours"
+            href="/dashboard/negocio/horarios"
             className="group flex flex-col justify-between rounded-xl border border-border/70 bg-card p-4 no-underline transition-colors hover:border-primary/30 hover:bg-primary/5"
           >
             <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -109,7 +109,7 @@ export default withTenant(async ({ clinic }) => {
           </Link>
 
           <Link
-            href="/dashboard/configuracoes?tab=services"
+            href="/dashboard/negocio/servicos"
             className="group flex flex-col justify-between rounded-xl border border-border/70 bg-card p-4 no-underline transition-colors hover:border-primary/30 hover:bg-primary/5"
           >
             <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">

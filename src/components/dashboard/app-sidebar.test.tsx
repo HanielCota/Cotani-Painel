@@ -8,19 +8,19 @@ function createSearchParams(query: string): URLSearchParams {
 
 describe("isActivePath", () => {
   it("ativa no match exato sem query string", () => {
-    expect(isActivePath("/dashboard/configuracoes", createSearchParams(""), "/dashboard/configuracoes")).toBe(true);
+    expect(isActivePath("/dashboard/negocio/servicos", createSearchParams(""), "/dashboard/negocio/servicos")).toBe(true);
   });
 
   it("não ativa quando href não tem query mas URL atual tem", () => {
-    expect(isActivePath("/dashboard/configuracoes", createSearchParams("tab=professionals"), "/dashboard/configuracoes")).toBe(false);
+    expect(isActivePath("/dashboard/negocio/servicos", createSearchParams("filtro=ativos"), "/dashboard/negocio/servicos")).toBe(false);
   });
 
   it("ativa quando query string bate", () => {
-    expect(isActivePath("/dashboard/configuracoes", createSearchParams("tab=professionals"), "/dashboard/configuracoes?tab=professionals")).toBe(true);
+    expect(isActivePath("/dashboard/clientes", createSearchParams("page=2"), "/dashboard/clientes?page=2")).toBe(true);
   });
 
   it("não ativa quando query string não bate", () => {
-    expect(isActivePath("/dashboard/configuracoes", createSearchParams("tab=professionals"), "/dashboard/configuracoes?tab=business-hours")).toBe(false);
+    expect(isActivePath("/dashboard/clientes", createSearchParams("page=2"), "/dashboard/clientes?page=3")).toBe(false);
   });
 
   it("ativa para sub-rotas", () => {
@@ -28,10 +28,11 @@ describe("isActivePath", () => {
   });
 
   it("não ativa /dashboard para sub-rotas", () => {
-    expect(isActivePath("/dashboard/agenda", createSearchParams(""), "/dashboard")).toBe(false);
+    expect(isActivePath("/dashboard/agenda", createSearchParams(""), "/dashboard", true)).toBe(false);
   });
 
-  it("ativa para serviços na aba services", () => {
-    expect(isActivePath("/dashboard/configuracoes", createSearchParams("tab=services"), "/dashboard/configuracoes?tab=services")).toBe(true);
+  it("distingue páginas do negócio", () => {
+    expect(isActivePath("/dashboard/negocio/profissionais", createSearchParams(""), "/dashboard/negocio/servicos")).toBe(false);
+    expect(isActivePath("/dashboard/negocio/servicos", createSearchParams(""), "/dashboard/negocio", true)).toBe(false);
   });
 });

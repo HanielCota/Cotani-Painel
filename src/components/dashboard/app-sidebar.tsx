@@ -14,22 +14,16 @@ import {
   DollarSignIcon,
   LayoutDashboardIcon,
   MessageCircleIcon,
-  SettingsIcon,
   SparklesIcon,
   StoreIcon,
   UsersIcon,
   Users2Icon,
+  UserRoundIcon,
   LogOutIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -62,12 +56,14 @@ interface NavigationItem {
   title: string;
   href: string;
   icon: LucideIcon;
+  exact?: boolean;
 }
 
 const dashboardItem: NavigationItem = {
   title: "Visão geral",
   href: "/dashboard",
   icon: LayoutDashboardIcon,
+  exact: true,
 };
 
 const operationItems: NavigationItem[] = [
@@ -79,34 +75,36 @@ const operationItems: NavigationItem[] = [
 ];
 
 const storeItems: NavigationItem[] = [
-  { title: "Serviços", href: "/dashboard/configuracoes?tab=services", icon: SparklesIcon },
-  { title: "Profissionais", href: "/dashboard/configuracoes?tab=professionals", icon: Users2Icon },
-  { title: "Horários", href: "/dashboard/configuracoes?tab=business-hours", icon: CalendarDaysIcon },
+  { title: "Visão do negócio", href: "/dashboard/negocio", icon: StoreIcon, exact: true },
+  { title: "Serviços", href: "/dashboard/negocio/servicos", icon: SparklesIcon },
+  { title: "Profissionais", href: "/dashboard/negocio/profissionais", icon: Users2Icon },
+  { title: "Horários", href: "/dashboard/negocio/horarios", icon: CalendarDaysIcon },
+  { title: "Equipe", href: "/dashboard/negocio/equipe", icon: UsersIcon },
+  { title: "Unidades", href: "/dashboard/negocio/unidades", icon: Building2Icon },
 ];
 
 const accountItems: NavigationItem[] = [
   { title: "Assinatura", href: "/dashboard/assinatura", icon: CreditCardIcon },
-  { title: "Configurações", href: "/dashboard/configuracoes", icon: SettingsIcon },
+  { title: "Minha conta", href: "/dashboard/minha-conta", icon: UserRoundIcon },
 ];
 
 /**
  * Determina se um item de navegação está ativo.
  * - Match exato do pathname com o href (sem query string).
  * - Para itens de sub-rota, ativa também quando pathname começa com "href/".
- * - A rota raiz "/dashboard" nunca é ativada por sub-rotas.
+ * - Itens marcados como exatos não são ativados por sub-rotas.
  * - Itens com query string só ficam ativos quando pathname e searchParams batem.
  * - Itens sem query string só ficam ativos quando a URL atual também não possui
  *   query string, evitando que múltiplos itens fiquem ativos ao mesmo tempo.
  */
-export function isActivePath(pathname: string, searchParams: URLSearchParams, href: string): boolean {
+export function isActivePath(pathname: string, searchParams: URLSearchParams, href: string, exact = false): boolean {
   const [hrefPath, hrefQuery] = href.split("?");
   const hrefSearchParams = new URLSearchParams(hrefQuery ?? "");
 
-  const pathMatches = pathname === hrefPath || (hrefPath !== "/dashboard" && pathname.startsWith(`${hrefPath}/`));
+  const pathMatches = pathname === hrefPath || (!exact && pathname.startsWith(`${hrefPath}/`));
   if (!pathMatches) return false;
 
-  // href sem query string não deve ficar ativo em URLs com query string
-  // (ex: /dashboard/configuracoes não deve ativar quando ?tab=profissionais).
+  // Um link sem query string não fica ativo quando a URL possui filtros próprios.
   if (!hrefQuery && searchParams.toString()) {
     return false;
   }
@@ -123,7 +121,7 @@ export function isActivePath(pathname: string, searchParams: URLSearchParams, hr
 function NavLink({ item }: { item: NavigationItem }) {
   const pathname = usePathname() ?? "";
   const searchParams = useSearchParams();
-  const isActive = isActivePath(pathname, searchParams, item.href);
+  const isActive = isActivePath(pathname, searchParams, item.href, item.exact);
   const Icon = item.icon;
 
   return (
@@ -222,73 +220,6 @@ function ProfileCompanyCard({ user, clinics, activeClinicId }: { user: SidebarId
   );
 }
 
-function SubNavLink({ item }: { item: NavigationItem }) {
-  const pathname = usePathname() ?? "";
-  const searchParams = useSearchParams();
-  const isActive = isActivePath(pathname, searchParams, item.href);
-  const Icon = item.icon;
-
-  return (
-    <Link
-      href={item.href}
-      className={cn(
-        "flex w-full items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors no-underline",
-        isActive
-          ? "bg-primary/10 text-primary font-medium"
-          : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-      )}
-    >
-      <Icon className="size-4 shrink-0" />
-      <span className="truncate">{item.title}</span>
-    </Link>
-  );
-}
-
-function StoreAccordion() {
-  const { state, setOpen } = useSidebar();
-
-  if (state === "collapsed") {
-    return (
-      <SidebarMenuItem>
-        <SidebarMenuButton
-          type="button"
-          tooltip="Sua Loja"
-          onClick={() => setOpen(true)}
-          className="h-10 rounded-lg px-3 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <StoreIcon className="size-4 shrink-0" />
-          <span className="truncate">Sua Loja</span>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-    );
-  }
-
-  return (
-    <SidebarMenuItem>
-      <Accordion defaultValue={["store"]} className="w-full">
-        <AccordionItem value="store" className="border-0">
-          <AccordionTrigger className="flex h-10 items-center rounded-lg px-3 py-0 text-sm font-normal text-foreground no-underline hover:bg-muted hover:no-underline [&[data-state=open]>svg]:rotate-180">
-            <span className="flex items-center gap-3">
-              <StoreIcon className="size-4 shrink-0" />
-              <span className="truncate">Sua Loja</span>
-            </span>
-          </AccordionTrigger>
-          <AccordionContent className="pb-0 pt-1 [&_a]:!no-underline">
-            <div className="relative mt-1 flex flex-col">
-              <div className="absolute bottom-0 left-[1.375rem] top-0 w-px bg-border" />
-              <div className="flex flex-col gap-1 pl-11 pr-3">
-                {storeItems.map((item) => (
-                  <SubNavLink key={item.title} item={item} />
-                ))}
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-    </SidebarMenuItem>
-  );
-}
-
 function useBottomShadow<T extends HTMLElement>() {
   const ref = useRef<T>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
@@ -371,15 +302,15 @@ export function AppSidebar({ subscriptionPlan, role, user, clinics, activeClinic
           </SidebarMenu>
         </NavSection>
 
-        {role === "ADMIN" ? <NavSection title="Sua Loja">
+        {role === "ADMIN" ? <NavSection title="Seu negócio">
           <SidebarMenu className="gap-1">
-            <StoreAccordion />
+            {storeItems.map((item) => <NavLink key={item.href} item={item} />)}
           </SidebarMenu>
         </NavSection> : null}
 
         <NavSection title="Conta">
           <SidebarMenu className="gap-1">
-            {accountItems.filter((item) => role === "ADMIN" || item.href !== "/dashboard/assinatura").filter((item) => role !== "PROVIDER" || item.href !== "/dashboard/configuracoes").map((item) => (
+            {accountItems.filter((item) => role === "ADMIN" || item.href !== "/dashboard/assinatura").map((item) => (
               <NavLink key={item.href} item={item} />
             ))}
           </SidebarMenu>

@@ -44,7 +44,7 @@ const updateProfessionalSchema = professionalSchema.extend({
 function revalidateProfessionalViews() {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/agenda");
-  revalidatePath("/dashboard/configuracoes");
+  revalidatePath("/dashboard/negocio/profissionais");
   revalidatePath("/dashboard/profissionais");
 }
 

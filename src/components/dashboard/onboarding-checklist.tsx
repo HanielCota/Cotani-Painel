@@ -94,7 +94,7 @@ export function OnboardingChecklist({
       label: "Definir expediente",
       description: "Informe os dias e horários de funcionamento.",
       done: hasBusinessHours,
-      href: "/dashboard/configuracoes?tab=business-hours",
+      href: "/dashboard/negocio/horarios",
       icon: ClockIcon,
     },
     {
@@ -102,7 +102,7 @@ export function OnboardingChecklist({
       label: "Cadastrar serviços",
       description: "Adicione os serviços oferecidos com preço e duração.",
       done: hasServices,
-      href: "/dashboard/configuracoes?tab=services",
+      href: "/dashboard/negocio/servicos",
       icon: TagIcon,
     },
     {
@@ -110,7 +110,7 @@ export function OnboardingChecklist({
       label: "Cadastrar profissionais",
       description: "Defina quem realizará os serviços da loja.",
       done: hasProfessionals,
-      href: "/dashboard/configuracoes?tab=professionals",
+      href: "/dashboard/negocio/profissionais",
       icon: UsersIcon,
     },
     {
