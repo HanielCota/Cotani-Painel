@@ -11,6 +11,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { ensureCurrentAppUser } from "@/server/auth";
 import { getAvailableClinics, getSelectedClinicId, getTenantContext, TenantResolutionError, type TenantContext } from "@/server/tenant";
 import { isSubscriptionActive } from "@/server/subscription";
+import { getSubscriptionPlanOptions } from "@/server/services/subscription-plan-options";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -104,8 +105,8 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
 
   if (!clinic.hasPaidOnce && !isSubscriptionActive(clinic)) {
     return (
-      <DashboardShell {...sidebarProps}>
-        <PaymentRequiredState clinicName={clinic.name} />
+      <DashboardShell {...sidebarProps} activeClinicId={clinic.id} subscriptionPlan={clinic.subscriptionPlan} role={role}>
+        <PaymentRequiredState clinicName={clinic.name} plans={role === "ADMIN" ? getSubscriptionPlanOptions() : undefined} />
       </DashboardShell>
     );
   }

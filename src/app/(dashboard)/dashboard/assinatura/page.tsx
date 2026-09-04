@@ -6,16 +6,16 @@ import type { Metadata } from "next";
 import { CancelSubscriptionDialog } from "@/components/dashboard/cancel-subscription-dialog";
 import { SubscriptionCheckout } from "@/components/dashboard/subscription-checkout";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { SUBSCRIPTION_PLANS, getMercadoPagoPlanEnvKey } from "@/config/subscription-plans";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BillingCycle, SubscriptionStatus } from "@/generated/prisma/enums";
+import { SubscriptionStatus } from "@/generated/prisma/enums";
 import { billingCycleLabel, paymentStatusLabel, subscriptionPlanLabel } from "@/lib/display-labels";
 import { getPaymentHistory } from "@/server/services/payment-history";
 import { isSubscriptionActive } from "@/server/subscription";
 import { withTenant } from "@/server/with-tenant";
+import { getSubscriptionPlanOptions } from "@/server/services/subscription-plan-options";
 
 export const metadata: Metadata = { title: "Assinatura" };
 
@@ -35,15 +35,6 @@ const statusDescription: Record<SubscriptionStatus, string> = {
   CANCELED: "A assinatura foi cancelada. Renove para voltar a operar.",
 };
 
-function buildPlans() {
-  return Object.values(SUBSCRIPTION_PLANS).map((plan) => ({
-    ...plan,
-    configuredCycles: ([BillingCycle.MONTHLY, BillingCycle.ANNUAL] as const).filter((cycle) =>
-      Boolean(process.env[getMercadoPagoPlanEnvKey(plan.id, cycle)]?.trim()),
-    ),
-  }));
-}
-
 const paymentStatusVariant: Record<string, "default" | "secondary" | "destructive" | "outline" | "success"> = {
   paid: "success",
   approved: "success",
@@ -54,7 +45,7 @@ const paymentStatusVariant: Record<string, "default" | "secondary" | "destructiv
 
 export default withTenant(async ({ clinic }) => {
   const active = isSubscriptionActive(clinic);
-  const plans = buildPlans();
+  const plans = getSubscriptionPlanOptions();
   const paymentHistory = await getPaymentHistory(clinic);
 
   return (

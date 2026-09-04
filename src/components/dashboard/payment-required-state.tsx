@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { CreditCardIcon } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { SubscriptionOptionsDialog } from "@/components/dashboard/subscription-options-dialog";
+import type { SubscriptionPlanData } from "@/components/dashboard/subscription-checkout";
 import {
   Empty,
   EmptyContent,
@@ -13,9 +13,10 @@ import {
 
 interface PaymentRequiredStateProps {
   clinicName?: string;
+  plans?: SubscriptionPlanData[];
 }
 
-export function PaymentRequiredState({ clinicName }: PaymentRequiredStateProps) {
+export function PaymentRequiredState({ clinicName, plans }: PaymentRequiredStateProps) {
   return (
     <Empty className="min-h-[60vh] border">
       <EmptyHeader>
@@ -30,9 +31,13 @@ export function PaymentRequiredState({ clinicName }: PaymentRequiredStateProps) 
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent className="flex max-w-md flex-col gap-3">
-        <Button nativeButton={false} render={<Link href="/dashboard/assinatura" />}>
-          Ver opções de assinatura
-        </Button>
+        {plans ? (
+          <SubscriptionOptionsDialog plans={plans} />
+        ) : (
+          <p className="text-center text-sm text-muted-foreground">
+            Peça a um administrador da empresa para contratar ou renovar o plano.
+          </p>
+        )}
       </EmptyContent>
     </Empty>
   );
