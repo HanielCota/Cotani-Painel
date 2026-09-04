@@ -5,7 +5,8 @@ import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import { getTenantContext, requireRole } from "@/server/tenant";
 import type { ActionResult } from "@/types";
-import { cancelMercadoPagoSubscription, subscriptionPeriodEnd } from "@/server/services/mercado-pago";
+import { cancelMercadoPagoSubscription } from "@/server/services/mercado-pago";
+import { isSubscriptionActive } from "@/server/subscription";
 
 export async function cancelSubscription(): Promise<ActionResult> {
   try {
@@ -53,16 +54,18 @@ export async function cancelSubscription(): Promise<ActionResult> {
     if (!billingClinic.mercadoPagoSubscriptionId) return { status: "error", message: "A assinatura não possui vínculo com o Mercado Pago. Fale com o suporte." };
     await cancelMercadoPagoSubscription(billingClinic.mercadoPagoSubscriptionId);
 
-    const accessEndsAt = billingClinic.subscriptionStatus === SubscriptionStatus.ACTIVE
-      ? subscriptionPeriodEnd(billingClinic.subscriptionCycle, billingClinic.subscriptionExpiresAt ?? undefined)
-      : new Date();
-    const cancellationData = billingClinic.subscriptionStatus === SubscriptionStatus.ACTIVE
-      ? { subscriptionStatus: SubscriptionStatus.ACTIVE, subscriptionExpiresAt: accessEndsAt, cancelAtPeriodEnd: true }
-      : { subscriptionStatus: SubscriptionStatus.CANCELED, cancelAtPeriodEnd: false };
-    await prisma.$transaction([
-      prisma.clinic.update({ where: { id: billingClinic.id }, data: cancellationData }),
-      prisma.clinic.updateMany({ where: { billingOwnerId: billingClinic.id }, data: cancellationData }),
-    ]);
+    const ownerId = billingClinic.id;
+    const canceledRemoteId = billingClinic.mercadoPagoSubscriptionId;
+    await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${ownerId}, 0))`;
+      const current = await tx.clinic.findUniqueOrThrow({ where: { id: ownerId } });
+      if (current.mercadoPagoSubscriptionId !== canceledRemoteId) return;
+      const cancellationData = current.subscriptionStatus === SubscriptionStatus.ACTIVE && isSubscriptionActive(current)
+        ? { cancelAtPeriodEnd: true }
+        : { subscriptionStatus: SubscriptionStatus.CANCELED, cancelAtPeriodEnd: false };
+      await tx.clinic.update({ where: { id: ownerId }, data: cancellationData });
+      await tx.clinic.updateMany({ where: { billingOwnerId: ownerId }, data: cancellationData });
+    });
 
     return { status: "success", message: billingClinic.subscriptionStatus === SubscriptionStatus.ACTIVE ? "Renovação cancelada. Seu acesso permanece até o fim do período pago." : "Assinatura cancelada com sucesso." };
   } catch (error) {

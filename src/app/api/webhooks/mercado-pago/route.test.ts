@@ -1,148 +1,52 @@
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-const tx = {
-  clinic: { findUnique: vi.fn(), findFirst: vi.fn(), update: vi.fn(), updateMany: vi.fn() },
-  paymentHistory: { upsert: vi.fn() },
-  webhookEvent: { create: vi.fn() },
-};
-const prismaMock = {
-  webhookEvent: { findUnique: vi.fn(), create: vi.fn() },
-  $transaction: vi.fn(async (callback: (client: typeof tx) => Promise<unknown>) => callback(tx)),
-};
-
-vi.mock("@/lib/prisma", () => ({ default: prismaMock }));
-vi.mock("@/server/services/mercado-pago", () => ({
-  validateMercadoPagoWebhook: vi.fn(),
-  syncSubscriptionFromMercadoPago: vi.fn(),
-  getInvoiceFromMercadoPago: vi.fn(),
-  subscriptionPeriodEnd: vi.fn((_cycle: string, nextPaymentDate: Date | null, paidAt?: Date | null) => nextPaymentDate ?? paidAt),
+const mocks = vi.hoisted(() => ({
+  findUnique: vi.fn(), upsert: vi.fn(), settle: vi.fn(), validate: vi.fn(), invoice: vi.fn(), search: vi.fn(),
 }));
-
-const { POST } = await import("@/app/api/webhooks/mercado-pago/route");
-const { getInvoiceFromMercadoPago, syncSubscriptionFromMercadoPago } = await import("@/server/services/mercado-pago");
-
+vi.mock("@/lib/prisma", () => ({ default: { webhookEvent: { findUnique: mocks.findUnique, upsert: mocks.upsert } } }));
+vi.mock("@/server/services/billing-settlement", () => ({ settleSubscription: mocks.settle }));
+vi.mock("@/server/services/mercado-pago", () => ({
+  validateMercadoPagoWebhook: mocks.validate, getInvoiceFromMercadoPago: mocks.invoice, searchSubscriptionInvoices: mocks.search,
+}));
+const { POST } = await import("./route");
+function request(type = "subscription_preapproval", id = "subscription-1") {
+  return new NextRequest("https://painel.cotani.com.br/api/webhooks/mercado-pago", {
+    method: "POST", headers: { "content-type": "application/json", "x-request-id": "req-1" },
+    body: JSON.stringify({ id: "event-1", type, data: { id } }),
+  });
+}
 describe("webhook Mercado Pago", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    prismaMock.webhookEvent.findUnique.mockResolvedValue(null);
+  beforeEach(() => { vi.resetAllMocks(); mocks.findUnique.mockResolvedValue(null); });
+  it("valida assinatura antes de consultar ou alterar dados", async () => {
+    mocks.validate.mockImplementation(() => { throw new Error("invalid"); });
+    expect((await POST(request())).status).toBe(401);
+    expect(mocks.findUnique).not.toHaveBeenCalled();
+    expect(mocks.settle).not.toHaveBeenCalled();
   });
-
-  it("concilia cada pagamento autorizado com valor e data reais", async () => {
-    vi.mocked(syncSubscriptionFromMercadoPago).mockResolvedValueOnce({
-      mercadoPagoSubscriptionId: "subscription-1",
-      status: "ACTIVE",
-      hasPaidOnce: true,
-      nextPaymentDate: new Date("2026-09-20T12:00:00.000Z"),
-      externalReference: "clinic-1",
-      rawStatus: "authorized",
-    });
-    vi.mocked(getInvoiceFromMercadoPago).mockResolvedValueOnce({
-      id: "invoice-1",
-      subscriptionId: "subscription-1",
-      paymentId: "payment-1",
-      amount: 49.99,
-      status: "approved",
-      paidAt: new Date("2026-08-20T12:00:00.000Z"),
-    });
-    tx.clinic.findFirst.mockResolvedValueOnce({
-      id: "clinic-1",
-      subscriptionPlan: "PROFESSIONAL",
-      subscriptionCycle: "MONTHLY",
-      pendingSubscriptionPlan: null,
-      pendingSubscriptionCycle: null,
-    });
-
-    const request = new NextRequest("https://painel.cotani.com.br/api/webhooks/mercado-pago", {
-      method: "POST",
-      headers: { "content-type": "application/json", "x-request-id": "request-1" },
-      body: JSON.stringify({
-        id: 123,
-        type: "subscription_authorized_payment",
-        action: "payment.updated",
-        data: { id: "invoice-1" },
-      }),
-    });
-
-    const response = await POST(request);
-
-    expect(response.status).toBe(200);
-    expect(tx.paymentHistory.upsert).toHaveBeenCalledWith(expect.objectContaining({
-      where: { mercadoPagoPaymentId: "payment-1" },
-      create: expect.objectContaining({ amount: 49.99, status: "approved" }),
-    }));
-    expect(tx.clinic.update).toHaveBeenCalledWith({
-      where: { id: "clinic-1" },
-      data: expect.objectContaining({
-        subscriptionStatus: "ACTIVE",
-        hasPaidOnce: true,
-        subscriptionPlan: "PROFESSIONAL",
-        subscriptionCycle: "MONTHLY",
-        pendingSubscriptionPlan: null,
-        pendingSubscriptionCycle: null,
-      }),
-    });
-    expect(tx.webhookEvent.create).toHaveBeenCalledWith({
-      data: expect.objectContaining({ eventId: "123", type: "payment.updated" }),
-    });
+  it("encaminha autorização sem interpretá-la como pagamento", async () => {
+    expect((await POST(request())).status).toBe(200);
+    expect(mocks.settle).toHaveBeenCalledWith("subscription-1");
   });
-
-  it("promove o plano pendente somente quando a assinatura é autorizada", async () => {
-    vi.mocked(syncSubscriptionFromMercadoPago).mockResolvedValueOnce({
-      mercadoPagoSubscriptionId: "subscription-1",
-      status: "ACTIVE",
-      hasPaidOnce: true,
-      nextPaymentDate: new Date("2026-09-26T12:00:00.000Z"),
-      rawStatus: "authorized",
-      externalReference: "clinic-1",
-    });
-    tx.clinic.findFirst.mockResolvedValueOnce({
-      id: "clinic-1",
-      hasPaidOnce: false,
-      subscriptionPlan: "ESSENTIAL",
-      subscriptionCycle: "MONTHLY",
-      pendingSubscriptionPlan: "PROFESSIONAL",
-      pendingSubscriptionCycle: "ANNUAL",
-    });
-
-    const request = new NextRequest("https://painel.cotani.com.br/api/webhooks/mercado-pago", {
-      method: "POST",
-      headers: { "content-type": "application/json", "x-request-id": "request-2" },
-      body: JSON.stringify({
-        id: 124,
-        type: "subscription_preapproval",
-        action: "updated",
-        data: { id: "subscription-1" },
-      }),
-    });
-
-    const response = await POST(request);
-
-    expect(response.status).toBe(200);
-    expect(tx.clinic.update).toHaveBeenCalledWith({
-      where: { id: "clinic-1" },
-      data: expect.objectContaining({
-        subscriptionStatus: "ACTIVE",
-        hasPaidOnce: true,
-        subscriptionExpiresAt: new Date("2026-09-26T12:00:00.000Z"),
-        subscriptionPlan: "PROFESSIONAL",
-        subscriptionCycle: "ANNUAL",
-        pendingSubscriptionPlan: null,
-        pendingSubscriptionCycle: null,
-      }),
-    });
+  it("concilia a fatura vinculada à assinatura", async () => {
+    mocks.invoice.mockResolvedValue({ subscriptionId: "subscription-1" });
+    expect((await POST(request("subscription_authorized_payment", "invoice-1"))).status).toBe(200);
+    expect(mocks.settle).toHaveBeenCalledWith("subscription-1", "invoice-1");
   });
-
-  it("ignora uma notificação já processada", async () => {
-    prismaMock.webhookEvent.findUnique.mockResolvedValueOnce({ id: "event-1" });
-    const request = new NextRequest("https://painel.cotani.com.br/api/webhooks/mercado-pago", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ id: 123, type: "subscription_preapproval", data: { id: "subscription-1" } }),
-    });
-
-    const response = await POST(request);
-    expect(await response.json()).toEqual({ received: true, skipped: true });
-    expect(prismaMock.$transaction).not.toHaveBeenCalled();
+  it("processa atualizações de pagamento incluindo estornos", async () => {
+    mocks.search.mockResolvedValue(["invoice-1"]);
+    mocks.invoice.mockResolvedValue({ subscriptionId: "subscription-1" });
+    expect((await POST(request("payment", "123"))).status).toBe(200);
+    expect(mocks.search).toHaveBeenCalledWith(undefined, "123");
+    expect(mocks.settle).toHaveBeenCalledWith("subscription-1", "invoice-1");
+  });
+  it("não registra sucesso se a conciliação falhar", async () => {
+    mocks.settle.mockRejectedValue(new Error("unlinked"));
+    expect((await POST(request())).status).toBe(500);
+    expect(mocks.upsert).not.toHaveBeenCalled();
+  });
+  it("ignora a notificação já processada", async () => {
+    mocks.findUnique.mockResolvedValue({ id: "event-1" });
+    expect(await (await POST(request())).json()).toEqual({ received: true, skipped: true });
+    expect(mocks.settle).not.toHaveBeenCalled();
   });
 });

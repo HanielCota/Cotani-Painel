@@ -1,6 +1,6 @@
 import "server-only";
 
-import { Invoice, MercadoPagoConfig, PreApproval, WebhookSignatureValidator } from "mercadopago";
+import { Invoice, Payment, MercadoPagoConfig, PreApproval, WebhookSignatureValidator } from "mercadopago";
 
 import { BillingCycle, SubscriptionPlan, SubscriptionStatus } from "@/generated/prisma/enums";
 import {
@@ -16,7 +16,7 @@ function getConfig() {
     throw new Error("MERCADO_PAGO_ACCESS_TOKEN não está configurado.");
   }
 
-  return new MercadoPagoConfig({ accessToken });
+  return new MercadoPagoConfig({ accessToken, options: { timeout: 10000, maxRetries: 0 } });
 }
 
 export interface PlanConfig {
@@ -56,6 +56,7 @@ export interface CreateCheckoutInput {
   idempotencyKey: string;
   payerEmail: string;
   backUrl: string;
+  remotePlanId?: string;
 }
 
 export interface CreateCheckoutResult {
@@ -72,7 +73,7 @@ export async function createSubscriptionCheckout(
 
   const response = await preApproval.create({
     body: {
-      preapproval_plan_id: planConfig.mercadoPagoPlanId,
+      preapproval_plan_id: input.remotePlanId ?? planConfig.mercadoPagoPlanId,
       payer_email: input.payerEmail,
       external_reference: input.clinicId,
       back_url: input.backUrl,
@@ -99,6 +100,8 @@ export interface MercadoPagoSubscription {
   externalReference?: string;
   nextPaymentDate?: Date;
   planId?: string;
+  amount?: number;
+  currency?: string;
 }
 
 export function normalizeSubscriptionStatus(status?: string): SubscriptionStatus | null {
@@ -106,7 +109,8 @@ export function normalizeSubscriptionStatus(status?: string): SubscriptionStatus
 
   const normalized = status.toLowerCase();
 
-  if (normalized === "authorized") return SubscriptionStatus.ACTIVE;
+  // Authorization permits future charges; it is not proof of payment.
+  if (normalized === "authorized") return null;
   if (normalized === "pending") return null;
   if (normalized === "paused") return SubscriptionStatus.PAST_DUE;
   if (normalized === "cancelled" || normalized === "canceled") return SubscriptionStatus.CANCELED;
@@ -121,10 +125,15 @@ function stringId(value: unknown): string | undefined {
 }
 
 export function subscriptionPeriodEnd(cycle: BillingCycle | null | undefined, nextPaymentDate?: Date, now = new Date()): Date {
-  if (nextPaymentDate && !Number.isNaN(nextPaymentDate.getTime()) && nextPaymentDate > now) return nextPaymentDate;
+  // Anchor to the verified invoice date, never to webhook delivery or next charge.
+  void nextPaymentDate;
+  if (!cycle || Number.isNaN(now.getTime())) throw new Error("Período pago inválido.");
   const end = new Date(now);
-  if (cycle === BillingCycle.ANNUAL) end.setUTCFullYear(end.getUTCFullYear() + 1);
-  else end.setUTCMonth(end.getUTCMonth() + 1);
+  const day = end.getUTCDate();
+  end.setUTCDate(1);
+  end.setUTCMonth(end.getUTCMonth() + (cycle === BillingCycle.ANNUAL ? 12 : 1));
+  const lastDay = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth() + 1, 0)).getUTCDate();
+  end.setUTCDate(Math.min(day, lastDay));
   return end;
 }
 
@@ -143,6 +152,8 @@ export async function getSubscriptionFromMercadoPago(
     externalReference: response.external_reference ?? undefined,
     nextPaymentDate: response.next_payment_date ? new Date(response.next_payment_date) : undefined,
     planId: stringId((response as typeof response & { preapproval_plan_id?: unknown }).preapproval_plan_id),
+    amount: response.auto_recurring?.transaction_amount,
+    currency: response.auto_recurring?.currency_id,
   };
 }
 
@@ -158,6 +169,8 @@ export interface SyncSubscriptionResult {
   externalReference?: string;
   planId?: string;
   rawStatus: string;
+  amount?: number;
+  currency?: string;
 }
 
 export async function syncSubscriptionFromMercadoPago(
@@ -169,15 +182,19 @@ export async function syncSubscriptionFromMercadoPago(
   return {
     mercadoPagoSubscriptionId: subscription.id,
     status,
-    hasPaidOnce: status === SubscriptionStatus.ACTIVE,
+    hasPaidOnce: false,
     nextPaymentDate: subscription.nextPaymentDate,
     externalReference: subscription.externalReference,
     planId: subscription.planId,
     rawStatus: subscription.status,
+    amount: subscription.amount,
+    currency: subscription.currency,
   };
 }
 
 export async function cancelMercadoPagoSubscription(mercadoPagoSubscriptionId: string): Promise<void> {
+  const current = await getSubscriptionFromMercadoPago(mercadoPagoSubscriptionId);
+  if (current.status === "cancelled" || current.status === "canceled") return;
   await new PreApproval(getConfig()).update({ id: mercadoPagoSubscriptionId, body: { status: "cancelled" } });
 }
 
@@ -188,6 +205,8 @@ export interface MercadoPagoInvoice {
   amount: number;
   status: string;
   paidAt?: Date;
+  periodStartsAt?: Date;
+  currency: string;
 }
 
 export async function getInvoiceFromMercadoPago(invoiceId: string): Promise<MercadoPagoInvoice> {
@@ -199,16 +218,47 @@ export async function getInvoiceFromMercadoPago(invoiceId: string): Promise<Merc
     throw new Error("Fatura do Mercado Pago sem assinatura ou valor para conciliação.");
   }
 
-  const status = invoice.payment?.status ?? invoice.status ?? "unknown";
-  const date = invoice.last_modified ?? invoice.date_created ?? invoice.debit_date;
+  if (!invoice.payment?.id) throw new Error("Fatura ainda sem pagamento vinculado.");
+  const payment = await new Payment(getConfig()).get({ id: invoice.payment.id });
+  const fullyRefunded = typeof payment.transaction_amount === "number" && payment.transaction_amount > 0
+    && (payment.transaction_amount_refunded ?? 0) >= payment.transaction_amount;
+  const status = fullyRefunded ? "refunded" : payment.status ?? "unknown";
+  const date = payment.date_approved;
+  if (status === "approved" && (!date || Number.isNaN(new Date(date).getTime()))) throw new Error("Pagamento sem data de aprovação válida.");
+  if (typeof payment.transaction_amount !== "number") throw new Error("Pagamento sem valor.");
 
   return {
     id,
     subscriptionId,
     paymentId: String(invoice.payment?.id ?? id),
-    amount: invoice.transaction_amount,
+    amount: payment.transaction_amount,
+    currency: payment.currency_id ?? "",
     status,
     paidAt: status === "approved" && date ? new Date(date) : undefined,
+    periodStartsAt: invoice.debit_date ? new Date(invoice.debit_date) : date ? new Date(date) : undefined,
+  };
+}
+
+export async function searchSubscriptionInvoices(subscriptionId?: string, paymentId?: string) {
+  const ids: string[] = [];
+  for (let offset = 0; ; offset += 100) {
+    const page = await new Invoice(getConfig()).search({ options: {
+      ...(subscriptionId ? { preapproval_id: subscriptionId } : {}),
+      ...(paymentId ? { payment_id: Number(paymentId) } : {}), offset, limit: 100,
+    } });
+    for (const invoice of page.results ?? []) if (invoice.id && invoice.payment?.id) ids.push(String(invoice.id));
+    if ((page.results?.length ?? 0) < 100) break;
+    if (offset >= 9900) throw new Error("Paginação de faturas excedeu o limite de segurança.");
+  }
+  return ids;
+}
+
+export async function getSubscriptionInvoicePage(subscriptionId: string, offset: number) {
+  const page = await new Invoice(getConfig()).search({ options: { preapproval_id: subscriptionId, offset, limit: 10 } });
+  const results = page.results ?? [];
+  return {
+    invoices: results.map((invoice) => invoice.id && invoice.payment?.id ? String(invoice.id) : null),
+    hasMore: results.length === 10,
   };
 }
 

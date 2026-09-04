@@ -78,7 +78,12 @@ export async function createProfessional(input: unknown): Promise<ActionResult> 
     if (parsed.data.imageUrl?.startsWith("data:")) uploadedImageUrl = imageUrl;
     const outcome = await prisma.$transaction(async (transaction) => {
       await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
-      const maxProfessionals = getPlanEntitlements(clinic.subscriptionPlan).maxProfessionals;
+      const current = await transaction.clinic.findUniqueOrThrow({ where: { id: clinic.id } });
+      if (!isSubscriptionActive(current)) throw new Error(SUBSCRIPTION_INACTIVE_MESSAGE);
+      const maxProfessionals = Math.min(
+        getPlanEntitlements(current.subscriptionPlan).maxProfessionals ?? Infinity,
+        current.pendingSubscriptionPlan ? getPlanEntitlements(current.pendingSubscriptionPlan).maxProfessionals ?? Infinity : Infinity,
+      );
       if (maxProfessionals !== null) {
         const activeProfessionals = await transaction.professional.count({ where: { clinicId: clinic.id, isActive: true } });
         if (activeProfessionals >= maxProfessionals) return "limit" as const;
@@ -253,7 +258,12 @@ export async function toggleProfessionalActive(professionalId: string): Promise<
   const outcome = await prisma.$transaction(async (transaction) => {
     await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
     if (nextIsActive) {
-      const maxProfessionals = getPlanEntitlements(clinic.subscriptionPlan).maxProfessionals;
+      const current = await transaction.clinic.findUniqueOrThrow({ where: { id: clinic.id } });
+      if (!isSubscriptionActive(current)) throw new Error(SUBSCRIPTION_INACTIVE_MESSAGE);
+      const maxProfessionals = Math.min(
+        getPlanEntitlements(current.subscriptionPlan).maxProfessionals ?? Infinity,
+        current.pendingSubscriptionPlan ? getPlanEntitlements(current.pendingSubscriptionPlan).maxProfessionals ?? Infinity : Infinity,
+      );
       if (maxProfessionals !== null) {
         const activeProfessionals = await transaction.professional.count({ where: { clinicId: clinic.id, isActive: true } });
         if (activeProfessionals >= maxProfessionals) return "limit" as const;

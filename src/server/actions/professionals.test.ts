@@ -39,6 +39,10 @@ const validProfessional = {
   serviceIds: ["550e8400-e29b-41d4-a716-446655440001"],
 };
 
+beforeEach(() => {
+  prismaMock.clinic.findUniqueOrThrow.mockResolvedValue(activeClinic);
+});
+
 function createFormData(overrides: Record<string, string | null> = {}) {
   const formData = new FormData();
   formData.set("name", validProfessional.name);

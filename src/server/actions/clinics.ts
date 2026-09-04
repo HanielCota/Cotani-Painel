@@ -82,6 +82,10 @@ export async function createEnterpriseUnit(_previousState: ActionResult, formDat
 
   const tenant = requireRole(await getTenantContext(), ["ADMIN"]);
   const ownerId = tenant.clinic.billingOwnerId ?? tenant.clinic.id;
+  if (tenant.clinic.billingOwnerId) {
+    const membership = await prisma.membership.findUnique({ where: { clinicId_userId: { clinicId: ownerId, userId: tenant.membership.userId } }, select: { role: true } });
+    if (membership?.role !== "ADMIN") return { status: "error", message: "Somente um administrador da unidade principal pode criar unidades." };
+  }
   const owner = ownerId === tenant.clinic.id
     ? tenant.clinic
     : await prisma.clinic.findUnique({ where: { id: ownerId } });
@@ -93,7 +97,8 @@ export async function createEnterpriseUnit(_previousState: ActionResult, formDat
   const created = await prisma.$transaction(async (transaction) => {
     await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${owner.id}, 0))`;
     const currentOwner = await transaction.clinic.findUnique({ where: { id: owner.id } });
-    if (!currentOwner || !isSubscriptionActive(currentOwner) || !getPlanEntitlements(currentOwner.subscriptionPlan).multipleLocations) {
+    if (!currentOwner || !isSubscriptionActive(currentOwner) || !getPlanEntitlements(currentOwner.subscriptionPlan).multipleLocations
+      || (currentOwner.pendingSubscriptionPlan && !getPlanEntitlements(currentOwner.pendingSubscriptionPlan).multipleLocations)) {
       return null;
     }
     const unit = await transaction.clinic.create({

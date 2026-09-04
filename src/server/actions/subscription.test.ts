@@ -9,12 +9,17 @@ vi.mock("@/server/tenant", () => ({
   getTenantContext: vi.fn(),
   requireRole: vi.fn((tenant) => tenant),
 }));
+vi.mock("@/server/services/mercado-pago", () => ({ cancelMercadoPagoSubscription: vi.fn().mockResolvedValue(undefined) }));
 
 vi.mock("@/lib/prisma", () => ({
   default: {
+    $transaction: vi.fn(),
+    $executeRaw: vi.fn(),
     clinic: {
       findUnique: vi.fn(),
+      findUniqueOrThrow: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
     },
     membership: {
       findUnique: vi.fn(),
@@ -26,6 +31,16 @@ const mockedGetTenantContext = vi.mocked(tenantModule.getTenantContext);
 const mockedPrismaClinicUpdate = vi.mocked(prisma.clinic.update);
 
 describe("cancelSubscription", () => {
+  it.each([null, new Date("2020-01-01")])("não cria período pago ao cancelar validade %s", async (expiration) => {
+    vi.clearAllMocks();
+    const clinic = { id: "clinic-1", subscriptionStatus: "ACTIVE", subscriptionExpiresAt: expiration, mercadoPagoSubscriptionId: "remote" };
+    mockedGetTenantContext.mockResolvedValueOnce({ clinic, membership: {} } as never);
+    vi.mocked(prisma.clinic.findUniqueOrThrow).mockResolvedValueOnce(clinic as never);
+    vi.mocked(prisma.$transaction).mockImplementationOnce(async (fn: unknown) => (fn as (tx: typeof prisma) => Promise<unknown>)(prisma));
+    expect((await cancelSubscription()).status).toBe("success");
+    expect(prisma.clinic.update).toHaveBeenCalledWith({ where: { id: "clinic-1" }, data: { subscriptionStatus: "CANCELED", cancelAtPeriodEnd: false } });
+    vi.clearAllMocks();
+  });
   it("retorna erro quando não há tenant", async () => {
     mockedGetTenantContext.mockResolvedValueOnce(null as unknown as tenantModule.TenantContext);
 
