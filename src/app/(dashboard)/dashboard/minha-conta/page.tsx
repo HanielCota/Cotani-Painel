@@ -30,46 +30,58 @@ export default withTenant(async ({ membership, role }) => {
     <div className="flex flex-col gap-6">
       <PageHeader title="Minha conta" description="Gerencie sua identidade, segurança e preferências pessoais." />
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><UserRoundIcon />Dados da conta</CardTitle>
-            <CardDescription>Informações usadas para identificar você no painel.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4"><p className="text-sm text-muted-foreground">Perfil de acesso: <strong className="text-foreground">{roleLabels[role]}</strong></p><AccountProfileSettings user={user} /></CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><PaletteIcon />Aparência</CardTitle>
-            <CardDescription>Escolha como o painel será exibido nesta conta.</CardDescription>
-          </CardHeader>
-          <CardContent><AccountThemeSettings /></CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><KeyRoundIcon />Segurança</CardTitle>
-            <CardDescription>Altere sua senha, proteja a conta com 2FA e encerre outras sessões.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4"><Button type="button" nativeButton={false} variant="outline" render={<Link href="/forgot-password" />}>Recuperar senha por e-mail</Button><AccountSecuritySettings /></div>
-          </CardContent>
-        </Card>
-
-        {role === "ADMIN" ? (
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
+        <div className="flex min-w-0 flex-col gap-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><CreditCardIcon />Assinatura</CardTitle>
-              <CardDescription>Consulte seu plano, vigência e histórico de cobrança.</CardDescription>
+              <CardTitle><UserRoundIcon className="text-primary" />Dados da conta</CardTitle>
+              <CardDescription>Informações usadas para identificar você no painel.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <Button type="button" nativeButton={false} variant="outline" render={<Link href="/dashboard/assinatura" />}>Ver assinatura</Button>
+            <CardContent className="space-y-5">
+              <p className="text-sm text-muted-foreground">Perfil de acesso: <strong className="text-foreground">{roleLabels[role]}</strong></p>
+              <AccountProfileSettings user={user} />
             </CardContent>
           </Card>
-        ) : null}
-        <Card className="border-destructive/30"><CardHeader><CardTitle>Excluir conta</CardTitle><CardDescription>Remove seu acesso definitivamente. Os dados das empresas precisam permanecer sob outro administrador.</CardDescription></CardHeader><CardContent><DeleteAccountForm /></CardContent></Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle><KeyRoundIcon className="text-primary" />Segurança</CardTitle>
+              <CardDescription>Altere sua senha, proteja a conta com 2FA e encerre outras sessões.</CardDescription>
+            </CardHeader>
+            <CardContent><AccountSecuritySettings /></CardContent>
+          </Card>
+        </div>
+
+        <div className="flex min-w-0 flex-col gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle><PaletteIcon className="text-primary" />Aparência</CardTitle>
+              <CardDescription>Escolha como o painel será exibido nesta conta.</CardDescription>
+            </CardHeader>
+            <CardContent><AccountThemeSettings /></CardContent>
+          </Card>
+
+          {role === "ADMIN" ? (
+            <Card>
+              <CardHeader>
+                <CardTitle><CreditCardIcon className="text-primary" />Assinatura</CardTitle>
+                <CardDescription>Consulte seu plano, vigência e histórico de cobrança.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button type="button" nativeButton={false} variant="outline" render={<Link href="/dashboard/assinatura" />}>Ver assinatura</Button>
+              </CardContent>
+            </Card>
+          ) : null}
+        </div>
       </div>
+
+      <Card className="border-destructive/35 bg-destructive/[0.025]">
+        <CardHeader>
+          <CardTitle className="text-destructive">Excluir conta</CardTitle>
+          <CardDescription>Remove seu acesso definitivamente. Os dados das empresas precisam permanecer sob outro administrador.</CardDescription>
+        </CardHeader>
+        <CardContent><DeleteAccountForm /></CardContent>
+      </Card>
     </div>
   );
 });

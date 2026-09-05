@@ -60,7 +60,7 @@ export default withTenant<ReportsPageProps>(async ({ clinic }, { searchParams })
         ) : undefined}
       />
 
-      <form className="flex flex-wrap items-end gap-3 rounded-xl border p-4"><div><label htmlFor="report-from" className="text-sm font-medium">De</label><Input id="report-from" name="from" type="date" defaultValue={query.from} /></div><div><label htmlFor="report-to" className="text-sm font-medium">Até</label><Input id="report-to" name="to" type="date" defaultValue={query.to} /></div><Button type="submit" variant="outline">Aplicar período</Button>{entitlements.advancedReports ? <Button type="button" nativeButton={false} variant="outline" render={<a href={`/api/reports/pdf?${exportQuery}`} download />}><DownloadIcon />Exportar PDF</Button> : null}</form>
+      <form className="flex flex-wrap items-end gap-3 rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] dark:shadow-none"><div className="min-w-40 flex-1 space-y-1.5 sm:flex-none"><label htmlFor="report-from" className="text-sm font-medium">De</label><Input id="report-from" name="from" type="date" defaultValue={query.from} /></div><div className="min-w-40 flex-1 space-y-1.5 sm:flex-none"><label htmlFor="report-to" className="text-sm font-medium">Até</label><Input id="report-to" name="to" type="date" defaultValue={query.to} /></div><Button type="submit" variant="outline">Aplicar período</Button>{entitlements.advancedReports ? <Button type="button" nativeButton={false} variant="outline" render={<a href={`/api/reports/pdf?${exportQuery}`} download />}><DownloadIcon />Exportar PDF</Button> : null}</form>
 
       <section className="flex flex-col gap-4">
         <h2 className="text-base font-semibold text-foreground">Indicadores do mês</h2>

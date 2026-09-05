@@ -45,7 +45,7 @@ function DashboardShell({ children, insetClassName = "bg-background", subscripti
         <div className="px-4 pt-4 md:hidden">
           <SidebarTrigger className="size-9 border border-border/60 bg-card shadow-sm" />
         </div>
-        <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:px-10 lg:py-8">
+        <div className="mx-auto flex w-full max-w-[1360px] flex-1 flex-col gap-5 p-4 pb-10 sm:gap-6 sm:p-6 sm:pb-12 lg:px-8 lg:py-8">
           {children}
         </div>
       </SidebarInset>
