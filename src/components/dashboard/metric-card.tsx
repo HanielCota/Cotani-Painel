@@ -19,15 +19,15 @@ const accentClasses: Record<NonNullable<MetricCardProps["accent"]>, string> = {
 
 export function MetricCard({ title, value, description, icon: Icon, accent = "default" }: MetricCardProps) {
   return (
-    <Card className="transition-colors hover:border-primary/20">
+    <Card size="sm" className="transition-colors hover:border-primary/30">
       <CardContent className="flex items-center gap-4">
         <div className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${accentClasses[accent]}`}>
           <Icon className="size-5" />
         </div>
         <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">{title}</p>
+          <p className="text-sm font-medium text-muted-foreground">{title}</p>
           <p className="text-2xl font-semibold tracking-tight tabular-nums">{value}</p>
-          <p className="truncate text-xs text-muted-foreground">{description}</p>
+          <p className="text-xs leading-5 text-muted-foreground">{description}</p>
         </div>
       </CardContent>
     </Card>

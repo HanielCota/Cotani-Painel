@@ -75,13 +75,13 @@ export default withTenant(async ({ clinic }) => {
         <DashboardMetricCards clinic={clinic} />
       </Suspense>
 
-      <Card size="sm">
-        <CardHeader>
-          <CardTitle>Ações rápidas</CardTitle>
-          <CardDescription>Acessos úteis para manter sua operação organizada.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-3 lg:grid-cols-[1.5fr_1fr_1fr]">
-          <div className="rounded-xl border border-border/70 bg-background/70 p-4">
+      <section className="space-y-3">
+        <div>
+          <h2 className="font-semibold text-foreground">Ações rápidas</h2>
+          <p className="text-sm text-muted-foreground">Atalhos para as tarefas mais frequentes.</p>
+        </div>
+        <div className="grid gap-3 lg:grid-cols-[1.5fr_1fr_1fr]">
+          <div className="rounded-2xl border border-border/80 bg-card p-4">
             <div className="mb-3 flex items-start gap-3">
               <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <LinkIcon className="size-4" />
@@ -96,37 +96,37 @@ export default withTenant(async ({ clinic }) => {
 
           <Link
             href="/dashboard/negocio/horarios"
-            className="group flex flex-col justify-between rounded-xl border border-border/70 bg-card p-4 no-underline transition-colors hover:border-primary/30 hover:bg-primary/5"
+            className="group flex items-center gap-3 rounded-2xl border border-border/80 bg-card p-4 no-underline transition-colors hover:border-primary/40 hover:bg-primary/5"
           >
             <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <SettingsIcon className="size-4" />
             </span>
-            <span className="mt-6">
+            <span className="min-w-0 flex-1">
               <span className="block text-sm font-medium text-foreground">Configurar horários</span>
               <span className="mt-1 block text-xs leading-5 text-muted-foreground">Ajuste o expediente e as regras da agenda.</span>
             </span>
-            <ArrowRightIcon className="mt-4 size-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
+            <ArrowRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
           </Link>
 
           <Link
             href="/dashboard/negocio/servicos"
-            className="group flex flex-col justify-between rounded-xl border border-border/70 bg-card p-4 no-underline transition-colors hover:border-primary/30 hover:bg-primary/5"
+            className="group flex items-center gap-3 rounded-2xl border border-border/80 bg-card p-4 no-underline transition-colors hover:border-primary/40 hover:bg-primary/5"
           >
             <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <TagIcon className="size-4" />
             </span>
-            <span className="mt-6">
+            <span className="min-w-0 flex-1">
               <span className="block text-sm font-medium text-foreground">Serviços</span>
               <span className="mt-1 block text-xs leading-5 text-muted-foreground">
                 {servicesCount} serviço{servicesCount === 1 ? "" : "s"} ativo{servicesCount === 1 ? "" : "s"}.
               </span>
             </span>
-            <ArrowRightIcon className="mt-4 size-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
+            <ArrowRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
           </Link>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+      <div className="grid gap-4 xl:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
