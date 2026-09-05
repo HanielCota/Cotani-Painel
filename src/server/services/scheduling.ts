@@ -47,7 +47,7 @@ export interface ScheduleAppointmentParams {
   servicePrice: number;
   startTime: Date;
   notes?: string;
-  professionalId?: string;
+  professionalId?: string | null;
   maxAppointmentsPerDay?: number | null;
 }
 
@@ -124,10 +124,15 @@ async function isValidBusinessSlot(
 
   if (!businessHour?.isOpen) return false;
 
+  const professionalHour = params.professionalId
+    ? await transaction.professionalAvailability.findUnique({ where: { professionalId_dayOfWeek: { professionalId: params.professionalId, dayOfWeek: weekday } } })
+    : null;
+  if (professionalHour && !professionalHour.isOpen) return false;
+
   const startMinutes = minutesFromTime(localTime);
   const endMinutes = startMinutes + params.serviceDuration;
-  const openMinutes = minutesFromTime(businessHour.openTime);
-  const closeMinutes = minutesFromTime(businessHour.closeTime);
+  const openMinutes = Math.max(minutesFromTime(businessHour.openTime), professionalHour ? minutesFromTime(professionalHour.openTime) : 0);
+  const closeMinutes = Math.min(minutesFromTime(businessHour.closeTime), professionalHour ? minutesFromTime(professionalHour.closeTime) : 24 * 60);
 
   if (
     startMinutes < openMinutes ||
@@ -140,6 +145,12 @@ async function isValidBusinessSlot(
   if (businessHour.breakStart && businessHour.breakEnd) {
     const breakStart = minutesFromTime(businessHour.breakStart);
     const breakEnd = minutesFromTime(businessHour.breakEnd);
+    if (startMinutes < breakEnd && endMinutes > breakStart) return false;
+  }
+
+  if (professionalHour?.breakStart && professionalHour.breakEnd) {
+    const breakStart = minutesFromTime(professionalHour.breakStart);
+    const breakEnd = minutesFromTime(professionalHour.breakEnd);
     if (startMinutes < breakEnd && endMinutes > breakStart) return false;
   }
 
@@ -204,7 +215,16 @@ export async function rescheduleScheduledAppointment(
           clinicId: params.clinicId,
           status: { in: ["PENDING", "CONFIRMED"] },
         },
-        data: { startTime: params.startTime, endTime },
+        data: {
+          customerId: params.customerId,
+          serviceId: params.serviceId,
+          professionalId: params.professionalId,
+          startTime: params.startTime,
+          endTime,
+          priceAtBooking: params.servicePrice,
+          totalPrice: params.servicePrice,
+          notes: params.notes,
+        },
       });
 
       if (updated.count !== 1) return "error" as const;
@@ -240,6 +260,7 @@ export async function rescheduleScheduledAppointment(
     });
     return { status: "error" };
   }
+
 }
 
 /**

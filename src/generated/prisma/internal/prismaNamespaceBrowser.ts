@@ -54,6 +54,7 @@ export const ModelName = {
   Clinic: 'Clinic',
   AdminAuditLog: 'AdminAuditLog',
   PaymentHistory: 'PaymentHistory',
+  ClinicSlugAlias: 'ClinicSlugAlias',
   BillingContract: 'BillingContract',
   BusinessHour: 'BusinessHour',
   User: 'User',
@@ -62,8 +63,10 @@ export const ModelName = {
   Customer: 'Customer',
   Service: 'Service',
   Professional: 'Professional',
+  ProfessionalAvailability: 'ProfessionalAvailability',
   ProfessionalService: 'ProfessionalService',
   Appointment: 'Appointment',
+  FinancialEntry: 'FinancialEntry',
   Notification: 'Notification',
   WebhookEvent: 'WebhookEvent',
   RateLimit: 'RateLimit'
@@ -92,6 +95,11 @@ export const ClinicScalarFieldEnum = {
   name: 'name',
   slug: 'slug',
   timeZone: 'timeZone',
+  contactEmail: 'contactEmail',
+  phone: 'phone',
+  address: 'address',
+  publicDescription: 'publicDescription',
+  imageUrl: 'imageUrl',
   subscriptionStatus: 'subscriptionStatus',
   subscriptionPlan: 'subscriptionPlan',
   subscriptionCycle: 'subscriptionCycle',
@@ -155,6 +163,16 @@ export const PaymentHistoryScalarFieldEnum = {
 export type PaymentHistoryScalarFieldEnum = (typeof PaymentHistoryScalarFieldEnum)[keyof typeof PaymentHistoryScalarFieldEnum]
 
 
+export const ClinicSlugAliasScalarFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  clinicId: 'clinicId',
+  createdAt: 'createdAt'
+} as const
+
+export type ClinicSlugAliasScalarFieldEnum = (typeof ClinicSlugAliasScalarFieldEnum)[keyof typeof ClinicSlugAliasScalarFieldEnum]
+
+
 export const BillingContractScalarFieldEnum = {
   id: 'id',
   clinicId: 'clinicId',
@@ -199,7 +217,9 @@ export const UserScalarFieldEnum = {
   name: 'name',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  trialStartedAt: 'trialStartedAt'
+  trialStartedAt: 'trialStartedAt',
+  emailNotifications: 'emailNotifications',
+  weeklySummary: 'weeklySummary'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -240,6 +260,9 @@ export const CustomerScalarFieldEnum = {
   name: 'name',
   email: 'email',
   phone: 'phone',
+  notes: 'notes',
+  tags: 'tags',
+  nextReturnAt: 'nextReturnAt',
   clinicId: 'clinicId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -277,6 +300,23 @@ export const ProfessionalScalarFieldEnum = {
 export type ProfessionalScalarFieldEnum = (typeof ProfessionalScalarFieldEnum)[keyof typeof ProfessionalScalarFieldEnum]
 
 
+export const ProfessionalAvailabilityScalarFieldEnum = {
+  id: 'id',
+  clinicId: 'clinicId',
+  professionalId: 'professionalId',
+  dayOfWeek: 'dayOfWeek',
+  isOpen: 'isOpen',
+  openTime: 'openTime',
+  closeTime: 'closeTime',
+  breakStart: 'breakStart',
+  breakEnd: 'breakEnd',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProfessionalAvailabilityScalarFieldEnum = (typeof ProfessionalAvailabilityScalarFieldEnum)[keyof typeof ProfessionalAvailabilityScalarFieldEnum]
+
+
 export const ProfessionalServiceScalarFieldEnum = {
   professionalId: 'professionalId',
   serviceId: 'serviceId'
@@ -305,6 +345,26 @@ export const AppointmentScalarFieldEnum = {
 } as const
 
 export type AppointmentScalarFieldEnum = (typeof AppointmentScalarFieldEnum)[keyof typeof AppointmentScalarFieldEnum]
+
+
+export const FinancialEntryScalarFieldEnum = {
+  id: 'id',
+  clinicId: 'clinicId',
+  appointmentId: 'appointmentId',
+  type: 'type',
+  status: 'status',
+  description: 'description',
+  category: 'category',
+  amount: 'amount',
+  paidAmount: 'paidAmount',
+  dueDate: 'dueDate',
+  occurredAt: 'occurredAt',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FinancialEntryScalarFieldEnum = (typeof FinancialEntryScalarFieldEnum)[keyof typeof FinancialEntryScalarFieldEnum]
 
 
 export const NotificationScalarFieldEnum = {

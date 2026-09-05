@@ -18,10 +18,11 @@ interface AppointmentFormDialogProps {
   services: Array<{ id: string; name: string; duration: number }>;
   minStartTime: string;
   timeZone: string;
+  initialCustomerId?: string;
 }
 
 export function AppointmentFormDialog(props: AppointmentFormDialogProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(Boolean(props.initialCustomerId));
   const closeDialog = useCallback(() => setOpen(false), []);
 
   return (

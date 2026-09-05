@@ -61,6 +61,7 @@ export const prismaMock = {
     findMany: vi.fn(),
     update: vi.fn(),
     updateMany: vi.fn(),
+    groupBy: vi.fn().mockResolvedValue([]),
   },
   $queryRaw: vi.fn(),
   customer: {
@@ -92,6 +93,11 @@ export const prismaMock = {
   businessHour: {
     findMany: vi.fn(),
     findUnique: vi.fn(),
+    upsert: vi.fn(),
+  },
+  professionalAvailability: {
+    findUnique: vi.fn(),
+    findMany: vi.fn(),
     upsert: vi.fn(),
   },
 };

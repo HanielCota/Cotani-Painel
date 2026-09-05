@@ -39,14 +39,16 @@ function objectPathFromPublicUrl(url: string): string | null {
   }
 }
 
-function isOwnedObjectPath(path: string, clinicId: string, kind: "services" | "professionals"): boolean {
+type PublicImageKind = "services" | "professionals" | "clinics";
+
+function isOwnedObjectPath(path: string, clinicId: string, kind: PublicImageKind): boolean {
   const prefix = `${clinicId}/${kind}/`;
   if (!path.startsWith(prefix)) return false;
   const fileName = path.slice(prefix.length);
   return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(?:jpg|png|webp)$/i.test(fileName);
 }
 
-export async function persistPublicImage(input: { clinicId: string; kind: "services" | "professionals"; value: string | null; currentUrl?: string | null }) {
+export async function persistPublicImage(input: { clinicId: string; kind: PublicImageKind; value: string | null; currentUrl?: string | null }) {
   if (!input.value) return null;
   if (input.value === input.currentUrl) return input.value;
   const existingPath = objectPathFromPublicUrl(input.value);
@@ -73,7 +75,7 @@ export async function persistPublicImage(input: { clinicId: string; kind: "servi
 export async function removePublicImage(input: {
   url: string | null | undefined;
   clinicId: string;
-  kind: "services" | "professionals";
+  kind: PublicImageKind;
 }) {
   if (!input.url) return;
   const path = objectPathFromPublicUrl(input.url);

@@ -211,6 +211,7 @@ export type ProfessionalWhereInput = {
   appointments?: Prisma.AppointmentListRelationFilter
   invitations?: Prisma.ClinicInvitationListRelationFilter
   services?: Prisma.ProfessionalServiceListRelationFilter
+  availability?: Prisma.ProfessionalAvailabilityListRelationFilter
 }
 
 export type ProfessionalOrderByWithRelationInput = {
@@ -227,6 +228,7 @@ export type ProfessionalOrderByWithRelationInput = {
   appointments?: Prisma.AppointmentOrderByRelationAggregateInput
   invitations?: Prisma.ClinicInvitationOrderByRelationAggregateInput
   services?: Prisma.ProfessionalServiceOrderByRelationAggregateInput
+  availability?: Prisma.ProfessionalAvailabilityOrderByRelationAggregateInput
 }
 
 export type ProfessionalWhereUniqueInput = Prisma.AtLeast<{
@@ -246,6 +248,7 @@ export type ProfessionalWhereUniqueInput = Prisma.AtLeast<{
   appointments?: Prisma.AppointmentListRelationFilter
   invitations?: Prisma.ClinicInvitationListRelationFilter
   services?: Prisma.ProfessionalServiceListRelationFilter
+  availability?: Prisma.ProfessionalAvailabilityListRelationFilter
 }, "id" | "membershipId">
 
 export type ProfessionalOrderByWithAggregationInput = {
@@ -288,6 +291,7 @@ export type ProfessionalCreateInput = {
   appointments?: Prisma.AppointmentCreateNestedManyWithoutProfessionalInput
   invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutProfessionalInput
   services?: Prisma.ProfessionalServiceCreateNestedManyWithoutProfessionalInput
+  availability?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutProfessionalInput
 }
 
 export type ProfessionalUncheckedCreateInput = {
@@ -302,6 +306,7 @@ export type ProfessionalUncheckedCreateInput = {
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutProfessionalInput
   invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutProfessionalInput
   services?: Prisma.ProfessionalServiceUncheckedCreateNestedManyWithoutProfessionalInput
+  availability?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutProfessionalInput
 }
 
 export type ProfessionalUpdateInput = {
@@ -316,6 +321,7 @@ export type ProfessionalUpdateInput = {
   appointments?: Prisma.AppointmentUpdateManyWithoutProfessionalNestedInput
   invitations?: Prisma.ClinicInvitationUpdateManyWithoutProfessionalNestedInput
   services?: Prisma.ProfessionalServiceUpdateManyWithoutProfessionalNestedInput
+  availability?: Prisma.ProfessionalAvailabilityUpdateManyWithoutProfessionalNestedInput
 }
 
 export type ProfessionalUncheckedUpdateInput = {
@@ -330,6 +336,7 @@ export type ProfessionalUncheckedUpdateInput = {
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutProfessionalNestedInput
   invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutProfessionalNestedInput
   services?: Prisma.ProfessionalServiceUncheckedUpdateManyWithoutProfessionalNestedInput
+  availability?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutProfessionalNestedInput
 }
 
 export type ProfessionalCreateManyInput = {
@@ -506,6 +513,20 @@ export type ProfessionalUncheckedUpdateOneWithoutMembershipNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProfessionalUpdateToOneWithWhereWithoutMembershipInput, Prisma.ProfessionalUpdateWithoutMembershipInput>, Prisma.ProfessionalUncheckedUpdateWithoutMembershipInput>
 }
 
+export type ProfessionalCreateNestedOneWithoutAvailabilityInput = {
+  create?: Prisma.XOR<Prisma.ProfessionalCreateWithoutAvailabilityInput, Prisma.ProfessionalUncheckedCreateWithoutAvailabilityInput>
+  connectOrCreate?: Prisma.ProfessionalCreateOrConnectWithoutAvailabilityInput
+  connect?: Prisma.ProfessionalWhereUniqueInput
+}
+
+export type ProfessionalUpdateOneRequiredWithoutAvailabilityNestedInput = {
+  create?: Prisma.XOR<Prisma.ProfessionalCreateWithoutAvailabilityInput, Prisma.ProfessionalUncheckedCreateWithoutAvailabilityInput>
+  connectOrCreate?: Prisma.ProfessionalCreateOrConnectWithoutAvailabilityInput
+  upsert?: Prisma.ProfessionalUpsertWithoutAvailabilityInput
+  connect?: Prisma.ProfessionalWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProfessionalUpdateToOneWithWhereWithoutAvailabilityInput, Prisma.ProfessionalUpdateWithoutAvailabilityInput>, Prisma.ProfessionalUncheckedUpdateWithoutAvailabilityInput>
+}
+
 export type ProfessionalCreateNestedOneWithoutServicesInput = {
   create?: Prisma.XOR<Prisma.ProfessionalCreateWithoutServicesInput, Prisma.ProfessionalUncheckedCreateWithoutServicesInput>
   connectOrCreate?: Prisma.ProfessionalCreateOrConnectWithoutServicesInput
@@ -547,6 +568,7 @@ export type ProfessionalCreateWithoutClinicInput = {
   appointments?: Prisma.AppointmentCreateNestedManyWithoutProfessionalInput
   invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutProfessionalInput
   services?: Prisma.ProfessionalServiceCreateNestedManyWithoutProfessionalInput
+  availability?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutProfessionalInput
 }
 
 export type ProfessionalUncheckedCreateWithoutClinicInput = {
@@ -560,6 +582,7 @@ export type ProfessionalUncheckedCreateWithoutClinicInput = {
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutProfessionalInput
   invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutProfessionalInput
   services?: Prisma.ProfessionalServiceUncheckedCreateNestedManyWithoutProfessionalInput
+  availability?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutProfessionalInput
 }
 
 export type ProfessionalCreateOrConnectWithoutClinicInput = {
@@ -613,6 +636,7 @@ export type ProfessionalCreateWithoutInvitationsInput = {
   membership?: Prisma.MembershipCreateNestedOneWithoutProfessionalInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutProfessionalInput
   services?: Prisma.ProfessionalServiceCreateNestedManyWithoutProfessionalInput
+  availability?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutProfessionalInput
 }
 
 export type ProfessionalUncheckedCreateWithoutInvitationsInput = {
@@ -626,6 +650,7 @@ export type ProfessionalUncheckedCreateWithoutInvitationsInput = {
   updatedAt?: Date | string
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutProfessionalInput
   services?: Prisma.ProfessionalServiceUncheckedCreateNestedManyWithoutProfessionalInput
+  availability?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutProfessionalInput
 }
 
 export type ProfessionalCreateOrConnectWithoutInvitationsInput = {
@@ -655,6 +680,7 @@ export type ProfessionalUpdateWithoutInvitationsInput = {
   membership?: Prisma.MembershipUpdateOneWithoutProfessionalNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutProfessionalNestedInput
   services?: Prisma.ProfessionalServiceUpdateManyWithoutProfessionalNestedInput
+  availability?: Prisma.ProfessionalAvailabilityUpdateManyWithoutProfessionalNestedInput
 }
 
 export type ProfessionalUncheckedUpdateWithoutInvitationsInput = {
@@ -668,6 +694,7 @@ export type ProfessionalUncheckedUpdateWithoutInvitationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutProfessionalNestedInput
   services?: Prisma.ProfessionalServiceUncheckedUpdateManyWithoutProfessionalNestedInput
+  availability?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutProfessionalNestedInput
 }
 
 export type ProfessionalCreateWithoutMembershipInput = {
@@ -681,6 +708,7 @@ export type ProfessionalCreateWithoutMembershipInput = {
   appointments?: Prisma.AppointmentCreateNestedManyWithoutProfessionalInput
   invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutProfessionalInput
   services?: Prisma.ProfessionalServiceCreateNestedManyWithoutProfessionalInput
+  availability?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutProfessionalInput
 }
 
 export type ProfessionalUncheckedCreateWithoutMembershipInput = {
@@ -694,6 +722,7 @@ export type ProfessionalUncheckedCreateWithoutMembershipInput = {
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutProfessionalInput
   invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutProfessionalInput
   services?: Prisma.ProfessionalServiceUncheckedCreateNestedManyWithoutProfessionalInput
+  availability?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutProfessionalInput
 }
 
 export type ProfessionalCreateOrConnectWithoutMembershipInput = {
@@ -723,6 +752,7 @@ export type ProfessionalUpdateWithoutMembershipInput = {
   appointments?: Prisma.AppointmentUpdateManyWithoutProfessionalNestedInput
   invitations?: Prisma.ClinicInvitationUpdateManyWithoutProfessionalNestedInput
   services?: Prisma.ProfessionalServiceUpdateManyWithoutProfessionalNestedInput
+  availability?: Prisma.ProfessionalAvailabilityUpdateManyWithoutProfessionalNestedInput
 }
 
 export type ProfessionalUncheckedUpdateWithoutMembershipInput = {
@@ -731,6 +761,79 @@ export type ProfessionalUncheckedUpdateWithoutMembershipInput = {
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   clinicId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutProfessionalNestedInput
+  invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutProfessionalNestedInput
+  services?: Prisma.ProfessionalServiceUncheckedUpdateManyWithoutProfessionalNestedInput
+  availability?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutProfessionalNestedInput
+}
+
+export type ProfessionalCreateWithoutAvailabilityInput = {
+  id?: string
+  name: string
+  imageUrl?: string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  clinic: Prisma.ClinicCreateNestedOneWithoutProfessionalsInput
+  membership?: Prisma.MembershipCreateNestedOneWithoutProfessionalInput
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutProfessionalInput
+  invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutProfessionalInput
+  services?: Prisma.ProfessionalServiceCreateNestedManyWithoutProfessionalInput
+}
+
+export type ProfessionalUncheckedCreateWithoutAvailabilityInput = {
+  id?: string
+  name: string
+  imageUrl?: string | null
+  isActive?: boolean
+  clinicId: string
+  membershipId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutProfessionalInput
+  invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutProfessionalInput
+  services?: Prisma.ProfessionalServiceUncheckedCreateNestedManyWithoutProfessionalInput
+}
+
+export type ProfessionalCreateOrConnectWithoutAvailabilityInput = {
+  where: Prisma.ProfessionalWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProfessionalCreateWithoutAvailabilityInput, Prisma.ProfessionalUncheckedCreateWithoutAvailabilityInput>
+}
+
+export type ProfessionalUpsertWithoutAvailabilityInput = {
+  update: Prisma.XOR<Prisma.ProfessionalUpdateWithoutAvailabilityInput, Prisma.ProfessionalUncheckedUpdateWithoutAvailabilityInput>
+  create: Prisma.XOR<Prisma.ProfessionalCreateWithoutAvailabilityInput, Prisma.ProfessionalUncheckedCreateWithoutAvailabilityInput>
+  where?: Prisma.ProfessionalWhereInput
+}
+
+export type ProfessionalUpdateToOneWithWhereWithoutAvailabilityInput = {
+  where?: Prisma.ProfessionalWhereInput
+  data: Prisma.XOR<Prisma.ProfessionalUpdateWithoutAvailabilityInput, Prisma.ProfessionalUncheckedUpdateWithoutAvailabilityInput>
+}
+
+export type ProfessionalUpdateWithoutAvailabilityInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clinic?: Prisma.ClinicUpdateOneRequiredWithoutProfessionalsNestedInput
+  membership?: Prisma.MembershipUpdateOneWithoutProfessionalNestedInput
+  appointments?: Prisma.AppointmentUpdateManyWithoutProfessionalNestedInput
+  invitations?: Prisma.ClinicInvitationUpdateManyWithoutProfessionalNestedInput
+  services?: Prisma.ProfessionalServiceUpdateManyWithoutProfessionalNestedInput
+}
+
+export type ProfessionalUncheckedUpdateWithoutAvailabilityInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  clinicId?: Prisma.StringFieldUpdateOperationsInput | string
+  membershipId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutProfessionalNestedInput
@@ -749,6 +852,7 @@ export type ProfessionalCreateWithoutServicesInput = {
   membership?: Prisma.MembershipCreateNestedOneWithoutProfessionalInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutProfessionalInput
   invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutProfessionalInput
+  availability?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutProfessionalInput
 }
 
 export type ProfessionalUncheckedCreateWithoutServicesInput = {
@@ -762,6 +866,7 @@ export type ProfessionalUncheckedCreateWithoutServicesInput = {
   updatedAt?: Date | string
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutProfessionalInput
   invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutProfessionalInput
+  availability?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutProfessionalInput
 }
 
 export type ProfessionalCreateOrConnectWithoutServicesInput = {
@@ -791,6 +896,7 @@ export type ProfessionalUpdateWithoutServicesInput = {
   membership?: Prisma.MembershipUpdateOneWithoutProfessionalNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutProfessionalNestedInput
   invitations?: Prisma.ClinicInvitationUpdateManyWithoutProfessionalNestedInput
+  availability?: Prisma.ProfessionalAvailabilityUpdateManyWithoutProfessionalNestedInput
 }
 
 export type ProfessionalUncheckedUpdateWithoutServicesInput = {
@@ -804,6 +910,7 @@ export type ProfessionalUncheckedUpdateWithoutServicesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutProfessionalNestedInput
   invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutProfessionalNestedInput
+  availability?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutProfessionalNestedInput
 }
 
 export type ProfessionalCreateWithoutAppointmentsInput = {
@@ -817,6 +924,7 @@ export type ProfessionalCreateWithoutAppointmentsInput = {
   membership?: Prisma.MembershipCreateNestedOneWithoutProfessionalInput
   invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutProfessionalInput
   services?: Prisma.ProfessionalServiceCreateNestedManyWithoutProfessionalInput
+  availability?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutProfessionalInput
 }
 
 export type ProfessionalUncheckedCreateWithoutAppointmentsInput = {
@@ -830,6 +938,7 @@ export type ProfessionalUncheckedCreateWithoutAppointmentsInput = {
   updatedAt?: Date | string
   invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutProfessionalInput
   services?: Prisma.ProfessionalServiceUncheckedCreateNestedManyWithoutProfessionalInput
+  availability?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutProfessionalInput
 }
 
 export type ProfessionalCreateOrConnectWithoutAppointmentsInput = {
@@ -859,6 +968,7 @@ export type ProfessionalUpdateWithoutAppointmentsInput = {
   membership?: Prisma.MembershipUpdateOneWithoutProfessionalNestedInput
   invitations?: Prisma.ClinicInvitationUpdateManyWithoutProfessionalNestedInput
   services?: Prisma.ProfessionalServiceUpdateManyWithoutProfessionalNestedInput
+  availability?: Prisma.ProfessionalAvailabilityUpdateManyWithoutProfessionalNestedInput
 }
 
 export type ProfessionalUncheckedUpdateWithoutAppointmentsInput = {
@@ -872,6 +982,7 @@ export type ProfessionalUncheckedUpdateWithoutAppointmentsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutProfessionalNestedInput
   services?: Prisma.ProfessionalServiceUncheckedUpdateManyWithoutProfessionalNestedInput
+  availability?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutProfessionalNestedInput
 }
 
 export type ProfessionalCreateManyClinicInput = {
@@ -895,6 +1006,7 @@ export type ProfessionalUpdateWithoutClinicInput = {
   appointments?: Prisma.AppointmentUpdateManyWithoutProfessionalNestedInput
   invitations?: Prisma.ClinicInvitationUpdateManyWithoutProfessionalNestedInput
   services?: Prisma.ProfessionalServiceUpdateManyWithoutProfessionalNestedInput
+  availability?: Prisma.ProfessionalAvailabilityUpdateManyWithoutProfessionalNestedInput
 }
 
 export type ProfessionalUncheckedUpdateWithoutClinicInput = {
@@ -908,6 +1020,7 @@ export type ProfessionalUncheckedUpdateWithoutClinicInput = {
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutProfessionalNestedInput
   invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutProfessionalNestedInput
   services?: Prisma.ProfessionalServiceUncheckedUpdateManyWithoutProfessionalNestedInput
+  availability?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutProfessionalNestedInput
 }
 
 export type ProfessionalUncheckedUpdateManyWithoutClinicInput = {
@@ -929,12 +1042,14 @@ export type ProfessionalCountOutputType = {
   appointments: number
   invitations: number
   services: number
+  availability: number
 }
 
 export type ProfessionalCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   appointments?: boolean | ProfessionalCountOutputTypeCountAppointmentsArgs
   invitations?: boolean | ProfessionalCountOutputTypeCountInvitationsArgs
   services?: boolean | ProfessionalCountOutputTypeCountServicesArgs
+  availability?: boolean | ProfessionalCountOutputTypeCountAvailabilityArgs
 }
 
 /**
@@ -968,6 +1083,13 @@ export type ProfessionalCountOutputTypeCountServicesArgs<ExtArgs extends runtime
   where?: Prisma.ProfessionalServiceWhereInput
 }
 
+/**
+ * ProfessionalCountOutputType without action
+ */
+export type ProfessionalCountOutputTypeCountAvailabilityArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProfessionalAvailabilityWhereInput
+}
+
 
 export type ProfessionalSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -983,6 +1105,7 @@ export type ProfessionalSelect<ExtArgs extends runtime.Types.Extensions.Internal
   appointments?: boolean | Prisma.Professional$appointmentsArgs<ExtArgs>
   invitations?: boolean | Prisma.Professional$invitationsArgs<ExtArgs>
   services?: boolean | Prisma.Professional$servicesArgs<ExtArgs>
+  availability?: boolean | Prisma.Professional$availabilityArgs<ExtArgs>
   _count?: boolean | Prisma.ProfessionalCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["professional"]>
 
@@ -1030,6 +1153,7 @@ export type ProfessionalInclude<ExtArgs extends runtime.Types.Extensions.Interna
   appointments?: boolean | Prisma.Professional$appointmentsArgs<ExtArgs>
   invitations?: boolean | Prisma.Professional$invitationsArgs<ExtArgs>
   services?: boolean | Prisma.Professional$servicesArgs<ExtArgs>
+  availability?: boolean | Prisma.Professional$availabilityArgs<ExtArgs>
   _count?: boolean | Prisma.ProfessionalCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProfessionalIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1049,6 +1173,7 @@ export type $ProfessionalPayload<ExtArgs extends runtime.Types.Extensions.Intern
     appointments: Prisma.$AppointmentPayload<ExtArgs>[]
     invitations: Prisma.$ClinicInvitationPayload<ExtArgs>[]
     services: Prisma.$ProfessionalServicePayload<ExtArgs>[]
+    availability: Prisma.$ProfessionalAvailabilityPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1458,6 +1583,7 @@ export interface Prisma__ProfessionalClient<T, Null = never, ExtArgs extends run
   appointments<T extends Prisma.Professional$appointmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Professional$appointmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppointmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   invitations<T extends Prisma.Professional$invitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Professional$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClinicInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   services<T extends Prisma.Professional$servicesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Professional$servicesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProfessionalServicePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  availability<T extends Prisma.Professional$availabilityArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Professional$availabilityArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProfessionalAvailabilityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1984,6 +2110,30 @@ export type Professional$servicesArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.ProfessionalServiceScalarFieldEnum | Prisma.ProfessionalServiceScalarFieldEnum[]
+}
+
+/**
+ * Professional.availability
+ */
+export type Professional$availabilityArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProfessionalAvailability
+   */
+  select?: Prisma.ProfessionalAvailabilitySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProfessionalAvailability
+   */
+  omit?: Prisma.ProfessionalAvailabilityOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProfessionalAvailabilityInclude<ExtArgs> | null
+  where?: Prisma.ProfessionalAvailabilityWhereInput
+  orderBy?: Prisma.ProfessionalAvailabilityOrderByWithRelationInput | Prisma.ProfessionalAvailabilityOrderByWithRelationInput[]
+  cursor?: Prisma.ProfessionalAvailabilityWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProfessionalAvailabilityScalarFieldEnum | Prisma.ProfessionalAvailabilityScalarFieldEnum[]
 }
 
 /**

@@ -12,10 +12,10 @@ import type { BusinessHourItem } from "@/types";
 export const metadata: Metadata = { title: "Horários" };
 
 export default withTenant(async ({ clinic }) => {
-  const businessHours = await prisma.businessHour.findMany({
-    where: { clinicId: clinic.id },
-    orderBy: { dayOfWeek: "asc" },
-  });
+  const [businessHours, professionals] = await Promise.all([
+    prisma.businessHour.findMany({ where: { clinicId: clinic.id }, orderBy: { dayOfWeek: "asc" } }),
+    prisma.professional.findMany({ where: { clinicId: clinic.id, isActive: true }, include: { availability: { orderBy: { dayOfWeek: "asc" } } }, orderBy: { name: "asc" } }),
+  ]);
   const initialBusinessHours: BusinessHourItem[] = businessHours.map((hour) => ({
     id: hour.id,
     dayOfWeek: hour.dayOfWeek,
@@ -42,6 +42,12 @@ export default withTenant(async ({ clinic }) => {
           />
         </CardContent>
       </Card>
+      {professionals.map((professional) => (
+        <Card key={professional.id}>
+          <CardHeader><CardTitle>Horários de {professional.name}</CardTitle><CardDescription>Defina dias, horários e intervalos próprios. Sem configuração individual, será usado o expediente geral.</CardDescription></CardHeader>
+          <CardContent><BusinessHoursSettings professionalId={professional.id} businessHours={professional.availability.map((hour) => ({ id: hour.id, dayOfWeek: hour.dayOfWeek, isOpen: hour.isOpen, openTime: hour.openTime, closeTime: hour.closeTime, breakStart: hour.breakStart, breakEnd: hour.breakEnd }))} /></CardContent>
+        </Card>
+      ))}
     </div>
   );
 }, ["ADMIN"]);

@@ -4,12 +4,17 @@ export type ActionResult =
 
 export interface AgendaAppointment {
   id: string;
+  customerId?: string;
+  serviceId?: string;
+  professionalId?: string | null;
   customerName: string;
   serviceName: string;
   professionalName: string | null;
   startTime: string;
   endTime: string;
   status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELED" | "NO_SHOW";
+  notes?: string | null;
+  totalPrice?: number;
 }
 
 export interface CustomerListItem {
@@ -22,6 +27,9 @@ export interface CustomerListItem {
   lastAppointmentAt: string | null;
   lastServiceName: string | null;
   relationship: "NEW" | "ACTIVE" | "RECURRING" | "INACTIVE";
+  notes: string | null;
+  tags: string[];
+  nextReturnAt: string | null;
 }
 
 export interface CustomersPage {

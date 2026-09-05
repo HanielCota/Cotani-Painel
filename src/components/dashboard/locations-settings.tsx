@@ -7,9 +7,22 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createEnterpriseUnit } from "@/server/actions/clinics";
+import { createEnterpriseUnit, updateEnterpriseUnit, toggleEnterpriseUnitArchive, copyEnterpriseUnitSetup } from "@/server/actions/clinics";
+import { toast } from "sonner";
+import { useEffect } from "react";
+import type { ActionResult } from "@/types";
 
-export function LocationsSettings({ enabled, locations }: { enabled: boolean; locations: { id: string; name: string; active: boolean }[] }) {
+const initial: ActionResult = { status: "success", message: "" };
+
+function UnitRow({ location }: { location: { id: string; name: string; active: boolean; primary: boolean } }) {
+  const [updateState, updateAction, updating] = useActionState(updateEnterpriseUnit, initial);
+  const [archiveState, archiveAction, archiving] = useActionState(toggleEnterpriseUnitArchive, initial);
+  const [copyState, copyAction, copying] = useActionState(copyEnterpriseUnitSetup, initial);
+  useEffect(() => { for (const state of [updateState, archiveState, copyState]) if (state.message) state.status === "success" ? toast.success(state.message) : toast.error(state.message); }, [updateState, archiveState, copyState]);
+  return <div className="space-y-3 rounded-lg border p-3"><div className="flex items-center gap-3"><Building2Icon className="size-4 text-primary" /><span className="min-w-0 flex-1 truncate text-sm font-medium">{location.name}{location.primary ? " · Principal" : ""}</span><span className="text-xs text-muted-foreground">{location.active ? "Ativa" : "Arquivada"}</span></div>{!location.primary ? <><form action={updateAction} className="flex gap-2"><input type="hidden" name="unitId" value={location.id} /><Input name="name" defaultValue={location.name} aria-label={`Nome de ${location.name}`} /><Button type="submit" size="sm" variant="outline" disabled={updating}>Salvar</Button></form><form action={copyAction} className="flex flex-wrap items-center gap-3 text-xs"><input type="hidden" name="unitId" value={location.id} /><label><input type="checkbox" name="copyHours" /> Copiar horários</label><label><input type="checkbox" name="copyServices" /> Copiar serviços</label><Button type="submit" size="sm" variant="outline" disabled={copying}>Copiar da principal</Button></form><form action={archiveAction}><input type="hidden" name="unitId" value={location.id} /><Button type="submit" size="sm" variant={location.active ? "destructive" : "outline"} disabled={archiving}>{location.active ? "Arquivar unidade" : "Reativar unidade"}</Button></form></> : null}</div>;
+}
+
+export function LocationsSettings({ enabled, locations }: { enabled: boolean; locations: { id: string; name: string; active: boolean; primary: boolean }[] }) {
   const [state, action, pending] = useActionState(createEnterpriseUnit, { status: "success" as const, message: "" });
 
   return (
@@ -17,13 +30,7 @@ export function LocationsSettings({ enabled, locations }: { enabled: boolean; lo
       <div className="space-y-3">
         <div><h3 className="font-medium">Unidades vinculadas</h3><p className="text-sm text-muted-foreground">Todas usam a assinatura Empresa da unidade principal.</p></div>
         <div className="grid gap-2 sm:grid-cols-2">
-          {locations.map((location) => (
-            <div key={location.id} className="flex items-center gap-3 rounded-lg border p-3">
-              <Building2Icon className="size-4 text-primary" />
-              <span className="min-w-0 flex-1 truncate text-sm font-medium">{location.name}</span>
-              <span className="text-xs text-muted-foreground">{location.active ? "Ativa" : "Inativa"}</span>
-            </div>
-          ))}
+          {locations.map((location) => <UnitRow key={location.id} location={location} />)}
         </div>
       </div>
 

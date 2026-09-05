@@ -36,12 +36,17 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(
     appointments.map((appointment) => ({
       id: appointment.id,
+      customerId: appointment.customerId,
+      serviceId: appointment.serviceId,
+      professionalId: appointment.professionalId,
       customerName: appointment.customer.name,
       serviceName: appointment.service.name,
       professionalName: appointment.professional?.name ?? null,
       startTime: appointment.startTime.toISOString(),
       endTime: appointment.endTime.toISOString(),
       status: appointment.status,
+      notes: appointment.notes,
+      totalPrice: Number(appointment.totalPrice),
     })),
   );
 }

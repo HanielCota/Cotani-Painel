@@ -56,7 +56,7 @@ describe("createPublicAppointment", () => {
   });
 
   it("retorna erro quando loja não existe", async () => {
-    prismaMock.clinic.findUnique.mockResolvedValueOnce(null);
+    prismaMock.clinic.findFirst.mockResolvedValueOnce(null);
 
     const result = await createPublicAppointment({ status: "success", message: "" }, createFormData());
 
@@ -65,7 +65,7 @@ describe("createPublicAppointment", () => {
   });
 
   it("retorna erro quando assinatura não está ativa", async () => {
-    prismaMock.clinic.findUnique.mockResolvedValueOnce({
+    prismaMock.clinic.findFirst.mockResolvedValueOnce({
       id: "clinic-1",
       slug: "loja-teste",
       name: "Loja",
@@ -81,7 +81,7 @@ describe("createPublicAppointment", () => {
   });
 
   it("retorna erro quando serviço está indisponível", async () => {
-    prismaMock.clinic.findUnique.mockResolvedValueOnce({
+    prismaMock.clinic.findFirst.mockResolvedValueOnce({
       id: "clinic-1",
       slug: "loja-teste",
       name: "Loja",
@@ -100,7 +100,7 @@ describe("createPublicAppointment", () => {
 
   it("cria agendamento com sucesso", async () => {
     vi.setSystemTime(new Date("2026-07-19T10:00:00.000Z"));
-    prismaMock.clinic.findUnique.mockResolvedValueOnce({
+    prismaMock.clinic.findFirst.mockResolvedValueOnce({
       id: "clinic-1",
       slug: "loja-teste",
       name: "Loja",

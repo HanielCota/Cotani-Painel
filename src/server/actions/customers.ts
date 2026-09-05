@@ -14,6 +14,9 @@ const customerSchema = z.object({
   name: z.string().trim().min(2).max(120),
   email: z.email().trim().toLowerCase().optional(),
   phone: z.string().trim().min(8).max(32),
+  notes: z.string().trim().max(2000).optional(),
+  tags: z.array(z.string().trim().min(1).max(40)).max(20).optional(),
+  nextReturnAt: z.coerce.date().optional(),
 });
 
 const updateCustomerSchema = customerSchema.extend({
@@ -48,6 +51,9 @@ export async function createCustomer(input: unknown): Promise<ActionResult> {
         name: parsed.data.name,
         email: parsed.data.email,
         phone: normalizedPhone,
+        notes: parsed.data.notes || null,
+        tags: parsed.data.tags ?? [],
+        nextReturnAt: parsed.data.nextReturnAt,
       },
     });
   } catch (error) {
@@ -71,6 +77,9 @@ export async function createCustomerFromForm(_previousState: ActionResult, formD
     name: formData.get("name"),
     phone: formData.get("phone"),
     email: email || undefined,
+    notes: String(formData.get("notes") ?? "").trim() || undefined,
+    tags: String(formData.get("tags") ?? "").split(",").map((tag) => tag.trim()).filter(Boolean),
+    nextReturnAt: String(formData.get("nextReturnAt") ?? "").trim() || undefined,
   });
 }
 
@@ -111,6 +120,9 @@ export async function updateCustomer(input: unknown): Promise<ActionResult> {
         name: parsed.data.name,
         email: parsed.data.email ?? null,
         phone: normalizedPhone,
+        notes: parsed.data.notes || null,
+        tags: parsed.data.tags ?? [],
+        nextReturnAt: parsed.data.nextReturnAt ?? null,
       },
     });
   } catch {
@@ -129,7 +141,44 @@ export async function updateCustomerFromForm(_previousState: ActionResult, formD
     name: formData.get("name"),
     phone: formData.get("phone"),
     email: email || undefined,
+    notes: String(formData.get("notes") ?? "").trim() || undefined,
+    tags: String(formData.get("tags") ?? "").split(",").map((tag) => tag.trim()).filter(Boolean),
+    nextReturnAt: String(formData.get("nextReturnAt") ?? "").trim() || undefined,
   });
+}
+
+function parseCsvLine(line: string): string[] {
+  const values: string[] = []; let value = ""; let quoted = false;
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index];
+    if (char === '"' && line[index + 1] === '"' && quoted) { value += '"'; index += 1; }
+    else if (char === '"') quoted = !quoted;
+    else if (char === "," && !quoted) { values.push(value.trim()); value = ""; }
+    else value += char;
+  }
+  values.push(value.trim()); return values;
+}
+
+export async function importCustomersFromCsv(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
+  await requireAuthenticatedUser();
+  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
+  if (!clinic || !isSubscriptionActive(clinic)) return { status: "error", message: clinic ? SUBSCRIPTION_INACTIVE_MESSAGE : "Selecione uma loja." };
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0 || file.size > 1024 * 1024) return { status: "error", message: "Selecione um CSV de até 1 MB." };
+  const lines = (await file.text()).replace(/^\uFEFF/, "").split(/\r?\n/).filter(Boolean);
+  if (lines.length < 2 || lines.length > 5001) return { status: "error", message: "O arquivo deve ter cabeçalho e até 5.000 clientes." };
+  const headers = parseCsvLine(lines[0]).map((header) => header.toLowerCase());
+  const nameIndex = headers.indexOf("nome"); const phoneIndex = headers.indexOf("telefone"); const emailIndex = headers.indexOf("email");
+  if (nameIndex < 0 || phoneIndex < 0) return { status: "error", message: "Use as colunas nome, telefone e email." };
+  let imported = 0; let ignored = 0;
+  for (const line of lines.slice(1)) {
+    const values = parseCsvLine(line); const name = values[nameIndex]?.trim(); const phone = normalizeWhatsAppPhone(values[phoneIndex] ?? ""); const email = values[emailIndex]?.trim().toLowerCase() || null;
+    if (!name || name.length < 2 || !phone || (email && !z.email().safeParse(email).success)) { ignored += 1; continue; }
+    await prisma.customer.upsert({ where: { clinicId_phone: { clinicId: clinic.id, phone } }, create: { clinicId: clinic.id, name: name.slice(0, 120), phone, email }, update: { name: name.slice(0, 120), email } });
+    imported += 1;
+  }
+  revalidatePath("/dashboard/clientes");
+  return { status: "success", message: `${imported} cliente(s) importado(s)${ignored ? `; ${ignored} linha(s) ignorada(s)` : ""}.` };
 }
 
 export async function deleteCustomer(customerId: string): Promise<ActionResult> {

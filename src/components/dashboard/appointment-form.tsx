@@ -35,9 +35,10 @@ interface AppointmentFormProps {
   timeZone: string;
   className?: string;
   onSuccess?: () => void;
+  initialCustomerId?: string;
 }
 
-export function AppointmentForm({ customers, services, minStartTime, timeZone, className, onSuccess }: AppointmentFormProps) {
+export function AppointmentForm({ customers, services, minStartTime, timeZone, className, onSuccess, initialCustomerId = "" }: AppointmentFormProps) {
   const clinicId = useActiveClinicId();
   const [state, formAction, isPending] = useActionState(createAppointmentFromForm, initialState);
   const [serviceId, setServiceId] = useState("");
@@ -99,7 +100,7 @@ export function AppointmentForm({ customers, services, minStartTime, timeZone, c
           <FieldGroup className="md:grid md:grid-cols-2">
             <Field>
               <FieldLabel htmlFor="customerId">Cliente</FieldLabel>
-              <Select name="customerId" defaultValue="" items={customerItems} disabled={isPending} required>
+              <Select name="customerId" defaultValue={initialCustomerId} items={customerItems} disabled={isPending} required>
                 <SelectTrigger id="customerId" className="w-full">
                   <SelectValue placeholder="Selecione um cliente" />
                 </SelectTrigger>

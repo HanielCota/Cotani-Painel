@@ -8,7 +8,7 @@ import { getNotificationChannels } from "@/config/subscription-plans";
 import { getClientIpFromHeaders } from "@/lib/get-client-ip";
 import { normalizeWhatsAppPhone } from "@/lib/phone";
 import { rateLimit } from "@/lib/rate-limit";
-import { DOUBLE_BOOKING_MESSAGE, scheduleAppointment } from "@/server/services/scheduling";
+import { DOUBLE_BOOKING_MESSAGE, rescheduleScheduledAppointment, scheduleAppointment } from "@/server/services/scheduling";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
 import { isClinicOperational } from "@/server/clinic-access";
@@ -23,6 +23,7 @@ const publicBookingSchema = z.object({
   customerEmail: z.email().trim().toLowerCase().optional(),
   startTime: z.coerce.date(),
   notes: z.string().trim().max(2_000).optional(),
+  rescheduleToken: z.uuid().optional(),
 });
 
 const BOOKING_RATE_LIMIT = {
@@ -53,6 +54,7 @@ export async function createPublicAppointment(_previousState: ActionResult, form
     customerEmail: formData.get("customerEmail") || undefined,
     startTime: formData.get("startTime"),
     notes: formData.get("notes") || undefined,
+    rescheduleToken: formData.get("rescheduleToken") || undefined,
   });
 
   if (!parsed.success) {
@@ -61,8 +63,8 @@ export async function createPublicAppointment(_previousState: ActionResult, form
   const normalizedPhone = normalizeWhatsAppPhone(parsed.data.customerPhone);
   if (!normalizedPhone) return { status: "error", message: "Informe um WhatsApp com DDD válido." };
 
-  const clinic = await prisma.clinic.findUnique({
-    where: { slug: parsed.data.slug, deletedAt: null },
+  const clinic = await prisma.clinic.findFirst({
+    where: { deletedAt: null, OR: [{ slug: parsed.data.slug }, { slugAliases: { some: { slug: parsed.data.slug } } }] },
     include: { billingOwner: true },
   });
 
@@ -86,23 +88,32 @@ export async function createPublicAppointment(_previousState: ActionResult, form
     return { status: "error", message: "Serviço indisponível para agendamento." };
   }
 
-  if (parsed.data.professionalId) {
-    const professional = await prisma.professional.findFirst({
+  const professional = parsed.data.professionalId
+    ? await prisma.professional.findFirst({
       where: {
         id: parsed.data.professionalId,
         clinicId: clinic.id,
         isActive: true,
         services: { some: { serviceId: parsed.data.serviceId } },
       },
-    });
+    })
+    : null;
 
-    if (!professional) {
+  if (parsed.data.professionalId && !professional) {
       return { status: "error", message: "Profissional indisponível para este serviço." };
-    }
   }
 
   if (!isWithinBookingWindow(parsed.data.startTime)) {
     return { status: "error", message: "Escolha um horário com pelo menos 15 minutos de antecedência e no máximo 180 dias no futuro." };
+  }
+
+  if (parsed.data.rescheduleToken) {
+    const existing = await prisma.appointment.findFirst({ where: { cancellationToken: parsed.data.rescheduleToken, clinicId: clinic.id, status: { in: ["PENDING", "CONFIRMED"] }, startTime: { gt: new Date() } }, include: { customer: true } });
+    if (!existing) return { status: "error", message: "Este link de reagendamento não é mais válido." };
+    const result = await rescheduleScheduledAppointment({ appointmentId: existing.id, clinicId: clinic.id, clinicSlug: clinic.slug, clinicName: clinic.name, timeZone: clinic.timeZone, customerId: existing.customerId, customerName: existing.customer.name, customerPhone: existing.customer.phone, customerEmail: existing.customer.email, notificationChannels: getNotificationChannels(clinic.subscriptionPlan), serviceId: service.id, serviceName: service.name, serviceDuration: service.duration, servicePrice: Number(service.price), professionalId: professional?.id ?? null, startTime: parsed.data.startTime, notes: parsed.data.notes, cancellationToken: existing.cancellationToken, maxAppointmentsPerDay: clinic.maxAppointmentsPerDay });
+    if (result.status === "conflict") return { status: "error", message: DOUBLE_BOOKING_MESSAGE };
+    if (result.status === "error") return { status: "error", message: "Não foi possível reagendar. Tente novamente." };
+    return { status: "success", message: "Agendamento reagendado." };
   }
 
   const result = await scheduleAppointment({

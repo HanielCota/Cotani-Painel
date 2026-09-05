@@ -477,6 +477,40 @@ export type EnumPaymentMethodWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumPaymentMethodFilter<$PrismaModel>
 }
 
+export type EnumFinancialEntryTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.FinancialEntryType | Prisma.EnumFinancialEntryTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.FinancialEntryType[] | Prisma.ListEnumFinancialEntryTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.FinancialEntryType[] | Prisma.ListEnumFinancialEntryTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFinancialEntryTypeFilter<$PrismaModel> | $Enums.FinancialEntryType
+}
+
+export type EnumFinancialEntryStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.FinancialEntryStatus | Prisma.EnumFinancialEntryStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.FinancialEntryStatus[] | Prisma.ListEnumFinancialEntryStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.FinancialEntryStatus[] | Prisma.ListEnumFinancialEntryStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFinancialEntryStatusFilter<$PrismaModel> | $Enums.FinancialEntryStatus
+}
+
+export type EnumFinancialEntryTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.FinancialEntryType | Prisma.EnumFinancialEntryTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.FinancialEntryType[] | Prisma.ListEnumFinancialEntryTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.FinancialEntryType[] | Prisma.ListEnumFinancialEntryTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFinancialEntryTypeWithAggregatesFilter<$PrismaModel> | $Enums.FinancialEntryType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumFinancialEntryTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumFinancialEntryTypeFilter<$PrismaModel>
+}
+
+export type EnumFinancialEntryStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.FinancialEntryStatus | Prisma.EnumFinancialEntryStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.FinancialEntryStatus[] | Prisma.ListEnumFinancialEntryStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.FinancialEntryStatus[] | Prisma.ListEnumFinancialEntryStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFinancialEntryStatusWithAggregatesFilter<$PrismaModel> | $Enums.FinancialEntryStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumFinancialEntryStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumFinancialEntryStatusFilter<$PrismaModel>
+}
+
 export type EnumNotificationKindFilter<$PrismaModel = never> = {
   equals?: $Enums.NotificationKind | Prisma.EnumNotificationKindFieldRefInput<$PrismaModel>
   in?: $Enums.NotificationKind[] | Prisma.ListEnumNotificationKindFieldRefInput<$PrismaModel>
@@ -973,6 +1007,40 @@ export type NestedEnumPaymentMethodWithAggregatesFilter<$PrismaModel = never> = 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumPaymentMethodFilter<$PrismaModel>
   _max?: Prisma.NestedEnumPaymentMethodFilter<$PrismaModel>
+}
+
+export type NestedEnumFinancialEntryTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.FinancialEntryType | Prisma.EnumFinancialEntryTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.FinancialEntryType[] | Prisma.ListEnumFinancialEntryTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.FinancialEntryType[] | Prisma.ListEnumFinancialEntryTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFinancialEntryTypeFilter<$PrismaModel> | $Enums.FinancialEntryType
+}
+
+export type NestedEnumFinancialEntryStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.FinancialEntryStatus | Prisma.EnumFinancialEntryStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.FinancialEntryStatus[] | Prisma.ListEnumFinancialEntryStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.FinancialEntryStatus[] | Prisma.ListEnumFinancialEntryStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFinancialEntryStatusFilter<$PrismaModel> | $Enums.FinancialEntryStatus
+}
+
+export type NestedEnumFinancialEntryTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.FinancialEntryType | Prisma.EnumFinancialEntryTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.FinancialEntryType[] | Prisma.ListEnumFinancialEntryTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.FinancialEntryType[] | Prisma.ListEnumFinancialEntryTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFinancialEntryTypeWithAggregatesFilter<$PrismaModel> | $Enums.FinancialEntryType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumFinancialEntryTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumFinancialEntryTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumFinancialEntryStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.FinancialEntryStatus | Prisma.EnumFinancialEntryStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.FinancialEntryStatus[] | Prisma.ListEnumFinancialEntryStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.FinancialEntryStatus[] | Prisma.ListEnumFinancialEntryStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFinancialEntryStatusWithAggregatesFilter<$PrismaModel> | $Enums.FinancialEntryStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumFinancialEntryStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumFinancialEntryStatusFilter<$PrismaModel>
 }
 
 export type NestedEnumNotificationKindFilter<$PrismaModel = never> = {

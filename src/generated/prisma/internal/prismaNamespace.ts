@@ -400,6 +400,7 @@ export const ModelName = {
   Clinic: 'Clinic',
   AdminAuditLog: 'AdminAuditLog',
   PaymentHistory: 'PaymentHistory',
+  ClinicSlugAlias: 'ClinicSlugAlias',
   BillingContract: 'BillingContract',
   BusinessHour: 'BusinessHour',
   User: 'User',
@@ -408,8 +409,10 @@ export const ModelName = {
   Customer: 'Customer',
   Service: 'Service',
   Professional: 'Professional',
+  ProfessionalAvailability: 'ProfessionalAvailability',
   ProfessionalService: 'ProfessionalService',
   Appointment: 'Appointment',
+  FinancialEntry: 'FinancialEntry',
   Notification: 'Notification',
   WebhookEvent: 'WebhookEvent',
   RateLimit: 'RateLimit'
@@ -428,7 +431,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "clinic" | "adminAuditLog" | "paymentHistory" | "billingContract" | "businessHour" | "user" | "clinicInvitation" | "membership" | "customer" | "service" | "professional" | "professionalService" | "appointment" | "notification" | "webhookEvent" | "rateLimit"
+    modelProps: "clinic" | "adminAuditLog" | "paymentHistory" | "clinicSlugAlias" | "billingContract" | "businessHour" | "user" | "clinicInvitation" | "membership" | "customer" | "service" | "professional" | "professionalAvailability" | "professionalService" | "appointment" | "financialEntry" | "notification" | "webhookEvent" | "rateLimit"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -651,6 +654,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.PaymentHistoryCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.PaymentHistoryCountAggregateOutputType> | number
+        }
+      }
+    }
+    ClinicSlugAlias: {
+      payload: Prisma.$ClinicSlugAliasPayload<ExtArgs>
+      fields: Prisma.ClinicSlugAliasFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ClinicSlugAliasFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClinicSlugAliasPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ClinicSlugAliasFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClinicSlugAliasPayload>
+        }
+        findFirst: {
+          args: Prisma.ClinicSlugAliasFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClinicSlugAliasPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ClinicSlugAliasFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClinicSlugAliasPayload>
+        }
+        findMany: {
+          args: Prisma.ClinicSlugAliasFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClinicSlugAliasPayload>[]
+        }
+        create: {
+          args: Prisma.ClinicSlugAliasCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClinicSlugAliasPayload>
+        }
+        createMany: {
+          args: Prisma.ClinicSlugAliasCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ClinicSlugAliasCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClinicSlugAliasPayload>[]
+        }
+        delete: {
+          args: Prisma.ClinicSlugAliasDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClinicSlugAliasPayload>
+        }
+        update: {
+          args: Prisma.ClinicSlugAliasUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClinicSlugAliasPayload>
+        }
+        deleteMany: {
+          args: Prisma.ClinicSlugAliasDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ClinicSlugAliasUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ClinicSlugAliasUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClinicSlugAliasPayload>[]
+        }
+        upsert: {
+          args: Prisma.ClinicSlugAliasUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClinicSlugAliasPayload>
+        }
+        aggregate: {
+          args: Prisma.ClinicSlugAliasAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateClinicSlugAlias>
+        }
+        groupBy: {
+          args: Prisma.ClinicSlugAliasGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClinicSlugAliasGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ClinicSlugAliasCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClinicSlugAliasCountAggregateOutputType> | number
         }
       }
     }
@@ -1246,6 +1323,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProfessionalAvailability: {
+      payload: Prisma.$ProfessionalAvailabilityPayload<ExtArgs>
+      fields: Prisma.ProfessionalAvailabilityFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProfessionalAvailabilityFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalAvailabilityPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProfessionalAvailabilityFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalAvailabilityPayload>
+        }
+        findFirst: {
+          args: Prisma.ProfessionalAvailabilityFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalAvailabilityPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProfessionalAvailabilityFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalAvailabilityPayload>
+        }
+        findMany: {
+          args: Prisma.ProfessionalAvailabilityFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalAvailabilityPayload>[]
+        }
+        create: {
+          args: Prisma.ProfessionalAvailabilityCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalAvailabilityPayload>
+        }
+        createMany: {
+          args: Prisma.ProfessionalAvailabilityCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProfessionalAvailabilityCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalAvailabilityPayload>[]
+        }
+        delete: {
+          args: Prisma.ProfessionalAvailabilityDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalAvailabilityPayload>
+        }
+        update: {
+          args: Prisma.ProfessionalAvailabilityUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalAvailabilityPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProfessionalAvailabilityDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProfessionalAvailabilityUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProfessionalAvailabilityUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalAvailabilityPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProfessionalAvailabilityUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProfessionalAvailabilityPayload>
+        }
+        aggregate: {
+          args: Prisma.ProfessionalAvailabilityAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProfessionalAvailability>
+        }
+        groupBy: {
+          args: Prisma.ProfessionalAvailabilityGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProfessionalAvailabilityGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProfessionalAvailabilityCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProfessionalAvailabilityCountAggregateOutputType> | number
+        }
+      }
+    }
     ProfessionalService: {
       payload: Prisma.$ProfessionalServicePayload<ExtArgs>
       fields: Prisma.ProfessionalServiceFieldRefs
@@ -1391,6 +1542,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.AppointmentCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.AppointmentCountAggregateOutputType> | number
+        }
+      }
+    }
+    FinancialEntry: {
+      payload: Prisma.$FinancialEntryPayload<ExtArgs>
+      fields: Prisma.FinancialEntryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FinancialEntryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinancialEntryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FinancialEntryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinancialEntryPayload>
+        }
+        findFirst: {
+          args: Prisma.FinancialEntryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinancialEntryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FinancialEntryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinancialEntryPayload>
+        }
+        findMany: {
+          args: Prisma.FinancialEntryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinancialEntryPayload>[]
+        }
+        create: {
+          args: Prisma.FinancialEntryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinancialEntryPayload>
+        }
+        createMany: {
+          args: Prisma.FinancialEntryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FinancialEntryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinancialEntryPayload>[]
+        }
+        delete: {
+          args: Prisma.FinancialEntryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinancialEntryPayload>
+        }
+        update: {
+          args: Prisma.FinancialEntryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinancialEntryPayload>
+        }
+        deleteMany: {
+          args: Prisma.FinancialEntryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FinancialEntryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FinancialEntryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinancialEntryPayload>[]
+        }
+        upsert: {
+          args: Prisma.FinancialEntryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FinancialEntryPayload>
+        }
+        aggregate: {
+          args: Prisma.FinancialEntryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFinancialEntry>
+        }
+        groupBy: {
+          args: Prisma.FinancialEntryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FinancialEntryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FinancialEntryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FinancialEntryCountAggregateOutputType> | number
         }
       }
     }
@@ -1662,6 +1887,11 @@ export const ClinicScalarFieldEnum = {
   name: 'name',
   slug: 'slug',
   timeZone: 'timeZone',
+  contactEmail: 'contactEmail',
+  phone: 'phone',
+  address: 'address',
+  publicDescription: 'publicDescription',
+  imageUrl: 'imageUrl',
   subscriptionStatus: 'subscriptionStatus',
   subscriptionPlan: 'subscriptionPlan',
   subscriptionCycle: 'subscriptionCycle',
@@ -1725,6 +1955,16 @@ export const PaymentHistoryScalarFieldEnum = {
 export type PaymentHistoryScalarFieldEnum = (typeof PaymentHistoryScalarFieldEnum)[keyof typeof PaymentHistoryScalarFieldEnum]
 
 
+export const ClinicSlugAliasScalarFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  clinicId: 'clinicId',
+  createdAt: 'createdAt'
+} as const
+
+export type ClinicSlugAliasScalarFieldEnum = (typeof ClinicSlugAliasScalarFieldEnum)[keyof typeof ClinicSlugAliasScalarFieldEnum]
+
+
 export const BillingContractScalarFieldEnum = {
   id: 'id',
   clinicId: 'clinicId',
@@ -1769,7 +2009,9 @@ export const UserScalarFieldEnum = {
   name: 'name',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  trialStartedAt: 'trialStartedAt'
+  trialStartedAt: 'trialStartedAt',
+  emailNotifications: 'emailNotifications',
+  weeklySummary: 'weeklySummary'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -1810,6 +2052,9 @@ export const CustomerScalarFieldEnum = {
   name: 'name',
   email: 'email',
   phone: 'phone',
+  notes: 'notes',
+  tags: 'tags',
+  nextReturnAt: 'nextReturnAt',
   clinicId: 'clinicId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -1847,6 +2092,23 @@ export const ProfessionalScalarFieldEnum = {
 export type ProfessionalScalarFieldEnum = (typeof ProfessionalScalarFieldEnum)[keyof typeof ProfessionalScalarFieldEnum]
 
 
+export const ProfessionalAvailabilityScalarFieldEnum = {
+  id: 'id',
+  clinicId: 'clinicId',
+  professionalId: 'professionalId',
+  dayOfWeek: 'dayOfWeek',
+  isOpen: 'isOpen',
+  openTime: 'openTime',
+  closeTime: 'closeTime',
+  breakStart: 'breakStart',
+  breakEnd: 'breakEnd',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProfessionalAvailabilityScalarFieldEnum = (typeof ProfessionalAvailabilityScalarFieldEnum)[keyof typeof ProfessionalAvailabilityScalarFieldEnum]
+
+
 export const ProfessionalServiceScalarFieldEnum = {
   professionalId: 'professionalId',
   serviceId: 'serviceId'
@@ -1875,6 +2137,26 @@ export const AppointmentScalarFieldEnum = {
 } as const
 
 export type AppointmentScalarFieldEnum = (typeof AppointmentScalarFieldEnum)[keyof typeof AppointmentScalarFieldEnum]
+
+
+export const FinancialEntryScalarFieldEnum = {
+  id: 'id',
+  clinicId: 'clinicId',
+  appointmentId: 'appointmentId',
+  type: 'type',
+  status: 'status',
+  description: 'description',
+  category: 'category',
+  amount: 'amount',
+  paidAmount: 'paidAmount',
+  dueDate: 'dueDate',
+  occurredAt: 'occurredAt',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FinancialEntryScalarFieldEnum = (typeof FinancialEntryScalarFieldEnum)[keyof typeof FinancialEntryScalarFieldEnum]
 
 
 export const NotificationScalarFieldEnum = {
@@ -2164,6 +2446,34 @@ export type ListEnumPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType
 
 
 /**
+ * Reference to a field of type 'FinancialEntryType'
+ */
+export type EnumFinancialEntryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FinancialEntryType'>
+
+
+
+/**
+ * Reference to a field of type 'FinancialEntryType[]'
+ */
+export type ListEnumFinancialEntryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FinancialEntryType[]'>
+
+
+
+/**
+ * Reference to a field of type 'FinancialEntryStatus'
+ */
+export type EnumFinancialEntryStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FinancialEntryStatus'>
+
+
+
+/**
+ * Reference to a field of type 'FinancialEntryStatus[]'
+ */
+export type ListEnumFinancialEntryStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FinancialEntryStatus[]'>
+
+
+
+/**
  * Reference to a field of type 'NotificationKind'
  */
 export type EnumNotificationKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NotificationKind'>
@@ -2372,6 +2682,7 @@ export type GlobalOmitConfig = {
   clinic?: Prisma.ClinicOmit
   adminAuditLog?: Prisma.AdminAuditLogOmit
   paymentHistory?: Prisma.PaymentHistoryOmit
+  clinicSlugAlias?: Prisma.ClinicSlugAliasOmit
   billingContract?: Prisma.BillingContractOmit
   businessHour?: Prisma.BusinessHourOmit
   user?: Prisma.UserOmit
@@ -2380,8 +2691,10 @@ export type GlobalOmitConfig = {
   customer?: Prisma.CustomerOmit
   service?: Prisma.ServiceOmit
   professional?: Prisma.ProfessionalOmit
+  professionalAvailability?: Prisma.ProfessionalAvailabilityOmit
   professionalService?: Prisma.ProfessionalServiceOmit
   appointment?: Prisma.AppointmentOmit
+  financialEntry?: Prisma.FinancialEntryOmit
   notification?: Prisma.NotificationOmit
   webhookEvent?: Prisma.WebhookEventOmit
   rateLimit?: Prisma.RateLimitOmit
@@ -2447,4 +2760,3 @@ export type PrismaAction =
  * `PrismaClient` proxy available in interactive transactions.
  */
 export type TransactionClient = Omit<DefaultPrismaClient, runtime.ITXClientDenyList>
-

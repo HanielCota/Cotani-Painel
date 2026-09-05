@@ -6,6 +6,7 @@ import type { LegacyColumnDef as ColumnDef } from "@tanstack/react-table/legacy"
 import { getCoreRowModel, useLegacyTable as useReactTable } from "@tanstack/react-table/legacy";
 import { flexRender } from "@tanstack/react-table";
 import { ChevronLeftIcon, ChevronRightIcon, SearchIcon } from "lucide-react";
+import Link from "next/link";
 
 import { DeleteCustomerDialog } from "@/components/dashboard/delete-customer-dialog";
 import { EditCustomerDialog } from "@/components/dashboard/edit-customer-dialog";
@@ -102,10 +103,16 @@ export function CustomersTable() {
         ) : "—",
       },
       {
+        accessorKey: "nextReturnAt",
+        header: "Próximo retorno",
+        cell: ({ getValue }) => getValue<string | null>() ? new Intl.DateTimeFormat("pt-BR").format(new Date(getValue<string>())) : "—",
+      },
+      {
         id: "actions",
         header: "",
         cell: ({ row }) => (
           <div className="flex justify-end gap-2">
+            <Button nativeButton={false} size="sm" variant="ghost" render={<Link href={`/dashboard/clientes/${row.original.id}`} />}>Ver histórico</Button>
             <EditCustomerDialog customer={row.original} />
             <DeleteCustomerDialog customerId={row.original.id} customerName={row.original.name} />
           </div>

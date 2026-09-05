@@ -4,7 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { ClockIcon } from "lucide-react";
 import { toast } from "sonner";
 
-import { saveBusinessHoursFromForm } from "@/server/actions/business-hours";
+import { saveBusinessHoursFromForm, saveProfessionalAvailabilityFromForm } from "@/server/actions/business-hours";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -19,10 +19,11 @@ const weekdayLabels = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira
 
 interface BusinessHoursSettingsProps {
   businessHours: BusinessHourItem[];
+  professionalId?: string;
 }
 
-export function BusinessHoursSettings({ businessHours }: BusinessHoursSettingsProps) {
-  const [state, formAction, isPending] = useActionState(saveBusinessHoursFromForm, initialState);
+export function BusinessHoursSettings({ businessHours, professionalId }: BusinessHoursSettingsProps) {
+  const [state, formAction, isPending] = useActionState(professionalId ? saveProfessionalAvailabilityFromForm : saveBusinessHoursFromForm, initialState);
   const [localHours, setLocalHours] = useState<BusinessHourItem[]>(() => normalizeBusinessHours(businessHours));
 
   useEffect(() => {
@@ -52,7 +53,8 @@ export function BusinessHoursSettings({ businessHours }: BusinessHoursSettingsPr
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
-      <p className="text-sm text-muted-foreground">Configure os dias e horários de funcionamento da loja.</p>
+      {professionalId ? <input type="hidden" name="professionalId" value={professionalId} /> : null}
+      <p className="text-sm text-muted-foreground">{professionalId ? "Os horários individuais limitam o expediente geral da empresa." : "Configure os dias e horários de funcionamento da loja."}</p>
 
       <div className="overflow-hidden rounded-xl border border-border/80">
         <div className="flex flex-col divide-y">

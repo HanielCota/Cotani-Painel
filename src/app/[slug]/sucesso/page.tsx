@@ -17,8 +17,8 @@ interface SuccessPageProps {
 
 export async function generateMetadata({ params }: SuccessPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const clinic = await prisma.clinic.findUnique({
-    where: { slug },
+  const clinic = await prisma.clinic.findFirst({
+    where: { OR: [{ slug }, { slugAliases: { some: { slug } } }] },
     select: { name: true },
   });
 
@@ -28,9 +28,9 @@ export async function generateMetadata({ params }: SuccessPageProps): Promise<Me
 export default async function SuccessPage({ params, searchParams }: SuccessPageProps) {
   const [{ slug }, { service, professional, date, time }] = await Promise.all([params, searchParams]);
 
-  const clinic = await prisma.clinic.findUnique({
-    where: { slug },
-    select: { name: true, timeZone: true },
+  const clinic = await prisma.clinic.findFirst({
+    where: { OR: [{ slug }, { slugAliases: { some: { slug } } }] },
+    select: { name: true, timeZone: true, slug: true },
   });
 
   if (!clinic) {
@@ -104,7 +104,7 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
             Guarde os dados deste agendamento. Se precisar alterar ou cancelar, entre em contato com a loja.
           </p>
           <SuccessActions
-            slug={slug}
+            slug={clinic.slug}
             clinicName={clinic.name}
             service={service}
             professional={professional}
@@ -112,7 +112,7 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
             time={time}
             timeZone={clinic.timeZone}
           />
-          <Button nativeButton={false} render={<Link href={`/${slug}`} />} variant="outline" className="h-12 w-full">
+          <Button nativeButton={false} render={<Link href={`/${clinic.slug}`} />} variant="outline" className="h-12 w-full">
             Fazer outro agendamento
           </Button>
         </CardFooter>

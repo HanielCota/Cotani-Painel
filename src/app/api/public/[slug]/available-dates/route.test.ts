@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({
   default: {
-    clinic: { findUnique: vi.fn() },
+    clinic: { findFirst: vi.fn() },
     service: { findFirst: vi.fn() },
     rateLimit: { upsert: vi.fn() },
   },
@@ -18,7 +18,7 @@ import prismaModule from "@/lib/prisma";
 import { getAvailableDatesInMonth } from "@/server/services/availability";
 
 const prisma = prismaModule as unknown as {
-  clinic: { findUnique: ReturnType<typeof vi.fn> };
+  clinic: { findFirst: ReturnType<typeof vi.fn> };
   service: { findFirst: ReturnType<typeof vi.fn> };
   rateLimit: { upsert: ReturnType<typeof vi.fn> };
 };
@@ -43,7 +43,7 @@ describe("/api/public/[slug]/available-dates", () => {
   });
 
   it("retorna datas quando parâmetros são válidos", async () => {
-    prisma.clinic.findUnique.mockResolvedValueOnce({ id: "clinic-1", timeZone: "America/Sao_Paulo", maxAppointmentsPerDay: null, subscriptionStatus: "ACTIVE", subscriptionExpiresAt: new Date("2099-01-01T00:00:00.000Z"), operationalStatus: "ACTIVE", deletedAt: null });
+    prisma.clinic.findFirst.mockResolvedValueOnce({ id: "clinic-1", timeZone: "America/Sao_Paulo", maxAppointmentsPerDay: null, subscriptionStatus: "ACTIVE", subscriptionExpiresAt: new Date("2099-01-01T00:00:00.000Z"), operationalStatus: "ACTIVE", deletedAt: null });
     prisma.service.findFirst.mockResolvedValueOnce({ duration: 30 });
     (getAvailableDatesInMonth as ReturnType<typeof vi.fn>).mockResolvedValueOnce(["2026-07-23", "2026-07-24"]);
 

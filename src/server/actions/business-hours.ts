@@ -135,3 +135,38 @@ export async function saveBusinessHoursFromForm(_previousState: ActionResult, fo
 
   return saveBusinessHours(items);
 }
+
+export async function saveProfessionalAvailabilityFromForm(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
+  await requireAuthenticatedUser();
+  const professionalId = z.uuid().safeParse(formData.get("professionalId"));
+  const items = Array.from({ length: 7 }, (_, dayOfWeek) => ({
+    dayOfWeek,
+    isOpen: formData.get(`isOpen-${dayOfWeek}`) === "on",
+    openTime: String(formData.get(`openTime-${dayOfWeek}`) ?? "08:00"),
+    closeTime: String(formData.get(`closeTime-${dayOfWeek}`) ?? "18:00"),
+    breakStart: String(formData.get(`breakStart-${dayOfWeek}`) ?? ""),
+    breakEnd: String(formData.get(`breakEnd-${dayOfWeek}`) ?? ""),
+  }));
+  const parsed = businessHoursSchema.safeParse(items);
+  if (!professionalId.success || !parsed.success) return { status: "error", message: "Revise os horários informados." };
+  const clinic = await getClinicForRoles(["ADMIN"]);
+  if (!clinic || !isSubscriptionActive(clinic)) return { status: "error", message: clinic ? SUBSCRIPTION_INACTIVE_MESSAGE : "Selecione uma loja." };
+  const professional = await prisma.professional.findFirst({ where: { id: professionalId.data, clinicId: clinic.id, isActive: true }, select: { id: true } });
+  if (!professional) return { status: "error", message: "Profissional não encontrado." };
+  for (const item of parsed.data) {
+    if (!item.isOpen) continue;
+    const open = minutesFromTime(item.openTime); const close = minutesFromTime(item.closeTime);
+    if (open >= close) return { status: "error", message: `Revise abertura e fechamento de ${weekdayLabel(item.dayOfWeek)}.` };
+    if (item.breakStart && item.breakEnd) {
+      const start = minutesFromTime(item.breakStart); const end = minutesFromTime(item.breakEnd);
+      if (start >= end || start < open || end > close) return { status: "error", message: `Revise o intervalo de ${weekdayLabel(item.dayOfWeek)}.` };
+    }
+  }
+  await prisma.$transaction(parsed.data.map((item) => prisma.professionalAvailability.upsert({
+    where: { professionalId_dayOfWeek: { professionalId: professional.id, dayOfWeek: item.dayOfWeek } },
+    update: { clinicId: clinic.id, isOpen: item.isOpen, openTime: item.openTime, closeTime: item.closeTime, breakStart: item.breakStart || null, breakEnd: item.breakEnd || null },
+    create: { clinicId: clinic.id, professionalId: professional.id, dayOfWeek: item.dayOfWeek, isOpen: item.isOpen, openTime: item.openTime, closeTime: item.closeTime, breakStart: item.breakStart || null, breakEnd: item.breakEnd || null },
+  })));
+  revalidatePath("/dashboard/negocio/horarios");
+  return { status: "success", message: "Horários do profissional salvos." };
+}

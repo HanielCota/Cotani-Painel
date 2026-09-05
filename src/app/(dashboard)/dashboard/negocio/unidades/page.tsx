@@ -29,7 +29,7 @@ export default withTenant(async ({ clinic, membership }) => {
         <CardContent>
           <LocationsSettings
             enabled={getPlanEntitlements(clinic.subscriptionPlan).multipleLocations}
-            locations={locations.map(({ clinic: location }) => ({ id: location.id, name: location.name, active: location.operationalStatus === "ACTIVE" && !location.deletedAt }))}
+            locations={locations.map(({ clinic: location }) => ({ id: location.id, name: location.name, active: location.operationalStatus === "ACTIVE" && !location.deletedAt, primary: location.id === billingOwnerId }))}
           />
         </CardContent>
       </Card>

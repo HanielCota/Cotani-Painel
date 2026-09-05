@@ -5,6 +5,7 @@ import { Clock3Icon } from "lucide-react";
 
 import { AppointmentActions } from "@/components/dashboard/appointment-actions";
 import { RescheduleAppointmentDialog } from "@/components/dashboard/reschedule-appointment-dialog";
+import { EditAppointmentDialog } from "@/components/dashboard/edit-appointment-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -55,9 +56,11 @@ interface AgendaAppointmentsListProps {
   timeZone: string;
   minStartTime: string;
   canSchedule: boolean;
+  customers?: Array<{ id: string; name: string }>;
+  services?: Array<{ id: string; name: string; duration: number }>;
 }
 
-export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule }: AgendaAppointmentsListProps) {
+export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, customers = [], services = [] }: AgendaAppointmentsListProps) {
   const { data: appointments, isPending, isError, refetch } = useAppointments();
   const [statusFilter, setStatusFilter] = useState<AppointmentStatus | "ALL">("ALL");
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>("ALL");
@@ -190,11 +193,7 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule }: 
                     {appointmentStatusLabel[appointment.status]}
                   </Badge>
                   {appointment.status !== "CANCELED" && appointment.status !== "NO_SHOW" && appointment.status !== "COMPLETED" ? (
-                    <RescheduleAppointmentDialog
-                      appointmentId={appointment.id}
-                      currentStartTime={formatClinicDateTimeInput(startTime, timeZone)}
-                      minStartTime={minStartTime}
-                    />
+                    canSchedule ? <EditAppointmentDialog appointment={appointment} customers={customers} services={services} currentStartTime={formatClinicDateTimeInput(startTime, timeZone)} minStartTime={minStartTime} /> : <RescheduleAppointmentDialog appointmentId={appointment.id} currentStartTime={formatClinicDateTimeInput(startTime, timeZone)} minStartTime={minStartTime} />
                   ) : null}
                   <AppointmentActions appointmentId={appointment.id} status={appointment.status} />
                 </div>

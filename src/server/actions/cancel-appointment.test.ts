@@ -27,7 +27,7 @@ describe("cancelAppointmentByToken", () => {
   });
 
   it("retorna erro quando loja não existe", async () => {
-    prismaMock.clinic.findUnique.mockResolvedValueOnce(null);
+    prismaMock.clinic.findFirst.mockResolvedValueOnce(null);
 
     const result = await cancelAppointmentByToken({ slug: "inexistente", token: TOKEN });
 
@@ -36,7 +36,7 @@ describe("cancelAppointmentByToken", () => {
   });
 
   it("retorna erro quando agendamento não existe", async () => {
-    prismaMock.clinic.findUnique.mockResolvedValueOnce({ id: "clinic-1" });
+    prismaMock.clinic.findFirst.mockResolvedValueOnce({ id: "clinic-1" });
     prismaMock.appointment.findFirst.mockResolvedValueOnce(null);
 
     const result = await cancelAppointmentByToken({ slug: "loja", token: TOKEN });
@@ -45,7 +45,7 @@ describe("cancelAppointmentByToken", () => {
   });
 
   it("retorna sucesso quando já está cancelado", async () => {
-    prismaMock.clinic.findUnique.mockResolvedValueOnce({ id: "clinic-1" });
+    prismaMock.clinic.findFirst.mockResolvedValueOnce({ id: "clinic-1" });
     prismaMock.appointment.findFirst.mockResolvedValueOnce({
       id: "app-1",
       status: "CANCELED",
@@ -59,7 +59,7 @@ describe("cancelAppointmentByToken", () => {
 
   it("retorna erro para agendamento passado", async () => {
     vi.setSystemTime(new Date("2026-07-21T10:00:00.000Z"));
-    prismaMock.clinic.findUnique.mockResolvedValueOnce({ id: "clinic-1" });
+    prismaMock.clinic.findFirst.mockResolvedValueOnce({ id: "clinic-1" });
     prismaMock.appointment.findFirst.mockResolvedValueOnce({
       id: "app-1",
       status: "CONFIRMED",
@@ -73,7 +73,7 @@ describe("cancelAppointmentByToken", () => {
 
   it("cancela agendamento futuro com sucesso", async () => {
     vi.setSystemTime(new Date("2026-07-19T10:00:00.000Z"));
-    prismaMock.clinic.findUnique.mockResolvedValueOnce({ id: "clinic-1" });
+    prismaMock.clinic.findFirst.mockResolvedValueOnce({ id: "clinic-1" });
     prismaMock.appointment.findFirst.mockResolvedValueOnce({
       id: "app-1",
       status: "CONFIRMED",
@@ -99,7 +99,7 @@ describe("cancelAppointmentByToken", () => {
 
   it("não sobrescreve uma alteração concorrente", async () => {
     vi.setSystemTime(new Date("2026-07-19T10:00:00.000Z"));
-    prismaMock.clinic.findUnique.mockResolvedValueOnce({ id: "clinic-1" });
+    prismaMock.clinic.findFirst.mockResolvedValueOnce({ id: "clinic-1" });
     prismaMock.appointment.findFirst.mockResolvedValueOnce({
       id: "app-1",
       status: "CONFIRMED",
@@ -121,6 +121,6 @@ describe("cancelAppointmentByToken", () => {
 
     expect(result.status).toBe("error");
     expect(result.message).toContain("Muitas tentativas");
-    expect(prismaMock.clinic.findUnique).not.toHaveBeenCalled();
+    expect(prismaMock.clinic.findFirst).not.toHaveBeenCalled();
   });
 });

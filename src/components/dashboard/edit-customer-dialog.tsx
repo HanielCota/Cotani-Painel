@@ -1,16 +1,17 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState, useTransition } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { PencilIcon } from "lucide-react";
+import { PencilIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 
-import { updateCustomerFromForm } from "@/server/actions/customers";
+import { deleteCustomer, updateCustomerFromForm } from "@/server/actions/customers";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
 import type { ActionResult, CustomerListItem } from "@/types";
 
@@ -23,6 +24,17 @@ interface EditCustomerDialogProps {
 export function EditCustomerDialog({ customer }: EditCustomerDialogProps) {
   const [state, formAction, isPending] = useActionState(updateCustomerFromForm, initialState);
   const queryClient = useQueryClient();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, startDelete] = useTransition();
+
+  function handleDelete() {
+    startDelete(async () => {
+      const result = await deleteCustomer(customer.id);
+      result.status === "success" ? toast.success(result.message) : toast.error(result.message);
+      if (result.status === "success") void queryClient.invalidateQueries({ queryKey: ["customers"] });
+      setConfirmDelete(false);
+    });
+  }
 
   useEffect(() => {
     if (!state.message) {
@@ -57,6 +69,9 @@ export function EditCustomerDialog({ customer }: EditCustomerDialogProps) {
               <FieldLabel htmlFor={`edit-name-${customer.id}`}>Nome</FieldLabel>
               <Input id={`edit-name-${customer.id}`} name="name" defaultValue={customer.name} required minLength={2} maxLength={120} disabled={isPending} />
             </Field>
+            <Field><FieldLabel htmlFor={`edit-return-${customer.id}`}>Próximo retorno</FieldLabel><Input id={`edit-return-${customer.id}`} name="nextReturnAt" type="date" defaultValue={customer.nextReturnAt?.slice(0, 10) ?? ""} disabled={isPending} /></Field>
+            <Field><FieldLabel htmlFor={`edit-tags-${customer.id}`}>Etiquetas</FieldLabel><Input id={`edit-tags-${customer.id}`} name="tags" defaultValue={customer.tags.join(", ")} placeholder="VIP, indicação, retorno" disabled={isPending} /></Field>
+            <Field><FieldLabel htmlFor={`edit-notes-${customer.id}`}>Observações permanentes</FieldLabel><Textarea id={`edit-notes-${customer.id}`} name="notes" defaultValue={customer.notes ?? ""} maxLength={2000} disabled={isPending} /></Field>
             <Field>
               <FieldLabel htmlFor={`edit-email-${customer.id}`}>E-mail</FieldLabel>
               <Input id={`edit-email-${customer.id}`} name="email" type="email" defaultValue={customer.email ?? ""} maxLength={254} disabled={isPending} />
@@ -72,7 +87,9 @@ export function EditCustomerDialog({ customer }: EditCustomerDialogProps) {
               <AlertDescription>{state.message}</AlertDescription>
             </Alert>
           ) : null}
+          {confirmDelete ? <Alert variant="destructive" className="mt-4"><AlertTitle>Excluir este cliente?</AlertTitle><AlertDescription>Esta ação só é permitida quando não existe histórico de atendimentos.<div className="mt-3 flex gap-2"><Button type="button" size="sm" variant="outline" onClick={()=>setConfirmDelete(false)}>Voltar</Button><Button type="button" size="sm" variant="destructive" disabled={deleting} onClick={handleDelete}>{deleting?"Excluindo...":"Confirmar exclusão"}</Button></div></AlertDescription></Alert> : null}
           <DialogFooter className="mt-5">
+            <Button type="button" variant="destructive" onClick={()=>setConfirmDelete(true)}><Trash2Icon/>Excluir</Button>
             <DialogClose render={<Button type="button" variant="outline" />}>Fechar</DialogClose>
             <Button type="submit" disabled={isPending}>
               {isPending ? <Spinner data-icon="inline-start" /> : <PencilIcon data-icon="inline-start" />}

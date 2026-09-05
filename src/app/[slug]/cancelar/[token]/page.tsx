@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CalendarXIcon, ClockIcon, TagIcon } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 import { CancelAppointmentError } from "@/components/public/cancel-appointment-error";
 import { CancelAppointmentForm } from "@/components/public/cancel-appointment-form";
@@ -12,8 +14,8 @@ interface CancelPageProps {
 
 export async function generateMetadata({ params }: CancelPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const clinic = await prisma.clinic.findUnique({
-    where: { slug },
+  const clinic = await prisma.clinic.findFirst({
+    where: { OR: [{ slug }, { slugAliases: { some: { slug } } }] },
     select: { name: true },
   });
 
@@ -23,9 +25,9 @@ export async function generateMetadata({ params }: CancelPageProps): Promise<Met
 export default async function CancelPage({ params }: CancelPageProps) {
   const { slug, token } = await params;
 
-  const clinic = await prisma.clinic.findUnique({
-    where: { slug },
-    select: { id: true, name: true, timeZone: true },
+  const clinic = await prisma.clinic.findFirst({
+    where: { OR: [{ slug }, { slugAliases: { some: { slug } } }] },
+    select: { id: true, name: true, timeZone: true, slug: true },
   });
 
   if (!clinic) {
@@ -89,11 +91,11 @@ export default async function CancelPage({ params }: CancelPageProps) {
       </div>
 
       {canCancel ? (
-        <CancelAppointmentForm slug={slug} token={token} />
+        <div className="flex flex-col gap-3"><Button nativeButton={false} render={<Link href={`/${clinic.slug}/reagendar/${token}`} />}>Prefiro reagendar</Button><CancelAppointmentForm slug={clinic.slug} token={token} /></div>
       ) : (
         <CancelAppointmentError
           clinicName={clinic.name}
-          clinicSlug={slug}
+          clinicSlug={clinic.slug}
           variant={isAlreadyCanceled ? "already-canceled" : "expired"}
         />
       )}

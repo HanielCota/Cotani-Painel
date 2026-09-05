@@ -33,8 +33,8 @@ export async function cancelAppointmentByToken(input: unknown): Promise<ActionRe
 
   const { slug, token } = parsed.data;
 
-  const clinic = await prisma.clinic.findUnique({
-    where: { slug, deletedAt: null },
+  const clinic = await prisma.clinic.findFirst({
+    where: { deletedAt: null, OR: [{ slug }, { slugAliases: { some: { slug } } }] },
     select: { id: true },
   });
 

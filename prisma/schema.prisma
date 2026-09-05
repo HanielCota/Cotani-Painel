@@ -53,6 +53,19 @@ enum PaymentMethod {
   OTHER
 }
 
+enum FinancialEntryType {
+  INCOME
+  EXPENSE
+}
+
+enum FinancialEntryStatus {
+  PENDING
+  PARTIAL
+  PAID
+  REFUNDED
+  CANCELED
+}
+
 enum NotificationChannel {
   WHATSAPP
   EMAIL
@@ -80,6 +93,11 @@ model Clinic {
   name                         String
   slug                         String                  @unique
   timeZone                     String                  @default("America/Sao_Paulo")
+  contactEmail                 String?
+  phone                        String?
+  address                      String?
+  publicDescription            String?
+  imageUrl                     String?
   subscriptionStatus           SubscriptionStatus      @default(INACTIVE)
   subscriptionPlan             SubscriptionPlan?
   subscriptionCycle            BillingCycle?
@@ -112,6 +130,9 @@ model Clinic {
   billingContracts             BillingContract[]
   adminAuditLogs               AdminAuditLog[]
   invitations                  ClinicInvitation[]
+  slugAliases                  ClinicSlugAlias[]
+  financialEntries             FinancialEntry[]
+  professionalAvailabilities   ProfessionalAvailability[]
   billingOwner                 Clinic?                 @relation("ClinicBillingUnits", fields: [billingOwnerId], references: [id], onDelete: Restrict)
   billingUnits                 Clinic[]                @relation("ClinicBillingUnits")
 
@@ -156,6 +177,16 @@ model PaymentHistory {
   updatedAt                 DateTime          @updatedAt
 
   @@index([clinicId, createdAt])
+}
+
+model ClinicSlugAlias {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  clinicId  String
+  clinic    Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([clinicId])
 }
 
 model BillingContract {
@@ -205,6 +236,8 @@ model User {
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   trialStartedAt       DateTime?
+  emailNotifications   Boolean            @default(true)
+  weeklySummary        Boolean            @default(false)
   memberships          Membership[]
   sentInvitations      ClinicInvitation[] @relation("InvitationSender")
 }
@@ -259,6 +292,9 @@ model Customer {
   name         String
   email        String?
   phone        String
+  notes        String?
+  tags         String[]      @default([])
+  nextReturnAt DateTime?
   clinicId     String
   clinic       Clinic        @relation(fields: [clinicId], references: [id], onDelete: Restrict)
   appointments Appointment[]
@@ -298,10 +334,30 @@ model Professional {
   appointments Appointment[]
   invitations ClinicInvitation[]
   services     ProfessionalService[]
+  availability ProfessionalAvailability[]
   createdAt    DateTime              @default(now())
   updatedAt    DateTime              @updatedAt
 
   @@index([clinicId, isActive])
+}
+
+model ProfessionalAvailability {
+  id             String       @id @default(uuid())
+  clinicId       String
+  professionalId String
+  dayOfWeek      Int
+  isOpen         Boolean      @default(true)
+  openTime       String
+  closeTime      String
+  breakStart     String?
+  breakEnd       String?
+  clinic         Clinic       @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([professionalId, dayOfWeek])
+  @@index([clinicId])
 }
 
 model ProfessionalService {
@@ -334,12 +390,36 @@ model Appointment {
   service           Service           @relation(fields: [serviceId], references: [id], onDelete: Restrict)
   professional      Professional?     @relation(fields: [professionalId], references: [id], onDelete: SetNull)
   notifications     Notification[]
+  financialEntries  FinancialEntry[]
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
 
   @@index([clinicId, startTime])
   @@index([customerId, startTime])
   @@index([serviceId, startTime])
+}
+
+model FinancialEntry {
+  id            String               @id @default(uuid())
+  clinicId      String
+  appointmentId String?
+  type          FinancialEntryType
+  status        FinancialEntryStatus @default(PENDING)
+  description   String
+  category      String?
+  amount        Decimal              @db.Decimal(10, 2)
+  paidAmount    Decimal              @default(0) @db.Decimal(10, 2)
+  dueDate       DateTime?
+  occurredAt    DateTime             @default(now())
+  notes         String?
+  clinic        Clinic               @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  appointment   Appointment?         @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  @@index([clinicId, occurredAt])
+  @@index([clinicId, status, dueDate])
+  @@index([appointmentId])
 }
 
 model Notification {

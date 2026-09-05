@@ -84,6 +84,9 @@ export async function GET(request: NextRequest) {
         lastAppointmentAt: lastAppointment?.startTime.toISOString() ?? null,
         lastServiceName: lastAppointment?.service.name ?? null,
         relationship,
+        notes: customer.notes,
+        tags: customer.tags,
+        nextReturnAt: customer.nextReturnAt?.toISOString() ?? null,
       };
     }),
     total,

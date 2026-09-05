@@ -33,6 +33,8 @@ export type UserMinAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   trialStartedAt: Date | null
+  emailNotifications: boolean | null
+  weeklySummary: boolean | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -44,6 +46,8 @@ export type UserMaxAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   trialStartedAt: Date | null
+  emailNotifications: boolean | null
+  weeklySummary: boolean | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -55,6 +59,8 @@ export type UserCountAggregateOutputType = {
   createdAt: number
   updatedAt: number
   trialStartedAt: number
+  emailNotifications: number
+  weeklySummary: number
   _all: number
 }
 
@@ -68,6 +74,8 @@ export type UserMinAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   trialStartedAt?: true
+  emailNotifications?: true
+  weeklySummary?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -79,6 +87,8 @@ export type UserMaxAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   trialStartedAt?: true
+  emailNotifications?: true
+  weeklySummary?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -90,6 +100,8 @@ export type UserCountAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   trialStartedAt?: true
+  emailNotifications?: true
+  weeklySummary?: true
   _all?: true
 }
 
@@ -174,6 +186,8 @@ export type UserGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   trialStartedAt: Date | null
+  emailNotifications: boolean
+  weeklySummary: boolean
   _count: UserCountAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
@@ -206,6 +220,8 @@ export type UserWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   trialStartedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  emailNotifications?: Prisma.BoolFilter<"User"> | boolean
+  weeklySummary?: Prisma.BoolFilter<"User"> | boolean
   memberships?: Prisma.MembershipListRelationFilter
   sentInvitations?: Prisma.ClinicInvitationListRelationFilter
 }
@@ -219,6 +235,8 @@ export type UserOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   trialStartedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  emailNotifications?: Prisma.SortOrder
+  weeklySummary?: Prisma.SortOrder
   memberships?: Prisma.MembershipOrderByRelationAggregateInput
   sentInvitations?: Prisma.ClinicInvitationOrderByRelationAggregateInput
 }
@@ -235,6 +253,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   trialStartedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  emailNotifications?: Prisma.BoolFilter<"User"> | boolean
+  weeklySummary?: Prisma.BoolFilter<"User"> | boolean
   memberships?: Prisma.MembershipListRelationFilter
   sentInvitations?: Prisma.ClinicInvitationListRelationFilter
 }, "id" | "authUserId" | "legacyExternalUserId">
@@ -248,6 +268,8 @@ export type UserOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   trialStartedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  emailNotifications?: Prisma.SortOrder
+  weeklySummary?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
   _min?: Prisma.UserMinOrderByAggregateInput
@@ -265,6 +287,8 @@ export type UserScalarWhereWithAggregatesInput = {
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   trialStartedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  emailNotifications?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  weeklySummary?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
 }
 
 export type UserCreateInput = {
@@ -276,6 +300,8 @@ export type UserCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   trialStartedAt?: Date | string | null
+  emailNotifications?: boolean
+  weeklySummary?: boolean
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.ClinicInvitationCreateNestedManyWithoutInvitedByInput
 }
@@ -289,6 +315,8 @@ export type UserUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   trialStartedAt?: Date | string | null
+  emailNotifications?: boolean
+  weeklySummary?: boolean
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutInvitedByInput
 }
@@ -302,6 +330,8 @@ export type UserUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   trialStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  weeklySummary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.ClinicInvitationUpdateManyWithoutInvitedByNestedInput
 }
@@ -315,6 +345,8 @@ export type UserUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   trialStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  weeklySummary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
 }
@@ -328,6 +360,8 @@ export type UserCreateManyInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   trialStartedAt?: Date | string | null
+  emailNotifications?: boolean
+  weeklySummary?: boolean
 }
 
 export type UserUpdateManyMutationInput = {
@@ -339,6 +373,8 @@ export type UserUpdateManyMutationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   trialStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  weeklySummary?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -350,6 +386,8 @@ export type UserUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   trialStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  weeklySummary?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type UserCountOrderByAggregateInput = {
@@ -361,6 +399,8 @@ export type UserCountOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   trialStartedAt?: Prisma.SortOrder
+  emailNotifications?: Prisma.SortOrder
+  weeklySummary?: Prisma.SortOrder
 }
 
 export type UserMaxOrderByAggregateInput = {
@@ -372,6 +412,8 @@ export type UserMaxOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   trialStartedAt?: Prisma.SortOrder
+  emailNotifications?: Prisma.SortOrder
+  weeklySummary?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -383,6 +425,8 @@ export type UserMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   trialStartedAt?: Prisma.SortOrder
+  emailNotifications?: Prisma.SortOrder
+  weeklySummary?: Prisma.SortOrder
 }
 
 export type UserScalarRelationFilter = {
@@ -427,6 +471,8 @@ export type UserCreateWithoutSentInvitationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   trialStartedAt?: Date | string | null
+  emailNotifications?: boolean
+  weeklySummary?: boolean
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
 }
 
@@ -439,6 +485,8 @@ export type UserUncheckedCreateWithoutSentInvitationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   trialStartedAt?: Date | string | null
+  emailNotifications?: boolean
+  weeklySummary?: boolean
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -467,6 +515,8 @@ export type UserUpdateWithoutSentInvitationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   trialStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  weeklySummary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
 }
 
@@ -479,6 +529,8 @@ export type UserUncheckedUpdateWithoutSentInvitationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   trialStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  weeklySummary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -491,6 +543,8 @@ export type UserCreateWithoutMembershipsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   trialStartedAt?: Date | string | null
+  emailNotifications?: boolean
+  weeklySummary?: boolean
   sentInvitations?: Prisma.ClinicInvitationCreateNestedManyWithoutInvitedByInput
 }
 
@@ -503,6 +557,8 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   trialStartedAt?: Date | string | null
+  emailNotifications?: boolean
+  weeklySummary?: boolean
   sentInvitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutInvitedByInput
 }
 
@@ -531,6 +587,8 @@ export type UserUpdateWithoutMembershipsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   trialStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  weeklySummary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sentInvitations?: Prisma.ClinicInvitationUpdateManyWithoutInvitedByNestedInput
 }
 
@@ -543,6 +601,8 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   trialStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailNotifications?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  weeklySummary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sentInvitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
 }
 
@@ -595,6 +655,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdAt?: boolean
   updatedAt?: boolean
   trialStartedAt?: boolean
+  emailNotifications?: boolean
+  weeklySummary?: boolean
   memberships?: boolean | Prisma.User$membershipsArgs<ExtArgs>
   sentInvitations?: boolean | Prisma.User$sentInvitationsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -609,6 +671,8 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   createdAt?: boolean
   updatedAt?: boolean
   trialStartedAt?: boolean
+  emailNotifications?: boolean
+  weeklySummary?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -620,6 +684,8 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   createdAt?: boolean
   updatedAt?: boolean
   trialStartedAt?: boolean
+  emailNotifications?: boolean
+  weeklySummary?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectScalar = {
@@ -631,9 +697,11 @@ export type UserSelectScalar = {
   createdAt?: boolean
   updatedAt?: boolean
   trialStartedAt?: boolean
+  emailNotifications?: boolean
+  weeklySummary?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "authUserId" | "legacyExternalUserId" | "email" | "name" | "createdAt" | "updatedAt" | "trialStartedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "authUserId" | "legacyExternalUserId" | "email" | "name" | "createdAt" | "updatedAt" | "trialStartedAt" | "emailNotifications" | "weeklySummary", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   memberships?: boolean | Prisma.User$membershipsArgs<ExtArgs>
   sentInvitations?: boolean | Prisma.User$sentInvitationsArgs<ExtArgs>
@@ -657,6 +725,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     createdAt: Date
     updatedAt: Date
     trialStartedAt: Date | null
+    emailNotifications: boolean
+    weeklySummary: boolean
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -1090,6 +1160,8 @@ export interface UserFieldRefs {
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly trialStartedAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly emailNotifications: Prisma.FieldRef<"User", 'Boolean'>
+  readonly weeklySummary: Prisma.FieldRef<"User", 'Boolean'>
 }
     
 

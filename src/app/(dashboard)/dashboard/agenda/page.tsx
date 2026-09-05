@@ -12,7 +12,10 @@ import { withTenant } from "@/server/with-tenant";
 
 export const metadata: Metadata = { title: "Agenda" };
 
-export default withTenant(async ({ clinic, membership, role }) => {
+interface AgendaPageProps { searchParams: Promise<{ customerId?: string | string[] }> }
+export default withTenant<AgendaPageProps>(async ({ clinic, membership, role }, { searchParams }) => {
+  const requestedCustomerId = (await searchParams).customerId;
+  const initialCustomerId = Array.isArray(requestedCustomerId) ? requestedCustomerId[0] : requestedCustomerId;
   const now = new Date();
   const providerProfessional = role === "PROVIDER"
     ? await prisma.professional.findFirst({ where: { clinicId: clinic.id, membershipId: membership.id, isActive: true }, select: { id: true } })
@@ -44,6 +47,7 @@ export default withTenant(async ({ clinic, membership, role }) => {
               services={services}
               minStartTime={minStartTime}
               timeZone={clinic.timeZone}
+              initialCustomerId={customers.some((customer) => customer.id === initialCustomerId) ? initialCustomerId : undefined}
             />
           ) : undefined
         }
@@ -63,7 +67,7 @@ export default withTenant(async ({ clinic, membership, role }) => {
           <CardDescription>Confirme, reagende ou conclua os atendimentos conforme a operação avança. A lista é atualizada automaticamente.</CardDescription>
         </CardHeader>
         <CardContent>
-          <AgendaAppointmentsList timeZone={clinic.timeZone} minStartTime={minStartTime} canSchedule={canSchedule} />
+          <AgendaAppointmentsList timeZone={clinic.timeZone} minStartTime={minStartTime} canSchedule={canSchedule} customers={customers} services={services} />
         </CardContent>
       </Card>
     </div>

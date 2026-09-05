@@ -29,6 +29,8 @@ export type CustomerMinAggregateOutputType = {
   name: string | null
   email: string | null
   phone: string | null
+  notes: string | null
+  nextReturnAt: Date | null
   clinicId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -39,6 +41,8 @@ export type CustomerMaxAggregateOutputType = {
   name: string | null
   email: string | null
   phone: string | null
+  notes: string | null
+  nextReturnAt: Date | null
   clinicId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -49,6 +53,9 @@ export type CustomerCountAggregateOutputType = {
   name: number
   email: number
   phone: number
+  notes: number
+  tags: number
+  nextReturnAt: number
   clinicId: number
   createdAt: number
   updatedAt: number
@@ -61,6 +68,8 @@ export type CustomerMinAggregateInputType = {
   name?: true
   email?: true
   phone?: true
+  notes?: true
+  nextReturnAt?: true
   clinicId?: true
   createdAt?: true
   updatedAt?: true
@@ -71,6 +80,8 @@ export type CustomerMaxAggregateInputType = {
   name?: true
   email?: true
   phone?: true
+  notes?: true
+  nextReturnAt?: true
   clinicId?: true
   createdAt?: true
   updatedAt?: true
@@ -81,6 +92,9 @@ export type CustomerCountAggregateInputType = {
   name?: true
   email?: true
   phone?: true
+  notes?: true
+  tags?: true
+  nextReturnAt?: true
   clinicId?: true
   createdAt?: true
   updatedAt?: true
@@ -164,6 +178,9 @@ export type CustomerGroupByOutputType = {
   name: string
   email: string | null
   phone: string
+  notes: string | null
+  tags: string[]
+  nextReturnAt: Date | null
   clinicId: string
   createdAt: Date
   updatedAt: Date
@@ -195,6 +212,9 @@ export type CustomerWhereInput = {
   name?: Prisma.StringFilter<"Customer"> | string
   email?: Prisma.StringNullableFilter<"Customer"> | string | null
   phone?: Prisma.StringFilter<"Customer"> | string
+  notes?: Prisma.StringNullableFilter<"Customer"> | string | null
+  tags?: Prisma.StringNullableListFilter<"Customer">
+  nextReturnAt?: Prisma.DateTimeNullableFilter<"Customer"> | Date | string | null
   clinicId?: Prisma.StringFilter<"Customer"> | string
   createdAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
@@ -207,6 +227,9 @@ export type CustomerOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   email?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrder
+  notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  tags?: Prisma.SortOrder
+  nextReturnAt?: Prisma.SortOrderInput | Prisma.SortOrder
   clinicId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -223,6 +246,9 @@ export type CustomerWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"Customer"> | string
   email?: Prisma.StringNullableFilter<"Customer"> | string | null
   phone?: Prisma.StringFilter<"Customer"> | string
+  notes?: Prisma.StringNullableFilter<"Customer"> | string | null
+  tags?: Prisma.StringNullableListFilter<"Customer">
+  nextReturnAt?: Prisma.DateTimeNullableFilter<"Customer"> | Date | string | null
   clinicId?: Prisma.StringFilter<"Customer"> | string
   createdAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
@@ -235,6 +261,9 @@ export type CustomerOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   email?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrder
+  notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  tags?: Prisma.SortOrder
+  nextReturnAt?: Prisma.SortOrderInput | Prisma.SortOrder
   clinicId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -251,6 +280,9 @@ export type CustomerScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"Customer"> | string
   email?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
   phone?: Prisma.StringWithAggregatesFilter<"Customer"> | string
+  notes?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
+  tags?: Prisma.StringNullableListFilter<"Customer">
+  nextReturnAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Customer"> | Date | string | null
   clinicId?: Prisma.StringWithAggregatesFilter<"Customer"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Customer"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Customer"> | Date | string
@@ -261,6 +293,9 @@ export type CustomerCreateInput = {
   name: string
   email?: string | null
   phone: string
+  notes?: string | null
+  tags?: Prisma.CustomerCreatetagsInput | string[]
+  nextReturnAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   clinic: Prisma.ClinicCreateNestedOneWithoutCustomersInput
@@ -272,6 +307,9 @@ export type CustomerUncheckedCreateInput = {
   name: string
   email?: string | null
   phone: string
+  notes?: string | null
+  tags?: Prisma.CustomerCreatetagsInput | string[]
+  nextReturnAt?: Date | string | null
   clinicId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -283,6 +321,9 @@ export type CustomerUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.CustomerUpdatetagsInput | string[]
+  nextReturnAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   clinic?: Prisma.ClinicUpdateOneRequiredWithoutCustomersNestedInput
@@ -294,6 +335,9 @@ export type CustomerUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.CustomerUpdatetagsInput | string[]
+  nextReturnAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   clinicId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -305,6 +349,9 @@ export type CustomerCreateManyInput = {
   name: string
   email?: string | null
   phone: string
+  notes?: string | null
+  tags?: Prisma.CustomerCreatetagsInput | string[]
+  nextReturnAt?: Date | string | null
   clinicId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -315,6 +362,9 @@ export type CustomerUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.CustomerUpdatetagsInput | string[]
+  nextReturnAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -324,6 +374,9 @@ export type CustomerUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.CustomerUpdatetagsInput | string[]
+  nextReturnAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   clinicId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -339,6 +392,14 @@ export type CustomerOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type StringNullableListFilter<$PrismaModel = never> = {
+  equals?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
+  has?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
+  hasEvery?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  hasSome?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  isEmpty?: boolean
+}
+
 export type CustomerClinicIdPhoneCompoundUniqueInput = {
   clinicId: string
   phone: string
@@ -349,6 +410,9 @@ export type CustomerCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   email?: Prisma.SortOrder
   phone?: Prisma.SortOrder
+  notes?: Prisma.SortOrder
+  tags?: Prisma.SortOrder
+  nextReturnAt?: Prisma.SortOrder
   clinicId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -359,6 +423,8 @@ export type CustomerMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   email?: Prisma.SortOrder
   phone?: Prisma.SortOrder
+  notes?: Prisma.SortOrder
+  nextReturnAt?: Prisma.SortOrder
   clinicId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -369,6 +435,8 @@ export type CustomerMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   email?: Prisma.SortOrder
   phone?: Prisma.SortOrder
+  notes?: Prisma.SortOrder
+  nextReturnAt?: Prisma.SortOrder
   clinicId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -421,6 +489,15 @@ export type CustomerUncheckedUpdateManyWithoutClinicNestedInput = {
   deleteMany?: Prisma.CustomerScalarWhereInput | Prisma.CustomerScalarWhereInput[]
 }
 
+export type CustomerCreatetagsInput = {
+  set: string[]
+}
+
+export type CustomerUpdatetagsInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
 export type CustomerCreateNestedOneWithoutAppointmentsInput = {
   create?: Prisma.XOR<Prisma.CustomerCreateWithoutAppointmentsInput, Prisma.CustomerUncheckedCreateWithoutAppointmentsInput>
   connectOrCreate?: Prisma.CustomerCreateOrConnectWithoutAppointmentsInput
@@ -440,6 +517,9 @@ export type CustomerCreateWithoutClinicInput = {
   name: string
   email?: string | null
   phone: string
+  notes?: string | null
+  tags?: Prisma.CustomerCreatetagsInput | string[]
+  nextReturnAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   appointments?: Prisma.AppointmentCreateNestedManyWithoutCustomerInput
@@ -450,6 +530,9 @@ export type CustomerUncheckedCreateWithoutClinicInput = {
   name: string
   email?: string | null
   phone: string
+  notes?: string | null
+  tags?: Prisma.CustomerCreatetagsInput | string[]
+  nextReturnAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutCustomerInput
@@ -489,6 +572,9 @@ export type CustomerScalarWhereInput = {
   name?: Prisma.StringFilter<"Customer"> | string
   email?: Prisma.StringNullableFilter<"Customer"> | string | null
   phone?: Prisma.StringFilter<"Customer"> | string
+  notes?: Prisma.StringNullableFilter<"Customer"> | string | null
+  tags?: Prisma.StringNullableListFilter<"Customer">
+  nextReturnAt?: Prisma.DateTimeNullableFilter<"Customer"> | Date | string | null
   clinicId?: Prisma.StringFilter<"Customer"> | string
   createdAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
@@ -499,6 +585,9 @@ export type CustomerCreateWithoutAppointmentsInput = {
   name: string
   email?: string | null
   phone: string
+  notes?: string | null
+  tags?: Prisma.CustomerCreatetagsInput | string[]
+  nextReturnAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   clinic: Prisma.ClinicCreateNestedOneWithoutCustomersInput
@@ -509,6 +598,9 @@ export type CustomerUncheckedCreateWithoutAppointmentsInput = {
   name: string
   email?: string | null
   phone: string
+  notes?: string | null
+  tags?: Prisma.CustomerCreatetagsInput | string[]
+  nextReturnAt?: Date | string | null
   clinicId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -535,6 +627,9 @@ export type CustomerUpdateWithoutAppointmentsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.CustomerUpdatetagsInput | string[]
+  nextReturnAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   clinic?: Prisma.ClinicUpdateOneRequiredWithoutCustomersNestedInput
@@ -545,6 +640,9 @@ export type CustomerUncheckedUpdateWithoutAppointmentsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.CustomerUpdatetagsInput | string[]
+  nextReturnAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   clinicId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -555,6 +653,9 @@ export type CustomerCreateManyClinicInput = {
   name: string
   email?: string | null
   phone: string
+  notes?: string | null
+  tags?: Prisma.CustomerCreatetagsInput | string[]
+  nextReturnAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -564,6 +665,9 @@ export type CustomerUpdateWithoutClinicInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.CustomerUpdatetagsInput | string[]
+  nextReturnAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   appointments?: Prisma.AppointmentUpdateManyWithoutCustomerNestedInput
@@ -574,6 +678,9 @@ export type CustomerUncheckedUpdateWithoutClinicInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.CustomerUpdatetagsInput | string[]
+  nextReturnAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutCustomerNestedInput
@@ -584,6 +691,9 @@ export type CustomerUncheckedUpdateManyWithoutClinicInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tags?: Prisma.CustomerUpdatetagsInput | string[]
+  nextReturnAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -624,6 +734,9 @@ export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   name?: boolean
   email?: boolean
   phone?: boolean
+  notes?: boolean
+  tags?: boolean
+  nextReturnAt?: boolean
   clinicId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -637,6 +750,9 @@ export type CustomerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   name?: boolean
   email?: boolean
   phone?: boolean
+  notes?: boolean
+  tags?: boolean
+  nextReturnAt?: boolean
   clinicId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -648,6 +764,9 @@ export type CustomerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   name?: boolean
   email?: boolean
   phone?: boolean
+  notes?: boolean
+  tags?: boolean
+  nextReturnAt?: boolean
   clinicId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -659,12 +778,15 @@ export type CustomerSelectScalar = {
   name?: boolean
   email?: boolean
   phone?: boolean
+  notes?: boolean
+  tags?: boolean
+  nextReturnAt?: boolean
   clinicId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "clinicId" | "createdAt" | "updatedAt", ExtArgs["result"]["customer"]>
+export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "notes" | "tags" | "nextReturnAt" | "clinicId" | "createdAt" | "updatedAt", ExtArgs["result"]["customer"]>
 export type CustomerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   clinic?: boolean | Prisma.ClinicDefaultArgs<ExtArgs>
   appointments?: boolean | Prisma.Customer$appointmentsArgs<ExtArgs>
@@ -688,6 +810,9 @@ export type $CustomerPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     name: string
     email: string | null
     phone: string
+    notes: string | null
+    tags: string[]
+    nextReturnAt: Date | null
     clinicId: string
     createdAt: Date
     updatedAt: Date
@@ -1120,6 +1245,9 @@ export interface CustomerFieldRefs {
   readonly name: Prisma.FieldRef<"Customer", 'String'>
   readonly email: Prisma.FieldRef<"Customer", 'String'>
   readonly phone: Prisma.FieldRef<"Customer", 'String'>
+  readonly notes: Prisma.FieldRef<"Customer", 'String'>
+  readonly tags: Prisma.FieldRef<"Customer", 'String[]'>
+  readonly nextReturnAt: Prisma.FieldRef<"Customer", 'DateTime'>
   readonly clinicId: Prisma.FieldRef<"Customer", 'String'>
   readonly createdAt: Prisma.FieldRef<"Customer", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Customer", 'DateTime'>

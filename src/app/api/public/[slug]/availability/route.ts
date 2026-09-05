@@ -38,8 +38,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ message: "Parâmetros de consulta inválidos." }, { status: 400 });
   }
 
-  const clinic = await prisma.clinic.findUnique({
-    where: { slug, deletedAt: null },
+  const clinic = await prisma.clinic.findFirst({
+    where: { deletedAt: null, OR: [{ slug }, { slugAliases: { some: { slug } } }] },
     select: { id: true, timeZone: true, maxAppointmentsPerDay: true, subscriptionStatus: true, subscriptionExpiresAt: true, trialEndsAt: true, operationalStatus: true, subscriptionPlan: true, billingOwnerId: true, billingOwner: true },
   });
 

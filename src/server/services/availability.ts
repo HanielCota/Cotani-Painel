@@ -85,10 +85,11 @@ export async function getAvailableSlots(params: GetAvailableSlotsParams): Promis
   const { startOfTomorrow: dayEnd } = getClinicDateBounds(params.timeZone, dayStart);
   const dayOfWeek = getClinicDayOfWeek(params.date, params.timeZone);
 
-  const [businessHour, appointments] = await Promise.all([
+  const [businessHour, professionalHour, appointments] = await Promise.all([
     prisma.businessHour.findUnique({
       where: { clinicId_dayOfWeek: { clinicId: params.clinicId, dayOfWeek } },
     }),
+    params.professionalId ? prisma.professionalAvailability.findUnique({ where: { professionalId_dayOfWeek: { professionalId: params.professionalId, dayOfWeek } } }) : null,
     prisma.appointment.findMany({
       where: {
         clinicId: params.clinicId,
@@ -100,7 +101,8 @@ export async function getAvailableSlots(params: GetAvailableSlotsParams): Promis
     }),
   ]);
 
-  if (!businessHour || !businessHour.isOpen) {
+  const effectiveHour = professionalHour ?? businessHour;
+  if (!effectiveHour || !effectiveHour.isOpen || !businessHour?.isOpen) {
     return [];
   }
 
@@ -113,10 +115,12 @@ export async function getAvailableSlots(params: GetAvailableSlotsParams): Promis
   }
 
   const now = new Date();
-  const openMinutes = minutesFromTime(businessHour.openTime);
-  const closeMinutes = minutesFromTime(businessHour.closeTime);
-  const breakStartMinutes = businessHour.breakStart ? minutesFromTime(businessHour.breakStart) : null;
-  const breakEndMinutes = businessHour.breakEnd ? minutesFromTime(businessHour.breakEnd) : null;
+  const openMinutes = Math.max(minutesFromTime(businessHour.openTime), minutesFromTime(effectiveHour.openTime));
+  const closeMinutes = Math.min(minutesFromTime(businessHour.closeTime), minutesFromTime(effectiveHour.closeTime));
+  const breaks = [
+    businessHour.breakStart && businessHour.breakEnd ? [minutesFromTime(businessHour.breakStart), minutesFromTime(businessHour.breakEnd)] : null,
+    professionalHour?.breakStart && professionalHour.breakEnd ? [minutesFromTime(professionalHour.breakStart), minutesFromTime(professionalHour.breakEnd)] : null,
+  ].filter((value): value is [number, number] => value !== null);
   const slots: AvailabilitySlot[] = [];
 
   for (
@@ -127,11 +131,7 @@ export async function getAvailableSlots(params: GetAvailableSlotsParams): Promis
     const slotEndMinutes = minutes + params.serviceDuration;
 
     // O slot não pode cruzar o intervalo de almoço.
-    if (breakStartMinutes !== null && breakEndMinutes !== null) {
-      if (minutes < breakEndMinutes && slotEndMinutes > breakStartMinutes) {
-        continue;
-      }
-    }
+    if (breaks.some(([breakStart, breakEnd]) => minutes < breakEnd && slotEndMinutes > breakStart)) continue;
 
     const label = formatTimeLabel(minutes);
     const startTime = parseClinicDateTime(`${params.date}T${label}`, params.timeZone);
@@ -201,8 +201,9 @@ export async function getAvailableDatesInMonth(params: GetAvailableDatesParams):
   }
 
   const daysInMonth = Math.round((monthEnd.getTime() - monthStart.getTime()) / (24 * 60 * 60 * 1000));
-  const [businessHours, appointments] = await Promise.all([
+  const [businessHours, professionalHours, appointments] = await Promise.all([
     prisma.businessHour.findMany({ where: { clinicId: params.clinicId } }),
+    params.professionalId ? prisma.professionalAvailability.findMany({ where: { clinicId: params.clinicId, professionalId: params.professionalId } }) : [],
     prisma.appointment.findMany({
       where: {
         clinicId: params.clinicId,
@@ -215,6 +216,7 @@ export async function getAvailableDatesInMonth(params: GetAvailableDatesParams):
   ]);
 
   const businessHoursByDay = new Map(businessHours.map((hour) => [hour.dayOfWeek, hour]));
+  const professionalHoursByDay = new Map(professionalHours.map((hour) => [hour.dayOfWeek, hour]));
   const availableDates: string[] = [];
   const now = new Date();
 
@@ -223,15 +225,18 @@ export async function getAvailableDatesInMonth(params: GetAvailableDatesParams):
     const dayString = formatClinicDateTimeInput(dayDate, params.timeZone).slice(0, 10);
     const dayOfWeek = getClinicDayOfWeek(dayString, params.timeZone);
     const businessHour = businessHoursByDay.get(dayOfWeek);
+    const professionalHour = professionalHoursByDay.get(dayOfWeek);
 
-    if (!businessHour || !businessHour.isOpen) {
+    if (!businessHour || !businessHour.isOpen || (professionalHour && !professionalHour.isOpen)) {
       continue;
     }
 
-    const openMinutes = minutesFromTime(businessHour.openTime);
-    const closeMinutes = minutesFromTime(businessHour.closeTime);
-    const breakStartMinutes = businessHour.breakStart ? minutesFromTime(businessHour.breakStart) : null;
-    const breakEndMinutes = businessHour.breakEnd ? minutesFromTime(businessHour.breakEnd) : null;
+    const openMinutes = Math.max(minutesFromTime(businessHour.openTime), professionalHour ? minutesFromTime(professionalHour.openTime) : 0);
+    const closeMinutes = Math.min(minutesFromTime(businessHour.closeTime), professionalHour ? minutesFromTime(professionalHour.closeTime) : 24 * 60);
+    const breaks = [
+      businessHour.breakStart && businessHour.breakEnd ? [minutesFromTime(businessHour.breakStart), minutesFromTime(businessHour.breakEnd)] : null,
+      professionalHour?.breakStart && professionalHour.breakEnd ? [minutesFromTime(professionalHour.breakStart), minutesFromTime(professionalHour.breakEnd)] : null,
+    ].filter((value): value is [number, number] => value !== null);
     const allDayAppointments = appointments.filter(
       (appointment) => appointment.startTime < new Date(dayDate.getTime() + 24 * 60 * 60 * 1000) && appointment.endTime > dayDate,
     );
@@ -253,11 +258,7 @@ export async function getAvailableDatesInMonth(params: GetAvailableDatesParams):
     ) {
       const slotEndMinutes = minutes + params.serviceDuration;
 
-      if (breakStartMinutes !== null && breakEndMinutes !== null) {
-        if (minutes < breakEndMinutes && slotEndMinutes > breakStartMinutes) {
-          continue;
-        }
-      }
+      if (breaks.some(([breakStart, breakEnd]) => minutes < breakEnd && slotEndMinutes > breakStart)) continue;
 
       const label = formatTimeLabel(minutes);
       const startTime = parseClinicDateTime(`${dayString}T${label}`, params.timeZone);

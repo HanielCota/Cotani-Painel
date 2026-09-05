@@ -76,6 +76,25 @@ export const PaymentMethod = {
 export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
 
 
+export const FinancialEntryType = {
+  INCOME: 'INCOME',
+  EXPENSE: 'EXPENSE'
+} as const
+
+export type FinancialEntryType = (typeof FinancialEntryType)[keyof typeof FinancialEntryType]
+
+
+export const FinancialEntryStatus = {
+  PENDING: 'PENDING',
+  PARTIAL: 'PARTIAL',
+  PAID: 'PAID',
+  REFUNDED: 'REFUNDED',
+  CANCELED: 'CANCELED'
+} as const
+
+export type FinancialEntryStatus = (typeof FinancialEntryStatus)[keyof typeof FinancialEntryStatus]
+
+
 export const NotificationChannel = {
   WHATSAPP: 'WHATSAPP',
   EMAIL: 'EMAIL',

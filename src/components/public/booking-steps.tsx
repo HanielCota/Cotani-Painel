@@ -48,6 +48,9 @@ interface BookingStepsProps {
   services: Service[];
   professionals: Professional[];
   minDate: string;
+  rescheduleToken?: string;
+  initialServiceId?: string;
+  initialProfessionalId?: string;
 }
 
 const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -546,14 +549,14 @@ function CustomerStep({ isPending, slug, clinicName, service, professional, date
   );
 }
 
-export function BookingSteps({ slug, clinicName, services, professionals, minDate }: BookingStepsProps) {
+export function BookingSteps({ slug, clinicName, services, professionals, minDate, rescheduleToken, initialServiceId = "", initialProfessionalId = "" }: BookingStepsProps) {
   const router = useRouter();
   const cardRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState<Step>("service-professional");
-  const [serviceId, setServiceId] = useState("");
-  const [serviceName, setServiceName] = useState("");
-  const [professionalId, setProfessionalId] = useState("");
-  const [professionalName, setProfessionalName] = useState("");
+  const [serviceId, setServiceId] = useState(initialServiceId);
+  const [serviceName, setServiceName] = useState(services.find((item) => item.id === initialServiceId)?.name ?? "");
+  const [professionalId, setProfessionalId] = useState(initialProfessionalId);
+  const [professionalName, setProfessionalName] = useState(professionals.find((item) => item.id === initialProfessionalId)?.name ?? "");
   const [date, setDate] = useState("");
   const [slot, setSlot] = useState<AvailabilitySlot | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(() => parseISO(minDate));
@@ -649,6 +652,7 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
     formData.set("serviceId", serviceId);
     formData.set("professionalId", professionalId);
     formData.set("startTime", slot.startTime);
+    if (rescheduleToken) formData.set("rescheduleToken", rescheduleToken);
 
     startTransition(async () => {
       const nextResult = await createPublicAppointment({ status: "success", message: "" }, formData);
@@ -684,8 +688,8 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
   return (
     <Card ref={cardRef} className="overflow-hidden">
       <CardHeader className="gap-2">
-        <CardTitle className="text-lg sm:text-xl">Novo agendamento</CardTitle>
-        <CardDescription>Complete as etapas para reservar seu horário em {clinicName}.</CardDescription>
+        <CardTitle className="text-lg sm:text-xl">{rescheduleToken ? "Reagendar atendimento" : "Novo agendamento"}</CardTitle>
+        <CardDescription>{rescheduleToken ? "Escolha o novo horário. O anterior será liberado somente após a confirmação." : `Complete as etapas para reservar seu horário em ${clinicName}.`}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
         <StepIndicator current={step} />
@@ -790,7 +794,7 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
             className="h-12 w-full sm:w-auto"
           >
             {isPending ? <Spinner data-icon="inline-start" /> : <CalendarPlusIcon data-icon="inline-start" />}
-            {isPending ? "Agendando..." : "Confirmar agendamento"}
+            {isPending ? "Salvando..." : rescheduleToken ? "Confirmar novo horário" : "Confirmar agendamento"}
           </Button>
         ) : null}
       </CardFooter>

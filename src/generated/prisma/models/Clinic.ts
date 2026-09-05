@@ -41,6 +41,11 @@ export type ClinicMinAggregateOutputType = {
   name: string | null
   slug: string | null
   timeZone: string | null
+  contactEmail: string | null
+  phone: string | null
+  address: string | null
+  publicDescription: string | null
+  imageUrl: string | null
   subscriptionStatus: $Enums.SubscriptionStatus | null
   subscriptionPlan: $Enums.SubscriptionPlan | null
   subscriptionCycle: $Enums.BillingCycle | null
@@ -71,6 +76,11 @@ export type ClinicMaxAggregateOutputType = {
   name: string | null
   slug: string | null
   timeZone: string | null
+  contactEmail: string | null
+  phone: string | null
+  address: string | null
+  publicDescription: string | null
+  imageUrl: string | null
   subscriptionStatus: $Enums.SubscriptionStatus | null
   subscriptionPlan: $Enums.SubscriptionPlan | null
   subscriptionCycle: $Enums.BillingCycle | null
@@ -101,6 +111,11 @@ export type ClinicCountAggregateOutputType = {
   name: number
   slug: number
   timeZone: number
+  contactEmail: number
+  phone: number
+  address: number
+  publicDescription: number
+  imageUrl: number
   subscriptionStatus: number
   subscriptionPlan: number
   subscriptionCycle: number
@@ -141,6 +156,11 @@ export type ClinicMinAggregateInputType = {
   name?: true
   slug?: true
   timeZone?: true
+  contactEmail?: true
+  phone?: true
+  address?: true
+  publicDescription?: true
+  imageUrl?: true
   subscriptionStatus?: true
   subscriptionPlan?: true
   subscriptionCycle?: true
@@ -171,6 +191,11 @@ export type ClinicMaxAggregateInputType = {
   name?: true
   slug?: true
   timeZone?: true
+  contactEmail?: true
+  phone?: true
+  address?: true
+  publicDescription?: true
+  imageUrl?: true
   subscriptionStatus?: true
   subscriptionPlan?: true
   subscriptionCycle?: true
@@ -201,6 +226,11 @@ export type ClinicCountAggregateInputType = {
   name?: true
   slug?: true
   timeZone?: true
+  contactEmail?: true
+  phone?: true
+  address?: true
+  publicDescription?: true
+  imageUrl?: true
   subscriptionStatus?: true
   subscriptionPlan?: true
   subscriptionCycle?: true
@@ -318,6 +348,11 @@ export type ClinicGroupByOutputType = {
   name: string
   slug: string
   timeZone: string
+  contactEmail: string | null
+  phone: string | null
+  address: string | null
+  publicDescription: string | null
+  imageUrl: string | null
   subscriptionStatus: $Enums.SubscriptionStatus
   subscriptionPlan: $Enums.SubscriptionPlan | null
   subscriptionCycle: $Enums.BillingCycle | null
@@ -371,6 +406,11 @@ export type ClinicWhereInput = {
   name?: Prisma.StringFilter<"Clinic"> | string
   slug?: Prisma.StringFilter<"Clinic"> | string
   timeZone?: Prisma.StringFilter<"Clinic"> | string
+  contactEmail?: Prisma.StringNullableFilter<"Clinic"> | string | null
+  phone?: Prisma.StringNullableFilter<"Clinic"> | string | null
+  address?: Prisma.StringNullableFilter<"Clinic"> | string | null
+  publicDescription?: Prisma.StringNullableFilter<"Clinic"> | string | null
+  imageUrl?: Prisma.StringNullableFilter<"Clinic"> | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFilter<"Clinic"> | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.EnumSubscriptionPlanNullableFilter<"Clinic"> | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.EnumBillingCycleNullableFilter<"Clinic"> | $Enums.BillingCycle | null
@@ -403,6 +443,9 @@ export type ClinicWhereInput = {
   billingContracts?: Prisma.BillingContractListRelationFilter
   adminAuditLogs?: Prisma.AdminAuditLogListRelationFilter
   invitations?: Prisma.ClinicInvitationListRelationFilter
+  slugAliases?: Prisma.ClinicSlugAliasListRelationFilter
+  financialEntries?: Prisma.FinancialEntryListRelationFilter
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityListRelationFilter
   billingOwner?: Prisma.XOR<Prisma.ClinicNullableScalarRelationFilter, Prisma.ClinicWhereInput> | null
   billingUnits?: Prisma.ClinicListRelationFilter
 }
@@ -414,6 +457,11 @@ export type ClinicOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   timeZone?: Prisma.SortOrder
+  contactEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
+  address?: Prisma.SortOrderInput | Prisma.SortOrder
+  publicDescription?: Prisma.SortOrderInput | Prisma.SortOrder
+  imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   subscriptionStatus?: Prisma.SortOrder
   subscriptionPlan?: Prisma.SortOrderInput | Prisma.SortOrder
   subscriptionCycle?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -446,6 +494,9 @@ export type ClinicOrderByWithRelationInput = {
   billingContracts?: Prisma.BillingContractOrderByRelationAggregateInput
   adminAuditLogs?: Prisma.AdminAuditLogOrderByRelationAggregateInput
   invitations?: Prisma.ClinicInvitationOrderByRelationAggregateInput
+  slugAliases?: Prisma.ClinicSlugAliasOrderByRelationAggregateInput
+  financialEntries?: Prisma.FinancialEntryOrderByRelationAggregateInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityOrderByRelationAggregateInput
   billingOwner?: Prisma.ClinicOrderByWithRelationInput
   billingUnits?: Prisma.ClinicOrderByRelationAggregateInput
 }
@@ -461,6 +512,11 @@ export type ClinicWhereUniqueInput = Prisma.AtLeast<{
   billingOwnerId?: Prisma.StringNullableFilter<"Clinic"> | string | null
   name?: Prisma.StringFilter<"Clinic"> | string
   timeZone?: Prisma.StringFilter<"Clinic"> | string
+  contactEmail?: Prisma.StringNullableFilter<"Clinic"> | string | null
+  phone?: Prisma.StringNullableFilter<"Clinic"> | string | null
+  address?: Prisma.StringNullableFilter<"Clinic"> | string | null
+  publicDescription?: Prisma.StringNullableFilter<"Clinic"> | string | null
+  imageUrl?: Prisma.StringNullableFilter<"Clinic"> | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFilter<"Clinic"> | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.EnumSubscriptionPlanNullableFilter<"Clinic"> | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.EnumBillingCycleNullableFilter<"Clinic"> | $Enums.BillingCycle | null
@@ -492,6 +548,9 @@ export type ClinicWhereUniqueInput = Prisma.AtLeast<{
   billingContracts?: Prisma.BillingContractListRelationFilter
   adminAuditLogs?: Prisma.AdminAuditLogListRelationFilter
   invitations?: Prisma.ClinicInvitationListRelationFilter
+  slugAliases?: Prisma.ClinicSlugAliasListRelationFilter
+  financialEntries?: Prisma.FinancialEntryListRelationFilter
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityListRelationFilter
   billingOwner?: Prisma.XOR<Prisma.ClinicNullableScalarRelationFilter, Prisma.ClinicWhereInput> | null
   billingUnits?: Prisma.ClinicListRelationFilter
 }, "id" | "legacyExternalId" | "slug" | "mercadoPagoSubscriptionId">
@@ -503,6 +562,11 @@ export type ClinicOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   timeZone?: Prisma.SortOrder
+  contactEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
+  address?: Prisma.SortOrderInput | Prisma.SortOrder
+  publicDescription?: Prisma.SortOrderInput | Prisma.SortOrder
+  imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   subscriptionStatus?: Prisma.SortOrder
   subscriptionPlan?: Prisma.SortOrderInput | Prisma.SortOrder
   subscriptionCycle?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -541,6 +605,11 @@ export type ClinicScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"Clinic"> | string
   slug?: Prisma.StringWithAggregatesFilter<"Clinic"> | string
   timeZone?: Prisma.StringWithAggregatesFilter<"Clinic"> | string
+  contactEmail?: Prisma.StringNullableWithAggregatesFilter<"Clinic"> | string | null
+  phone?: Prisma.StringNullableWithAggregatesFilter<"Clinic"> | string | null
+  address?: Prisma.StringNullableWithAggregatesFilter<"Clinic"> | string | null
+  publicDescription?: Prisma.StringNullableWithAggregatesFilter<"Clinic"> | string | null
+  imageUrl?: Prisma.StringNullableWithAggregatesFilter<"Clinic"> | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusWithAggregatesFilter<"Clinic"> | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.EnumSubscriptionPlanNullableWithAggregatesFilter<"Clinic"> | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.EnumBillingCycleNullableWithAggregatesFilter<"Clinic"> | $Enums.BillingCycle | null
@@ -570,6 +639,11 @@ export type ClinicCreateInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -602,6 +676,9 @@ export type ClinicCreateInput = {
   billingContracts?: Prisma.BillingContractCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutClinicInput
   billingOwner?: Prisma.ClinicCreateNestedOneWithoutBillingUnitsInput
   billingUnits?: Prisma.ClinicCreateNestedManyWithoutBillingOwnerInput
 }
@@ -613,6 +690,11 @@ export type ClinicUncheckedCreateInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -645,6 +727,9 @@ export type ClinicUncheckedCreateInput = {
   billingContracts?: Prisma.BillingContractUncheckedCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryUncheckedCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutClinicInput
   billingUnits?: Prisma.ClinicUncheckedCreateNestedManyWithoutBillingOwnerInput
 }
 
@@ -654,6 +739,11 @@ export type ClinicUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -686,6 +776,9 @@ export type ClinicUpdateInput = {
   billingContracts?: Prisma.BillingContractUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUpdateManyWithoutClinicNestedInput
   billingOwner?: Prisma.ClinicUpdateOneWithoutBillingUnitsNestedInput
   billingUnits?: Prisma.ClinicUpdateManyWithoutBillingOwnerNestedInput
 }
@@ -697,6 +790,11 @@ export type ClinicUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -729,6 +827,9 @@ export type ClinicUncheckedUpdateInput = {
   billingContracts?: Prisma.BillingContractUncheckedUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUncheckedUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutClinicNestedInput
   billingUnits?: Prisma.ClinicUncheckedUpdateManyWithoutBillingOwnerNestedInput
 }
 
@@ -739,6 +840,11 @@ export type ClinicCreateManyInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -768,6 +874,11 @@ export type ClinicUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -798,6 +909,11 @@ export type ClinicUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -843,6 +959,11 @@ export type ClinicCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   timeZone?: Prisma.SortOrder
+  contactEmail?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
+  address?: Prisma.SortOrder
+  publicDescription?: Prisma.SortOrder
+  imageUrl?: Prisma.SortOrder
   subscriptionStatus?: Prisma.SortOrder
   subscriptionPlan?: Prisma.SortOrder
   subscriptionCycle?: Prisma.SortOrder
@@ -877,6 +998,11 @@ export type ClinicMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   timeZone?: Prisma.SortOrder
+  contactEmail?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
+  address?: Prisma.SortOrder
+  publicDescription?: Prisma.SortOrder
+  imageUrl?: Prisma.SortOrder
   subscriptionStatus?: Prisma.SortOrder
   subscriptionPlan?: Prisma.SortOrder
   subscriptionCycle?: Prisma.SortOrder
@@ -907,6 +1033,11 @@ export type ClinicMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   timeZone?: Prisma.SortOrder
+  contactEmail?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
+  address?: Prisma.SortOrder
+  publicDescription?: Prisma.SortOrder
+  imageUrl?: Prisma.SortOrder
   subscriptionStatus?: Prisma.SortOrder
   subscriptionPlan?: Prisma.SortOrder
   subscriptionCycle?: Prisma.SortOrder
@@ -1071,6 +1202,20 @@ export type ClinicUpdateOneRequiredWithoutPaymentHistoryNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ClinicUpdateToOneWithWhereWithoutPaymentHistoryInput, Prisma.ClinicUpdateWithoutPaymentHistoryInput>, Prisma.ClinicUncheckedUpdateWithoutPaymentHistoryInput>
 }
 
+export type ClinicCreateNestedOneWithoutSlugAliasesInput = {
+  create?: Prisma.XOR<Prisma.ClinicCreateWithoutSlugAliasesInput, Prisma.ClinicUncheckedCreateWithoutSlugAliasesInput>
+  connectOrCreate?: Prisma.ClinicCreateOrConnectWithoutSlugAliasesInput
+  connect?: Prisma.ClinicWhereUniqueInput
+}
+
+export type ClinicUpdateOneRequiredWithoutSlugAliasesNestedInput = {
+  create?: Prisma.XOR<Prisma.ClinicCreateWithoutSlugAliasesInput, Prisma.ClinicUncheckedCreateWithoutSlugAliasesInput>
+  connectOrCreate?: Prisma.ClinicCreateOrConnectWithoutSlugAliasesInput
+  upsert?: Prisma.ClinicUpsertWithoutSlugAliasesInput
+  connect?: Prisma.ClinicWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClinicUpdateToOneWithWhereWithoutSlugAliasesInput, Prisma.ClinicUpdateWithoutSlugAliasesInput>, Prisma.ClinicUncheckedUpdateWithoutSlugAliasesInput>
+}
+
 export type ClinicCreateNestedOneWithoutBillingContractsInput = {
   create?: Prisma.XOR<Prisma.ClinicCreateWithoutBillingContractsInput, Prisma.ClinicUncheckedCreateWithoutBillingContractsInput>
   connectOrCreate?: Prisma.ClinicCreateOrConnectWithoutBillingContractsInput
@@ -1169,6 +1314,20 @@ export type ClinicUpdateOneRequiredWithoutProfessionalsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ClinicUpdateToOneWithWhereWithoutProfessionalsInput, Prisma.ClinicUpdateWithoutProfessionalsInput>, Prisma.ClinicUncheckedUpdateWithoutProfessionalsInput>
 }
 
+export type ClinicCreateNestedOneWithoutProfessionalAvailabilitiesInput = {
+  create?: Prisma.XOR<Prisma.ClinicCreateWithoutProfessionalAvailabilitiesInput, Prisma.ClinicUncheckedCreateWithoutProfessionalAvailabilitiesInput>
+  connectOrCreate?: Prisma.ClinicCreateOrConnectWithoutProfessionalAvailabilitiesInput
+  connect?: Prisma.ClinicWhereUniqueInput
+}
+
+export type ClinicUpdateOneRequiredWithoutProfessionalAvailabilitiesNestedInput = {
+  create?: Prisma.XOR<Prisma.ClinicCreateWithoutProfessionalAvailabilitiesInput, Prisma.ClinicUncheckedCreateWithoutProfessionalAvailabilitiesInput>
+  connectOrCreate?: Prisma.ClinicCreateOrConnectWithoutProfessionalAvailabilitiesInput
+  upsert?: Prisma.ClinicUpsertWithoutProfessionalAvailabilitiesInput
+  connect?: Prisma.ClinicWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClinicUpdateToOneWithWhereWithoutProfessionalAvailabilitiesInput, Prisma.ClinicUpdateWithoutProfessionalAvailabilitiesInput>, Prisma.ClinicUncheckedUpdateWithoutProfessionalAvailabilitiesInput>
+}
+
 export type ClinicCreateNestedOneWithoutAppointmentsInput = {
   create?: Prisma.XOR<Prisma.ClinicCreateWithoutAppointmentsInput, Prisma.ClinicUncheckedCreateWithoutAppointmentsInput>
   connectOrCreate?: Prisma.ClinicCreateOrConnectWithoutAppointmentsInput
@@ -1181,6 +1340,20 @@ export type ClinicUpdateOneRequiredWithoutAppointmentsNestedInput = {
   upsert?: Prisma.ClinicUpsertWithoutAppointmentsInput
   connect?: Prisma.ClinicWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.ClinicUpdateToOneWithWhereWithoutAppointmentsInput, Prisma.ClinicUpdateWithoutAppointmentsInput>, Prisma.ClinicUncheckedUpdateWithoutAppointmentsInput>
+}
+
+export type ClinicCreateNestedOneWithoutFinancialEntriesInput = {
+  create?: Prisma.XOR<Prisma.ClinicCreateWithoutFinancialEntriesInput, Prisma.ClinicUncheckedCreateWithoutFinancialEntriesInput>
+  connectOrCreate?: Prisma.ClinicCreateOrConnectWithoutFinancialEntriesInput
+  connect?: Prisma.ClinicWhereUniqueInput
+}
+
+export type ClinicUpdateOneRequiredWithoutFinancialEntriesNestedInput = {
+  create?: Prisma.XOR<Prisma.ClinicCreateWithoutFinancialEntriesInput, Prisma.ClinicUncheckedCreateWithoutFinancialEntriesInput>
+  connectOrCreate?: Prisma.ClinicCreateOrConnectWithoutFinancialEntriesInput
+  upsert?: Prisma.ClinicUpsertWithoutFinancialEntriesInput
+  connect?: Prisma.ClinicWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClinicUpdateToOneWithWhereWithoutFinancialEntriesInput, Prisma.ClinicUpdateWithoutFinancialEntriesInput>, Prisma.ClinicUncheckedUpdateWithoutFinancialEntriesInput>
 }
 
 export type ClinicCreateNestedOneWithoutNotificationsInput = {
@@ -1203,6 +1376,11 @@ export type ClinicCreateWithoutBillingUnitsInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -1235,6 +1413,9 @@ export type ClinicCreateWithoutBillingUnitsInput = {
   billingContracts?: Prisma.BillingContractCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutClinicInput
   billingOwner?: Prisma.ClinicCreateNestedOneWithoutBillingUnitsInput
 }
 
@@ -1245,6 +1426,11 @@ export type ClinicUncheckedCreateWithoutBillingUnitsInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -1277,6 +1463,9 @@ export type ClinicUncheckedCreateWithoutBillingUnitsInput = {
   billingContracts?: Prisma.BillingContractUncheckedCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryUncheckedCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutClinicInput
 }
 
 export type ClinicCreateOrConnectWithoutBillingUnitsInput = {
@@ -1290,6 +1479,11 @@ export type ClinicCreateWithoutBillingOwnerInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -1322,6 +1516,9 @@ export type ClinicCreateWithoutBillingOwnerInput = {
   billingContracts?: Prisma.BillingContractCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutClinicInput
   billingUnits?: Prisma.ClinicCreateNestedManyWithoutBillingOwnerInput
 }
 
@@ -1331,6 +1528,11 @@ export type ClinicUncheckedCreateWithoutBillingOwnerInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -1363,6 +1565,9 @@ export type ClinicUncheckedCreateWithoutBillingOwnerInput = {
   billingContracts?: Prisma.BillingContractUncheckedCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryUncheckedCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutClinicInput
   billingUnits?: Prisma.ClinicUncheckedCreateNestedManyWithoutBillingOwnerInput
 }
 
@@ -1393,6 +1598,11 @@ export type ClinicUpdateWithoutBillingUnitsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -1425,6 +1635,9 @@ export type ClinicUpdateWithoutBillingUnitsInput = {
   billingContracts?: Prisma.BillingContractUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUpdateManyWithoutClinicNestedInput
   billingOwner?: Prisma.ClinicUpdateOneWithoutBillingUnitsNestedInput
 }
 
@@ -1435,6 +1648,11 @@ export type ClinicUncheckedUpdateWithoutBillingUnitsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -1467,6 +1685,9 @@ export type ClinicUncheckedUpdateWithoutBillingUnitsInput = {
   billingContracts?: Prisma.BillingContractUncheckedUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUncheckedUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutClinicNestedInput
 }
 
 export type ClinicUpsertWithWhereUniqueWithoutBillingOwnerInput = {
@@ -1495,6 +1716,11 @@ export type ClinicScalarWhereInput = {
   name?: Prisma.StringFilter<"Clinic"> | string
   slug?: Prisma.StringFilter<"Clinic"> | string
   timeZone?: Prisma.StringFilter<"Clinic"> | string
+  contactEmail?: Prisma.StringNullableFilter<"Clinic"> | string | null
+  phone?: Prisma.StringNullableFilter<"Clinic"> | string | null
+  address?: Prisma.StringNullableFilter<"Clinic"> | string | null
+  publicDescription?: Prisma.StringNullableFilter<"Clinic"> | string | null
+  imageUrl?: Prisma.StringNullableFilter<"Clinic"> | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFilter<"Clinic"> | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.EnumSubscriptionPlanNullableFilter<"Clinic"> | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.EnumBillingCycleNullableFilter<"Clinic"> | $Enums.BillingCycle | null
@@ -1524,6 +1750,11 @@ export type ClinicCreateWithoutAdminAuditLogsInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -1555,6 +1786,9 @@ export type ClinicCreateWithoutAdminAuditLogsInput = {
   paymentHistory?: Prisma.PaymentHistoryCreateNestedManyWithoutClinicInput
   billingContracts?: Prisma.BillingContractCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutClinicInput
   billingOwner?: Prisma.ClinicCreateNestedOneWithoutBillingUnitsInput
   billingUnits?: Prisma.ClinicCreateNestedManyWithoutBillingOwnerInput
 }
@@ -1566,6 +1800,11 @@ export type ClinicUncheckedCreateWithoutAdminAuditLogsInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -1597,6 +1836,9 @@ export type ClinicUncheckedCreateWithoutAdminAuditLogsInput = {
   paymentHistory?: Prisma.PaymentHistoryUncheckedCreateNestedManyWithoutClinicInput
   billingContracts?: Prisma.BillingContractUncheckedCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryUncheckedCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutClinicInput
   billingUnits?: Prisma.ClinicUncheckedCreateNestedManyWithoutBillingOwnerInput
 }
 
@@ -1622,6 +1864,11 @@ export type ClinicUpdateWithoutAdminAuditLogsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -1653,6 +1900,9 @@ export type ClinicUpdateWithoutAdminAuditLogsInput = {
   paymentHistory?: Prisma.PaymentHistoryUpdateManyWithoutClinicNestedInput
   billingContracts?: Prisma.BillingContractUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUpdateManyWithoutClinicNestedInput
   billingOwner?: Prisma.ClinicUpdateOneWithoutBillingUnitsNestedInput
   billingUnits?: Prisma.ClinicUpdateManyWithoutBillingOwnerNestedInput
 }
@@ -1664,6 +1914,11 @@ export type ClinicUncheckedUpdateWithoutAdminAuditLogsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -1695,6 +1950,9 @@ export type ClinicUncheckedUpdateWithoutAdminAuditLogsInput = {
   paymentHistory?: Prisma.PaymentHistoryUncheckedUpdateManyWithoutClinicNestedInput
   billingContracts?: Prisma.BillingContractUncheckedUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUncheckedUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutClinicNestedInput
   billingUnits?: Prisma.ClinicUncheckedUpdateManyWithoutBillingOwnerNestedInput
 }
 
@@ -1704,6 +1962,11 @@ export type ClinicCreateWithoutPaymentHistoryInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -1735,6 +1998,9 @@ export type ClinicCreateWithoutPaymentHistoryInput = {
   billingContracts?: Prisma.BillingContractCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutClinicInput
   billingOwner?: Prisma.ClinicCreateNestedOneWithoutBillingUnitsInput
   billingUnits?: Prisma.ClinicCreateNestedManyWithoutBillingOwnerInput
 }
@@ -1746,6 +2012,11 @@ export type ClinicUncheckedCreateWithoutPaymentHistoryInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -1777,6 +2048,9 @@ export type ClinicUncheckedCreateWithoutPaymentHistoryInput = {
   billingContracts?: Prisma.BillingContractUncheckedCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryUncheckedCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutClinicInput
   billingUnits?: Prisma.ClinicUncheckedCreateNestedManyWithoutBillingOwnerInput
 }
 
@@ -1802,6 +2076,11 @@ export type ClinicUpdateWithoutPaymentHistoryInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -1833,6 +2112,9 @@ export type ClinicUpdateWithoutPaymentHistoryInput = {
   billingContracts?: Prisma.BillingContractUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUpdateManyWithoutClinicNestedInput
   billingOwner?: Prisma.ClinicUpdateOneWithoutBillingUnitsNestedInput
   billingUnits?: Prisma.ClinicUpdateManyWithoutBillingOwnerNestedInput
 }
@@ -1844,6 +2126,11 @@ export type ClinicUncheckedUpdateWithoutPaymentHistoryInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -1875,6 +2162,221 @@ export type ClinicUncheckedUpdateWithoutPaymentHistoryInput = {
   billingContracts?: Prisma.BillingContractUncheckedUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUncheckedUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutClinicNestedInput
+  billingUnits?: Prisma.ClinicUncheckedUpdateManyWithoutBillingOwnerNestedInput
+}
+
+export type ClinicCreateWithoutSlugAliasesInput = {
+  id?: string
+  legacyExternalId?: string | null
+  name: string
+  slug: string
+  timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
+  subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionCycle?: $Enums.BillingCycle | null
+  pendingSubscriptionPlan?: $Enums.SubscriptionPlan | null
+  pendingSubscriptionCycle?: $Enums.BillingCycle | null
+  trialEndsAt?: Date | string | null
+  subscriptionExpiresAt?: Date | string | null
+  hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
+  mercadoPagoCheckoutKey?: string | null
+  mercadoPagoCheckoutStartedAt?: Date | string | null
+  mercadoPagoCheckoutUrl?: string | null
+  billingReconciledAt?: Date | string | null
+  cancelAtPeriodEnd?: boolean
+  maxAppointmentsPerDay?: number | null
+  operationalStatus?: $Enums.ClinicOperationalStatus
+  suspensionReason?: string | null
+  suspendedAt?: Date | string | null
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  memberships?: Prisma.MembershipCreateNestedManyWithoutClinicInput
+  customers?: Prisma.CustomerCreateNestedManyWithoutClinicInput
+  services?: Prisma.ServiceCreateNestedManyWithoutClinicInput
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutClinicInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourCreateNestedManyWithoutClinicInput
+  professionals?: Prisma.ProfessionalCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryCreateNestedManyWithoutClinicInput
+  billingContracts?: Prisma.BillingContractCreateNestedManyWithoutClinicInput
+  adminAuditLogs?: Prisma.AdminAuditLogCreateNestedManyWithoutClinicInput
+  invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutClinicInput
+  billingOwner?: Prisma.ClinicCreateNestedOneWithoutBillingUnitsInput
+  billingUnits?: Prisma.ClinicCreateNestedManyWithoutBillingOwnerInput
+}
+
+export type ClinicUncheckedCreateWithoutSlugAliasesInput = {
+  id?: string
+  legacyExternalId?: string | null
+  billingOwnerId?: string | null
+  name: string
+  slug: string
+  timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
+  subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionCycle?: $Enums.BillingCycle | null
+  pendingSubscriptionPlan?: $Enums.SubscriptionPlan | null
+  pendingSubscriptionCycle?: $Enums.BillingCycle | null
+  trialEndsAt?: Date | string | null
+  subscriptionExpiresAt?: Date | string | null
+  hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
+  mercadoPagoCheckoutKey?: string | null
+  mercadoPagoCheckoutStartedAt?: Date | string | null
+  mercadoPagoCheckoutUrl?: string | null
+  billingReconciledAt?: Date | string | null
+  cancelAtPeriodEnd?: boolean
+  maxAppointmentsPerDay?: number | null
+  operationalStatus?: $Enums.ClinicOperationalStatus
+  suspensionReason?: string | null
+  suspendedAt?: Date | string | null
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutClinicInput
+  customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutClinicInput
+  services?: Prisma.ServiceUncheckedCreateNestedManyWithoutClinicInput
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutClinicInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourUncheckedCreateNestedManyWithoutClinicInput
+  professionals?: Prisma.ProfessionalUncheckedCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedCreateNestedManyWithoutClinicInput
+  billingContracts?: Prisma.BillingContractUncheckedCreateNestedManyWithoutClinicInput
+  adminAuditLogs?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutClinicInput
+  invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryUncheckedCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutClinicInput
+  billingUnits?: Prisma.ClinicUncheckedCreateNestedManyWithoutBillingOwnerInput
+}
+
+export type ClinicCreateOrConnectWithoutSlugAliasesInput = {
+  where: Prisma.ClinicWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClinicCreateWithoutSlugAliasesInput, Prisma.ClinicUncheckedCreateWithoutSlugAliasesInput>
+}
+
+export type ClinicUpsertWithoutSlugAliasesInput = {
+  update: Prisma.XOR<Prisma.ClinicUpdateWithoutSlugAliasesInput, Prisma.ClinicUncheckedUpdateWithoutSlugAliasesInput>
+  create: Prisma.XOR<Prisma.ClinicCreateWithoutSlugAliasesInput, Prisma.ClinicUncheckedCreateWithoutSlugAliasesInput>
+  where?: Prisma.ClinicWhereInput
+}
+
+export type ClinicUpdateToOneWithWhereWithoutSlugAliasesInput = {
+  where?: Prisma.ClinicWhereInput
+  data: Prisma.XOR<Prisma.ClinicUpdateWithoutSlugAliasesInput, Prisma.ClinicUncheckedUpdateWithoutSlugAliasesInput>
+}
+
+export type ClinicUpdateWithoutSlugAliasesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legacyExternalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
+  pendingSubscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  pendingSubscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
+  trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mercadoPagoCheckoutKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mercadoPagoCheckoutStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mercadoPagoCheckoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
+  suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.MembershipUpdateManyWithoutClinicNestedInput
+  customers?: Prisma.CustomerUpdateManyWithoutClinicNestedInput
+  services?: Prisma.ServiceUpdateManyWithoutClinicNestedInput
+  appointments?: Prisma.AppointmentUpdateManyWithoutClinicNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUpdateManyWithoutClinicNestedInput
+  professionals?: Prisma.ProfessionalUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUpdateManyWithoutClinicNestedInput
+  billingContracts?: Prisma.BillingContractUpdateManyWithoutClinicNestedInput
+  adminAuditLogs?: Prisma.AdminAuditLogUpdateManyWithoutClinicNestedInput
+  invitations?: Prisma.ClinicInvitationUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUpdateManyWithoutClinicNestedInput
+  billingOwner?: Prisma.ClinicUpdateOneWithoutBillingUnitsNestedInput
+  billingUnits?: Prisma.ClinicUpdateManyWithoutBillingOwnerNestedInput
+}
+
+export type ClinicUncheckedUpdateWithoutSlugAliasesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legacyExternalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingOwnerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
+  pendingSubscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  pendingSubscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
+  trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mercadoPagoCheckoutKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mercadoPagoCheckoutStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mercadoPagoCheckoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
+  suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutClinicNestedInput
+  customers?: Prisma.CustomerUncheckedUpdateManyWithoutClinicNestedInput
+  services?: Prisma.ServiceUncheckedUpdateManyWithoutClinicNestedInput
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutClinicNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUncheckedUpdateManyWithoutClinicNestedInput
+  professionals?: Prisma.ProfessionalUncheckedUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedUpdateManyWithoutClinicNestedInput
+  billingContracts?: Prisma.BillingContractUncheckedUpdateManyWithoutClinicNestedInput
+  adminAuditLogs?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutClinicNestedInput
+  invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUncheckedUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutClinicNestedInput
   billingUnits?: Prisma.ClinicUncheckedUpdateManyWithoutBillingOwnerNestedInput
 }
 
@@ -1884,6 +2386,11 @@ export type ClinicCreateWithoutBillingContractsInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -1915,6 +2422,9 @@ export type ClinicCreateWithoutBillingContractsInput = {
   paymentHistory?: Prisma.PaymentHistoryCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutClinicInput
   billingOwner?: Prisma.ClinicCreateNestedOneWithoutBillingUnitsInput
   billingUnits?: Prisma.ClinicCreateNestedManyWithoutBillingOwnerInput
 }
@@ -1926,6 +2436,11 @@ export type ClinicUncheckedCreateWithoutBillingContractsInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -1957,6 +2472,9 @@ export type ClinicUncheckedCreateWithoutBillingContractsInput = {
   paymentHistory?: Prisma.PaymentHistoryUncheckedCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryUncheckedCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutClinicInput
   billingUnits?: Prisma.ClinicUncheckedCreateNestedManyWithoutBillingOwnerInput
 }
 
@@ -1982,6 +2500,11 @@ export type ClinicUpdateWithoutBillingContractsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -2013,6 +2536,9 @@ export type ClinicUpdateWithoutBillingContractsInput = {
   paymentHistory?: Prisma.PaymentHistoryUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUpdateManyWithoutClinicNestedInput
   billingOwner?: Prisma.ClinicUpdateOneWithoutBillingUnitsNestedInput
   billingUnits?: Prisma.ClinicUpdateManyWithoutBillingOwnerNestedInput
 }
@@ -2024,6 +2550,11 @@ export type ClinicUncheckedUpdateWithoutBillingContractsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -2055,6 +2586,9 @@ export type ClinicUncheckedUpdateWithoutBillingContractsInput = {
   paymentHistory?: Prisma.PaymentHistoryUncheckedUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUncheckedUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutClinicNestedInput
   billingUnits?: Prisma.ClinicUncheckedUpdateManyWithoutBillingOwnerNestedInput
 }
 
@@ -2064,6 +2598,11 @@ export type ClinicCreateWithoutBusinessHoursInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -2095,6 +2634,9 @@ export type ClinicCreateWithoutBusinessHoursInput = {
   billingContracts?: Prisma.BillingContractCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutClinicInput
   billingOwner?: Prisma.ClinicCreateNestedOneWithoutBillingUnitsInput
   billingUnits?: Prisma.ClinicCreateNestedManyWithoutBillingOwnerInput
 }
@@ -2106,6 +2648,11 @@ export type ClinicUncheckedCreateWithoutBusinessHoursInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -2137,6 +2684,9 @@ export type ClinicUncheckedCreateWithoutBusinessHoursInput = {
   billingContracts?: Prisma.BillingContractUncheckedCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryUncheckedCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutClinicInput
   billingUnits?: Prisma.ClinicUncheckedCreateNestedManyWithoutBillingOwnerInput
 }
 
@@ -2162,6 +2712,11 @@ export type ClinicUpdateWithoutBusinessHoursInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -2193,6 +2748,9 @@ export type ClinicUpdateWithoutBusinessHoursInput = {
   billingContracts?: Prisma.BillingContractUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUpdateManyWithoutClinicNestedInput
   billingOwner?: Prisma.ClinicUpdateOneWithoutBillingUnitsNestedInput
   billingUnits?: Prisma.ClinicUpdateManyWithoutBillingOwnerNestedInput
 }
@@ -2204,6 +2762,11 @@ export type ClinicUncheckedUpdateWithoutBusinessHoursInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -2235,6 +2798,9 @@ export type ClinicUncheckedUpdateWithoutBusinessHoursInput = {
   billingContracts?: Prisma.BillingContractUncheckedUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUncheckedUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutClinicNestedInput
   billingUnits?: Prisma.ClinicUncheckedUpdateManyWithoutBillingOwnerNestedInput
 }
 
@@ -2244,6 +2810,11 @@ export type ClinicCreateWithoutInvitationsInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -2275,6 +2846,9 @@ export type ClinicCreateWithoutInvitationsInput = {
   paymentHistory?: Prisma.PaymentHistoryCreateNestedManyWithoutClinicInput
   billingContracts?: Prisma.BillingContractCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutClinicInput
   billingOwner?: Prisma.ClinicCreateNestedOneWithoutBillingUnitsInput
   billingUnits?: Prisma.ClinicCreateNestedManyWithoutBillingOwnerInput
 }
@@ -2286,6 +2860,11 @@ export type ClinicUncheckedCreateWithoutInvitationsInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -2317,6 +2896,9 @@ export type ClinicUncheckedCreateWithoutInvitationsInput = {
   paymentHistory?: Prisma.PaymentHistoryUncheckedCreateNestedManyWithoutClinicInput
   billingContracts?: Prisma.BillingContractUncheckedCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryUncheckedCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutClinicInput
   billingUnits?: Prisma.ClinicUncheckedCreateNestedManyWithoutBillingOwnerInput
 }
 
@@ -2342,6 +2924,11 @@ export type ClinicUpdateWithoutInvitationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -2373,6 +2960,9 @@ export type ClinicUpdateWithoutInvitationsInput = {
   paymentHistory?: Prisma.PaymentHistoryUpdateManyWithoutClinicNestedInput
   billingContracts?: Prisma.BillingContractUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUpdateManyWithoutClinicNestedInput
   billingOwner?: Prisma.ClinicUpdateOneWithoutBillingUnitsNestedInput
   billingUnits?: Prisma.ClinicUpdateManyWithoutBillingOwnerNestedInput
 }
@@ -2384,6 +2974,11 @@ export type ClinicUncheckedUpdateWithoutInvitationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -2415,6 +3010,9 @@ export type ClinicUncheckedUpdateWithoutInvitationsInput = {
   paymentHistory?: Prisma.PaymentHistoryUncheckedUpdateManyWithoutClinicNestedInput
   billingContracts?: Prisma.BillingContractUncheckedUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUncheckedUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutClinicNestedInput
   billingUnits?: Prisma.ClinicUncheckedUpdateManyWithoutBillingOwnerNestedInput
 }
 
@@ -2424,6 +3022,11 @@ export type ClinicCreateWithoutMembershipsInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -2455,6 +3058,9 @@ export type ClinicCreateWithoutMembershipsInput = {
   billingContracts?: Prisma.BillingContractCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutClinicInput
   billingOwner?: Prisma.ClinicCreateNestedOneWithoutBillingUnitsInput
   billingUnits?: Prisma.ClinicCreateNestedManyWithoutBillingOwnerInput
 }
@@ -2466,6 +3072,11 @@ export type ClinicUncheckedCreateWithoutMembershipsInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -2497,6 +3108,9 @@ export type ClinicUncheckedCreateWithoutMembershipsInput = {
   billingContracts?: Prisma.BillingContractUncheckedCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryUncheckedCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutClinicInput
   billingUnits?: Prisma.ClinicUncheckedCreateNestedManyWithoutBillingOwnerInput
 }
 
@@ -2522,6 +3136,11 @@ export type ClinicUpdateWithoutMembershipsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -2553,6 +3172,9 @@ export type ClinicUpdateWithoutMembershipsInput = {
   billingContracts?: Prisma.BillingContractUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUpdateManyWithoutClinicNestedInput
   billingOwner?: Prisma.ClinicUpdateOneWithoutBillingUnitsNestedInput
   billingUnits?: Prisma.ClinicUpdateManyWithoutBillingOwnerNestedInput
 }
@@ -2564,6 +3186,11 @@ export type ClinicUncheckedUpdateWithoutMembershipsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -2595,6 +3222,9 @@ export type ClinicUncheckedUpdateWithoutMembershipsInput = {
   billingContracts?: Prisma.BillingContractUncheckedUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUncheckedUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutClinicNestedInput
   billingUnits?: Prisma.ClinicUncheckedUpdateManyWithoutBillingOwnerNestedInput
 }
 
@@ -2604,6 +3234,11 @@ export type ClinicCreateWithoutCustomersInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -2635,6 +3270,9 @@ export type ClinicCreateWithoutCustomersInput = {
   billingContracts?: Prisma.BillingContractCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutClinicInput
   billingOwner?: Prisma.ClinicCreateNestedOneWithoutBillingUnitsInput
   billingUnits?: Prisma.ClinicCreateNestedManyWithoutBillingOwnerInput
 }
@@ -2646,6 +3284,11 @@ export type ClinicUncheckedCreateWithoutCustomersInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -2677,6 +3320,9 @@ export type ClinicUncheckedCreateWithoutCustomersInput = {
   billingContracts?: Prisma.BillingContractUncheckedCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryUncheckedCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutClinicInput
   billingUnits?: Prisma.ClinicUncheckedCreateNestedManyWithoutBillingOwnerInput
 }
 
@@ -2702,6 +3348,11 @@ export type ClinicUpdateWithoutCustomersInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -2733,6 +3384,9 @@ export type ClinicUpdateWithoutCustomersInput = {
   billingContracts?: Prisma.BillingContractUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUpdateManyWithoutClinicNestedInput
   billingOwner?: Prisma.ClinicUpdateOneWithoutBillingUnitsNestedInput
   billingUnits?: Prisma.ClinicUpdateManyWithoutBillingOwnerNestedInput
 }
@@ -2744,6 +3398,11 @@ export type ClinicUncheckedUpdateWithoutCustomersInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -2775,6 +3434,9 @@ export type ClinicUncheckedUpdateWithoutCustomersInput = {
   billingContracts?: Prisma.BillingContractUncheckedUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUncheckedUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutClinicNestedInput
   billingUnits?: Prisma.ClinicUncheckedUpdateManyWithoutBillingOwnerNestedInput
 }
 
@@ -2784,6 +3446,11 @@ export type ClinicCreateWithoutServicesInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -2815,6 +3482,9 @@ export type ClinicCreateWithoutServicesInput = {
   billingContracts?: Prisma.BillingContractCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutClinicInput
   billingOwner?: Prisma.ClinicCreateNestedOneWithoutBillingUnitsInput
   billingUnits?: Prisma.ClinicCreateNestedManyWithoutBillingOwnerInput
 }
@@ -2826,6 +3496,11 @@ export type ClinicUncheckedCreateWithoutServicesInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -2857,6 +3532,9 @@ export type ClinicUncheckedCreateWithoutServicesInput = {
   billingContracts?: Prisma.BillingContractUncheckedCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryUncheckedCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutClinicInput
   billingUnits?: Prisma.ClinicUncheckedCreateNestedManyWithoutBillingOwnerInput
 }
 
@@ -2882,6 +3560,11 @@ export type ClinicUpdateWithoutServicesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -2913,6 +3596,9 @@ export type ClinicUpdateWithoutServicesInput = {
   billingContracts?: Prisma.BillingContractUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUpdateManyWithoutClinicNestedInput
   billingOwner?: Prisma.ClinicUpdateOneWithoutBillingUnitsNestedInput
   billingUnits?: Prisma.ClinicUpdateManyWithoutBillingOwnerNestedInput
 }
@@ -2924,6 +3610,11 @@ export type ClinicUncheckedUpdateWithoutServicesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -2955,6 +3646,9 @@ export type ClinicUncheckedUpdateWithoutServicesInput = {
   billingContracts?: Prisma.BillingContractUncheckedUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUncheckedUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutClinicNestedInput
   billingUnits?: Prisma.ClinicUncheckedUpdateManyWithoutBillingOwnerNestedInput
 }
 
@@ -2964,6 +3658,11 @@ export type ClinicCreateWithoutProfessionalsInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -2995,6 +3694,9 @@ export type ClinicCreateWithoutProfessionalsInput = {
   billingContracts?: Prisma.BillingContractCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutClinicInput
   billingOwner?: Prisma.ClinicCreateNestedOneWithoutBillingUnitsInput
   billingUnits?: Prisma.ClinicCreateNestedManyWithoutBillingOwnerInput
 }
@@ -3006,6 +3708,11 @@ export type ClinicUncheckedCreateWithoutProfessionalsInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -3037,6 +3744,9 @@ export type ClinicUncheckedCreateWithoutProfessionalsInput = {
   billingContracts?: Prisma.BillingContractUncheckedCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryUncheckedCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutClinicInput
   billingUnits?: Prisma.ClinicUncheckedCreateNestedManyWithoutBillingOwnerInput
 }
 
@@ -3062,6 +3772,11 @@ export type ClinicUpdateWithoutProfessionalsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -3093,6 +3808,9 @@ export type ClinicUpdateWithoutProfessionalsInput = {
   billingContracts?: Prisma.BillingContractUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUpdateManyWithoutClinicNestedInput
   billingOwner?: Prisma.ClinicUpdateOneWithoutBillingUnitsNestedInput
   billingUnits?: Prisma.ClinicUpdateManyWithoutBillingOwnerNestedInput
 }
@@ -3104,6 +3822,11 @@ export type ClinicUncheckedUpdateWithoutProfessionalsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -3135,6 +3858,221 @@ export type ClinicUncheckedUpdateWithoutProfessionalsInput = {
   billingContracts?: Prisma.BillingContractUncheckedUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUncheckedUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutClinicNestedInput
+  billingUnits?: Prisma.ClinicUncheckedUpdateManyWithoutBillingOwnerNestedInput
+}
+
+export type ClinicCreateWithoutProfessionalAvailabilitiesInput = {
+  id?: string
+  legacyExternalId?: string | null
+  name: string
+  slug: string
+  timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
+  subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionCycle?: $Enums.BillingCycle | null
+  pendingSubscriptionPlan?: $Enums.SubscriptionPlan | null
+  pendingSubscriptionCycle?: $Enums.BillingCycle | null
+  trialEndsAt?: Date | string | null
+  subscriptionExpiresAt?: Date | string | null
+  hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
+  mercadoPagoCheckoutKey?: string | null
+  mercadoPagoCheckoutStartedAt?: Date | string | null
+  mercadoPagoCheckoutUrl?: string | null
+  billingReconciledAt?: Date | string | null
+  cancelAtPeriodEnd?: boolean
+  maxAppointmentsPerDay?: number | null
+  operationalStatus?: $Enums.ClinicOperationalStatus
+  suspensionReason?: string | null
+  suspendedAt?: Date | string | null
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  memberships?: Prisma.MembershipCreateNestedManyWithoutClinicInput
+  customers?: Prisma.CustomerCreateNestedManyWithoutClinicInput
+  services?: Prisma.ServiceCreateNestedManyWithoutClinicInput
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutClinicInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourCreateNestedManyWithoutClinicInput
+  professionals?: Prisma.ProfessionalCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryCreateNestedManyWithoutClinicInput
+  billingContracts?: Prisma.BillingContractCreateNestedManyWithoutClinicInput
+  adminAuditLogs?: Prisma.AdminAuditLogCreateNestedManyWithoutClinicInput
+  invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryCreateNestedManyWithoutClinicInput
+  billingOwner?: Prisma.ClinicCreateNestedOneWithoutBillingUnitsInput
+  billingUnits?: Prisma.ClinicCreateNestedManyWithoutBillingOwnerInput
+}
+
+export type ClinicUncheckedCreateWithoutProfessionalAvailabilitiesInput = {
+  id?: string
+  legacyExternalId?: string | null
+  billingOwnerId?: string | null
+  name: string
+  slug: string
+  timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
+  subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionCycle?: $Enums.BillingCycle | null
+  pendingSubscriptionPlan?: $Enums.SubscriptionPlan | null
+  pendingSubscriptionCycle?: $Enums.BillingCycle | null
+  trialEndsAt?: Date | string | null
+  subscriptionExpiresAt?: Date | string | null
+  hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
+  mercadoPagoCheckoutKey?: string | null
+  mercadoPagoCheckoutStartedAt?: Date | string | null
+  mercadoPagoCheckoutUrl?: string | null
+  billingReconciledAt?: Date | string | null
+  cancelAtPeriodEnd?: boolean
+  maxAppointmentsPerDay?: number | null
+  operationalStatus?: $Enums.ClinicOperationalStatus
+  suspensionReason?: string | null
+  suspendedAt?: Date | string | null
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutClinicInput
+  customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutClinicInput
+  services?: Prisma.ServiceUncheckedCreateNestedManyWithoutClinicInput
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutClinicInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourUncheckedCreateNestedManyWithoutClinicInput
+  professionals?: Prisma.ProfessionalUncheckedCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedCreateNestedManyWithoutClinicInput
+  billingContracts?: Prisma.BillingContractUncheckedCreateNestedManyWithoutClinicInput
+  adminAuditLogs?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutClinicInput
+  invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryUncheckedCreateNestedManyWithoutClinicInput
+  billingUnits?: Prisma.ClinicUncheckedCreateNestedManyWithoutBillingOwnerInput
+}
+
+export type ClinicCreateOrConnectWithoutProfessionalAvailabilitiesInput = {
+  where: Prisma.ClinicWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClinicCreateWithoutProfessionalAvailabilitiesInput, Prisma.ClinicUncheckedCreateWithoutProfessionalAvailabilitiesInput>
+}
+
+export type ClinicUpsertWithoutProfessionalAvailabilitiesInput = {
+  update: Prisma.XOR<Prisma.ClinicUpdateWithoutProfessionalAvailabilitiesInput, Prisma.ClinicUncheckedUpdateWithoutProfessionalAvailabilitiesInput>
+  create: Prisma.XOR<Prisma.ClinicCreateWithoutProfessionalAvailabilitiesInput, Prisma.ClinicUncheckedCreateWithoutProfessionalAvailabilitiesInput>
+  where?: Prisma.ClinicWhereInput
+}
+
+export type ClinicUpdateToOneWithWhereWithoutProfessionalAvailabilitiesInput = {
+  where?: Prisma.ClinicWhereInput
+  data: Prisma.XOR<Prisma.ClinicUpdateWithoutProfessionalAvailabilitiesInput, Prisma.ClinicUncheckedUpdateWithoutProfessionalAvailabilitiesInput>
+}
+
+export type ClinicUpdateWithoutProfessionalAvailabilitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legacyExternalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
+  pendingSubscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  pendingSubscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
+  trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mercadoPagoCheckoutKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mercadoPagoCheckoutStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mercadoPagoCheckoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
+  suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.MembershipUpdateManyWithoutClinicNestedInput
+  customers?: Prisma.CustomerUpdateManyWithoutClinicNestedInput
+  services?: Prisma.ServiceUpdateManyWithoutClinicNestedInput
+  appointments?: Prisma.AppointmentUpdateManyWithoutClinicNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUpdateManyWithoutClinicNestedInput
+  professionals?: Prisma.ProfessionalUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUpdateManyWithoutClinicNestedInput
+  billingContracts?: Prisma.BillingContractUpdateManyWithoutClinicNestedInput
+  adminAuditLogs?: Prisma.AdminAuditLogUpdateManyWithoutClinicNestedInput
+  invitations?: Prisma.ClinicInvitationUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUpdateManyWithoutClinicNestedInput
+  billingOwner?: Prisma.ClinicUpdateOneWithoutBillingUnitsNestedInput
+  billingUnits?: Prisma.ClinicUpdateManyWithoutBillingOwnerNestedInput
+}
+
+export type ClinicUncheckedUpdateWithoutProfessionalAvailabilitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legacyExternalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingOwnerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
+  pendingSubscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  pendingSubscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
+  trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mercadoPagoCheckoutKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mercadoPagoCheckoutStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mercadoPagoCheckoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
+  suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutClinicNestedInput
+  customers?: Prisma.CustomerUncheckedUpdateManyWithoutClinicNestedInput
+  services?: Prisma.ServiceUncheckedUpdateManyWithoutClinicNestedInput
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutClinicNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUncheckedUpdateManyWithoutClinicNestedInput
+  professionals?: Prisma.ProfessionalUncheckedUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedUpdateManyWithoutClinicNestedInput
+  billingContracts?: Prisma.BillingContractUncheckedUpdateManyWithoutClinicNestedInput
+  adminAuditLogs?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutClinicNestedInput
+  invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUncheckedUpdateManyWithoutClinicNestedInput
   billingUnits?: Prisma.ClinicUncheckedUpdateManyWithoutBillingOwnerNestedInput
 }
 
@@ -3144,6 +4082,11 @@ export type ClinicCreateWithoutAppointmentsInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -3175,6 +4118,9 @@ export type ClinicCreateWithoutAppointmentsInput = {
   billingContracts?: Prisma.BillingContractCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutClinicInput
   billingOwner?: Prisma.ClinicCreateNestedOneWithoutBillingUnitsInput
   billingUnits?: Prisma.ClinicCreateNestedManyWithoutBillingOwnerInput
 }
@@ -3186,6 +4132,11 @@ export type ClinicUncheckedCreateWithoutAppointmentsInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -3217,6 +4168,9 @@ export type ClinicUncheckedCreateWithoutAppointmentsInput = {
   billingContracts?: Prisma.BillingContractUncheckedCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryUncheckedCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutClinicInput
   billingUnits?: Prisma.ClinicUncheckedCreateNestedManyWithoutBillingOwnerInput
 }
 
@@ -3242,6 +4196,11 @@ export type ClinicUpdateWithoutAppointmentsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -3273,6 +4232,9 @@ export type ClinicUpdateWithoutAppointmentsInput = {
   billingContracts?: Prisma.BillingContractUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUpdateManyWithoutClinicNestedInput
   billingOwner?: Prisma.ClinicUpdateOneWithoutBillingUnitsNestedInput
   billingUnits?: Prisma.ClinicUpdateManyWithoutBillingOwnerNestedInput
 }
@@ -3284,6 +4246,11 @@ export type ClinicUncheckedUpdateWithoutAppointmentsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -3315,6 +4282,221 @@ export type ClinicUncheckedUpdateWithoutAppointmentsInput = {
   billingContracts?: Prisma.BillingContractUncheckedUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUncheckedUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutClinicNestedInput
+  billingUnits?: Prisma.ClinicUncheckedUpdateManyWithoutBillingOwnerNestedInput
+}
+
+export type ClinicCreateWithoutFinancialEntriesInput = {
+  id?: string
+  legacyExternalId?: string | null
+  name: string
+  slug: string
+  timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
+  subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionCycle?: $Enums.BillingCycle | null
+  pendingSubscriptionPlan?: $Enums.SubscriptionPlan | null
+  pendingSubscriptionCycle?: $Enums.BillingCycle | null
+  trialEndsAt?: Date | string | null
+  subscriptionExpiresAt?: Date | string | null
+  hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
+  mercadoPagoCheckoutKey?: string | null
+  mercadoPagoCheckoutStartedAt?: Date | string | null
+  mercadoPagoCheckoutUrl?: string | null
+  billingReconciledAt?: Date | string | null
+  cancelAtPeriodEnd?: boolean
+  maxAppointmentsPerDay?: number | null
+  operationalStatus?: $Enums.ClinicOperationalStatus
+  suspensionReason?: string | null
+  suspendedAt?: Date | string | null
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  memberships?: Prisma.MembershipCreateNestedManyWithoutClinicInput
+  customers?: Prisma.CustomerCreateNestedManyWithoutClinicInput
+  services?: Prisma.ServiceCreateNestedManyWithoutClinicInput
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutClinicInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourCreateNestedManyWithoutClinicInput
+  professionals?: Prisma.ProfessionalCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryCreateNestedManyWithoutClinicInput
+  billingContracts?: Prisma.BillingContractCreateNestedManyWithoutClinicInput
+  adminAuditLogs?: Prisma.AdminAuditLogCreateNestedManyWithoutClinicInput
+  invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutClinicInput
+  billingOwner?: Prisma.ClinicCreateNestedOneWithoutBillingUnitsInput
+  billingUnits?: Prisma.ClinicCreateNestedManyWithoutBillingOwnerInput
+}
+
+export type ClinicUncheckedCreateWithoutFinancialEntriesInput = {
+  id?: string
+  legacyExternalId?: string | null
+  billingOwnerId?: string | null
+  name: string
+  slug: string
+  timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
+  subscriptionStatus?: $Enums.SubscriptionStatus
+  subscriptionPlan?: $Enums.SubscriptionPlan | null
+  subscriptionCycle?: $Enums.BillingCycle | null
+  pendingSubscriptionPlan?: $Enums.SubscriptionPlan | null
+  pendingSubscriptionCycle?: $Enums.BillingCycle | null
+  trialEndsAt?: Date | string | null
+  subscriptionExpiresAt?: Date | string | null
+  hasPaidOnce?: boolean
+  mercadoPagoSubscriptionId?: string | null
+  mercadoPagoCheckoutKey?: string | null
+  mercadoPagoCheckoutStartedAt?: Date | string | null
+  mercadoPagoCheckoutUrl?: string | null
+  billingReconciledAt?: Date | string | null
+  cancelAtPeriodEnd?: boolean
+  maxAppointmentsPerDay?: number | null
+  operationalStatus?: $Enums.ClinicOperationalStatus
+  suspensionReason?: string | null
+  suspendedAt?: Date | string | null
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutClinicInput
+  customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutClinicInput
+  services?: Prisma.ServiceUncheckedCreateNestedManyWithoutClinicInput
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutClinicInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutClinicInput
+  businessHours?: Prisma.BusinessHourUncheckedCreateNestedManyWithoutClinicInput
+  professionals?: Prisma.ProfessionalUncheckedCreateNestedManyWithoutClinicInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedCreateNestedManyWithoutClinicInput
+  billingContracts?: Prisma.BillingContractUncheckedCreateNestedManyWithoutClinicInput
+  adminAuditLogs?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutClinicInput
+  invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutClinicInput
+  billingUnits?: Prisma.ClinicUncheckedCreateNestedManyWithoutBillingOwnerInput
+}
+
+export type ClinicCreateOrConnectWithoutFinancialEntriesInput = {
+  where: Prisma.ClinicWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClinicCreateWithoutFinancialEntriesInput, Prisma.ClinicUncheckedCreateWithoutFinancialEntriesInput>
+}
+
+export type ClinicUpsertWithoutFinancialEntriesInput = {
+  update: Prisma.XOR<Prisma.ClinicUpdateWithoutFinancialEntriesInput, Prisma.ClinicUncheckedUpdateWithoutFinancialEntriesInput>
+  create: Prisma.XOR<Prisma.ClinicCreateWithoutFinancialEntriesInput, Prisma.ClinicUncheckedCreateWithoutFinancialEntriesInput>
+  where?: Prisma.ClinicWhereInput
+}
+
+export type ClinicUpdateToOneWithWhereWithoutFinancialEntriesInput = {
+  where?: Prisma.ClinicWhereInput
+  data: Prisma.XOR<Prisma.ClinicUpdateWithoutFinancialEntriesInput, Prisma.ClinicUncheckedUpdateWithoutFinancialEntriesInput>
+}
+
+export type ClinicUpdateWithoutFinancialEntriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legacyExternalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
+  pendingSubscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  pendingSubscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
+  trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mercadoPagoCheckoutKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mercadoPagoCheckoutStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mercadoPagoCheckoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
+  suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.MembershipUpdateManyWithoutClinicNestedInput
+  customers?: Prisma.CustomerUpdateManyWithoutClinicNestedInput
+  services?: Prisma.ServiceUpdateManyWithoutClinicNestedInput
+  appointments?: Prisma.AppointmentUpdateManyWithoutClinicNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUpdateManyWithoutClinicNestedInput
+  professionals?: Prisma.ProfessionalUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUpdateManyWithoutClinicNestedInput
+  billingContracts?: Prisma.BillingContractUpdateManyWithoutClinicNestedInput
+  adminAuditLogs?: Prisma.AdminAuditLogUpdateManyWithoutClinicNestedInput
+  invitations?: Prisma.ClinicInvitationUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUpdateManyWithoutClinicNestedInput
+  billingOwner?: Prisma.ClinicUpdateOneWithoutBillingUnitsNestedInput
+  billingUnits?: Prisma.ClinicUpdateManyWithoutBillingOwnerNestedInput
+}
+
+export type ClinicUncheckedUpdateWithoutFinancialEntriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legacyExternalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingOwnerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
+  pendingSubscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
+  pendingSubscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
+  trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hasPaidOnce?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mercadoPagoSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mercadoPagoCheckoutKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mercadoPagoCheckoutStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mercadoPagoCheckoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
+  suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutClinicNestedInput
+  customers?: Prisma.CustomerUncheckedUpdateManyWithoutClinicNestedInput
+  services?: Prisma.ServiceUncheckedUpdateManyWithoutClinicNestedInput
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutClinicNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutClinicNestedInput
+  businessHours?: Prisma.BusinessHourUncheckedUpdateManyWithoutClinicNestedInput
+  professionals?: Prisma.ProfessionalUncheckedUpdateManyWithoutClinicNestedInput
+  paymentHistory?: Prisma.PaymentHistoryUncheckedUpdateManyWithoutClinicNestedInput
+  billingContracts?: Prisma.BillingContractUncheckedUpdateManyWithoutClinicNestedInput
+  adminAuditLogs?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutClinicNestedInput
+  invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutClinicNestedInput
   billingUnits?: Prisma.ClinicUncheckedUpdateManyWithoutBillingOwnerNestedInput
 }
 
@@ -3324,6 +4506,11 @@ export type ClinicCreateWithoutNotificationsInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -3355,6 +4542,9 @@ export type ClinicCreateWithoutNotificationsInput = {
   billingContracts?: Prisma.BillingContractCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityCreateNestedManyWithoutClinicInput
   billingOwner?: Prisma.ClinicCreateNestedOneWithoutBillingUnitsInput
   billingUnits?: Prisma.ClinicCreateNestedManyWithoutBillingOwnerInput
 }
@@ -3366,6 +4556,11 @@ export type ClinicUncheckedCreateWithoutNotificationsInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -3397,6 +4592,9 @@ export type ClinicUncheckedCreateWithoutNotificationsInput = {
   billingContracts?: Prisma.BillingContractUncheckedCreateNestedManyWithoutClinicInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutClinicInput
   invitations?: Prisma.ClinicInvitationUncheckedCreateNestedManyWithoutClinicInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedCreateNestedManyWithoutClinicInput
+  financialEntries?: Prisma.FinancialEntryUncheckedCreateNestedManyWithoutClinicInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedCreateNestedManyWithoutClinicInput
   billingUnits?: Prisma.ClinicUncheckedCreateNestedManyWithoutBillingOwnerInput
 }
 
@@ -3422,6 +4620,11 @@ export type ClinicUpdateWithoutNotificationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -3453,6 +4656,9 @@ export type ClinicUpdateWithoutNotificationsInput = {
   billingContracts?: Prisma.BillingContractUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUpdateManyWithoutClinicNestedInput
   billingOwner?: Prisma.ClinicUpdateOneWithoutBillingUnitsNestedInput
   billingUnits?: Prisma.ClinicUpdateManyWithoutBillingOwnerNestedInput
 }
@@ -3464,6 +4670,11 @@ export type ClinicUncheckedUpdateWithoutNotificationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -3495,6 +4706,9 @@ export type ClinicUncheckedUpdateWithoutNotificationsInput = {
   billingContracts?: Prisma.BillingContractUncheckedUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUncheckedUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutClinicNestedInput
   billingUnits?: Prisma.ClinicUncheckedUpdateManyWithoutBillingOwnerNestedInput
 }
 
@@ -3504,6 +4718,11 @@ export type ClinicCreateManyBillingOwnerInput = {
   name: string
   slug: string
   timeZone?: string
+  contactEmail?: string | null
+  phone?: string | null
+  address?: string | null
+  publicDescription?: string | null
+  imageUrl?: string | null
   subscriptionStatus?: $Enums.SubscriptionStatus
   subscriptionPlan?: $Enums.SubscriptionPlan | null
   subscriptionCycle?: $Enums.BillingCycle | null
@@ -3533,6 +4752,11 @@ export type ClinicUpdateWithoutBillingOwnerInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -3565,6 +4789,9 @@ export type ClinicUpdateWithoutBillingOwnerInput = {
   billingContracts?: Prisma.BillingContractUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUpdateManyWithoutClinicNestedInput
   billingUnits?: Prisma.ClinicUpdateManyWithoutBillingOwnerNestedInput
 }
 
@@ -3574,6 +4801,11 @@ export type ClinicUncheckedUpdateWithoutBillingOwnerInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -3606,6 +4838,9 @@ export type ClinicUncheckedUpdateWithoutBillingOwnerInput = {
   billingContracts?: Prisma.BillingContractUncheckedUpdateManyWithoutClinicNestedInput
   adminAuditLogs?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutClinicNestedInput
   invitations?: Prisma.ClinicInvitationUncheckedUpdateManyWithoutClinicNestedInput
+  slugAliases?: Prisma.ClinicSlugAliasUncheckedUpdateManyWithoutClinicNestedInput
+  financialEntries?: Prisma.FinancialEntryUncheckedUpdateManyWithoutClinicNestedInput
+  professionalAvailabilities?: Prisma.ProfessionalAvailabilityUncheckedUpdateManyWithoutClinicNestedInput
   billingUnits?: Prisma.ClinicUncheckedUpdateManyWithoutBillingOwnerNestedInput
 }
 
@@ -3615,6 +4850,11 @@ export type ClinicUncheckedUpdateManyWithoutBillingOwnerInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
   subscriptionPlan?: Prisma.NullableEnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan | null
   subscriptionCycle?: Prisma.NullableEnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle | null
@@ -3655,6 +4895,9 @@ export type ClinicCountOutputType = {
   billingContracts: number
   adminAuditLogs: number
   invitations: number
+  slugAliases: number
+  financialEntries: number
+  professionalAvailabilities: number
   billingUnits: number
 }
 
@@ -3670,6 +4913,9 @@ export type ClinicCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   billingContracts?: boolean | ClinicCountOutputTypeCountBillingContractsArgs
   adminAuditLogs?: boolean | ClinicCountOutputTypeCountAdminAuditLogsArgs
   invitations?: boolean | ClinicCountOutputTypeCountInvitationsArgs
+  slugAliases?: boolean | ClinicCountOutputTypeCountSlugAliasesArgs
+  financialEntries?: boolean | ClinicCountOutputTypeCountFinancialEntriesArgs
+  professionalAvailabilities?: boolean | ClinicCountOutputTypeCountProfessionalAvailabilitiesArgs
   billingUnits?: boolean | ClinicCountOutputTypeCountBillingUnitsArgs
 }
 
@@ -3763,6 +5009,27 @@ export type ClinicCountOutputTypeCountInvitationsArgs<ExtArgs extends runtime.Ty
 /**
  * ClinicCountOutputType without action
  */
+export type ClinicCountOutputTypeCountSlugAliasesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClinicSlugAliasWhereInput
+}
+
+/**
+ * ClinicCountOutputType without action
+ */
+export type ClinicCountOutputTypeCountFinancialEntriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FinancialEntryWhereInput
+}
+
+/**
+ * ClinicCountOutputType without action
+ */
+export type ClinicCountOutputTypeCountProfessionalAvailabilitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProfessionalAvailabilityWhereInput
+}
+
+/**
+ * ClinicCountOutputType without action
+ */
 export type ClinicCountOutputTypeCountBillingUnitsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ClinicWhereInput
 }
@@ -3775,6 +5042,11 @@ export type ClinicSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name?: boolean
   slug?: boolean
   timeZone?: boolean
+  contactEmail?: boolean
+  phone?: boolean
+  address?: boolean
+  publicDescription?: boolean
+  imageUrl?: boolean
   subscriptionStatus?: boolean
   subscriptionPlan?: boolean
   subscriptionCycle?: boolean
@@ -3807,6 +5079,9 @@ export type ClinicSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   billingContracts?: boolean | Prisma.Clinic$billingContractsArgs<ExtArgs>
   adminAuditLogs?: boolean | Prisma.Clinic$adminAuditLogsArgs<ExtArgs>
   invitations?: boolean | Prisma.Clinic$invitationsArgs<ExtArgs>
+  slugAliases?: boolean | Prisma.Clinic$slugAliasesArgs<ExtArgs>
+  financialEntries?: boolean | Prisma.Clinic$financialEntriesArgs<ExtArgs>
+  professionalAvailabilities?: boolean | Prisma.Clinic$professionalAvailabilitiesArgs<ExtArgs>
   billingOwner?: boolean | Prisma.Clinic$billingOwnerArgs<ExtArgs>
   billingUnits?: boolean | Prisma.Clinic$billingUnitsArgs<ExtArgs>
   _count?: boolean | Prisma.ClinicCountOutputTypeDefaultArgs<ExtArgs>
@@ -3819,6 +5094,11 @@ export type ClinicSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   name?: boolean
   slug?: boolean
   timeZone?: boolean
+  contactEmail?: boolean
+  phone?: boolean
+  address?: boolean
+  publicDescription?: boolean
+  imageUrl?: boolean
   subscriptionStatus?: boolean
   subscriptionPlan?: boolean
   subscriptionCycle?: boolean
@@ -3850,6 +5130,11 @@ export type ClinicSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   name?: boolean
   slug?: boolean
   timeZone?: boolean
+  contactEmail?: boolean
+  phone?: boolean
+  address?: boolean
+  publicDescription?: boolean
+  imageUrl?: boolean
   subscriptionStatus?: boolean
   subscriptionPlan?: boolean
   subscriptionCycle?: boolean
@@ -3881,6 +5166,11 @@ export type ClinicSelectScalar = {
   name?: boolean
   slug?: boolean
   timeZone?: boolean
+  contactEmail?: boolean
+  phone?: boolean
+  address?: boolean
+  publicDescription?: boolean
+  imageUrl?: boolean
   subscriptionStatus?: boolean
   subscriptionPlan?: boolean
   subscriptionCycle?: boolean
@@ -3904,7 +5194,7 @@ export type ClinicSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ClinicOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "legacyExternalId" | "billingOwnerId" | "name" | "slug" | "timeZone" | "subscriptionStatus" | "subscriptionPlan" | "subscriptionCycle" | "pendingSubscriptionPlan" | "pendingSubscriptionCycle" | "trialEndsAt" | "subscriptionExpiresAt" | "hasPaidOnce" | "mercadoPagoSubscriptionId" | "mercadoPagoCheckoutKey" | "mercadoPagoCheckoutStartedAt" | "mercadoPagoCheckoutUrl" | "billingReconciledAt" | "cancelAtPeriodEnd" | "maxAppointmentsPerDay" | "operationalStatus" | "suspensionReason" | "suspendedAt" | "deletedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["clinic"]>
+export type ClinicOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "legacyExternalId" | "billingOwnerId" | "name" | "slug" | "timeZone" | "contactEmail" | "phone" | "address" | "publicDescription" | "imageUrl" | "subscriptionStatus" | "subscriptionPlan" | "subscriptionCycle" | "pendingSubscriptionPlan" | "pendingSubscriptionCycle" | "trialEndsAt" | "subscriptionExpiresAt" | "hasPaidOnce" | "mercadoPagoSubscriptionId" | "mercadoPagoCheckoutKey" | "mercadoPagoCheckoutStartedAt" | "mercadoPagoCheckoutUrl" | "billingReconciledAt" | "cancelAtPeriodEnd" | "maxAppointmentsPerDay" | "operationalStatus" | "suspensionReason" | "suspendedAt" | "deletedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["clinic"]>
 export type ClinicInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   memberships?: boolean | Prisma.Clinic$membershipsArgs<ExtArgs>
   customers?: boolean | Prisma.Clinic$customersArgs<ExtArgs>
@@ -3917,6 +5207,9 @@ export type ClinicInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   billingContracts?: boolean | Prisma.Clinic$billingContractsArgs<ExtArgs>
   adminAuditLogs?: boolean | Prisma.Clinic$adminAuditLogsArgs<ExtArgs>
   invitations?: boolean | Prisma.Clinic$invitationsArgs<ExtArgs>
+  slugAliases?: boolean | Prisma.Clinic$slugAliasesArgs<ExtArgs>
+  financialEntries?: boolean | Prisma.Clinic$financialEntriesArgs<ExtArgs>
+  professionalAvailabilities?: boolean | Prisma.Clinic$professionalAvailabilitiesArgs<ExtArgs>
   billingOwner?: boolean | Prisma.Clinic$billingOwnerArgs<ExtArgs>
   billingUnits?: boolean | Prisma.Clinic$billingUnitsArgs<ExtArgs>
   _count?: boolean | Prisma.ClinicCountOutputTypeDefaultArgs<ExtArgs>
@@ -3942,6 +5235,9 @@ export type $ClinicPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     billingContracts: Prisma.$BillingContractPayload<ExtArgs>[]
     adminAuditLogs: Prisma.$AdminAuditLogPayload<ExtArgs>[]
     invitations: Prisma.$ClinicInvitationPayload<ExtArgs>[]
+    slugAliases: Prisma.$ClinicSlugAliasPayload<ExtArgs>[]
+    financialEntries: Prisma.$FinancialEntryPayload<ExtArgs>[]
+    professionalAvailabilities: Prisma.$ProfessionalAvailabilityPayload<ExtArgs>[]
     billingOwner: Prisma.$ClinicPayload<ExtArgs> | null
     billingUnits: Prisma.$ClinicPayload<ExtArgs>[]
   }
@@ -3952,6 +5248,11 @@ export type $ClinicPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     name: string
     slug: string
     timeZone: string
+    contactEmail: string | null
+    phone: string | null
+    address: string | null
+    publicDescription: string | null
+    imageUrl: string | null
     subscriptionStatus: $Enums.SubscriptionStatus
     subscriptionPlan: $Enums.SubscriptionPlan | null
     subscriptionCycle: $Enums.BillingCycle | null
@@ -4378,6 +5679,9 @@ export interface Prisma__ClinicClient<T, Null = never, ExtArgs extends runtime.T
   billingContracts<T extends Prisma.Clinic$billingContractsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Clinic$billingContractsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BillingContractPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   adminAuditLogs<T extends Prisma.Clinic$adminAuditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Clinic$adminAuditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AdminAuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   invitations<T extends Prisma.Clinic$invitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Clinic$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClinicInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  slugAliases<T extends Prisma.Clinic$slugAliasesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Clinic$slugAliasesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClinicSlugAliasPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  financialEntries<T extends Prisma.Clinic$financialEntriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Clinic$financialEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FinancialEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  professionalAvailabilities<T extends Prisma.Clinic$professionalAvailabilitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Clinic$professionalAvailabilitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProfessionalAvailabilityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   billingOwner<T extends Prisma.Clinic$billingOwnerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Clinic$billingOwnerArgs<ExtArgs>>): Prisma.Prisma__ClinicClient<runtime.Types.Result.GetResult<Prisma.$ClinicPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   billingUnits<T extends Prisma.Clinic$billingUnitsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Clinic$billingUnitsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClinicPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -4415,6 +5719,11 @@ export interface ClinicFieldRefs {
   readonly name: Prisma.FieldRef<"Clinic", 'String'>
   readonly slug: Prisma.FieldRef<"Clinic", 'String'>
   readonly timeZone: Prisma.FieldRef<"Clinic", 'String'>
+  readonly contactEmail: Prisma.FieldRef<"Clinic", 'String'>
+  readonly phone: Prisma.FieldRef<"Clinic", 'String'>
+  readonly address: Prisma.FieldRef<"Clinic", 'String'>
+  readonly publicDescription: Prisma.FieldRef<"Clinic", 'String'>
+  readonly imageUrl: Prisma.FieldRef<"Clinic", 'String'>
   readonly subscriptionStatus: Prisma.FieldRef<"Clinic", 'SubscriptionStatus'>
   readonly subscriptionPlan: Prisma.FieldRef<"Clinic", 'SubscriptionPlan'>
   readonly subscriptionCycle: Prisma.FieldRef<"Clinic", 'BillingCycle'>
@@ -5098,6 +6407,78 @@ export type Clinic$invitationsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.ClinicInvitationScalarFieldEnum | Prisma.ClinicInvitationScalarFieldEnum[]
+}
+
+/**
+ * Clinic.slugAliases
+ */
+export type Clinic$slugAliasesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClinicSlugAlias
+   */
+  select?: Prisma.ClinicSlugAliasSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClinicSlugAlias
+   */
+  omit?: Prisma.ClinicSlugAliasOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClinicSlugAliasInclude<ExtArgs> | null
+  where?: Prisma.ClinicSlugAliasWhereInput
+  orderBy?: Prisma.ClinicSlugAliasOrderByWithRelationInput | Prisma.ClinicSlugAliasOrderByWithRelationInput[]
+  cursor?: Prisma.ClinicSlugAliasWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClinicSlugAliasScalarFieldEnum | Prisma.ClinicSlugAliasScalarFieldEnum[]
+}
+
+/**
+ * Clinic.financialEntries
+ */
+export type Clinic$financialEntriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FinancialEntry
+   */
+  select?: Prisma.FinancialEntrySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FinancialEntry
+   */
+  omit?: Prisma.FinancialEntryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FinancialEntryInclude<ExtArgs> | null
+  where?: Prisma.FinancialEntryWhereInput
+  orderBy?: Prisma.FinancialEntryOrderByWithRelationInput | Prisma.FinancialEntryOrderByWithRelationInput[]
+  cursor?: Prisma.FinancialEntryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FinancialEntryScalarFieldEnum | Prisma.FinancialEntryScalarFieldEnum[]
+}
+
+/**
+ * Clinic.professionalAvailabilities
+ */
+export type Clinic$professionalAvailabilitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProfessionalAvailability
+   */
+  select?: Prisma.ProfessionalAvailabilitySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProfessionalAvailability
+   */
+  omit?: Prisma.ProfessionalAvailabilityOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProfessionalAvailabilityInclude<ExtArgs> | null
+  where?: Prisma.ProfessionalAvailabilityWhereInput
+  orderBy?: Prisma.ProfessionalAvailabilityOrderByWithRelationInput | Prisma.ProfessionalAvailabilityOrderByWithRelationInput[]
+  cursor?: Prisma.ProfessionalAvailabilityWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProfessionalAvailabilityScalarFieldEnum | Prisma.ProfessionalAvailabilityScalarFieldEnum[]
 }
 
 /**
