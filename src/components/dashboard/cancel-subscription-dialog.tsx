@@ -58,7 +58,7 @@ export function CancelSubscriptionDialog() {
 
         <Alert variant="destructive">
           <AlertDescription>
-            Esta ação não pode ser desfeita. Você pode reativar a qualquer momento assinando novamente.
+            Você pode desfazer o cancelamento nesta tela enquanto o período pago ainda estiver vigente.
           </AlertDescription>
         </Alert>
 

@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import prisma from "@/lib/prisma";
 import { getPlanConfig, getInvoiceFromMercadoPago, syncSubscriptionFromMercadoPago, subscriptionPeriodEnd } from "./mercado-pago";
 import { assertPlanFits } from "./billing-access";
+import { getPlanPrice } from "@/config/subscription-plans";
 
 // Older contracts may report refunds, but can never replace the current contract.
 export async function settleSubscription(remoteId: string, invoiceId?: string) {
@@ -34,11 +35,16 @@ export async function settleSubscription(remoteId: string, invoiceId?: string) {
     const current = clinic.mercadoPagoSubscriptionId === remoteId;
     if (invoiceId) {
       const invoice = await getInvoiceFromMercadoPago(invoiceId);
-      if (invoice.subscriptionId !== remoteId || invoice.currency !== contract.currency || Math.abs(invoice.amount - Number(contract.amount)) > 0.01) {
-        throw new Error("Fatura diverge do contrato: assinatura, moeda ou valor.");
-      }
       const existing = await tx.paymentHistory.findUnique({ where: { mercadoPagoPaymentId: invoice.paymentId } });
       if (existing && (existing.clinicId !== clinicId || existing.mercadoPagoSubscriptionId !== remoteId)) throw new Error("Pagamento já vinculado a outro contrato.");
+      const pendingPlan = current ? clinic.pendingSubscriptionPlan : null;
+      const pendingCycle = current ? clinic.pendingSubscriptionCycle : null;
+      const invoicePlan = existing?.plan ?? pendingPlan ?? contract.plan;
+      const invoiceCycle = existing?.billingCycle ?? pendingCycle ?? contract.cycle;
+      const expectedAmount = existing ? Number(existing.amount) : pendingPlan && pendingCycle ? getPlanPrice(pendingPlan, pendingCycle) : Number(contract.amount);
+      if (invoice.subscriptionId !== remoteId || invoice.currency !== contract.currency || Math.abs(invoice.amount - expectedAmount) > 0.01) {
+        throw new Error("Fatura diverge do contrato: assinatura, moeda ou valor.");
+      }
       const approved = invoice.status === "approved";
       const anchor = existing?.paidAt ?? invoice.periodStartsAt ?? invoice.paidAt;
       const periodEndsAt = existing?.periodEndsAt ?? (anchor
@@ -46,8 +52,8 @@ export async function settleSubscription(remoteId: string, invoiceId?: string) {
       await tx.paymentHistory.upsert({
         where: { mercadoPagoPaymentId: invoice.paymentId },
         create: { clinicId, mercadoPagoPaymentId: invoice.paymentId, mercadoPagoSubscriptionId: remoteId,
-          mercadoPagoInvoiceId: invoiceId, amount: invoice.amount, status: invoice.status, plan: contract.plan,
-          billingCycle: contract.cycle, paidAt: invoice.paidAt, periodEndsAt },
+          mercadoPagoInvoiceId: invoiceId, amount: invoice.amount, status: invoice.status, plan: invoicePlan,
+          billingCycle: invoiceCycle, paidAt: invoice.paidAt, periodEndsAt },
         update: { status: invoice.status, paidAt: existing?.paidAt ?? invoice.paidAt, periodEndsAt, mercadoPagoInvoiceId: invoiceId },
       });
       const coverage = await tx.paymentHistory.findFirst({

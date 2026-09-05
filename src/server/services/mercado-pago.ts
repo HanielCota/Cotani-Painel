@@ -1,6 +1,6 @@
 import "server-only";
 
-import { Invoice, Payment, MercadoPagoConfig, PreApproval, WebhookSignatureValidator } from "mercadopago";
+import { Invoice, Payment, PaymentRefund, MercadoPagoConfig, PreApproval, WebhookSignatureValidator } from "mercadopago";
 
 import { BillingCycle, SubscriptionPlan, SubscriptionStatus } from "@/generated/prisma/enums";
 import {
@@ -194,8 +194,32 @@ export async function syncSubscriptionFromMercadoPago(
 
 export async function cancelMercadoPagoSubscription(mercadoPagoSubscriptionId: string): Promise<void> {
   const current = await getSubscriptionFromMercadoPago(mercadoPagoSubscriptionId);
-  if (current.status === "cancelled" || current.status === "canceled") return;
-  await new PreApproval(getConfig()).update({ id: mercadoPagoSubscriptionId, body: { status: "cancelled" } });
+  if (current.status === "paused" || current.status === "cancelled" || current.status === "canceled") return;
+  // Pausar interrompe novas cobranças e permite desfazer o cancelamento antes
+  // do vencimento do período já pago.
+  await new PreApproval(getConfig()).update({ id: mercadoPagoSubscriptionId, body: { status: "paused" } });
+}
+
+export async function reactivateMercadoPagoSubscription(mercadoPagoSubscriptionId: string): Promise<void> {
+  const current = await getSubscriptionFromMercadoPago(mercadoPagoSubscriptionId);
+  if (current.status === "authorized") return;
+  if (current.status !== "paused") throw new Error("Somente uma assinatura pausada pode ser reativada.");
+  await new PreApproval(getConfig()).update({ id: mercadoPagoSubscriptionId, body: { status: "authorized" } });
+}
+
+export async function updateMercadoPagoSubscriptionAmount(
+  mercadoPagoSubscriptionId: string,
+  amount: number,
+  reason: string,
+): Promise<void> {
+  await new PreApproval(getConfig()).update({
+    id: mercadoPagoSubscriptionId,
+    body: { auto_recurring: { transaction_amount: amount, currency_id: "BRL" }, reason },
+  });
+}
+
+export async function refundMercadoPagoPayment(paymentId: string, idempotencyKey: string): Promise<void> {
+  await new PaymentRefund(getConfig()).total({ payment_id: paymentId, requestOptions: { idempotencyKey } });
 }
 
 export interface MercadoPagoInvoice {

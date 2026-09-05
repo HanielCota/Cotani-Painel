@@ -86,7 +86,7 @@ export function SubscriptionCheckout({ plans }: SubscriptionCheckoutProps) {
                   {pendingPlan === plan.id ? "Redirecionando..." : configured ? `Assinar ${plan.name}` : "Plano aguardando configuração"}
                 </Button>
               ) : (
-                <Button nativeButton={false} render={<a href="mailto:contato@cotani.com.br?subject=Plano%20Empresa" />} variant="outline" className="mt-6 w-full">
+                <Button type="button" nativeButton={false} render={<a href="mailto:contato@cotani.com.br?subject=Plano%20Empresa" />} variant="outline" className="mt-6 w-full">
                   Falar sobre o plano Empresa
                 </Button>
               )}

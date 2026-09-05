@@ -16,6 +16,9 @@ import { getPaymentHistory } from "@/server/services/payment-history";
 import { isSubscriptionActive } from "@/server/subscription";
 import { withTenant } from "@/server/with-tenant";
 import { getSubscriptionPlanOptions } from "@/server/services/subscription-plan-options";
+import { SubscriptionManagement } from "@/components/dashboard/subscription-management";
+import { getPlanFitIssues } from "@/server/services/billing-access";
+import { SubscriptionPlan } from "@/generated/prisma/enums";
 
 export const metadata: Metadata = { title: "Assinatura" };
 
@@ -47,6 +50,12 @@ export default withTenant(async ({ clinic }) => {
   const active = isSubscriptionActive(clinic);
   const plans = getSubscriptionPlanOptions();
   const paymentHistory = await getPaymentHistory(clinic);
+  const [essentialIssues, professionalIssues] = await Promise.all([
+    getPlanFitIssues(clinic.billingOwnerId ?? clinic.id, SubscriptionPlan.ESSENTIAL),
+    getPlanFitIssues(clinic.billingOwnerId ?? clinic.id, SubscriptionPlan.PROFESSIONAL),
+  ]);
+  const latestApproved = paymentHistory.find((payment) => payment.status === "approved" && payment.paidAt);
+  const refundEligible = Boolean(latestApproved?.paidAt && Date.now() - new Date(latestApproved.paidAt).getTime() <= 7 * 24 * 60 * 60_000);
 
   return (
     <div className="flex flex-col gap-6">
@@ -130,6 +139,7 @@ export default withTenant(async ({ clinic }) => {
               ) : clinic.cancelAtPeriodEnd ? <p className="rounded-lg border border-amber-300/60 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">Renovação cancelada. O acesso permanece ativo até {clinic.subscriptionExpiresAt ? format(clinic.subscriptionExpiresAt, "dd/MM/yyyy", { locale: ptBR }) : "o fim do período atual"}.</p> : null}
             </CardContent>
           </Card>
+          {active && clinic.hasPaidOnce ? <SubscriptionManagement currentPlan={clinic.subscriptionPlan} pendingPlan={clinic.pendingSubscriptionPlan} cancelAtPeriodEnd={clinic.cancelAtPeriodEnd} refundEligible={refundEligible} issuesByPlan={{ ESSENTIAL: essentialIssues, PROFESSIONAL: professionalIssues }} /> : null}
         </TabsContent>
 
         <TabsContent value="renew" className="mt-6">
