@@ -32,6 +32,8 @@ export function AuthForm() {
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<Mode>("sign-in");
   const [pending, setPending] = useState(false);
+  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState("");
   const redirectTo = safeRedirect(searchParams.get("redirect"));
 
   useEffect(() => {
@@ -52,8 +54,8 @@ export function AuthForm() {
           options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}` },
         });
 
-    setPending(false);
     if (result.error) {
+      setPending(false);
       toast.error(result.error.message === "Invalid login credentials"
         ? "E-mail ou senha incorretos."
         : "Não foi possível concluir o acesso. Tente novamente.");
@@ -61,12 +63,27 @@ export function AuthForm() {
     }
 
     if (mode === "sign-up" && !result.data.session) {
+      setPending(false);
       toast.success("Confira seu e-mail para confirmar a conta.");
       return;
     }
 
+    if (mode === "sign-in") {
+      const factors = await supabase.auth.mfa.listFactors();
+      const verified = factors.data?.totp.find((factor) => factor.status === "verified");
+      if (verified) { setMfaFactorId(verified.id); setPending(false); return; }
+    }
+
+    setPending(false);
     router.push(redirectTo);
     router.refresh();
+  }
+
+  async function handleMfa() {
+    if (!mfaFactorId || mfaCode.length !== 6) return;
+    setPending(true); const { error } = await createClient().auth.mfa.challengeAndVerify({ factorId: mfaFactorId, code: mfaCode }); setPending(false);
+    if (error) { toast.error("Código de autenticação inválido."); return; }
+    router.push(redirectTo); router.refresh();
   }
 
   async function handleGoogle() {
@@ -95,12 +112,12 @@ export function AuthForm() {
       </Button>
       <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />ou use seu e-mail<span className="h-px flex-1 bg-border" /></div>
 
-      <form action={handleCredentials} className="space-y-4">
+      {mfaFactorId ? <div className="space-y-4"><p className="text-sm text-muted-foreground">Informe o código de 6 dígitos do aplicativo autenticador.</p><Input value={mfaCode} onChange={(event) => setMfaCode(event.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" aria-label="Código de autenticação" /><Button type="button" className="w-full" onClick={handleMfa} disabled={pending || mfaCode.length !== 6}>{pending ? "Verificando..." : "Confirmar código"}</Button><Button type="button" variant="ghost" className="w-full" onClick={() => { void createClient().auth.signOut(); setMfaFactorId(null); setMfaCode(""); }}>Voltar</Button></div> : <form action={handleCredentials} className="space-y-4">
         <div className="space-y-1.5"><Label htmlFor="email">E-mail</Label><Input id="email" name="email" type="email" autoComplete="email" required /></div>
         <div className="space-y-1.5"><Label htmlFor="password">Senha</Label><Input id="password" name="password" type="password" autoComplete={mode === "sign-in" ? "current-password" : "new-password"} minLength={8} required /></div>
         {mode === "sign-in" ? <Link href="/forgot-password" className="block text-right text-sm text-primary hover:underline">Esqueci minha senha</Link> : <p className="text-center text-xs text-muted-foreground">Use ao menos 8 caracteres. Você receberá a confirmação por e-mail.</p>}
         <Button type="submit" className="w-full" disabled={pending}>{pending ? "Aguarde..." : mode === "sign-in" ? "Entrar" : "Criar conta e testar grátis"}</Button>
-      </form>
+      </form>}
     </div>
   );
 }

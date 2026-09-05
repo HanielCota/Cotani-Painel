@@ -12,6 +12,8 @@ import { ensureCurrentAppUser } from "@/server/auth";
 import { getAvailableClinics, getSelectedClinicId, getTenantContext, TenantResolutionError, type TenantContext } from "@/server/tenant";
 import { isSubscriptionActive } from "@/server/subscription";
 import { getSubscriptionPlanOptions } from "@/server/services/subscription-plan-options";
+import { requiresMfaVerification } from "@/server/auth";
+import { redirect } from "next/navigation";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -53,6 +55,7 @@ function DashboardShell({ children, insetClassName = "bg-background", subscripti
 }
 
 export default async function DashboardLayout({ children }: DashboardLayoutProps) {
+  if (await requiresMfaVerification()) redirect("/mfa?redirect=/dashboard");
   const [{ appUser }, memberships, selectedClinicId] = await Promise.all([
     ensureCurrentAppUser(),
     getAvailableClinics(),

@@ -84,7 +84,7 @@ function shiftDateKey(dateKey: string, days: number) {
   return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
 }
 
-function financePeriodBounds(period: FinancePeriod, timeZone: string, now = new Date()) {
+export function financePeriodBounds(period: FinancePeriod, timeZone: string, now = new Date()) {
   const { startOfToday, startOfTomorrow, startOfMonth, startOfNextMonth, startOfPreviousMonth } = getClinicDateBounds(timeZone, now);
   const todayKey = formatClinicDateKey(now, timeZone);
   const year = Number(todayKey.slice(0, 4));
@@ -131,6 +131,9 @@ function toFinanceAppointment(appointment: {
 }): FinanceAppointment {
   return {
     id: appointment.id,
+    customerId: "",
+    serviceId: "",
+    professionalId: null,
     customerName: appointment.customer.name,
     serviceName: appointment.service.name,
     professionalName: appointment.professional?.name ?? null,
@@ -139,6 +142,8 @@ function toFinanceAppointment(appointment: {
     startTime: appointment.startTime.toISOString(),
     endTime: appointment.endTime.toISOString(),
     status: appointment.status,
+    notes: null,
+    totalPrice: Number(appointment.totalPrice),
   };
 }
 

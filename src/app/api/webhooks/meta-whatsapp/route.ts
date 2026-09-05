@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
               kind: "RESCHEDULE_RESPONSE",
               channel: "WHATSAPP",
               recipient: phone,
-              content: `Para reagendar na ${appointment.clinic.name}, cancele o horário atual em ${baseUrl}/${appointment.clinic.slug}/cancelar/${appointment.cancellationToken} e escolha uma nova data em ${baseUrl}/${appointment.clinic.slug}.`,
+              content: `Para reagendar na ${appointment.clinic.name}, escolha um novo horário em ${baseUrl}/${appointment.clinic.slug}/reagendar/${appointment.cancellationToken}. O horário atual só será liberado após a confirmação.`,
               idempotencyKey: `${eventId}:reschedule-response`,
               scheduledFor: now,
               nextAttemptAt: now,

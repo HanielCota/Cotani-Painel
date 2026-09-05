@@ -6,6 +6,8 @@ import { buildAppointmentsCsv } from "@/server/services/reports-export";
 import { getReportsMetrics } from "@/server/services/reports";
 import { isSubscriptionActive } from "@/server/subscription";
 import { getApiTenant } from "@/server/tenant";
+import { parseClinicDateTime } from "@/lib/timezone";
+import prisma from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   const tenant = await getApiTenant(["ADMIN"]);
@@ -22,7 +24,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: "A exportação está disponível no plano Empresa." }, { status: 403 });
   }
 
-  const metrics = await getReportsMetrics(clinic);
+  const fromValue = request.nextUrl.searchParams.get("from");
+  const toValue = request.nextUrl.searchParams.get("to");
+  const from = fromValue ? parseClinicDateTime(`${fromValue}T00:00`, clinic.timeZone) ?? undefined : undefined;
+  const toStart = toValue ? parseClinicDateTime(`${toValue}T00:00`, clinic.timeZone) : null;
+  const to = toStart ? new Date(toStart.getTime() + 24 * 60 * 60_000) : undefined;
+  const ownerId = clinic.billingOwnerId ?? clinic.id;
+  const clinicIds = (await prisma.clinic.findMany({ where: { OR: [{ id: ownerId }, { billingOwnerId: ownerId }], deletedAt: null }, select: { id: true } })).map((item) => item.id);
+  const metrics = await getReportsMetrics(clinic, { from, to, clinicIds });
   const csv = buildAppointmentsCsv(metrics.monthAppointments, clinic.timeZone);
   const month = new Intl.DateTimeFormat("en-CA", {
     timeZone: clinic.timeZone,

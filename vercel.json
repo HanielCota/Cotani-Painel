@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/jobs/notifications",
-      "schedule": "0 9 * * *"
+      "schedule": "*/5 * * * *"
     },
     {
       "path": "/api/jobs/billing/expire-subscriptions",

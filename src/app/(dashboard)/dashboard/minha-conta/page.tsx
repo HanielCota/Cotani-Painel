@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AccountThemeSettings } from "@/components/dashboard/account-theme-settings";
+import { AccountProfileSettings } from "@/components/dashboard/account-profile-settings";
+import { AccountSecuritySettings } from "@/components/dashboard/account-security-settings";
+import { DeleteAccountForm } from "@/components/dashboard/delete-account-form";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +23,7 @@ const roleLabels = {
 export default withTenant(async ({ membership, role }) => {
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: membership.userId },
-    select: { name: true, email: true },
+    select: { name: true, email: true, emailNotifications: true, weeklySummary: true },
   });
 
   return (
@@ -33,11 +36,7 @@ export default withTenant(async ({ membership, role }) => {
             <CardTitle className="flex items-center gap-2"><UserRoundIcon />Dados da conta</CardTitle>
             <CardDescription>Informações usadas para identificar você no painel.</CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-4 sm:grid-cols-2">
-            <div><p className="text-xs font-medium text-muted-foreground">Nome</p><p className="mt-1 font-medium">{user.name}</p></div>
-            <div><p className="text-xs font-medium text-muted-foreground">E-mail</p><p className="mt-1 break-all font-medium">{user.email ?? "Não informado"}</p></div>
-            <div><p className="text-xs font-medium text-muted-foreground">Perfil de acesso</p><p className="mt-1 font-medium">{roleLabels[role]}</p></div>
-          </CardContent>
+          <CardContent className="space-y-4"><p className="text-sm text-muted-foreground">Perfil de acesso: <strong className="text-foreground">{roleLabels[role]}</strong></p><AccountProfileSettings user={user} /></CardContent>
         </Card>
 
         <Card>
@@ -51,10 +50,10 @@ export default withTenant(async ({ membership, role }) => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><KeyRoundIcon />Segurança</CardTitle>
-            <CardDescription>Solicite um link seguro para alterar sua senha.</CardDescription>
+            <CardDescription>Altere sua senha, proteja a conta com 2FA e encerre outras sessões.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button nativeButton={false} variant="outline" render={<Link href="/forgot-password" />}>Alterar senha</Button>
+            <div className="space-y-4"><Button type="button" nativeButton={false} variant="outline" render={<Link href="/forgot-password" />}>Recuperar senha por e-mail</Button><AccountSecuritySettings /></div>
           </CardContent>
         </Card>
 
@@ -65,10 +64,11 @@ export default withTenant(async ({ membership, role }) => {
               <CardDescription>Consulte seu plano, vigência e histórico de cobrança.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button nativeButton={false} variant="outline" render={<Link href="/dashboard/assinatura" />}>Ver assinatura</Button>
+              <Button type="button" nativeButton={false} variant="outline" render={<Link href="/dashboard/assinatura" />}>Ver assinatura</Button>
             </CardContent>
           </Card>
         ) : null}
+        <Card className="border-destructive/30"><CardHeader><CardTitle>Excluir conta</CardTitle><CardDescription>Remove seu acesso definitivamente. Os dados das empresas precisam permanecer sob outro administrador.</CardDescription></CardHeader><CardContent><DeleteAccountForm /></CardContent></Card>
       </div>
     </div>
   );

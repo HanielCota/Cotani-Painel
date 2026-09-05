@@ -14,6 +14,9 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { PlanUpgradeRequired } from "@/components/dashboard/plan-upgrade-required";
 import { getPlanEntitlements } from "@/config/subscription-plans";
 import { financePeriodLabels, getFinanceMetrics, type FinancePeriod } from "@/server/services/finance";
+import { financePeriodBounds } from "@/server/services/finance";
+import { FinanceEntriesManager } from "@/components/dashboard/finance-entries-manager";
+import prisma from "@/lib/prisma";
 import { withTenant } from "@/server/with-tenant";
 import { isSubscriptionActive } from "@/server/subscription";
 
@@ -35,6 +38,8 @@ export default withTenant<FinancePageProps>(async ({ clinic }, { searchParams })
     ? requestedPeriod as FinancePeriod
     : "month";
   const metrics = await getFinanceMetrics(clinic, period);
+  const bounds = financePeriodBounds(period, clinic.timeZone);
+  const entries = await prisma.financialEntry.findMany({ where: { clinicId: clinic.id, occurredAt: { gte: bounds.start, lt: bounds.end } }, orderBy: { occurredAt: "desc" }, take: 200 });
   const periodLabel = financePeriodLabels[period].toLocaleLowerCase("pt-BR");
 
   return (
@@ -60,6 +65,8 @@ export default withTenant<FinancePageProps>(async ({ clinic }, { searchParams })
         monthNoShowCount={metrics.monthNoShowCount}
         kpiSeries={metrics.kpiSeries}
       />
+
+      <FinanceEntriesManager entries={entries.map((entry) => ({ id: entry.id, type: entry.type, status: entry.status, description: entry.description, category: entry.category, amount: Number(entry.amount), paidAmount: Number(entry.paidAmount), dueDate: entry.dueDate?.toISOString() ?? null, occurredAt: entry.occurredAt.toISOString(), notes: entry.notes }))} />
 
       <section className="flex flex-col gap-4">
         <h2 className="text-base font-semibold text-foreground">Desempenho em {periodLabel}</h2>

@@ -7,7 +7,7 @@ import prisma from "@/lib/prisma";
 import type { ClinicRole } from "@/generated/prisma/enums";
 import type { ClinicModel } from "@/generated/prisma/models/Clinic";
 import type { MembershipModel } from "@/generated/prisma/models/Membership";
-import { AuthenticationRequiredError, ensureCurrentAppUser } from "@/server/auth";
+import { AuthenticationRequiredError, ensureCurrentAppUser, requireMfaAssurance } from "@/server/auth";
 
 export const ACTIVE_CLINIC_COOKIE = "cotani_active_clinic";
 
@@ -44,6 +44,7 @@ export interface TenantContext {
  * validada no banco. Um cookie apenas sugere a loja ativa; ele nunca concede acesso.
  */
 export const getTenantContext = cache(async (): Promise<TenantContext> => {
+  await requireMfaAssurance();
   const [{ appUser }, selectedClinicId] = await Promise.all([
     ensureCurrentAppUser(),
     getSelectedClinicId(),

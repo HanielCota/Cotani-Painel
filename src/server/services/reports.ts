@@ -42,6 +42,9 @@ export interface ReportsMetrics {
   completedRevenue: number;
   averageTicket: number;
   returningCustomers: number;
+  retentionRate: number;
+  noShowsByWeekday: Array<{ day: string; count: number }>;
+  confirmationsByChannel: Array<{ channel: string; sent: number }>;
   monthlyData: MonthlyReportData[];
   topServices: TopServiceData[];
   topProfessionals: TopProfessionalData[];
@@ -50,9 +53,12 @@ export interface ReportsMetrics {
 
 const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
-export async function getReportsMetrics(clinic: ClinicModel): Promise<ReportsMetrics> {
+export async function getReportsMetrics(clinic: ClinicModel, options?: { from?: Date; to?: Date; clinicIds?: string[] }): Promise<ReportsMetrics> {
   const { startOfMonth, startOfNextMonth } = getClinicDateBounds(clinic.timeZone);
-  const monthlyBounds = getClinicMonthlyBounds(clinic.timeZone, 6);
+  const reportStart = options?.from ?? startOfMonth;
+  const reportEnd = options?.to ?? startOfNextMonth;
+  const clinicIds = options?.clinicIds?.length ? options.clinicIds : [clinic.id];
+  const monthlyBounds = getClinicMonthlyBounds(clinic.timeZone, 8);
   const historyStart = monthlyBounds[0]?.start ?? startOfMonth;
 
   const [
@@ -61,26 +67,28 @@ export async function getReportsMetrics(clinic: ClinicModel): Promise<ReportsMet
     totalServices,
     monthAppointmentsResult,
     historyAppointments,
+    confirmationNotifications,
   ] = await Promise.all([
-    prisma.appointment.count({ where: { clinicId: clinic.id } }),
-    prisma.customer.count({ where: { clinicId: clinic.id } }),
-    prisma.service.count({ where: { clinicId: clinic.id, isActive: true } }),
+    prisma.appointment.count({ where: { clinicId: { in: clinicIds } } }),
+    prisma.customer.count({ where: { clinicId: { in: clinicIds } } }),
+    prisma.service.count({ where: { clinicId: { in: clinicIds }, isActive: true } }),
     prisma.appointment.findMany({
       where: {
-        clinicId: clinic.id,
-        startTime: { gte: startOfMonth, lt: startOfNextMonth },
+        clinicId: { in: clinicIds },
+        startTime: { gte: reportStart, lt: reportEnd },
       },
       include: { service: true, customer: true, professional: true },
       orderBy: { startTime: "asc" },
     }),
     prisma.appointment.findMany({
       where: {
-        clinicId: clinic.id,
+        clinicId: { in: clinicIds },
         startTime: { gte: historyStart, lt: startOfNextMonth },
       },
       include: { service: true },
       orderBy: { startTime: "asc" },
     }),
+    prisma.notification.groupBy({ by: ["channel"], where: { clinicId: { in: clinicIds }, kind: "CONFIRMATION", status: "SENT", sentAt: { gte: reportStart, lt: reportEnd } }, _count: { _all: true } }),
   ]);
 
   const monthAppointmentsTotal = monthAppointmentsResult.filter((appointment) => appointment.status !== "CANCELED").length;
@@ -101,6 +109,15 @@ export async function getReportsMetrics(clinic: ClinicModel): Promise<ReportsMet
   const activeCustomersThisMonth = new Set(
     monthAppointmentsResult.filter((a) => a.status !== "CANCELED").map((a) => a.customerId),
   ).size;
+  const retentionRate = activeCustomersThisMonth ? Math.round((returningCustomers / activeCustomersThisMonth) * 100) : 0;
+  const weekdayLabels = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  const noShowCounts = Array.from({ length: 7 }, () => 0);
+  for (const appointment of monthAppointmentsResult.filter((item) => item.status === "NO_SHOW")) {
+    const short = new Intl.DateTimeFormat("en-US", { timeZone: clinic.timeZone, weekday: "short" }).format(appointment.startTime);
+    const index = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(short); if (index >= 0) noShowCounts[index] += 1;
+  }
+  const noShowsByWeekday = weekdayLabels.map((day, index) => ({ day, count: noShowCounts[index] }));
+  const confirmationsByChannel = confirmationNotifications.map((item) => ({ channel: item.channel, sent: item._count._all }));
 
   const confirmationRate =
     monthAppointmentsTotal > 0
@@ -184,6 +201,9 @@ export async function getReportsMetrics(clinic: ClinicModel): Promise<ReportsMet
     completedRevenue,
     averageTicket,
     returningCustomers,
+    retentionRate,
+    noShowsByWeekday,
+    confirmationsByChannel,
     monthlyData,
     topServices,
     topProfessionals,

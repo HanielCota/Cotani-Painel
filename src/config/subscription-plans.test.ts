@@ -12,10 +12,10 @@ describe("catálogo de planos", () => {
     expect(SUBSCRIPTION_PLANS[SubscriptionPlan.ENTERPRISE].monthlyPrice).toBe(97.9);
   });
 
-  it("libera SMS apenas para Empresa", () => {
+  it("mantém SMS indisponível enquanto a integração não está ativa", () => {
     expect(getNotificationChannels(SubscriptionPlan.ESSENTIAL)).toEqual(["WHATSAPP", "EMAIL"]);
     expect(getNotificationChannels(SubscriptionPlan.PROFESSIONAL)).toEqual(["WHATSAPP", "EMAIL"]);
-    expect(getNotificationChannels(SubscriptionPlan.ENTERPRISE)).toEqual(["WHATSAPP", "EMAIL", "SMS"]);
+    expect(getNotificationChannels(SubscriptionPlan.ENTERPRISE)).toEqual(["WHATSAPP", "EMAIL"]);
   });
 
   it("mantém o plano Empresa como contratação comercial", () => {

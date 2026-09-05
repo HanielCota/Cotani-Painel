@@ -114,8 +114,13 @@ async function dispatch(request: NextRequest) {
     return NextResponse.json({ message: "Não autorizado." }, { status: 401 });
   }
 
+  const now = new Date();
+  await prisma.notification.updateMany({
+    where: { status: "PENDING", kind: { in: ["REMINDER_24H", "REMINDER_2H"] }, appointment: { OR: [{ startTime: { lte: now } }, { status: { in: ["CANCELED", "NO_SHOW", "COMPLETED"] } }] } },
+    data: { status: "CANCELED", lockedAt: null, error: "Lembrete expirado ou atendimento encerrado." },
+  });
   const skipWhatsApp = isWhatsAppManualMode();
-  const batch = await claimBatch(new Date(), skipWhatsApp);
+  const batch = await claimBatch(now, skipWhatsApp);
   const stats: DispatchStats = { claimed: batch.length, sent: 0, retried: 0, failed: 0 };
 
   // Envio sequencial intencional: lote pequeno, respeita rate limits dos provedores

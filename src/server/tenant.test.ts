@@ -6,6 +6,7 @@ import { getClinicForRoles, getSelectedClinicId, getTenantContext, InsufficientR
 vi.mock("@/server/auth", () => ({
   AuthenticationRequiredError: class AuthenticationRequiredError extends Error {},
   ensureCurrentAppUser: vi.fn().mockResolvedValue({ appUser: { id: "user-1" } }),
+  requireMfaAssurance: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("next/headers", () => ({ cookies: vi.fn() }));
 

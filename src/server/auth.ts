@@ -32,6 +32,16 @@ export async function requireAuthenticatedUser(): Promise<SupabaseUser> {
   return user;
 }
 
+export const requiresMfaVerification = cache(async (): Promise<boolean> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  return !error && data.nextLevel === "aal2" && data.currentLevel !== "aal2";
+});
+
+export async function requireMfaAssurance(): Promise<void> {
+  if (await requiresMfaVerification()) throw new AuthenticationRequiredError();
+}
+
 /**
  * Sincroniza a identidade Supabase com o usuário da aplicação e aceita convites
  * pendentes pelo e-mail confirmado. O vínculo legado por e-mail preserva os

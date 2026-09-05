@@ -6,11 +6,13 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getWhatsAppCrmData } from "@/server/services/whatsapp-crm";
 import { withTenant } from "@/server/with-tenant";
+import { MessageCenter } from "@/components/dashboard/message-center";
+import prisma from "@/lib/prisma";
 
 export const metadata: Metadata = { title: "Comunicações" };
 
 export default withTenant(async ({ clinic }) => {
-  const data = await getWhatsAppCrmData(clinic);
+  const [data, appointments, messages] = await Promise.all([getWhatsAppCrmData(clinic), prisma.appointment.findMany({ where: { clinicId: clinic.id, status: { in: ["PENDING","CONFIRMED"] }, startTime: { gt: new Date() } }, include: { customer: true, service: true }, orderBy: { startTime: "asc" }, take: 100 }), prisma.notification.findMany({ where: { clinicId: clinic.id }, orderBy: { createdAt: "desc" }, take: 100 })]);
   const automaticMode = process.env.WHATSAPP_SENDER_MODE === "api";
 
   return (
@@ -33,6 +35,7 @@ export default withTenant(async ({ clinic }) => {
       </Alert>
 
       <WhatsAppCrmList pending={data.pending} sent={data.sent} automaticMode={automaticMode} />
+      <MessageCenter automaticMode={automaticMode} timeZone={clinic.timeZone} appointments={appointments.map((item)=>({id:item.id,label:`${item.customer.name} · ${item.service.name} · ${new Intl.DateTimeFormat("pt-BR",{dateStyle:"short",timeStyle:"short",timeZone:clinic.timeZone}).format(item.startTime)}`}))} messages={messages.map((item)=>({id:item.id,channel:item.channel,status:item.status,content:item.content,recipient:item.recipient,scheduledFor:item.scheduledFor.toISOString(),error:item.error}))}/>
     </div>
   );
 }, ["ADMIN", "RECEPTIONIST"]);
