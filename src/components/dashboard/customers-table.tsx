@@ -19,7 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useCustomers } from "@/hooks/use-customers";
 import type { CustomerListItem } from "@/types";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 15;
 
 const relationshipLabels = {
   NEW: "Novo",

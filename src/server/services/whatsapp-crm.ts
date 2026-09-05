@@ -38,7 +38,7 @@ function toNotificationItem(notification: {
   };
 }
 
-export async function getWhatsAppCrmData(clinic: ClinicModel, sentLimit = 20): Promise<WhatsAppCrmData> {
+export async function getWhatsAppCrmData(clinic: ClinicModel, sentLimit = 100): Promise<WhatsAppCrmData> {
   const [pendingNotifications, sentNotifications] = await Promise.all([
     prisma.notification.findMany({
       where: {

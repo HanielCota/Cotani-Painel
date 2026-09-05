@@ -1,11 +1,13 @@
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+"use client";
 
 import { Badge } from "@/components/ui/badge";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+import { usePagination } from "@/hooks/use-pagination";
 import type { ReportAppointment } from "@/server/services/reports";
 
 interface ReportsAppointmentsTableProps {
   appointments: ReportAppointment[];
+  timeZone: string;
 }
 
 const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -26,18 +28,20 @@ const statusVariant: Record<string, "default" | "secondary" | "destructive" | "o
   NO_SHOW: "destructive",
 };
 
-export function ReportsAppointmentsTable({ appointments }: ReportsAppointmentsTableProps) {
+export function ReportsAppointmentsTable({ appointments, timeZone }: ReportsAppointmentsTableProps) {
+  const pagination = usePagination(appointments);
+
   if (appointments.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-border/80 bg-background/50 p-8 text-center">
-        <p className="text-sm text-muted-foreground">Nenhum agendamento no mês atual.</p>
+        <p className="text-sm text-muted-foreground">Nenhum agendamento no período selecionado.</p>
       </div>
     );
   }
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
-      <h3 className="border-b px-5 py-4 text-sm font-semibold text-card-foreground">Agendamentos do mês</h3>
+      <h3 className="border-b px-5 py-4 text-sm font-semibold text-card-foreground">Lista de agendamentos</h3>
       <div className="overflow-x-auto px-5 pb-5">
         <table className="w-full text-sm">
           <thead>
@@ -51,10 +55,14 @@ export function ReportsAppointmentsTable({ appointments }: ReportsAppointmentsTa
             </tr>
           </thead>
           <tbody className="divide-y divide-border/50">
-            {appointments.map((appointment) => (
+            {pagination.pageItems.map((appointment) => (
               <tr key={appointment.id} className="text-foreground">
                 <td className="py-3 pl-2 text-muted-foreground">
-                  {format(new Date(appointment.startTime), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                  {new Intl.DateTimeFormat("pt-BR", {
+                    dateStyle: "short",
+                    timeStyle: "short",
+                    timeZone,
+                  }).format(new Date(appointment.startTime))}
                 </td>
                 <td className="py-3 font-medium text-foreground">{appointment.customerName}</td>
                 <td className="py-3">{appointment.serviceName}</td>
@@ -71,6 +79,9 @@ export function ReportsAppointmentsTable({ appointments }: ReportsAppointmentsTa
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="px-5 pb-5">
+        <PaginationControls page={pagination.page} pageCount={pagination.pageCount} totalItems={appointments.length} onPageChange={pagination.setPage} itemLabel="agendamento" />
       </div>
     </div>
   );

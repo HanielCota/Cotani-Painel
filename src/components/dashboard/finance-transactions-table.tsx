@@ -4,6 +4,8 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 import { Badge } from "@/components/ui/badge";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+import { usePagination } from "@/hooks/use-pagination";
 import type { FinanceAppointment } from "@/server/services/finance";
 
 interface FinanceTransactionsTableProps {
@@ -29,6 +31,8 @@ const statusVariant: Record<string, "default" | "secondary" | "destructive" | "o
 };
 
 export function FinanceTransactionsTable({ appointments }: FinanceTransactionsTableProps) {
+  const pagination = usePagination(appointments);
+
   if (appointments.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-border/80 bg-background/50 p-8 text-center">
@@ -53,7 +57,7 @@ export function FinanceTransactionsTable({ appointments }: FinanceTransactionsTa
             </tr>
           </thead>
           <tbody className="divide-y divide-border/50">
-            {appointments.map((appointment) => (
+            {pagination.pageItems.map((appointment) => (
               <tr key={appointment.id} className="text-foreground">
                 <td className="py-3 pl-2 text-muted-foreground">
                   {format(new Date(appointment.startTime), "dd/MM/yyyy HH:mm", { locale: ptBR })}
@@ -73,6 +77,9 @@ export function FinanceTransactionsTable({ appointments }: FinanceTransactionsTa
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="px-5 pb-5">
+        <PaginationControls page={pagination.page} pageCount={pagination.pageCount} totalItems={appointments.length} onPageChange={pagination.setPage} itemLabel="transação" />
       </div>
     </div>
   );

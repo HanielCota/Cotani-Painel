@@ -21,7 +21,7 @@ export default withTenant(async ({ clinic, membership }) => {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Unidades" description="Gerencie os estabelecimentos vinculados à assinatura." />
-      <Card>
+      <Card className="max-w-5xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><Building2Icon />Unidades do negócio</CardTitle>
           <CardDescription>Cada unidade mantém sua própria agenda, equipe e serviços.</CardDescription>

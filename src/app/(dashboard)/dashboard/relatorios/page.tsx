@@ -63,7 +63,7 @@ export default withTenant<ReportsPageProps>(async ({ clinic }, { searchParams })
       <form className="flex flex-wrap items-end gap-3 rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] dark:shadow-none"><div className="min-w-40 flex-1 space-y-1.5 sm:flex-none"><label htmlFor="report-from" className="text-sm font-medium">De</label><Input id="report-from" name="from" type="date" defaultValue={query.from} /></div><div className="min-w-40 flex-1 space-y-1.5 sm:flex-none"><label htmlFor="report-to" className="text-sm font-medium">Até</label><Input id="report-to" name="to" type="date" defaultValue={query.to} /></div><Button type="submit" variant="outline">Aplicar período</Button>{entitlements.advancedReports ? <Button type="button" nativeButton={false} variant="outline" render={<a href={`/api/reports/pdf?${exportQuery}`} download />}><DownloadIcon />Exportar PDF</Button> : null}</form>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-base font-semibold text-foreground">Indicadores do mês</h2>
+        <h2 className="text-base font-semibold text-foreground">Indicadores do período</h2>
         <ReportsKpiCards metrics={metrics} />
       </section>
 
@@ -86,13 +86,13 @@ export default withTenant<ReportsPageProps>(async ({ clinic }, { searchParams })
 
       <section className="flex flex-col gap-4">
         <h2 className="text-base font-semibold text-foreground">Agendamentos do período</h2>
-        <ReportsAppointmentsTable appointments={metrics.monthAppointments} />
+        <ReportsAppointmentsTable appointments={metrics.monthAppointments} timeZone={clinic.timeZone} />
       </section>
 
       <Card>
         <CardHeader>
           <CardTitle>Como os indicadores são calculados</CardTitle>
-          <CardDescription>As taxas consideram o período selecionado no fuso {clinic.timeZone}.</CardDescription>
+          <CardDescription>As taxas consideram o período selecionado e o horário local da sua empresa.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-2 text-sm text-muted-foreground">
           <p>
@@ -105,7 +105,7 @@ export default withTenant<ReportsPageProps>(async ({ clinic }, { searchParams })
           </p>
           <p>
             <strong className="font-medium text-foreground">Clientes ativos no mês:</strong> clientes com ao menos um
-            atendimento no mês, exceto cancelados.
+            atendimento no período, exceto cancelados.
           </p>
           <p>
             <strong className="font-medium text-foreground">Receita concluída e ticket médio:</strong> consideram apenas
@@ -113,11 +113,11 @@ export default withTenant<ReportsPageProps>(async ({ clinic }, { searchParams })
           </p>
           <p>
             <strong className="font-medium text-foreground">Taxa de cancelamento:</strong> cancelamentos sobre todos os
-            agendamentos criados no mês.
+            agendamentos criados no período.
           </p>
           <p>
             <strong className="font-medium text-foreground">Clientes recorrentes:</strong> clientes com dois ou mais
-            atendimentos não cancelados no mês.
+            atendimentos não cancelados no período.
           </p>
         </CardContent>
       </Card>

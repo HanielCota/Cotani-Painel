@@ -38,7 +38,7 @@ interface AppointmentFormProps {
   initialCustomerId?: string;
 }
 
-export function AppointmentForm({ customers, services, minStartTime, timeZone, className, onSuccess, initialCustomerId = "" }: AppointmentFormProps) {
+export function AppointmentForm({ customers, services, minStartTime, className, onSuccess, initialCustomerId = "" }: AppointmentFormProps) {
   const clinicId = useActiveClinicId();
   const [state, formAction, isPending] = useActionState(createAppointmentFromForm, initialState);
   const [serviceId, setServiceId] = useState("");
@@ -93,7 +93,7 @@ export function AppointmentForm({ customers, services, minStartTime, timeZone, c
     <Card className={cn(className)}>
       <CardHeader>
         <CardTitle>Adicionar atendimento</CardTitle>
-        <CardDescription>Os horários são registrados no fuso {timeZone}.</CardDescription>
+        <CardDescription>Os horários são registrados no horário local da loja.</CardDescription>
       </CardHeader>
       <CardContent>
         <form id="create-appointment" action={formAction}>

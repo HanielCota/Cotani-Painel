@@ -6,12 +6,10 @@ import type { Metadata } from "next";
 import { CancelSubscriptionDialog } from "@/components/dashboard/cancel-subscription-dialog";
 import { SubscriptionCheckout } from "@/components/dashboard/subscription-checkout";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SubscriptionStatus } from "@/generated/prisma/enums";
-import { billingCycleLabel, paymentStatusLabel, subscriptionPlanLabel } from "@/lib/display-labels";
+import { billingCycleLabel, subscriptionPlanLabel } from "@/lib/display-labels";
 import { getPaymentHistory } from "@/server/services/payment-history";
 import { isSubscriptionActive } from "@/server/subscription";
 import { withTenant } from "@/server/with-tenant";
@@ -19,6 +17,7 @@ import { getSubscriptionPlanOptions } from "@/server/services/subscription-plan-
 import { SubscriptionManagement } from "@/components/dashboard/subscription-management";
 import { getPlanFitIssues } from "@/server/services/billing-access";
 import { SubscriptionPlan } from "@/generated/prisma/enums";
+import { PaymentHistoryTable } from "@/components/dashboard/payment-history-table";
 
 export const metadata: Metadata = { title: "Assinatura" };
 
@@ -38,14 +37,6 @@ const statusDescription: Record<SubscriptionStatus, string> = {
   CANCELED: "A assinatura foi cancelada. Renove para voltar a operar.",
 };
 
-const paymentStatusVariant: Record<string, "default" | "secondary" | "destructive" | "outline" | "success"> = {
-  paid: "success",
-  approved: "success",
-  pending: "secondary",
-  refunded: "destructive",
-  cancelled: "destructive",
-};
-
 export default withTenant(async ({ clinic }) => {
   const active = isSubscriptionActive(clinic);
   const plans = getSubscriptionPlanOptions();
@@ -61,7 +52,7 @@ export default withTenant(async ({ clinic }) => {
     <div className="flex flex-col gap-6">
       <PageHeader title="Assinatura" description={`Gerencie o plano da ${clinic.name}.`} />
 
-      <Tabs defaultValue="current" className="w-full">
+      <Tabs defaultValue="current" className="w-full max-w-5xl">
         <TabsList>
           <TabsTrigger value="current">
             <CreditCardIcon className="mr-2 size-4" />
@@ -178,36 +169,7 @@ export default withTenant(async ({ clinic }) => {
                   </p>
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-xl border border-border/80">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Data</TableHead>
-                        <TableHead>Plano</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Valor</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {paymentHistory.map((payment) => (
-                        <TableRow key={payment.id}>
-                          <TableCell className="text-muted-foreground">
-                            {format(new Date(payment.createdAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                          </TableCell>
-                          <TableCell>{subscriptionPlanLabel(payment.plan)} · {billingCycleLabel(payment.billingCycle)}</TableCell>
-                          <TableCell>
-                            <Badge variant={paymentStatusVariant[payment.status] ?? "secondary"}>
-                              {paymentStatusLabel(payment.status)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right font-medium">
-                            {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(payment.amount)}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                <PaymentHistoryTable payments={paymentHistory} />
               )}
             </CardContent>
           </Card>

@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { CheckIcon, ExternalLinkIcon, MessageCircleIcon, MessageSquareIcon } from "lucide-react";
 
 import { markWhatsAppNotificationAsSent } from "@/server/actions/whatsapp-crm";
@@ -13,6 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Spinner } from "@/components/ui/spinner";
 import type { WhatsAppNotificationItem } from "@/server/services/whatsapp-crm";
 import type { ActionResult } from "@/types";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+import { usePagination } from "@/hooks/use-pagination";
 
 interface WhatsAppCrmListProps {
   pending: WhatsAppNotificationItem[];
@@ -37,11 +37,13 @@ function NotificationCard({
   isSent,
   onMarkSent,
   automaticMode,
+  timeZone,
 }: {
   notification: WhatsAppNotificationItem;
   isSent: boolean;
   onMarkSent?: (id: string) => void;
   automaticMode?: boolean;
+  timeZone: string;
 }) {
   const [result, setResult] = useState<ActionResult | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -71,7 +73,7 @@ function NotificationCard({
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant={kindVariant[notification.kind] ?? "secondary"}>{kindLabels[notification.kind] ?? notification.kind}</Badge>
             <span className="text-xs text-muted-foreground">
-              {format(new Date(notification.scheduledFor), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+              {new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone }).format(new Date(notification.scheduledFor))}
             </span>
           </div>
           {isSent ? (
@@ -125,7 +127,7 @@ function NotificationCard({
   );
 }
 
-export function WhatsAppCrmList({ pending, sent, automaticMode = false }: WhatsAppCrmListProps) {
+export function WhatsAppCrmList({ pending, sent, automaticMode = false, timeZone = "America/Sao_Paulo" }: WhatsAppCrmListProps & { timeZone?: string }) {
   const [sentIds, setSentIds] = useState<Set<string>>(new Set());
 
   function handleMarkSent(id: string) {
@@ -134,6 +136,8 @@ export function WhatsAppCrmList({ pending, sent, automaticMode = false }: WhatsA
 
   const visiblePending = pending.filter((notification) => !sentIds.has(notification.id));
   const visibleSent = sent.filter((notification) => !sentIds.has(notification.id));
+  const pendingPagination = usePagination(visiblePending);
+  const sentPagination = usePagination(visibleSent);
 
   return (
     <div className="flex flex-col gap-6">
@@ -157,17 +161,19 @@ export function WhatsAppCrmList({ pending, sent, automaticMode = false }: WhatsA
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {visiblePending.map((notification) => (
+              {pendingPagination.pageItems.map((notification) => (
                 <NotificationCard
                   key={notification.id}
                   notification={notification}
                   isSent={false}
                   automaticMode={automaticMode}
+                  timeZone={timeZone}
                   onMarkSent={handleMarkSent}
                 />
               ))}
             </div>
           )}
+          <PaginationControls page={pendingPagination.page} pageCount={pendingPagination.pageCount} totalItems={visiblePending.length} onPageChange={pendingPagination.setPage} itemLabel="mensagem" />
         </CardContent>
       </Card>
 
@@ -184,10 +190,11 @@ export function WhatsAppCrmList({ pending, sent, automaticMode = false }: WhatsA
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-3">
-              {visibleSent.map((notification) => (
-                <NotificationCard key={notification.id} notification={notification} isSent />
+              {sentPagination.pageItems.map((notification) => (
+                <NotificationCard key={notification.id} notification={notification} isSent timeZone={timeZone} />
               ))}
             </div>
+            <PaginationControls page={sentPagination.page} pageCount={sentPagination.pageCount} totalItems={visibleSent.length} onPageChange={sentPagination.setPage} itemLabel="mensagem" />
           </CardContent>
         </Card>
       ) : null}

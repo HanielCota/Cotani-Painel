@@ -9,8 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { ServiceFormDialog } from "@/components/dashboard/service-form-dialog";
 import { ServiceToggleActive } from "@/components/dashboard/service-toggle-active";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useServices } from "@/hooks/use-services";
+import { usePagination } from "@/hooks/use-pagination";
 import type { ServiceListItem } from "@/types";
 
 const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -18,6 +20,7 @@ const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", curre
 export function ServicesSettings() {
   "use no memo";
   const { data: services, isPending, isError } = useServices();
+  const pagination = usePagination(services ?? []);
 
   const columns = useMemo<ColumnDef<ServiceListItem>[]>(
     () => [
@@ -59,7 +62,7 @@ export function ServicesSettings() {
   );
 
   const table = useReactTable({
-    data: services ?? [],
+    data: pagination.pageItems,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -87,7 +90,8 @@ export function ServicesSettings() {
       ) : null}
 
       {!isPending && !isError ? (
-        <div className="overflow-x-auto rounded-xl border border-border/80">
+        <div>
+          <div className="overflow-x-auto rounded-xl border border-border/80">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -118,6 +122,8 @@ export function ServicesSettings() {
               )}
             </TableBody>
           </Table>
+          </div>
+          <PaginationControls page={pagination.page} pageCount={pagination.pageCount} totalItems={services?.length ?? 0} onPageChange={pagination.setPage} itemLabel="serviço" />
         </div>
       ) : null}
     </div>

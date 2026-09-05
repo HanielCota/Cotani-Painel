@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Profissionais" };
 export default withTenant(async ({ clinic }) => (
   <div className="flex flex-col gap-6">
     <PageHeader title="Profissionais" description={`Equipe de atendimento de ${clinic.name}.`} />
-    <Card>
+      <Card className="max-w-6xl">
       <CardHeader>
         <CardTitle className="flex items-center gap-2"><Users2Icon />Profissionais</CardTitle>
         <CardDescription>Vincule cada profissional aos serviços que realiza.</CardDescription>

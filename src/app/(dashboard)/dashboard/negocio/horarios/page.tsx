@@ -42,12 +42,17 @@ export default withTenant(async ({ clinic }) => {
           />
         </CardContent>
       </Card>
-      {professionals.map((professional) => (
-        <Card key={professional.id}>
-          <CardHeader><CardTitle>Horários de {professional.name}</CardTitle><CardDescription>Defina dias, horários e intervalos próprios. Sem configuração individual, será usado o expediente geral.</CardDescription></CardHeader>
-          <CardContent><BusinessHoursSettings professionalId={professional.id} businessHours={professional.availability.map((hour) => ({ id: hour.id, dayOfWeek: hour.dayOfWeek, isOpen: hour.isOpen, openTime: hour.openTime, closeTime: hour.closeTime, breakStart: hour.breakStart, breakEnd: hour.breakEnd }))} /></CardContent>
-        </Card>
-      ))}
+      {professionals.length ? <section className="space-y-3">
+        <div><h2 className="font-semibold">Horários por profissional</h2><p className="text-sm text-muted-foreground">Abra somente quem precisa de uma disponibilidade diferente do expediente geral.</p></div>
+        {professionals.map((professional) => (
+          <details key={professional.id} className="group max-w-6xl overflow-hidden rounded-2xl border border-border/80 bg-card">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-medium transition-colors hover:bg-muted/30 [&::-webkit-details-marker]:hidden">
+              <span>{professional.name}</span><span className="text-sm font-normal text-muted-foreground group-open:hidden">Editar horários</span><span className="hidden text-sm font-normal text-muted-foreground group-open:inline">Fechar</span>
+            </summary>
+            <div className="border-t border-border/70 px-5 py-5"><BusinessHoursSettings professionalId={professional.id} businessHours={professional.availability.map((hour) => ({ id: hour.id, dayOfWeek: hour.dayOfWeek, isOpen: hour.isOpen, openTime: hour.openTime, closeTime: hour.closeTime, breakStart: hour.breakStart, breakEnd: hour.breakEnd }))} /></div>
+          </details>
+        ))}
+      </section> : null}
     </div>
   );
 }, ["ADMIN"]);

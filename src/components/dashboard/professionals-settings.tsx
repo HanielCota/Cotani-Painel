@@ -11,8 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { ProfessionalFormDialog } from "@/components/dashboard/professional-form-dialog";
 import { ProfessionalToggleActive } from "@/components/dashboard/professional-toggle-active";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useProfessionals } from "@/hooks/use-professionals";
+import { usePagination } from "@/hooks/use-pagination";
 import { useServices } from "@/hooks/use-services";
 import type { ProfessionalListItem } from "@/types";
 
@@ -20,6 +22,7 @@ export function ProfessionalsSettings() {
   "use no memo";
   const { data: professionals, isPending, isError } = useProfessionals();
   const { data: services } = useServices();
+  const pagination = usePagination(professionals ?? []);
 
   const serviceById = useMemo(() => {
     if (!services) return new Map<string, string>();
@@ -35,9 +38,9 @@ export function ProfessionalsSettings() {
           <div className="flex items-center gap-3">
             {row.original.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={row.original.imageUrl} alt="" className="size-10 rounded-lg object-cover ring-1 ring-border" />
+              <img src={row.original.imageUrl} alt="" className="size-10 rounded-full object-cover ring-1 ring-border" />
             ) : (
-              <div className="flex size-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+              <div className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
                 <UserIcon className="size-5" />
               </div>
             )}
@@ -57,11 +60,12 @@ export function ProfessionalsSettings() {
 
           return (
             <div className="flex flex-wrap gap-1">
-              {names.map((name) => (
+              {names.slice(0, 3).map((name) => (
                 <Badge key={name} variant="secondary" className="text-xs">
                   {name}
                 </Badge>
               ))}
+              {names.length > 3 ? <Badge variant="outline" className="text-xs">+{names.length - 3}</Badge> : null}
             </div>
           );
         },
@@ -87,7 +91,7 @@ export function ProfessionalsSettings() {
   );
 
   const table = useReactTable({
-    data: professionals ?? [],
+    data: pagination.pageItems,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -115,7 +119,8 @@ export function ProfessionalsSettings() {
       ) : null}
 
       {!isPending && !isError ? (
-        <div className="overflow-x-auto rounded-xl border border-border/80">
+        <div>
+          <div className="overflow-x-auto rounded-xl border border-border/80">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -146,6 +151,8 @@ export function ProfessionalsSettings() {
               )}
             </TableBody>
           </Table>
+          </div>
+          <PaginationControls page={pagination.page} pageCount={pagination.pageCount} totalItems={professionals?.length ?? 0} onPageChange={pagination.setPage} itemLabel="profissional" />
         </div>
       ) : null}
     </div>

@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { WhatsAppCrmList } from "@/components/dashboard/whatsapp-crm-list";
@@ -42,5 +42,25 @@ describe("WhatsAppCrmList", () => {
     render(<WhatsAppCrmList pending={[]} sent={[]} />);
 
     expect(screen.getByText("Nenhuma mensagem pendente no momento.")).toBeInTheDocument();
+  });
+
+  it("pagina listas longas a cada 15 mensagens", () => {
+    const messages = Array.from({ length: 16 }, (_, index) => ({
+      ...pendingNotification,
+      id: `notif-${index + 1}`,
+      recipient: `Contato ${index + 1}`,
+    }));
+
+    render(<WhatsAppCrmList pending={messages} sent={[]} />);
+
+    expect(screen.getByText("Contato 1")).toBeInTheDocument();
+    expect(screen.queryByText("Contato 16")).not.toBeInTheDocument();
+    expect(screen.getByText("1–15 de 16 mensagens")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
+
+    expect(screen.queryByText("Contato 1")).not.toBeInTheDocument();
+    expect(screen.getByText("Contato 16")).toBeInTheDocument();
+    expect(screen.getByText("16–16 de 16 mensagens")).toBeInTheDocument();
   });
 });

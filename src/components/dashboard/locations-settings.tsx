@@ -11,6 +11,8 @@ import { createEnterpriseUnit, updateEnterpriseUnit, toggleEnterpriseUnitArchive
 import { toast } from "sonner";
 import { useEffect } from "react";
 import type { ActionResult } from "@/types";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+import { usePagination } from "@/hooks/use-pagination";
 
 const initial: ActionResult = { status: "success", message: "" };
 
@@ -30,14 +32,16 @@ function UnitRow({ location }: { location: { id: string; name: string; active: b
 
 export function LocationsSettings({ enabled, locations }: { enabled: boolean; locations: { id: string; name: string; active: boolean; primary: boolean }[] }) {
   const [state, action, pending] = useActionState(createEnterpriseUnit, { status: "success" as const, message: "" });
+  const pagination = usePagination(locations);
 
   return (
     <div className="space-y-6">
       <div className="space-y-3">
         <div><h3 className="font-medium">Unidades vinculadas</h3><p className="text-sm text-muted-foreground">Todas usam a assinatura Empresa da unidade principal.</p></div>
         <div className="grid gap-2 sm:grid-cols-2">
-          {locations.map((location) => <UnitRow key={location.id} location={location} />)}
+          {pagination.pageItems.map((location) => <UnitRow key={location.id} location={location} />)}
         </div>
+        <PaginationControls page={pagination.page} pageCount={pagination.pageCount} totalItems={locations.length} onPageChange={pagination.setPage} itemLabel="unidade" />
       </div>
 
       {enabled ? (

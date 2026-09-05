@@ -11,7 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useAppointments } from "@/hooks/use-appointments";
+import { usePagination } from "@/hooks/use-pagination";
 import { formatClinicDateKey, formatClinicDateTimeInput } from "@/lib/timezone";
 import type { AgendaAppointment } from "@/types";
 
@@ -64,6 +66,24 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
   const { data: appointments, isPending, isError, refetch } = useAppointments();
   const [statusFilter, setStatusFilter] = useState<AppointmentStatus | "ALL">("ALL");
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>("ALL");
+  const now = new Date();
+  const todayKey = formatClinicDateKey(now, timeZone);
+  const weekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1_000);
+  const filteredAppointments = (appointments ?? []).filter((appointment) => {
+    const startTime = new Date(appointment.startTime);
+    const matchesStatus = statusFilter === "ALL" || appointment.status === statusFilter;
+    const matchesPeriod = periodFilter === "ALL"
+      ? true
+      : periodFilter === "TODAY"
+        ? formatClinicDateKey(startTime, timeZone) === todayKey
+        : periodFilter === "WEEK"
+          ? startTime >= now && startTime <= weekEnd
+          : periodFilter === "UPCOMING"
+            ? startTime >= now
+            : startTime < now;
+    return matchesStatus && matchesPeriod;
+  });
+  const pagination = usePagination(filteredAppointments);
 
   if (isPending) {
     return (
@@ -101,24 +121,6 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
     );
   }
 
-  const now = new Date();
-  const todayKey = formatClinicDateKey(now, timeZone);
-  const weekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1_000);
-  const filteredAppointments = appointments.filter((appointment) => {
-    const startTime = new Date(appointment.startTime);
-    const matchesStatus = statusFilter === "ALL" || appointment.status === statusFilter;
-    const matchesPeriod = periodFilter === "ALL"
-      ? true
-      : periodFilter === "TODAY"
-        ? formatClinicDateKey(startTime, timeZone) === todayKey
-        : periodFilter === "WEEK"
-          ? startTime >= now && startTime <= weekEnd
-          : periodFilter === "UPCOMING"
-            ? startTime >= now
-            : startTime < now;
-    return matchesStatus && matchesPeriod;
-  });
-
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar por período">
@@ -129,7 +131,10 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
             size="sm"
             variant={periodFilter === filter.value ? "default" : "outline"}
             aria-pressed={periodFilter === filter.value}
-            onClick={() => setPeriodFilter(filter.value)}
+            onClick={() => {
+              setPeriodFilter(filter.value);
+              pagination.resetPage();
+            }}
           >
             {filter.label}
           </Button>
@@ -143,7 +148,10 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
             size="sm"
             variant={statusFilter === filter.status ? "default" : "outline"}
             aria-pressed={statusFilter === filter.status}
-            onClick={() => setStatusFilter(filter.status)}
+            onClick={() => {
+              setStatusFilter(filter.status);
+              pagination.resetPage();
+            }}
           >
             {filter.label}
           </Button>
@@ -160,7 +168,7 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
         </Empty>
       ) : (
         <div className="flex flex-col divide-y">
-          {filteredAppointments.map((appointment: AgendaAppointment) => {
+          {pagination.pageItems.map((appointment: AgendaAppointment) => {
             const startTime = new Date(appointment.startTime);
             const dateTime = new Intl.DateTimeFormat("pt-BR", {
               dateStyle: "medium",
@@ -202,6 +210,7 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
           })}
         </div>
       )}
+      <PaginationControls page={pagination.page} pageCount={pagination.pageCount} totalItems={filteredAppointments.length} onPageChange={pagination.setPage} itemLabel="atendimento" />
     </div>
   );
 }
