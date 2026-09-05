@@ -4,21 +4,365 @@ import { useActionState, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { inviteClinicMember, removeClinicMember, resendClinicInvitation, revokeClinicInvitation, updateClinicMemberRole } from "@/server/actions/clinics";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  inviteClinicMember,
+  removeClinicMember,
+  resendClinicInvitation,
+  revokeClinicInvitation,
+  updateClinicMemberRole,
+} from "@/server/actions/clinics";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { usePagination } from "@/hooks/use-pagination";
 
-interface TeamMember { id:string;name:string;email:string|null;role:"ADMIN"|"RECEPTIONIST"|"PROVIDER";isCurrent:boolean;professionalId:string|null }
-interface PendingInvitation { id:string;email:string;role:"ADMIN"|"RECEPTIONIST"|"PROVIDER";expiresAt:string;professionalId:string|null }
-interface ProfessionalOption { id:string;name:string;available:boolean }
-const roleLabels={ADMIN:"Administrador",RECEPTIONIST:"Recepcionista",PROVIDER:"Profissional"};
+interface TeamMember {
+  id: string;
+  name: string;
+  email: string | null;
+  role: "ADMIN" | "RECEPTIONIST" | "PROVIDER";
+  isCurrent: boolean;
+  professionalId: string | null;
+}
+interface PendingInvitation {
+  id: string;
+  email: string;
+  role: "ADMIN" | "RECEPTIONIST" | "PROVIDER";
+  expiresAt: string;
+  professionalId: string | null;
+}
+interface ProfessionalOption {
+  id: string;
+  name: string;
+  available: boolean;
+}
+const roleLabels = {
+  ADMIN: "Administrador",
+  RECEPTIONIST: "Recepcionista",
+  PROVIDER: "Profissional",
+};
 
-function MemberRow({member,professionals}:{member:TeamMember;professionals:ProfessionalOption[]}){const[role,setRole]=useState(member.role);const[removing,setRemoving]=useState(false);const[pending,start]=useTransition();function save(formData:FormData){start(async()=>{const result=await updateClinicMemberRole(formData);if(result.status==="success")toast.success(result.message);else toast.error(result.message)})}function remove(){const form=new FormData();form.set("membershipId",member.id);start(async()=>{const result=await removeClinicMember(form);if(result.status==="success"){toast.success(result.message);setRemoving(false)}else toast.error(result.message)})}return <div className="flex flex-col gap-3 p-4 xl:flex-row xl:items-center"><div className="min-w-0 flex-1"><p className="truncate font-medium">{member.name}{member.isCurrent?" (você)":""}</p><p className="truncate text-sm text-muted-foreground">{member.email??"Sem e-mail"}</p></div><form action={save} className="flex flex-col gap-2 sm:flex-row"><input type="hidden" name="membershipId" value={member.id}/><NativeSelect name="role" value={role} onChange={event=>setRole(event.target.value as TeamMember["role"])} aria-label={`Papel de ${member.name}`}>{Object.entries(roleLabels).map(([value,label])=><NativeSelectOption key={value} value={value}>{label}</NativeSelectOption>)}</NativeSelect>{role==="PROVIDER"?<NativeSelect name="professionalId" defaultValue={member.professionalId??""} aria-label={`Profissional vinculado a ${member.name}`}><NativeSelectOption value="">Selecione o profissional</NativeSelectOption>{professionals.filter(item=>item.available||item.id===member.professionalId).map(item=><NativeSelectOption key={item.id} value={item.id}>{item.name}</NativeSelectOption>)}</NativeSelect>:null}<Button type="submit" variant="outline" size="sm" disabled={pending}>Salvar</Button></form>{!member.isCurrent?<Dialog open={removing} onOpenChange={setRemoving}><DialogTrigger render={<Button type="button" variant="ghost" size="sm" />}>Remover</DialogTrigger><DialogContent><DialogHeader><DialogTitle>Remover acesso?</DialogTitle><DialogDescription>{member.name} perderá o acesso a esta empresa. O histórico será preservado.</DialogDescription></DialogHeader><DialogFooter><Button type="button" variant="outline" onClick={()=>setRemoving(false)}>Cancelar</Button><Button type="button" variant="destructive" onClick={remove} disabled={pending}>Remover acesso</Button></DialogFooter></DialogContent></Dialog>:null}</div>}
+function MemberRow({
+  member,
+  professionals,
+}: {
+  member: TeamMember;
+  professionals: ProfessionalOption[];
+}) {
+  const [role, setRole] = useState(member.role);
+  const [removing, setRemoving] = useState(false);
+  const [pending, start] = useTransition();
+  function save(formData: FormData) {
+    start(async () => {
+      const result = await updateClinicMemberRole(formData);
+      if (result.status === "success") toast.success(result.message);
+      else toast.error(result.message);
+    });
+  }
+  function remove() {
+    const form = new FormData();
+    form.set("membershipId", member.id);
+    start(async () => {
+      const result = await removeClinicMember(form);
+      if (result.status === "success") {
+        toast.success(result.message);
+        setRemoving(false);
+      } else toast.error(result.message);
+    });
+  }
+  return (
+    <div className="flex flex-col gap-3 p-4 xl:flex-row xl:items-center">
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-medium">
+          {member.name}
+          {member.isCurrent ? " (você)" : ""}
+        </p>
+        <p className="truncate text-sm text-muted-foreground">
+          {member.email ?? "Sem e-mail"}
+        </p>
+      </div>
+      <form action={save} className="flex flex-col gap-2 sm:flex-row">
+        <input type="hidden" name="membershipId" value={member.id} />
+        <Select
+          name="role"
+          value={role}
+          items={roleLabels}
+          onValueChange={(value) =>
+            value != null && setRole(String(value) as TeamMember["role"])
+          }
+          aria-label={`Papel de ${member.name}`}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(roleLabels).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {role === "PROVIDER" ? (
+          <Select
+            name="professionalId"
+            defaultValue={member.professionalId ?? null}
+            items={professionals
+              .filter(
+                (item) => item.available || item.id === member.professionalId,
+              )
+              .map((item) => ({ value: item.id, label: item.name }))}
+            aria-label={`Profissional vinculado a ${member.name}`}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione o profissional" />
+            </SelectTrigger>
+            <SelectContent>
+              {professionals
+                .filter(
+                  (item) => item.available || item.id === member.professionalId,
+                )
+                .map((item) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    {item.name}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        ) : null}
+        <Button type="submit" variant="outline" size="sm" disabled={pending}>
+          Salvar
+        </Button>
+      </form>
+      {!member.isCurrent ? (
+        <Dialog open={removing} onOpenChange={setRemoving}>
+          <DialogTrigger
+            render={<Button type="button" variant="ghost" size="sm" />}
+          >
+            Remover
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Remover acesso?</DialogTitle>
+              <DialogDescription>
+                {member.name} perderá o acesso a esta empresa. O histórico será
+                preservado.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setRemoving(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={remove}
+                disabled={pending}
+              >
+                Remover acesso
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      ) : null}
+    </div>
+  );
+}
 
-function InvitationRow({invite}:{invite:PendingInvitation}){const[pending,start]=useTransition();function run(action:(data:FormData)=>Promise<unknown>,success:string){const form=new FormData();form.set("invitationId",invite.id);start(async()=>{const result=await action(form) as {status?:string;message?:string}|void;if(result?.status==="error")toast.error(result.message);else toast.success(result?.message??success)})}return <div className="flex items-center gap-3 p-4"><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{invite.email}</p><p className="text-xs text-muted-foreground">{roleLabels[invite.role]} · expira em {new Intl.DateTimeFormat("pt-BR").format(new Date(invite.expiresAt))}</p></div><Button type="button" variant="outline" size="sm" disabled={pending} onClick={()=>run(resendClinicInvitation,"Convite reenviado.")}>Reenviar</Button><Button type="button" variant="ghost" size="sm" disabled={pending} onClick={()=>run(revokeClinicInvitation,"Convite revogado.")}>Revogar</Button></div>}
+function InvitationRow({ invite }: { invite: PendingInvitation }) {
+  const [pending, start] = useTransition();
+  function run(action: (data: FormData) => Promise<unknown>, success: string) {
+    const form = new FormData();
+    form.set("invitationId", invite.id);
+    start(async () => {
+      const result = (await action(form)) as {
+        status?: string;
+        message?: string;
+      } | void;
+      if (result?.status === "error") toast.error(result.message);
+      else toast.success(result?.message ?? success);
+    });
+  }
+  return (
+    <div className="flex items-center gap-3 p-4">
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium">{invite.email}</p>
+        <p className="text-xs text-muted-foreground">
+          {roleLabels[invite.role]} · expira em{" "}
+          {new Intl.DateTimeFormat("pt-BR").format(new Date(invite.expiresAt))}
+        </p>
+      </div>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        disabled={pending}
+        onClick={() => run(resendClinicInvitation, "Convite reenviado.")}
+      >
+        Reenviar
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        disabled={pending}
+        onClick={() => run(revokeClinicInvitation, "Convite revogado.")}
+      >
+        Revogar
+      </Button>
+    </div>
+  );
+}
 
-export function TeamSettings({members,invitations,professionals}:{members:TeamMember[];invitations:PendingInvitation[];professionals:ProfessionalOption[]}){const[result,inviteAction,pending]=useActionState(inviteClinicMember,{status:"success" as const,message:""});const[inviteRole,setInviteRole]=useState<TeamMember["role"]>("PROVIDER");const memberPagination=usePagination(members);const invitationPagination=usePagination(invitations);return <div className="space-y-6"><form action={inviteAction} className="grid gap-4 rounded-xl border border-border/80 bg-background/45 p-4 lg:grid-cols-[1fr_180px_220px_auto] lg:items-end"><div className="space-y-1.5"><Label htmlFor="invite-email">E-mail</Label><Input id="invite-email" name="email" type="email" required placeholder="pessoa@exemplo.com"/></div><div className="space-y-1.5"><Label htmlFor="invite-role">Papel</Label><NativeSelect id="invite-role" name="role" value={inviteRole} onChange={event=>setInviteRole(event.target.value as TeamMember["role"])}>{Object.entries(roleLabels).map(([value,label])=><NativeSelectOption key={value} value={value}>{label}</NativeSelectOption>)}</NativeSelect></div>{inviteRole==="PROVIDER"?<div className="space-y-1.5"><Label htmlFor="invite-professional">Profissional vinculado</Label><NativeSelect id="invite-professional" name="professionalId" defaultValue="" required><NativeSelectOption value="">Selecione</NativeSelectOption>{professionals.filter(item=>item.available).map(item=><NativeSelectOption key={item.id} value={item.id}>{item.name}</NativeSelectOption>)}</NativeSelect></div>:<div/>}<Button type="submit" disabled={pending}>{pending?"Enviando...":"Convidar"}</Button>{result.message?<Alert variant={result.status==="error"?"destructive":"default"} className="lg:col-span-4"><AlertDescription>{result.message}</AlertDescription></Alert>:null}</form><div><div className="divide-y overflow-hidden rounded-xl border border-border/80">{memberPagination.pageItems.map(member=><MemberRow key={member.id} member={member} professionals={professionals}/>)}</div><PaginationControls page={memberPagination.page} pageCount={memberPagination.pageCount} totalItems={members.length} onPageChange={memberPagination.setPage} itemLabel="pessoa" /></div>{invitations.length?<div><h3 className="mb-2 font-medium">Convites pendentes</h3><div className="divide-y overflow-hidden rounded-xl border border-border/80">{invitationPagination.pageItems.map(invite=><InvitationRow key={invite.id} invite={invite}/>)}</div><PaginationControls page={invitationPagination.page} pageCount={invitationPagination.pageCount} totalItems={invitations.length} onPageChange={invitationPagination.setPage} itemLabel="convite" /></div>:null}</div>}
+export function TeamSettings({
+  members,
+  invitations,
+  professionals,
+}: {
+  members: TeamMember[];
+  invitations: PendingInvitation[];
+  professionals: ProfessionalOption[];
+}) {
+  const [result, inviteAction, pending] = useActionState(inviteClinicMember, {
+    status: "success" as const,
+    message: "",
+  });
+  const [inviteRole, setInviteRole] = useState<TeamMember["role"]>("PROVIDER");
+  const memberPagination = usePagination(members);
+  const invitationPagination = usePagination(invitations);
+  return (
+    <div className="space-y-6">
+      <form
+        action={inviteAction}
+        className="grid gap-4 rounded-xl border border-border/80 bg-background/45 p-4 lg:grid-cols-[1fr_180px_220px_auto] lg:items-end"
+      >
+        <div className="space-y-1.5">
+          <Label htmlFor="invite-email">E-mail</Label>
+          <Input
+            id="invite-email"
+            name="email"
+            type="email"
+            required
+            placeholder="pessoa@exemplo.com"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="invite-role">Papel</Label>
+          <Select
+            name="role"
+            value={inviteRole}
+            items={roleLabels}
+            onValueChange={(value) =>
+              value != null &&
+              setInviteRole(String(value) as TeamMember["role"])
+            }
+          >
+            <SelectTrigger id="invite-role">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(roleLabels).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {inviteRole === "PROVIDER" ? (
+          <div className="space-y-1.5">
+            <Label htmlFor="invite-professional">Profissional vinculado</Label>
+            <Select
+              name="professionalId"
+              required
+              items={professionals
+                .filter((item) => item.available)
+                .map((item) => ({ value: item.id, label: item.name }))}
+            >
+              <SelectTrigger id="invite-professional">
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {professionals
+                  .filter((item) => item.available)
+                  .map((item) => (
+                    <SelectItem key={item.id} value={item.id}>
+                      {item.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
+        ) : (
+          <div />
+        )}
+        <Button type="submit" disabled={pending}>
+          {pending ? "Enviando..." : "Convidar"}
+        </Button>
+        {result.message ? (
+          <Alert
+            variant={result.status === "error" ? "destructive" : "default"}
+            className="lg:col-span-4"
+          >
+            <AlertDescription>{result.message}</AlertDescription>
+          </Alert>
+        ) : null}
+      </form>
+      <div>
+        <div className="divide-y overflow-hidden rounded-xl border border-border/80">
+          {memberPagination.pageItems.map((member) => (
+            <MemberRow
+              key={member.id}
+              member={member}
+              professionals={professionals}
+            />
+          ))}
+        </div>
+        <PaginationControls
+          page={memberPagination.page}
+          pageCount={memberPagination.pageCount}
+          totalItems={members.length}
+          onPageChange={memberPagination.setPage}
+          itemLabel="pessoa"
+        />
+      </div>
+      {invitations.length ? (
+        <div>
+          <h3 className="mb-2 font-medium">Convites pendentes</h3>
+          <div className="divide-y overflow-hidden rounded-xl border border-border/80">
+            {invitationPagination.pageItems.map((invite) => (
+              <InvitationRow key={invite.id} invite={invite} />
+            ))}
+          </div>
+          <PaginationControls
+            page={invitationPagination.page}
+            pageCount={invitationPagination.pageCount}
+            totalItems={invitations.length}
+            onPageChange={invitationPagination.setPage}
+            itemLabel="convite"
+          />
+        </div>
+      ) : null}
+    </div>
+  );
+}

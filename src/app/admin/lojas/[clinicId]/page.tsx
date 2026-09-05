@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { adminActionLabel, paymentStatusLabel, subscriptionPlanLabel, subscriptionStatusLabel } from "@/lib/display-labels";
 import prisma from "@/lib/prisma";
@@ -141,9 +142,10 @@ export default async function StoreDetailPage({
                 <form action={updateMembershipRoleAsPlatformAdmin} className="space-y-2">
                   <input type="hidden" name="clinicId" value={clinic.id} /><input type="hidden" name="membershipId" value={membership.id} />
                   <Label htmlFor={`role-${membership.id}`}>Alterar papel</Label>
-                  <select id={`role-${membership.id}`} name="role" defaultValue={membership.role} className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm">
-                    <option value="ADMIN">Administrador</option><option value="RECEPTIONIST">Recepcionista</option><option value="PROVIDER">Profissional</option>
-                  </select>
+                  <Select name="role" defaultValue={membership.role} items={roleLabels}>
+                    <SelectTrigger id={`role-${membership.id}`}><SelectValue /></SelectTrigger>
+                    <SelectContent><SelectItem value="ADMIN">Administrador</SelectItem><SelectItem value="RECEPTIONIST">Recepcionista</SelectItem><SelectItem value="PROVIDER">Profissional</SelectItem></SelectContent>
+                  </Select>
                   <Input name="reason" required minLength={5} maxLength={500} placeholder="Motivo da alteração" />
                   <AdminSubmitButton variant="outline">Atualizar papel</AdminSubmitButton>
                 </form>

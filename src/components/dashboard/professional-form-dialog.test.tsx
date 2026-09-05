@@ -45,7 +45,7 @@ describe("ProfessionalFormDialog", () => {
     expect(screen.getByRole("heading", { name: /novo profissional/i })).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText(/nome/i), { target: { value: "Carlos" } });
-    fireEvent.click(screen.getByLabelText(/serviço a/i));
+    fireEvent.click(screen.getByRole("checkbox", { name: /serviço a/i }));
 
     fireEvent.click(screen.getByRole("button", { name: /cadastrar profissional/i }));
 
@@ -71,7 +71,7 @@ describe("ProfessionalFormDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "" }));
 
     expect(screen.getByDisplayValue("Ana")).toBeInTheDocument();
-    expect(screen.getByLabelText(/serviço b/i)).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: /serviço b/i })).toBeChecked();
   });
 
 

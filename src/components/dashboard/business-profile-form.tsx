@@ -9,10 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ActionResult } from "@/types";
 
 const initialState: ActionResult = { status: "success", message: "" };
+const timeZones = [["America/Sao_Paulo","Brasília (São Paulo)"],["America/Manaus","Manaus"],["America/Cuiaba","Cuiabá"],["America/Rio_Branco","Rio Branco"],["America/Fortaleza","Fortaleza"],["America/Recife","Recife"],["America/Bahia","Salvador"],["America/Belem","Belém"]].map(([value, label]) => ({ value, label }));
 
 interface Props {
   clinic: { name: string; slug: string; timeZone: string; contactEmail: string | null; phone: string | null; address: string | null; publicDescription: string | null; imageUrl: string | null };
@@ -33,7 +35,7 @@ export function BusinessProfileForm({ clinic }: Props) {
       <div className="space-y-1.5"><Label htmlFor="business-email">E-mail comercial</Label><Input id="business-email" name="contactEmail" type="email" defaultValue={clinic.contactEmail ?? ""} /></div>
       <div className="space-y-1.5"><Label htmlFor="business-phone">Telefone</Label><Input id="business-phone" name="phone" defaultValue={clinic.phone ?? ""} maxLength={30} /></div>
       <div className="space-y-1.5 sm:col-span-2"><Label htmlFor="business-address">Endereço</Label><Input id="business-address" name="address" defaultValue={clinic.address ?? ""} maxLength={300} /></div>
-      <div className="space-y-1.5"><Label htmlFor="business-timezone">Fuso horário</Label><NativeSelect id="business-timezone" name="timeZone" defaultValue={clinic.timeZone}>{[["America/Sao_Paulo","Brasília (São Paulo)"],["America/Manaus","Manaus"],["America/Cuiaba","Cuiabá"],["America/Rio_Branco","Rio Branco"],["America/Fortaleza","Fortaleza"],["America/Recife","Recife"],["America/Bahia","Salvador"],["America/Belem","Belém"]].map(([zone, label]) => <NativeSelectOption key={zone} value={zone}>{label}</NativeSelectOption>)}</NativeSelect></div>
+      <div className="space-y-1.5"><Label htmlFor="business-timezone">Fuso horário</Label><Select name="timeZone" defaultValue={clinic.timeZone} items={timeZones}><SelectTrigger id="business-timezone"><SelectValue /></SelectTrigger><SelectContent>{timeZones.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent></Select></div>
       <div className="space-y-1.5">
         <Label htmlFor="business-image">Logo ou foto</Label>
         <label htmlFor="business-image" className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-dashed border-border bg-background/55 px-4 py-3 text-sm transition-colors hover:border-primary/50 hover:bg-primary/5 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/20">
@@ -42,7 +44,7 @@ export function BusinessProfileForm({ clinic }: Props) {
           <input id="business-image" name="image" type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" />
         </label>
         <input type="hidden" name="currentImageUrl" value={clinic.imageUrl ?? ""} />
-        {clinic.imageUrl ? <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground"><input type="checkbox" name="removeImage" className="size-4 accent-primary" /> Remover imagem atual</label> : null}
+        {clinic.imageUrl ? <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground"><Checkbox name="removeImage" value="on" /> Remover imagem atual</label> : null}
       </div>
       <div className="space-y-1.5 sm:col-span-2"><Label htmlFor="business-description">Descrição pública</Label><Textarea id="business-description" name="publicDescription" defaultValue={clinic.publicDescription ?? ""} maxLength={500} rows={4} placeholder="Explique brevemente o que sua empresa oferece." /></div>
       <div className="sm:col-span-2 flex justify-end"><Button type="submit" disabled={pending}><SaveIcon />{pending ? "Salvando..." : "Salvar informações"}</Button></div>

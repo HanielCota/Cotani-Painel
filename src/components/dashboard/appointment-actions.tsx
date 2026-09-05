@@ -235,7 +235,7 @@ export function AppointmentActions({ appointmentId, status }: AppointmentActions
             <DialogDescription>Informe como o cliente pagou para finalizar o atendimento.</DialogDescription>
           </DialogHeader>
 
-          <Select value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}>
+          <Select value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)} items={paymentMethodLabels}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione o método de pagamento" />
             </SelectTrigger>

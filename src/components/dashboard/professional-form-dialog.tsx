@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { EditIcon, PlusIcon, UserIcon, XIcon } from "lucide-react";
+import { EditIcon, ImageIcon, PlusIcon, UserIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { createProfessionalFromForm, updateProfessionalFromForm } from "@/server/actions/professionals";
@@ -20,6 +20,7 @@ import {
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useServices } from "@/hooks/use-services";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ActionResult, ProfessionalListItem } from "@/types";
@@ -44,6 +45,7 @@ export function ProfessionalFormDialog({ professional }: ProfessionalFormDialogP
   const isEditing = Boolean(professional);
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(professional?.imageUrl ?? null);
+  const [fileName, setFileName] = useState("");
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>(professional?.serviceIds ?? []);
   const [result, setResult] = useState<ActionResult | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -56,6 +58,7 @@ export function ProfessionalFormDialog({ professional }: ProfessionalFormDialogP
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
+    setFileName(file.name);
 
     if (!ALLOWED_TYPES.includes(file.type)) {
       toast.error("Use uma imagem JPG, PNG ou WebP.");
@@ -80,6 +83,7 @@ export function ProfessionalFormDialog({ professional }: ProfessionalFormDialogP
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+    setFileName("");
   }
 
   function toggleService(serviceId: string) {
@@ -95,11 +99,13 @@ export function ProfessionalFormDialog({ professional }: ProfessionalFormDialogP
       setPreview(professional?.imageUrl ?? null);
       setSelectedServiceIds(professional?.serviceIds ?? []);
       setResult(null);
+      setFileName("");
     } else {
       formRef.current?.reset();
       setPreview(null);
       setSelectedServiceIds([]);
       setResult(null);
+      setFileName("");
     }
   }
 
@@ -130,6 +136,7 @@ export function ProfessionalFormDialog({ professional }: ProfessionalFormDialogP
       formRef.current?.reset();
       setPreview(null);
       setSelectedServiceIds([]);
+      setFileName("");
       toast.success(nextResult.message);
     });
   }
@@ -198,15 +205,17 @@ export function ProfessionalFormDialog({ professional }: ProfessionalFormDialogP
                   </div>
                 )}
                 <div className="flex flex-col gap-2">
-                  <Input
+                  <input
                     id={`professional-photo-${professional?.id ?? "new"}`}
                     ref={fileInputRef}
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
                     onChange={handleFileChange}
                     disabled={isPending}
-                    className="w-full sm:w-auto"
+                    className="sr-only"
                   />
+                  <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isPending}><ImageIcon />Escolher imagem</Button>
+                  <p className="max-w-56 truncate text-xs text-foreground">{fileName || "Nenhuma imagem escolhida"}</p>
                   <p className="text-xs text-muted-foreground">JPG, PNG ou WebP. Máx. 2 MB.</p>
                 </div>
               </div>
@@ -232,14 +241,12 @@ export function ProfessionalFormDialog({ professional }: ProfessionalFormDialogP
                             : "border-border bg-card hover:bg-muted/50"
                         }`}
                       >
-                        <input
-                          type="checkbox"
+                        <Checkbox
                           name="serviceIds"
                           value={service.id}
                           checked={selected}
-                          onChange={() => toggleService(service.id)}
+                          onCheckedChange={() => toggleService(service.id)}
                           disabled={isPending || !service.isActive}
-                          className="size-4 accent-primary"
                         />
                         <div className="flex min-w-0 flex-col">
                           <span className={`text-sm font-medium ${!service.isActive ? "text-muted-foreground line-through" : ""}`}>
