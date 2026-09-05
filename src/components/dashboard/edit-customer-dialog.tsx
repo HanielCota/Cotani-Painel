@@ -30,7 +30,8 @@ export function EditCustomerDialog({ customer }: EditCustomerDialogProps) {
   function handleDelete() {
     startDelete(async () => {
       const result = await deleteCustomer(customer.id);
-      result.status === "success" ? toast.success(result.message) : toast.error(result.message);
+      if (result.status === "success") toast.success(result.message);
+      else toast.error(result.message);
       if (result.status === "success") void queryClient.invalidateQueries({ queryKey: ["customers"] });
       setConfirmDelete(false);
     });

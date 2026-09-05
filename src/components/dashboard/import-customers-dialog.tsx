@@ -11,6 +11,10 @@ import type { ActionResult } from "@/types";
 const initial: ActionResult = { status: "success", message: "" };
 export function ImportCustomersButton() {
   const [state, action, pending] = useActionState(importCustomersFromCsv, initial);
-  useEffect(() => { if (state.message) state.status === "success" ? toast.success(state.message) : toast.error(state.message); }, [state]);
+  useEffect(() => {
+    if (!state.message) return;
+    if (state.status === "success") toast.success(state.message);
+    else toast.error(state.message);
+  }, [state]);
   return <form action={action} className="flex items-center gap-2"><Input name="file" type="file" accept=".csv,text/csv" required className="max-w-52" aria-label="Arquivo CSV de clientes" /><Button type="submit" variant="outline" disabled={pending}><UploadIcon />{pending ? "Importando..." : "Importar"}</Button></form>;
 }

@@ -20,12 +20,12 @@ const initial: ActionResult = { status: "success", message: "" };
 
 function ActionButton({ action, children, variant = "outline" }: { action: () => Promise<ActionResult>; children: React.ReactNode; variant?: "outline" | "destructive" }) {
   const [pending, startTransition] = useTransition();
-  return <Button type="button" variant={variant} disabled={pending} onClick={() => startTransition(async () => { const result = await action(); result.status === "success" ? toast.success(result.message) : toast.error(result.message); if (result.status === "success") window.location.reload(); })}>{pending ? "Processando..." : children}</Button>;
+  return <Button type="button" variant={variant} disabled={pending} onClick={() => startTransition(async () => { const result = await action(); if (result.status === "success") toast.success(result.message); else toast.error(result.message); if (result.status === "success") window.location.reload(); })}>{pending ? "Processando..." : children}</Button>;
 }
 
 export function SubscriptionManagement({ currentPlan, pendingPlan, cancelAtPeriodEnd, issuesByPlan, refundEligible }: { currentPlan: SubscriptionPlan | null; pendingPlan: SubscriptionPlan | null; cancelAtPeriodEnd: boolean; issuesByPlan: Partial<Record<SubscriptionPlan, PlanFitIssue[]>>; refundEligible: boolean }) {
   const [state, action, pending] = useActionState(schedulePlanChange, initial);
-  useEffect(() => { if (!state.message) return; state.status === "success" ? toast.success(state.message) : toast.error(state.message); if (state.status === "success") window.location.reload(); }, [state]);
+  useEffect(() => { if (!state.message) return; if (state.status === "success") toast.success(state.message); else toast.error(state.message); if (state.status === "success") window.location.reload(); }, [state]);
   const options = [SubscriptionPlan.ESSENTIAL, SubscriptionPlan.PROFESSIONAL].filter((plan) => plan !== currentPlan);
   return <div className="grid gap-4 lg:grid-cols-2">
     <Card>

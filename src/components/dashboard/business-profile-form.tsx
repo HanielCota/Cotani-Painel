@@ -22,7 +22,8 @@ export function BusinessProfileForm({ clinic }: Props) {
   const [state, action, pending] = useActionState(saveBusinessProfile, initialState);
   useEffect(() => {
     if (!state.message) return;
-    state.status === "success" ? toast.success(state.message) : toast.error(state.message);
+    if (state.status === "success") toast.success(state.message);
+    else toast.error(state.message);
   }, [state]);
 
   return (

@@ -20,7 +20,11 @@ type Message = { id:string; channel:string; status:string; content:string; recip
 
 function Retry({ id }: { id:string }) {
   const [state, action, pending] = useActionState(retryNotification, initial);
-  useEffect(() => { if (state.message) state.status === "success" ? toast.success(state.message) : toast.error(state.message); }, [state]);
+  useEffect(() => {
+    if (!state.message) return;
+    if (state.status === "success") toast.success(state.message);
+    else toast.error(state.message);
+  }, [state]);
   return <form action={action}><input type="hidden" name="id" value={id}/><Button type="submit" size="sm" variant="outline" disabled={pending}>Tentar novamente</Button></form>;
 }
 
@@ -30,7 +34,11 @@ export function MessageCenter({ appointments, messages, timeZone, automaticMode 
   const [channel, setChannel] = useState("ALL");
   const [search, setSearch] = useState("");
   const [content, setContent] = useState(templates.reminder);
-  useEffect(() => { if (state.message) state.status === "success" ? toast.success(state.message) : toast.error(state.message); }, [state]);
+  useEffect(() => {
+    if (!state.message) return;
+    if (state.status === "success") toast.success(state.message);
+    else toast.error(state.message);
+  }, [state]);
   const visible = useMemo(() => messages.filter(item => (status === "ALL" || item.status === status) && (channel === "ALL" || item.channel === channel) && `${item.recipient} ${item.content}`.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR"))), [messages, status, channel, search]);
   return <section className="space-y-5">
     <form action={action} className="grid gap-3 rounded-xl border p-4 md:grid-cols-2">
