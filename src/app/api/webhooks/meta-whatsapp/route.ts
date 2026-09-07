@@ -12,6 +12,7 @@ interface MetaMessage {
   from?: string;
   type?: string;
   text?: { body?: string };
+  context?: { id?: string };
 }
 
 interface MetaWebhookPayload {
@@ -78,17 +79,31 @@ export async function POST(request: NextRequest) {
     });
     if (seen) continue;
 
-    const lastOutbound = await prisma.notification.findFirst({
-      where: {
-        channel: "WHATSAPP",
-        recipient: phone,
-        status: "SENT",
-        appointment: { status: "PENDING", startTime: { gte: new Date() }, clinic: { deletedAt: null, operationalStatus: "ACTIVE" } },
-      },
-      include: { appointment: { include: { clinic: { select: { id: true, name: true, slug: true } } } } },
-      orderBy: { sentAt: "desc" },
-    });
-    const appointment = lastOutbound?.appointment ?? null;
+    const notificationWhere = {
+      channel: "WHATSAPP" as const,
+      recipient: phone,
+      status: "SENT" as const,
+      appointment: { status: "PENDING" as const, startTime: { gte: new Date() }, clinic: { deletedAt: null, operationalStatus: "ACTIVE" as const } },
+    };
+    const includeAppointment = { appointment: { include: { clinic: { select: { id: true, name: true, slug: true } } } } } as const;
+    const replyToProviderRef = message.context?.id?.trim();
+    const exactOutbound = replyToProviderRef
+      ? await prisma.notification.findFirst({
+          where: { ...notificationWhere, providerRef: replyToProviderRef },
+          include: includeAppointment,
+        })
+      : null;
+    const recentOutbounds = exactOutbound
+      ? [exactOutbound]
+      : await prisma.notification.findMany({
+          where: { ...notificationWhere, sentAt: { gte: new Date(Date.now() - 14 * 24 * 60 * 60_000) } },
+          include: includeAppointment,
+          orderBy: { sentAt: "desc" },
+          take: 10,
+        });
+    const appointmentIds = new Set(recentOutbounds.map((notification) => notification.appointmentId));
+    const appointment = appointmentIds.size === 1 ? recentOutbounds[0]?.appointment ?? null : null;
+    const ambiguous = !exactOutbound && appointmentIds.size > 1;
 
     try {
       await prisma.$transaction(async (transaction) => {
@@ -112,8 +127,9 @@ export async function POST(request: NextRequest) {
             },
           });
         }
-        await transaction.webhookEvent.create({ data: { provider: "meta-whatsapp", eventId, type: "message.received", payloadSnapshot: message as unknown as Prisma.InputJsonValue } });
+        await transaction.webhookEvent.create({ data: { provider: "meta-whatsapp", eventId, type: ambiguous ? "message.received.ambiguous" : "message.received", payloadSnapshot: message as unknown as Prisma.InputJsonValue } });
       });
+      if (ambiguous) logger.warn("Resposta do WhatsApp ignorada por associação ambígua", { eventId, candidateAppointments: appointmentIds.size });
     } catch (error) {
       if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") continue;
       throw error;

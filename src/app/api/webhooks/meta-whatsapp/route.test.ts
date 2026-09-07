@@ -7,7 +7,7 @@ const tx = {
 };
 const prismaMock = {
   webhookEvent: { findUnique: vi.fn() },
-  notification: { findFirst: vi.fn() },
+  notification: { findFirst: vi.fn(), findMany: vi.fn() },
   appointment: { findFirst: vi.fn() },
   $transaction: vi.fn(async (callback: (client: typeof tx) => Promise<unknown>) => callback(tx)),
 };
@@ -36,14 +36,14 @@ describe("webhook Meta WhatsApp", () => {
   });
 
   it("confirma o próximo atendimento pendente quando o cliente responde 1", async () => {
-    prismaMock.notification.findFirst.mockResolvedValueOnce({
+    prismaMock.notification.findMany.mockResolvedValueOnce([{
       appointmentId: "appointment-1",
       appointment: {
         id: "appointment-1",
         cancellationToken: "cancel-token",
         clinic: { name: "Loja", slug: "loja" },
       },
-    });
+    }]);
     const payload = {
       entry: [{ changes: [{ value: { messages: [{ id: "wamid-1", from: "5511999999999", type: "text", text: { body: "1" } }] } }] }],
     };
@@ -59,5 +59,35 @@ describe("webhook Meta WhatsApp", () => {
       data: { status: "CONFIRMED" },
     });
     expect(tx.webhookEvent.create).toHaveBeenCalled();
+  });
+
+  it("usa a mensagem respondida para identificar exatamente o atendimento", async () => {
+    prismaMock.notification.findFirst.mockResolvedValueOnce({
+      appointmentId: "appointment-2",
+      appointment: { id: "appointment-2", cancellationToken: "cancel-token", clinic: { name: "Loja", slug: "loja" } },
+    });
+    const payload = { entry: [{ changes: [{ value: { messages: [{ id: "wamid-2", from: "5511999999999", context: { id: "outbound-2" }, text: { body: "1" } }] } }] }] };
+    const response = await POST(new NextRequest("https://painel.cotani.com.br/api/webhooks/meta-whatsapp", {
+      method: "POST", body: JSON.stringify(payload), headers: { "content-type": "application/json" },
+    }));
+
+    expect(response.status).toBe(200);
+    expect(prismaMock.notification.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ providerRef: "outbound-2" }) }));
+    expect(tx.appointment.updateMany).toHaveBeenCalledWith({ where: { id: "appointment-2", status: "PENDING" }, data: { status: "CONFIRMED" } });
+  });
+
+  it("não altera atendimento quando o mesmo telefone possui respostas possíveis diferentes", async () => {
+    prismaMock.notification.findMany.mockResolvedValueOnce([
+      { appointmentId: "appointment-a", appointment: { id: "appointment-a", clinic: { name: "Loja A", slug: "loja-a" } } },
+      { appointmentId: "appointment-b", appointment: { id: "appointment-b", clinic: { name: "Loja B", slug: "loja-b" } } },
+    ]);
+    const payload = { entry: [{ changes: [{ value: { messages: [{ id: "wamid-3", from: "5511999999999", text: { body: "1" } }] } }] }] };
+    const response = await POST(new NextRequest("https://painel.cotani.com.br/api/webhooks/meta-whatsapp", {
+      method: "POST", body: JSON.stringify(payload), headers: { "content-type": "application/json" },
+    }));
+
+    expect(response.status).toBe(200);
+    expect(tx.appointment.updateMany).not.toHaveBeenCalled();
+    expect(tx.webhookEvent.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ type: "message.received.ambiguous" }) }));
   });
 });
