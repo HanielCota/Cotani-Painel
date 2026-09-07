@@ -166,7 +166,7 @@ export function AppointmentActions({ appointmentId, status }: AppointmentActions
           Ações
           {isPending ? <Spinner className="ml-1 size-3.5" /> : <EllipsisVerticalIcon className="ml-1 size-3.5" />}
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="min-w-40">
           {actions.map((action) => {
             const Icon = action.icon;
 
@@ -174,7 +174,7 @@ export function AppointmentActions({ appointmentId, status }: AppointmentActions
               <DropdownMenuItem
                 key={action.status}
                 onClick={() => handleStatusChange(action.status)}
-                className={action.destructive ? "text-destructive focus:text-destructive" : undefined}
+                className={action.destructive ? "whitespace-nowrap text-destructive focus:text-destructive" : "whitespace-nowrap"}
                 disabled={isPending}
               >
                 <Icon className="mr-2 size-4" />
