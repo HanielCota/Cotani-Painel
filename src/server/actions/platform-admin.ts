@@ -183,6 +183,11 @@ export async function updateMembershipRoleAsPlatformAdmin(formData: FormData): P
 
   try {
     await prisma.$transaction(async (transaction) => {
+      await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${membership.clinicId}, 0))`;
+      if (membership.role === "ADMIN" && parsed.data.role !== "ADMIN") {
+        const adminCount = await transaction.membership.count({ where: { clinicId: membership.clinicId, role: "ADMIN" } });
+        if (adminCount <= 1) throw new Error("LAST_ADMIN");
+      }
       await transaction.membership.update({ where: { id: membership.id }, data: { role: parsed.data.role } });
       await writeAdminAuditLog(transaction, actor, {
         action: "MEMBERSHIP_ROLE_UPDATED",
@@ -194,8 +199,10 @@ export async function updateMembershipRoleAsPlatformAdmin(formData: FormData): P
         afterSnapshot: { userId: membership.user.authUserId, role: parsed.data.role },
       });
     });
-  } catch {
-    redirectToClinic(parsed.data.clinicId, "error", "Não foi possível alterar o papel do usuário.");
+  } catch (error) {
+    redirectToClinic(parsed.data.clinicId, "error", error instanceof Error && error.message === "LAST_ADMIN"
+      ? "A loja precisa manter pelo menos um administrador."
+      : "Não foi possível alterar o papel do usuário.");
   }
 
   revalidatePath(`/admin/lojas/${parsed.data.clinicId}`);
@@ -221,6 +228,11 @@ export async function removeMembershipAsPlatformAdmin(formData: FormData): Promi
 
   try {
     await prisma.$transaction(async (transaction) => {
+      await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${membership.clinicId}, 0))`;
+      if (membership.role === "ADMIN") {
+        const adminCount = await transaction.membership.count({ where: { clinicId: membership.clinicId, role: "ADMIN" } });
+        if (adminCount <= 1) throw new Error("LAST_ADMIN");
+      }
       await transaction.membership.delete({ where: { id: membership.id } });
       await writeAdminAuditLog(transaction, actor, {
         action: "MEMBERSHIP_REMOVED",
@@ -231,8 +243,10 @@ export async function removeMembershipAsPlatformAdmin(formData: FormData): Promi
         beforeSnapshot: { userId: membership.user.authUserId, role: membership.role },
       });
     });
-  } catch {
-    redirectToClinic(parsed.data.clinicId, "error", "Não foi possível remover o vínculo.");
+  } catch (error) {
+    redirectToClinic(parsed.data.clinicId, "error", error instanceof Error && error.message === "LAST_ADMIN"
+      ? "Não é possível remover o último administrador."
+      : "Não foi possível remover o vínculo.");
   }
 
   revalidatePath(`/admin/lojas/${parsed.data.clinicId}`);

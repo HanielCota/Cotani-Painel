@@ -25,7 +25,21 @@ export async function deleteOwnAccount(_previousState: ActionResult, formData: F
   const authUser = await requireAuthenticatedUser(); const { appUser } = await ensureCurrentAppUser();
   const memberships = await prisma.membership.findMany({ where: { userId: appUser.id }, select: { id: true, clinicId: true, role: true } });
   for (const membership of memberships.filter((item) => item.role === "ADMIN")) { const admins = await prisma.membership.count({ where: { clinicId: membership.clinicId, role: "ADMIN" } }); if (admins <= 1) return { status: "error", message: "Transfira a administração das suas empresas antes de excluir a conta." }; }
-  await prisma.$transaction(async (transaction) => { await transaction.professional.updateMany({ where: { membership: { userId: appUser.id } }, data: { membershipId: null } }); await transaction.membership.deleteMany({ where: { userId: appUser.id } }); await transaction.user.delete({ where: { id: appUser.id } }); });
+  let blockedByAdministration = false;
+  await prisma.$transaction(async (transaction) => {
+    const administeredClinicIds = memberships.filter((item) => item.role === "ADMIN").map((item) => item.clinicId).sort();
+    for (const clinicId of administeredClinicIds) {
+      await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinicId}, 0))`;
+    }
+    for (const clinicId of administeredClinicIds) {
+      const admins = await transaction.membership.count({ where: { clinicId, role: "ADMIN" } });
+      if (admins <= 1) { blockedByAdministration = true; return; }
+    }
+    await transaction.professional.updateMany({ where: { membership: { userId: appUser.id } }, data: { membershipId: null } });
+    await transaction.membership.deleteMany({ where: { userId: appUser.id } });
+    await transaction.user.delete({ where: { id: appUser.id } });
+  });
+  if (blockedByAdministration) return { status: "error", message: "Transfira a administração das suas empresas antes de excluir a conta." };
   const { error } = await createAdminClient().auth.admin.deleteUser(authUser.id); if (error) return { status: "error", message: "Dados removidos, mas o acesso de autenticação precisa ser encerrado pelo suporte." };
   return { status: "success", message: "Conta excluída." };
 }
