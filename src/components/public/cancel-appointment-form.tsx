@@ -9,6 +9,7 @@ import { cancelAppointmentByToken } from "@/server/actions/cancel-appointment";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { Card, CardContent } from "@/components/ui/card";
 import type { ActionResult } from "@/types";
 
 interface CancelAppointmentFormProps {
@@ -36,7 +37,7 @@ export function CancelAppointmentForm({ slug, token }: CancelAppointmentFormProp
 
   if (result?.status === "success") {
     return (
-      <div className="flex flex-col gap-4 rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+      <Card><CardContent className="flex flex-col gap-4">
         <Alert variant="default">
           <CalendarXIcon aria-hidden="true" />
           <AlertTitle>Agendamento cancelado</AlertTitle>
@@ -45,12 +46,12 @@ export function CancelAppointmentForm({ slug, token }: CancelAppointmentFormProp
         <Button nativeButton={false} render={<Link href={`/${slug}`} />} variant="outline" className="h-12 w-full">
           Fazer novo agendamento
         </Button>
-      </div>
+      </CardContent></Card>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+    <Card><CardContent className="flex flex-col gap-4">
       <p className="text-sm leading-relaxed text-muted-foreground">
         Confirme abaixo para liberar o horário. Esta ação não pode ser desfeita.
       </p>
@@ -64,6 +65,6 @@ export function CancelAppointmentForm({ slug, token }: CancelAppointmentFormProp
         {isPending ? <Spinner data-icon="inline-start" /> : <CalendarXIcon data-icon="inline-start" />}
         {isPending ? "Cancelando..." : "Confirmar cancelamento"}
       </Button>
-    </div>
+    </CardContent></Card>
   );
 }

@@ -2,6 +2,7 @@ import { CalendarCheckIcon } from "lucide-react";
 import { Suspense } from "react";
 
 import { AuthForm } from "@/components/auth/auth-form";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SignInPage() {
   return (
@@ -16,7 +17,7 @@ export default function SignInPage() {
             <p className="text-sm text-muted-foreground">Gestão simples para sua loja</p>
           </div>
         </div>
-        <Suspense fallback={<div className="h-[25rem] w-full animate-pulse rounded-2xl border border-border/80 bg-card" aria-label="Carregando formulário de acesso" />}>
+        <Suspense fallback={<Skeleton className="h-[25rem] w-full rounded-2xl border border-border/80" aria-label="Carregando formulário de acesso" />}>
           <AuthForm />
         </Suspense>
         <p className="max-w-sm text-center text-xs leading-relaxed text-muted-foreground">

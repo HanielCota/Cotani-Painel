@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
-import { AlertCircleIcon, CheckCircle2Icon, MailCheckIcon } from "lucide-react";
+import { CheckCircle2Icon, MailCheckIcon, OctagonXIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
+import { AuthCard } from "@/components/auth/auth-card";
 
 function recoveryErrorMessage(error: { code?: string; message: string }, mode: "request" | "update") {
   if (mode === "request") return "Não foi possível enviar o e-mail agora. Tente novamente em instantes.";
@@ -108,7 +109,7 @@ export function PasswordRecoveryForm({ mode }: { mode: "request" | "update" }) {
 
   if (mode === "request" && requestedEmail) {
     return (
-      <div className="w-full max-w-md rounded-2xl border bg-card p-6 shadow-lg">
+      <AuthCard>
         <div className="mb-5 flex flex-col items-center gap-3 text-center">
           <span className="flex size-12 items-center justify-center rounded-full bg-primary/15 text-primary">
             <MailCheckIcon aria-hidden="true" className="size-6" />
@@ -135,12 +136,12 @@ export function PasswordRecoveryForm({ mode }: { mode: "request" | "update" }) {
           <Button type="button" className="w-full" onClick={() => router.push("/sign-in")}>Voltar para entrar</Button>
           <Button type="button" variant="ghost" className="w-full" onClick={resetRequest}>Enviar novamente</Button>
         </div>
-      </div>
+      </AuthCard>
     );
   }
 
   return (
-    <div className="w-full max-w-md rounded-2xl border bg-card p-6 shadow-lg">
+    <AuthCard>
       <h1 className="text-xl font-semibold">{mode === "request" ? "Recuperar senha" : "Definir nova senha"}</h1>
       <p className="mb-5 mt-1 text-sm text-muted-foreground">
         {mode === "request" ? "Enviaremos um link seguro para seu e-mail." : ready ? "Escolha uma senha com pelo menos 8 caracteres." : "Validando seu link seguro..."}
@@ -160,7 +161,7 @@ export function PasswordRecoveryForm({ mode }: { mode: "request" | "update" }) {
         </div>
         {submitError ? (
           <Alert variant="destructive">
-            <AlertCircleIcon aria-hidden="true" />
+            <OctagonXIcon aria-hidden="true" />
             <AlertTitle>Não foi possível atualizar</AlertTitle>
             <AlertDescription>{submitError}</AlertDescription>
           </Alert>
@@ -170,6 +171,6 @@ export function PasswordRecoveryForm({ mode }: { mode: "request" | "update" }) {
         </Button>
         <Button type="button" variant="ghost" className="w-full" onClick={() => router.push("/sign-in")}>Voltar</Button>
       </form>
-    </div>
+    </AuthCard>
   );
 }

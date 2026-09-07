@@ -48,26 +48,37 @@ function isOwnedObjectPath(path: string, clinicId: string, kind: PublicImageKind
   return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(?:jpg|png|webp)$/i.test(fileName);
 }
 
-export async function persistPublicImage(input: { clinicId: string; kind: PublicImageKind; value: string | null; currentUrl?: string | null }) {
+export async function persistPublicImage(input: { clinicId: string; kind: PublicImageKind; value: string | File | null; currentUrl?: string | null }): Promise<string | null> {
   if (!input.value) return null;
-  if (input.value === input.currentUrl) return input.value;
-  const existingPath = objectPathFromPublicUrl(input.value);
-  if (existingPath) {
-    if (!isOwnedObjectPath(existingPath, input.clinicId, input.kind)) {
-      throw new Error("A imagem informada não pertence a esta loja.");
+  if (typeof input.value === "string" && input.value === input.currentUrl) return input.value;
+  let mimeType: string;
+  let bytes: Buffer;
+
+  if (input.value instanceof File) {
+    mimeType = input.value.type;
+    bytes = Buffer.from(await input.value.arrayBuffer());
+  } else {
+    const existingPath = objectPathFromPublicUrl(input.value);
+    if (existingPath) {
+      if (!isOwnedObjectPath(existingPath, input.clinicId, input.kind)) {
+        throw new Error("A imagem informada não pertence a esta loja.");
+      }
+      throw new Error("Envie novamente o arquivo em vez de reutilizar outra imagem armazenada.");
     }
-    throw new Error("Envie novamente o arquivo em vez de reutilizar outra imagem armazenada.");
+
+    const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(input.value);
+    if (!match) throw new Error("Envie uma imagem JPG, PNG ou WebP válida.");
+    mimeType = match[1];
+    bytes = Buffer.from(match[2], "base64");
   }
 
-  const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(input.value);
-  if (!match) throw new Error("Envie uma imagem JPG, PNG ou WebP válida.");
-  const bytes = Buffer.from(match[2], "base64");
+  if (!(mimeType in TYPES)) throw new Error("Envie uma imagem JPG, PNG ou WebP válida.");
   if (bytes.length === 0 || bytes.length > MAX_BYTES) throw new Error("A imagem deve ter no máximo 2 MB.");
-  if (!hasExpectedSignature(match[1], bytes)) throw new Error("O conteúdo do arquivo não corresponde a uma imagem válida.");
+  if (!hasExpectedSignature(mimeType, bytes)) throw new Error("O conteúdo do arquivo não corresponde a uma imagem válida.");
 
-  const path = `${input.clinicId}/${input.kind}/${randomUUID()}.${TYPES[match[1]]}`;
+  const path = `${input.clinicId}/${input.kind}/${randomUUID()}.${TYPES[mimeType]}`;
   const supabase = createAdminClient();
-  const { error } = await supabase.storage.from(BUCKET).upload(path, bytes, { contentType: match[1], upsert: false, cacheControl: "31536000" });
+  const { error } = await supabase.storage.from(BUCKET).upload(path, bytes, { contentType: mimeType, upsert: false, cacheControl: "31536000" });
   if (error) throw new Error(`Não foi possível armazenar a imagem: ${error.message}`);
   return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
 }

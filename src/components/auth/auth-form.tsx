@@ -8,7 +8,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createClient } from "@/lib/supabase/client";
+import { AuthCard } from "@/components/auth/auth-card";
 
 type Mode = "sign-in" | "sign-up";
 
@@ -100,11 +102,13 @@ export function AuthForm() {
   }
 
   return (
-    <div className="w-full rounded-2xl border border-border/80 bg-card p-6 shadow-lg">
-      <div role="group" aria-label="Tipo de acesso" className="mb-5 grid grid-cols-2 rounded-lg bg-muted p-1">
-        <button type="button" aria-pressed={mode === "sign-in"} onClick={() => setMode("sign-in")} className={`min-h-10 rounded-md px-3 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${mode === "sign-in" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>Entrar</button>
-        <button type="button" aria-pressed={mode === "sign-up"} onClick={() => setMode("sign-up")} className={`min-h-10 rounded-md px-3 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${mode === "sign-up" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>Criar conta</button>
-      </div>
+    <AuthCard>
+      <Tabs value={mode} onValueChange={(value) => setMode(value as Mode)} className="mb-5 gap-0">
+        <TabsList aria-label="Tipo de acesso" className="grid h-12 w-full grid-cols-2 rounded-lg">
+          <TabsTrigger value="sign-in" className="min-h-10">Entrar</TabsTrigger>
+          <TabsTrigger value="sign-up" className="min-h-10">Criar conta</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       <Button type="button" variant="outline" className="w-full" disabled={pending} onClick={handleGoogle}>
         <GoogleIcon />
@@ -118,6 +122,6 @@ export function AuthForm() {
         {mode === "sign-in" ? <Link href="/forgot-password" className="block text-right text-sm text-primary hover:underline">Esqueci minha senha</Link> : <p className="text-center text-xs text-muted-foreground">Use ao menos 8 caracteres. Você receberá a confirmação por e-mail.</p>}
         <Button type="submit" className="w-full" disabled={pending}>{pending ? "Aguarde..." : mode === "sign-in" ? "Entrar" : "Criar conta e testar grátis"}</Button>
       </form>}
-    </div>
+    </AuthCard>
   );
 }

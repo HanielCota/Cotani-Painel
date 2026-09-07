@@ -41,7 +41,7 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
 
   return (
     <main id="main-content" tabIndex={-1} className="relative mx-auto flex min-h-svh w-full max-w-2xl flex-col justify-center gap-6 overflow-x-hidden px-4 py-8 outline-none sm:py-10">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_top,oklch(0.91_0.08_165_/_0.45),transparent_68%)]" />
+      <div aria-hidden="true" className="public-page-glow pointer-events-none absolute inset-x-0 top-0 -z-10 h-72" />
       <Card>
         <CardHeader className="items-center gap-2 text-center">
           <span className="flex size-12 items-center justify-center rounded-2xl bg-accent text-primary"><CalendarCheckIcon aria-hidden="true" className="size-7" /></span>

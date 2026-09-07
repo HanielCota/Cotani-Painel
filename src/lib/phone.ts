@@ -31,3 +31,33 @@ export function buildWhatsAppLink(phone: string, message: string): string | null
   const encodedMessage = encodeURIComponent(message);
   return `https://wa.me/${normalizedPhone}?text=${encodedMessage}`;
 }
+
+export function formatBrazilianPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  const hasCountryCode = digits.startsWith("55") && digits.length >= 12;
+  const localDigits = hasCountryCode ? digits.slice(2) : digits;
+  const countryPrefix = hasCountryCode ? "+55 " : "";
+
+  if (localDigits.length === 11) {
+    return `${countryPrefix}(${localDigits.slice(0, 2)}) ${localDigits.slice(2, 7)}-${localDigits.slice(7)}`;
+  }
+
+  if (localDigits.length === 10) {
+    return `${countryPrefix}(${localDigits.slice(0, 2)}) ${localDigits.slice(2, 6)}-${localDigits.slice(6)}`;
+  }
+
+  return phone;
+}
+
+/** Máscara progressiva para campos de telefone brasileiro. */
+export function formatBrazilianPhoneInput(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return digits.length ? `(${digits}` : "";
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
+export function isValidBrazilianPhone(value: string): boolean {
+  const digits = value.replace(/\D/g, "");
+  return digits.length === 10 || digits.length === 11;
+}

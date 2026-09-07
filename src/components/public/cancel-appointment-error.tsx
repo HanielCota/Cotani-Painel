@@ -37,7 +37,7 @@ export function CancelAppointmentError({ clinicName, clinicSlug, variant }: Canc
         </EmptyHeader>
         <div className="flex w-full max-w-sm flex-col gap-3">
           <Button nativeButton={false} render={<Link href={`/${clinicSlug}`} />} className="h-12 w-full">
-            <CalendarCheckIcon aria-hidden="true" className="mr-2 size-4" />
+            <CalendarCheckIcon aria-hidden="true" data-icon="inline-start" />
             Fazer novo agendamento
           </Button>
         </div>
