@@ -40,6 +40,21 @@ export function BusinessHoursSettings({ businessHours, professionalId }: Busines
     );
   }
 
+  function toggleBreak(dayOfWeek: number) {
+    setLocalHours((current) =>
+      current.map((item) => {
+        if (item.dayOfWeek !== dayOfWeek) return item;
+
+        const hasBreak = Boolean(item.breakStart && item.breakEnd);
+        return {
+          ...item,
+          breakStart: hasBreak ? null : "12:00",
+          breakEnd: hasBreak ? null : "13:00",
+        };
+      }),
+    );
+  }
+
   return (
     <form action={formAction} className="flex flex-col gap-4">
       {professionalId ? <input type="hidden" name="professionalId" value={professionalId} /> : null}
@@ -54,17 +69,32 @@ export function BusinessHoursSettings({ businessHours, professionalId }: Busines
                 key={item.dayOfWeek}
                 className={`flex flex-col gap-4 p-4 sm:flex-row sm:items-start ${item.isOpen ? "" : "bg-background/60"}`}
               >
-                <div className="flex min-w-[10rem] items-center gap-3 sm:pt-6">
-                  <Checkbox
-                    name={`isOpen-${item.dayOfWeek}`}
-                    checked={item.isOpen}
-                    onCheckedChange={() => toggleDay(item.dayOfWeek)}
-                    value="on"
-                    uncheckedValue="off"
-                  />
-                  <span className={`text-sm font-medium ${item.isOpen ? "" : "text-muted-foreground"}`}>
-                    {weekdayLabels[item.dayOfWeek]}
-                  </span>
+                <div className="flex min-w-[10rem] flex-col gap-3 sm:pt-6">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      id={`isOpen-${item.dayOfWeek}`}
+                      aria-label={`${item.isOpen ? "Fechar" : "Abrir"} ${weekdayLabels[item.dayOfWeek]}`}
+                      name={`isOpen-${item.dayOfWeek}`}
+                      checked={item.isOpen}
+                      onCheckedChange={() => toggleDay(item.dayOfWeek)}
+                      value="on"
+                      uncheckedValue="off"
+                    />
+                    <label htmlFor={`isOpen-${item.dayOfWeek}`} className={`cursor-pointer text-sm font-medium ${item.isOpen ? "" : "text-muted-foreground"}`}>
+                      {weekdayLabels[item.dayOfWeek]}
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-2 pl-7">
+                    <Checkbox
+                      id={`noBreak-${item.dayOfWeek}`}
+                      checked={!item.breakStart && !item.breakEnd}
+                      onCheckedChange={() => toggleBreak(item.dayOfWeek)}
+                      disabled={!item.isOpen || isPending}
+                    />
+                    <label htmlFor={`noBreak-${item.dayOfWeek}`} className="cursor-pointer text-xs text-muted-foreground">
+                      Sem intervalo{" "}<span className="sr-only">em {weekdayLabels[item.dayOfWeek]}</span>
+                    </label>
+                  </div>
                 </div>
 
                 <FieldGroup className="grid min-w-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -108,7 +138,7 @@ export function BusinessHoursSettings({ businessHours, professionalId }: Busines
                       type="time"
                       value={item.breakStart ?? ""}
                       onChange={(event) => updateField(item.dayOfWeek, "breakStart", event.target.value)}
-                      disabled={!item.isOpen || isPending}
+                      disabled={!item.isOpen || !item.breakStart || !item.breakEnd || isPending}
                       className="w-full min-w-0"
                     />
                   </Field>
@@ -122,7 +152,7 @@ export function BusinessHoursSettings({ businessHours, professionalId }: Busines
                       type="time"
                       value={item.breakEnd ?? ""}
                       onChange={(event) => updateField(item.dayOfWeek, "breakEnd", event.target.value)}
-                      disabled={!item.isOpen || isPending}
+                      disabled={!item.isOpen || !item.breakStart || !item.breakEnd || isPending}
                       className="w-full min-w-0"
                     />
                   </Field>
@@ -164,6 +194,13 @@ function normalizeBusinessHours(hours: BusinessHourItem[]): BusinessHourItem[] {
 
   return defaults.map((defaultItem) => {
     const existing = byDay.get(defaultItem.dayOfWeek);
-    return existing ? { ...existing, breakStart: existing.breakStart ?? null, breakEnd: existing.breakEnd ?? null } : defaultItem;
+    if (!existing) return defaultItem;
+
+    const hasLegacyZeroLengthBreak = Boolean(existing.breakStart && existing.breakStart === existing.breakEnd);
+    return {
+      ...existing,
+      breakStart: hasLegacyZeroLengthBreak ? null : (existing.breakStart ?? null),
+      breakEnd: hasLegacyZeroLengthBreak ? null : (existing.breakEnd ?? null),
+    };
   });
 }
