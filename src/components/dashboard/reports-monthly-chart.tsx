@@ -11,8 +11,10 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { formatCurrency } from "@/lib/formatters";
 
 import type { MonthlyReportData } from "@/server/services/reports";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ReportsMonthlyChartProps {
   data: MonthlyReportData[];
@@ -34,7 +36,7 @@ function ChartTooltip({
         {payload.map((entry, index) => (
           <p key={index} style={{ color: entry.color }}>
             {entry.dataKey === "revenue"
-              ? `Receita: ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(entry.value)}`
+              ? `Receita: ${formatCurrency(entry.value)}`
               : `Agendamentos: ${entry.value}`}
           </p>
         ))}
@@ -46,9 +48,7 @@ function ChartTooltip({
 
 export function ReportsMonthlyChart({ data }: ReportsMonthlyChartProps) {
   return (
-    <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
-      <h3 className="mb-4 text-sm font-semibold text-card-foreground">Evolução mensal</h3>
-      <div className="h-64 w-full sm:h-80">
+    <Card><CardHeader><CardTitle>Evolução mensal</CardTitle></CardHeader><CardContent><div className="h-64 w-full sm:h-80">
         {data.length === 0 || data.every((d) => d.appointments === 0) ? (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
             Nenhum dado nos últimos meses
@@ -94,7 +94,6 @@ export function ReportsMonthlyChart({ data }: ReportsMonthlyChartProps) {
             </ComposedChart>
           </ResponsiveContainer>
         )}
-      </div>
-    </div>
+      </div></CardContent></Card>
   );
 }

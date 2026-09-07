@@ -15,7 +15,18 @@ import type { ActionResult } from "@/types";
 const initial: ActionResult = { status: "success", message: "" };
 export function NewCustomerDialog() {
   const [open, setOpen] = useState(false); const [state, action, pending] = useActionState(createCustomerFromForm, initial); const queryClient = useQueryClient();
-  useEffect(() => { if (!state.message) return; if (state.status === "error") toast.error(state.message); else { toast.success(state.message); void queryClient.invalidateQueries({ queryKey: ["customers"] }); queueMicrotask(() => setOpen(false)); } }, [state, queryClient]);
+  useEffect(() => {
+    if (!state.message) return;
+    if (state.status === "error") {
+      toast.error(state.message);
+      return;
+    }
+
+    toast.success(state.message);
+    void queryClient.invalidateQueries({ queryKey: ["customers"] })
+      .catch(() => toast.error("O cliente foi salvo, mas a lista não pôde ser atualizada."))
+      .finally(() => setOpen(false));
+  }, [state, queryClient]);
   return <Dialog open={open} onOpenChange={setOpen}><DialogTrigger render={<Button type="button" />}><UserPlusIcon />Novo cliente</DialogTrigger><DialogContent><DialogHeader><DialogTitle>Novo cliente</DialogTitle><DialogDescription>Cadastre os dados e informações de relacionamento.</DialogDescription></DialogHeader><form id="new-customer" action={action}><FieldGroup>
     <Field><FieldLabel htmlFor="new-customer-name">Nome</FieldLabel><Input id="new-customer-name" name="name" minLength={2} maxLength={120} required /></Field>
     <Field><FieldLabel htmlFor="new-customer-phone">Telefone</FieldLabel><Input id="new-customer-phone" name="phone" minLength={8} maxLength={32} required /></Field>

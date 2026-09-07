@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { toggleServiceActive } from "@/server/actions/services";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Spinner } from "@/components/ui/spinner";
 import type { ActionResult, ServiceListItem } from "@/types";
 
@@ -43,22 +43,22 @@ export function ServiceToggleActive({ service }: ServiceToggleActiveProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger
         render={<Button type="button" size="sm" variant={isActive ? "outline" : "secondary"} />}
       >
         {isActive ? <PowerOffIcon data-icon="inline-start" /> : <PowerIcon data-icon="inline-start" />}
         {isActive ? "Desativar" : "Reativar"}
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{isActive ? "Desativar serviço" : "Reativar serviço"}</DialogTitle>
-          <DialogDescription>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{isActive ? "Desativar serviço" : "Reativar serviço"}</AlertDialogTitle>
+          <AlertDialogDescription>
             {isActive
               ? "Serviços desativados não aparecem no agendamento público, mas mantêm o histórico."
               : "O serviço voltará a aparecer no agendamento público."}
-          </DialogDescription>
-        </DialogHeader>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
         <p className="text-sm text-muted-foreground">
           Confirma {isActive ? "desativar" : "reativar"} <strong className="font-medium text-foreground">{service.name}</strong>?
         </p>
@@ -67,14 +67,14 @@ export function ServiceToggleActive({ service }: ServiceToggleActiveProps) {
             <AlertDescription>{result.message}</AlertDescription>
           </Alert>
         ) : null}
-        <DialogFooter>
-          <DialogClose render={<Button type="button" variant="outline" disabled={isPending} />}>Cancelar</DialogClose>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isPending}>Cancelar</AlertDialogCancel>
           <Button type="button" variant={isActive ? "destructive" : "default"} disabled={isPending} onClick={handleToggle}>
             {isPending ? <Spinner data-icon="inline-start" /> : isActive ? <PowerOffIcon data-icon="inline-start" /> : <PowerIcon data-icon="inline-start" />}
             {isPending ? "Processando..." : isActive ? "Desativar" : "Reativar"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

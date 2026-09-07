@@ -42,7 +42,7 @@ export function LocationsSettings({ enabled, locations }: { enabled: boolean; lo
         <div className="grid gap-2 sm:grid-cols-2">
           {pagination.pageItems.map((location) => <UnitRow key={location.id} location={location} />)}
         </div>
-        <PaginationControls page={pagination.page} pageCount={pagination.pageCount} totalItems={locations.length} onPageChange={pagination.setPage} itemLabel="unidade" />
+        <PaginationControls page={pagination.page} pageCount={pagination.pageCount} totalItems={locations.length} onPageChange={pagination.setPage} itemLabelPlural="unidades" />
       </div>
 
       {enabled ? (

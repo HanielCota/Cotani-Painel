@@ -4,6 +4,7 @@ import type { AppointmentStatus } from "@/generated/prisma/enums";
 
 import type { ClinicModel } from "@/generated/prisma/models/Clinic";
 import prisma from "@/lib/prisma";
+import { appointmentStatusLabel } from "@/lib/display-labels";
 import { formatClinicDateKey, getClinicDateBounds, getClinicMonthlyBounds, parseClinicDateTime } from "@/lib/timezone";
 import type { AgendaAppointment } from "@/types";
 
@@ -33,7 +34,6 @@ export interface FinanceMetrics {
   monthCompletedCount: number;
   monthCanceledCount: number;
   monthNoShowCount: number;
-  monthAppointments: FinanceAppointment[];
   dailyRevenue: { date: string; value: number }[];
   monthlyRevenue: { month: string; revenue: number; ticket: number }[];
   paymentMethodDistribution: { name: string; value: number; color: string }[];
@@ -56,27 +56,19 @@ const paymentMethodLabels: Record<string, string> = {
 };
 
 const paymentMethodColors: Record<string, string> = {
-  PIX: "#8B5CF6",
-  CREDIT_CARD: "#F97316",
-  DEBIT_CARD: "#3B82F6",
-  CASH: "#10B981",
-  OTHER: "#9CA3AF",
-};
-
-const statusLabels: Record<string, string> = {
-  PENDING: "Pendente",
-  CONFIRMED: "Confirmado",
-  COMPLETED: "Concluído",
-  CANCELED: "Cancelado",
-  NO_SHOW: "Faltou",
+  PIX: "var(--chart-5)",
+  CREDIT_CARD: "var(--chart-3)",
+  DEBIT_CARD: "var(--chart-2)",
+  CASH: "var(--chart-4)",
+  OTHER: "var(--muted-foreground)",
 };
 
 const statusColors: Record<string, string> = {
-  PENDING: "#FBBF24",
-  CONFIRMED: "#82D951",
-  COMPLETED: "#3B82F6",
-  CANCELED: "#EF4444",
-  NO_SHOW: "#F97316",
+  PENDING: "var(--warning)",
+  CONFIRMED: "var(--primary)",
+  COMPLETED: "var(--chart-2)",
+  CANCELED: "var(--destructive)",
+  NO_SHOW: "var(--chart-3)",
 };
 
 function shiftDateKey(dateKey: string, days: number) {
@@ -116,6 +108,33 @@ export function financePeriodBounds(period: FinancePeriod, timeZone: string, now
   }
 
   return { start: startOfMonth, end: startOfNextMonth, previousStart: startOfPreviousMonth };
+}
+
+export async function getFinanceAppointmentsPage(
+  clinic: ClinicModel,
+  period: FinancePeriod,
+  page: number,
+  pageSize = 15,
+) {
+  const bounds = financePeriodBounds(period, clinic.timeZone);
+  const where = { clinicId: clinic.id, startTime: { gte: bounds.start, lt: bounds.end } };
+  const [appointments, total] = await Promise.all([
+    prisma.appointment.findMany({
+      where,
+      include: { service: true, customer: true, professional: true },
+      orderBy: { startTime: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.appointment.count({ where }),
+  ]);
+
+  return {
+    items: appointments.map(toFinanceAppointment),
+    total,
+    page,
+    pageSize,
+  };
 }
 
 function toFinanceAppointment(appointment: {
@@ -163,7 +182,7 @@ export async function getFinanceMetrics(clinic: ClinicModel, period: FinancePeri
         clinicId: clinic.id,
         startTime: { gte: periodBounds.start, lt: periodBounds.end },
       },
-      include: { service: true, customer: true, professional: true },
+      select: { startTime: true, status: true, paymentMethod: true, totalPrice: true },
       orderBy: { startTime: "desc" },
     }),
     prisma.appointment.findMany({
@@ -172,7 +191,7 @@ export async function getFinanceMetrics(clinic: ClinicModel, period: FinancePeri
         startTime: { gte: periodBounds.previousStart, lt: periodBounds.start },
         status: "COMPLETED",
       },
-      include: { service: true },
+      select: { totalPrice: true },
     }),
     prisma.appointment.findMany({
       where: {
@@ -180,7 +199,7 @@ export async function getFinanceMetrics(clinic: ClinicModel, period: FinancePeri
         startTime: { gte: historyStart, lt: startOfNextMonth },
         status: "COMPLETED",
       },
-      include: { service: true },
+      select: { startTime: true, totalPrice: true },
       orderBy: { startTime: "asc" },
     }),
   ]);
@@ -208,7 +227,6 @@ export async function getFinanceMetrics(clinic: ClinicModel, period: FinancePeri
   const monthCanceledCount = currentMonthAppointments.filter((a) => a.status === "CANCELED").length;
   const monthNoShowCount = currentMonthAppointments.filter((a) => a.status === "NO_SHOW").length;
 
-  const monthAppointments = currentMonthAppointments.map(toFinanceAppointment);
   const appointmentsByLocalDay = new Map<string, typeof currentMonthAppointments>();
   for (const appointment of currentMonthAppointments) {
     const key = formatClinicDateKey(appointment.startTime, clinic.timeZone);
@@ -275,7 +293,7 @@ export async function getFinanceMetrics(clinic: ClinicModel, period: FinancePeri
     .map(([method, value]) => ({
       name: paymentMethodLabels[method] ?? method,
       value: totalPaymentMethodRevenue > 0 ? Math.round((value / totalPaymentMethodRevenue) * 100) : 0,
-      color: paymentMethodColors[method] ?? "#9CA3AF",
+      color: paymentMethodColors[method] ?? "var(--muted-foreground)",
     }))
     .sort((a, b) => b.value - a.value);
 
@@ -286,9 +304,9 @@ export async function getFinanceMetrics(clinic: ClinicModel, period: FinancePeri
   }
   const statusDistribution = Object.entries(statusCounts)
     .map(([status, value]) => ({
-      name: statusLabels[status] ?? status,
+      name: appointmentStatusLabel(status),
       value,
-      color: statusColors[status] ?? "#9CA3AF",
+      color: statusColors[status] ?? "var(--muted-foreground)",
     }))
     .sort((a, b) => b.value - a.value);
 
@@ -319,7 +337,6 @@ export async function getFinanceMetrics(clinic: ClinicModel, period: FinancePeri
     monthCompletedCount,
     monthCanceledCount,
     monthNoShowCount,
-    monthAppointments,
     dailyRevenue,
     monthlyRevenue,
     paymentMethodDistribution,

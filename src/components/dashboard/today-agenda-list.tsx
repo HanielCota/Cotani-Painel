@@ -2,19 +2,11 @@
 
 import { CalendarX2Icon } from "lucide-react";
 
-import { appointmentStatusLabel } from "@/components/dashboard/agenda-appointments-list";
+import { appointmentStatusBadgeVariant, appointmentStatusLabel } from "@/lib/display-labels";
 import { Badge } from "@/components/ui/badge";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTodayAppointments } from "@/hooks/use-today-appointments";
-
-const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  CONFIRMED: "default",
-  PENDING: "secondary",
-  COMPLETED: "outline",
-  CANCELED: "destructive",
-  NO_SHOW: "destructive",
-};
 
 export function TodayAgendaListSkeleton() {
   return (
@@ -80,8 +72,8 @@ export function TodayAgendaList({ timeZone }: TodayAgendaListProps) {
                 <p className="truncate text-xs text-muted-foreground">{appointment.serviceName}</p>
               </div>
             </div>
-            <Badge variant={statusVariant[appointment.status] ?? "secondary"} className="w-fit">
-              {appointmentStatusLabel[appointment.status as keyof typeof appointmentStatusLabel]}
+            <Badge variant={appointmentStatusBadgeVariant(appointment.status)} className="w-fit">
+              {appointmentStatusLabel(appointment.status)}
             </Badge>
           </div>
         );

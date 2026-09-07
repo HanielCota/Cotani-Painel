@@ -31,5 +31,6 @@ export function useCustomers(params: UseCustomersParams) {
     queryKey: ["customers", clinicId, params],
     queryFn: () => fetchCustomers(params),
     placeholderData: keepPreviousData,
+    retry: 2,
   });
 }

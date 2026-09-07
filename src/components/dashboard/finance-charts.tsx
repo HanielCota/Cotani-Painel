@@ -16,6 +16,9 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { formatCurrency, formatNumber, formatWholeCurrency } from "@/lib/formatters";
 
 export interface DailyRevenueData {
   date: string;
@@ -49,10 +52,10 @@ function ChartCard({
   className?: string;
 }) {
   return (
-    <div className={`rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)] ${className}`}>
-      <h3 className="mb-4 text-sm font-semibold text-card-foreground">{title}</h3>
-      {children}
-    </div>
+    <Card className={cn(className)}>
+      <CardHeader><CardTitle>{title}</CardTitle></CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
   );
 }
 
@@ -75,8 +78,8 @@ function ChartTooltip({
           <p key={index}>
             {entry.name ? `${entry.name}: ` : ""}
             {format === "currency"
-              ? new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(entry.value)
-              : new Intl.NumberFormat("pt-BR").format(entry.value)}
+              ? formatCurrency(entry.value)
+              : formatNumber(entry.value)}
           </p>
         ))}
       </div>
@@ -267,7 +270,7 @@ export function SalesCalendarHeatmap({ data }: SalesCalendarHeatmapProps) {
               />
             </div>
             <span className="text-xs font-medium text-foreground">
-              {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(row.value)}
+              {formatWholeCurrency(row.value)}
             </span>
           </div>
         ))}

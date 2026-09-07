@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { usePagination } from "@/hooks/use-pagination";
+import { appointmentStatusBadgeVariant, appointmentStatusLabel } from "@/lib/display-labels";
 
 interface CustomerAppointmentHistoryProps {
   appointments: Array<{
@@ -13,14 +14,6 @@ interface CustomerAppointmentHistoryProps {
     status: string;
   }>;
 }
-
-const statusLabels: Record<string, string> = {
-  PENDING: "Pendente",
-  CONFIRMED: "Confirmado",
-  COMPLETED: "Concluído",
-  CANCELED: "Cancelado",
-  NO_SHOW: "Faltou",
-};
 
 export function CustomerAppointmentHistory({ appointments }: CustomerAppointmentHistoryProps) {
   const pagination = usePagination(appointments);
@@ -37,11 +30,11 @@ export function CustomerAppointmentHistory({ appointments }: CustomerAppointment
             <span>{appointment.dateTime}</span>
             <span>{appointment.serviceName}</span>
             <span>{appointment.professionalName}</span>
-            <Badge variant="outline" className="w-fit">{statusLabels[appointment.status] ?? appointment.status}</Badge>
+            <Badge variant={appointmentStatusBadgeVariant(appointment.status)} className="w-fit">{appointmentStatusLabel(appointment.status)}</Badge>
           </div>
         ))}
       </div>
-      <PaginationControls page={pagination.page} pageCount={pagination.pageCount} totalItems={appointments.length} onPageChange={pagination.setPage} itemLabel="atendimento" />
+      <PaginationControls page={pagination.page} pageCount={pagination.pageCount} totalItems={appointments.length} onPageChange={pagination.setPage} itemLabelPlural="atendimentos" />
     </div>
   );
 }

@@ -1,8 +1,7 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
-import { ImageIcon, SaveIcon } from "lucide-react";
-import { toast } from "sonner";
+import { useActionState } from "react";
+import { SaveIcon } from "lucide-react";
 
 import { saveBusinessProfile } from "@/server/actions/clinic-settings";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ActionResult } from "@/types";
+import { useActionFeedback } from "@/hooks/use-action-feedback";
+import { FileUpload } from "@/components/ui/file-upload";
 
 const initialState: ActionResult = { status: "success", message: "" };
 const timeZones = [["America/Sao_Paulo","Brasília (São Paulo)"],["America/Manaus","Manaus"],["America/Cuiaba","Cuiabá"],["America/Rio_Branco","Rio Branco"],["America/Fortaleza","Fortaleza"],["America/Recife","Recife"],["America/Bahia","Salvador"],["America/Belem","Belém"]].map(([value, label]) => ({ value, label }));
@@ -22,11 +23,7 @@ interface Props {
 
 export function BusinessProfileForm({ clinic }: Props) {
   const [state, action, pending] = useActionState(saveBusinessProfile, initialState);
-  useEffect(() => {
-    if (!state.message) return;
-    if (state.status === "success") toast.success(state.message);
-    else toast.error(state.message);
-  }, [state]);
+  useActionFeedback(state);
 
   return (
     <form action={action} className="grid gap-4 sm:grid-cols-2">
@@ -38,11 +35,7 @@ export function BusinessProfileForm({ clinic }: Props) {
       <div className="space-y-1.5"><Label htmlFor="business-timezone">Fuso horário</Label><Select name="timeZone" defaultValue={clinic.timeZone} items={timeZones}><SelectTrigger id="business-timezone"><SelectValue /></SelectTrigger><SelectContent>{timeZones.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent></Select></div>
       <div className="space-y-1.5">
         <Label htmlFor="business-image">Logo ou foto</Label>
-        <label htmlFor="business-image" className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-dashed border-border bg-background/55 px-4 py-3 text-sm transition-colors hover:border-primary/50 hover:bg-primary/5 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/20">
-          <ImageIcon className="size-5 shrink-0 text-primary" />
-          <span><strong className="font-medium text-foreground">Escolher imagem</strong><span className="mt-0.5 block text-xs text-muted-foreground">JPG, PNG ou WebP · até 2 MB</span></span>
-          <input id="business-image" name="image" type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" />
-        </label>
+        <FileUpload id="business-image" name="image" accept="image/jpeg,image/png,image/webp" title="Escolher imagem" description="JPG, PNG ou WebP · até 2 MB" />
         <input type="hidden" name="currentImageUrl" value={clinic.imageUrl ?? ""} />
         {clinic.imageUrl ? <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground"><Checkbox name="removeImage" value="on" /> Remover imagem atual</label> : null}
       </div>

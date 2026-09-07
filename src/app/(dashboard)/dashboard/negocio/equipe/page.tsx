@@ -19,7 +19,7 @@ export default withTenant(async ({ clinic, membership }) => {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Equipe" description={`Pessoas com acesso ao painel de ${clinic.name}.`} />
-      <Card className="max-w-6xl">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><UsersIcon />Acessos e convites</CardTitle>
           <CardDescription>Defina quem pode administrar, atender ou operar o negócio.</CardDescription>

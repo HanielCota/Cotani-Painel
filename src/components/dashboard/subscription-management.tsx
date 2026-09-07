@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowRightIcon, CreditCardIcon, RotateCcwIcon, ShieldCheckIcon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -20,19 +21,21 @@ const initial: ActionResult = { status: "success", message: "" };
 
 function ActionButton({ action, children, variant = "outline" }: { action: () => Promise<ActionResult>; children: React.ReactNode; variant?: "outline" | "destructive" }) {
   const [pending, startTransition] = useTransition();
-  return <Button type="button" variant={variant} disabled={pending} onClick={() => startTransition(async () => { const result = await action(); if (result.status === "success") toast.success(result.message); else toast.error(result.message); if (result.status === "success") window.location.reload(); })}>{pending ? "Processando..." : children}</Button>;
+  const router = useRouter();
+  return <Button type="button" variant={variant} disabled={pending} onClick={() => startTransition(async () => { const result = await action(); if (result.status === "success") toast.success(result.message); else toast.error(result.message); if (result.status === "success") router.refresh(); })}>{pending ? "Processando..." : children}</Button>;
 }
 
 export function SubscriptionManagement({ currentPlan, pendingPlan, cancelAtPeriodEnd, issuesByPlan, refundEligible }: { currentPlan: SubscriptionPlan | null; pendingPlan: SubscriptionPlan | null; cancelAtPeriodEnd: boolean; issuesByPlan: Partial<Record<SubscriptionPlan, PlanFitIssue[]>>; refundEligible: boolean }) {
   const [state, action, pending] = useActionState(schedulePlanChange, initial);
-  useEffect(() => { if (!state.message) return; if (state.status === "success") toast.success(state.message); else toast.error(state.message); if (state.status === "success") window.location.reload(); }, [state]);
+  const router = useRouter();
+  useEffect(() => { if (!state.message) return; if (state.status === "success") toast.success(state.message); else toast.error(state.message); if (state.status === "success") router.refresh(); }, [state, router]);
   const options = [SubscriptionPlan.ESSENTIAL, SubscriptionPlan.PROFESSIONAL].filter((plan) => plan !== currentPlan);
   return <div className="grid gap-4 lg:grid-cols-2">
     <Card>
       <CardHeader><CardTitle>Alterar plano</CardTitle><CardDescription>A mudança entra na próxima cobrança. Nada é apagado; downgrades são bloqueados enquanto houver excedentes.</CardDescription></CardHeader>
       <CardContent className="space-y-4">
         {pendingPlan ? <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm"><p className="font-medium">Troca programada para {pendingPlan === "ESSENTIAL" ? "Essencial" : "Profissional"}.</p><ActionButton action={cancelScheduledPlanChange}><RotateCcwIcon />Desfazer troca</ActionButton></div> : null}
-        {options.map((plan) => { const issues = issuesByPlan[plan] ?? []; return <div key={plan} className="rounded-lg border p-3"><div className="flex items-center justify-between gap-3"><div><p className="font-medium">{plan === "ESSENTIAL" ? "Essencial" : "Profissional"}</p>{issues.map((issue) => <p key={issue.kind} className="text-sm text-amber-700 dark:text-amber-300">{issue.message}</p>)}</div>{issues.length ? <Button type="button" nativeButton={false} variant="outline" render={<a href={issues[0].href} />}><ArrowRightIcon />Resolver excedentes</Button> : <form action={action}><input type="hidden" name="plan" value={plan}/><Button type="submit" disabled={pending || Boolean(pendingPlan)}>Programar troca</Button></form>}</div></div> })}
+        {options.map((plan) => { const issues = issuesByPlan[plan] ?? []; return <div key={plan} className="rounded-lg border p-3"><div className="flex items-center justify-between gap-3"><div><p className="font-medium">{plan === "ESSENTIAL" ? "Essencial" : "Profissional"}</p>{issues.map((issue) => <p key={issue.kind} className="text-sm text-warning">{issue.message}</p>)}</div>{issues.length ? <Button type="button" nativeButton={false} variant="outline" render={<a href={issues[0].href} />}><ArrowRightIcon />Resolver excedentes</Button> : <form action={action}><input type="hidden" name="plan" value={plan}/><Button type="submit" disabled={pending || Boolean(pendingPlan)}>Programar troca</Button></form>}</div></div> })}
       </CardContent>
     </Card>
     <Card>

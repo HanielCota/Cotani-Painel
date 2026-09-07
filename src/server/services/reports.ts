@@ -48,16 +48,66 @@ export interface ReportsMetrics {
   monthlyData: MonthlyReportData[];
   topServices: TopServiceData[];
   topProfessionals: TopProfessionalData[];
-  monthAppointments: ReportAppointment[];
+  periodAppointmentsTotal: number;
 }
 
 const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
-export async function getReportsMetrics(clinic: ClinicModel, options?: { from?: Date; to?: Date; clinicIds?: string[] }): Promise<ReportsMetrics> {
+export interface ReportsQueryOptions { from?: Date; to?: Date; clinicIds?: string[] }
+
+function getReportScope(clinic: ClinicModel, options?: ReportsQueryOptions) {
   const { startOfMonth, startOfNextMonth } = getClinicDateBounds(clinic.timeZone);
-  const reportStart = options?.from ?? startOfMonth;
-  const reportEnd = options?.to ?? startOfNextMonth;
-  const clinicIds = options?.clinicIds?.length ? options.clinicIds : [clinic.id];
+  return {
+    reportStart: options?.from ?? startOfMonth,
+    reportEnd: options?.to ?? startOfNextMonth,
+    clinicIds: options?.clinicIds?.length ? options.clinicIds : [clinic.id],
+  };
+}
+
+function toReportAppointment(appointment: {
+  id: string; startTime: Date; status: string; totalPrice: unknown;
+  customer: { name: string }; service: { name: string }; professional: { name: string } | null;
+}): ReportAppointment {
+  return {
+    id: appointment.id,
+    customerName: appointment.customer.name,
+    serviceName: appointment.service.name,
+    professionalName: appointment.professional?.name ?? null,
+    startTime: appointment.startTime.toISOString(),
+    status: appointment.status,
+    servicePrice: Number(appointment.totalPrice),
+  };
+}
+
+export async function getReportAppointmentsPage(clinic: ClinicModel, options: ReportsQueryOptions, page: number, pageSize = 15) {
+  const { reportStart, reportEnd, clinicIds } = getReportScope(clinic, options);
+  const where = { clinicId: { in: clinicIds }, startTime: { gte: reportStart, lt: reportEnd } };
+  const [items, total] = await Promise.all([
+    prisma.appointment.findMany({
+      where,
+      include: { customer: true, service: true, professional: true },
+      orderBy: { startTime: "asc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.appointment.count({ where }),
+  ]);
+  return { items: items.map(toReportAppointment), total, page, pageSize };
+}
+
+export async function getReportAppointmentsForExport(clinic: ClinicModel, options: ReportsQueryOptions) {
+  const { reportStart, reportEnd, clinicIds } = getReportScope(clinic, options);
+  const items = await prisma.appointment.findMany({
+    where: { clinicId: { in: clinicIds }, startTime: { gte: reportStart, lt: reportEnd } },
+    include: { customer: true, service: true, professional: true },
+    orderBy: { startTime: "asc" },
+  });
+  return items.map(toReportAppointment);
+}
+
+export async function getReportsMetrics(clinic: ClinicModel, options?: ReportsQueryOptions): Promise<ReportsMetrics> {
+  const { startOfMonth, startOfNextMonth } = getClinicDateBounds(clinic.timeZone);
+  const { reportStart, reportEnd, clinicIds } = getReportScope(clinic, options);
   const monthlyBounds = getClinicMonthlyBounds(clinic.timeZone, 8);
   const historyStart = monthlyBounds[0]?.start ?? startOfMonth;
 
@@ -180,16 +230,6 @@ export async function getReportsMetrics(clinic: ClinicModel, options?: { from?: 
     .sort((a, b) => b.count - a.count)
     .slice(0, 5);
 
-  const monthAppointments: ReportAppointment[] = monthAppointmentsResult.map((appointment) => ({
-    id: appointment.id,
-    customerName: appointment.customer.name,
-    serviceName: appointment.service.name,
-    professionalName: appointment.professional?.name ?? null,
-    startTime: appointment.startTime.toISOString(),
-    status: appointment.status,
-    servicePrice: Number(appointment.totalPrice),
-  }));
-
   return {
     totalAppointments,
     totalCustomers,
@@ -207,7 +247,7 @@ export async function getReportsMetrics(clinic: ClinicModel, options?: { from?: 
     monthlyData,
     topServices,
     topProfessionals,
-    monthAppointments,
+    periodAppointmentsTotal: monthAppointmentsResult.length,
   };
 }
 

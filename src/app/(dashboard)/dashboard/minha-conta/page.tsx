@@ -11,14 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import prisma from "@/lib/prisma";
 import { withTenant } from "@/server/with-tenant";
+import { clinicRoleLabel } from "@/lib/display-labels";
 
 export const metadata: Metadata = { title: "Minha conta" };
-
-const roleLabels = {
-  ADMIN: "Administrador",
-  RECEPTIONIST: "Recepção",
-  PROVIDER: "Profissional",
-} as const;
 
 export default withTenant(async ({ membership, role }) => {
   const user = await prisma.user.findUniqueOrThrow({
@@ -38,7 +33,7 @@ export default withTenant(async ({ membership, role }) => {
               <CardDescription>Informações usadas para identificar você no painel.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
-              <p className="text-sm text-muted-foreground">Perfil de acesso: <strong className="text-foreground">{roleLabels[role]}</strong></p>
+              <p className="text-sm text-muted-foreground">Perfil de acesso: <strong className="text-foreground">{clinicRoleLabel(role)}</strong></p>
               <AccountProfileSettings user={user} />
             </CardContent>
           </Card>

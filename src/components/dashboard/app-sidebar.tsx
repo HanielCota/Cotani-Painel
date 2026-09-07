@@ -8,13 +8,14 @@ import {
 } from "react";
 import {
   Building2Icon,
+  CalendarClockIcon,
   ChartNoAxesCombinedIcon,
   CalendarDaysIcon,
   CreditCardIcon,
   DollarSignIcon,
   LayoutDashboardIcon,
   MessageCircleIcon,
-  SparklesIcon,
+  TagIcon,
   StoreIcon,
   UsersIcon,
   Users2Icon,
@@ -30,6 +31,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -76,9 +78,9 @@ const operationItems: NavigationItem[] = [
 
 const storeItems: NavigationItem[] = [
   { title: "Visão do negócio", href: "/dashboard/negocio", icon: StoreIcon, exact: true },
-  { title: "Serviços", href: "/dashboard/negocio/servicos", icon: SparklesIcon },
+  { title: "Serviços", href: "/dashboard/negocio/servicos", icon: TagIcon },
   { title: "Profissionais", href: "/dashboard/negocio/profissionais", icon: Users2Icon },
-  { title: "Horários", href: "/dashboard/negocio/horarios", icon: CalendarDaysIcon },
+  { title: "Horários", href: "/dashboard/negocio/horarios", icon: CalendarClockIcon },
   { title: "Equipe", href: "/dashboard/negocio/equipe", icon: UsersIcon },
   { title: "Unidades", href: "/dashboard/negocio/unidades", icon: Building2Icon },
 ];
@@ -173,7 +175,7 @@ function ProfileCompanyCard({ user, clinics, activeClinicId }: { user: SidebarId
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <form action={signOut}><button type="submit" className="flex min-h-10 w-full items-center gap-2 rounded-md px-2 py-2 text-sm outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"><LogOutIcon aria-hidden="true" className="size-4" />Sair</button></form>
+        <form action={signOut}><DropdownMenuItem render={<button type="submit" />} variant="destructive" className="min-h-10 w-full px-2 py-2"><LogOutIcon aria-hidden="true" className="size-4" />Sair</DropdownMenuItem></form>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -197,9 +199,9 @@ function ProfileCompanyCard({ user, clinics, activeClinicId }: { user: SidebarId
                 {clinics.map((clinic) => (
                   <form action={switchActiveClinic} key={clinic.id}>
                     <input type="hidden" name="clinicId" value={clinic.id} />
-                    <button type="submit" aria-current={clinic.id === activeClinic.id ? "true" : undefined} className={`min-h-10 w-full rounded-md px-2 py-2 text-left text-sm outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset ${clinic.id === activeClinic.id ? "font-semibold text-primary" : ""}`}>
+                    <DropdownMenuItem render={<button type="submit" />} aria-current={clinic.id === activeClinic.id ? "true" : undefined} className={`min-h-10 w-full px-2 py-2 ${clinic.id === activeClinic.id ? "font-semibold text-primary" : ""}`}>
                       {clinic.name}
-                    </button>
+                    </DropdownMenuItem>
                   </form>
                 ))}
               </DropdownMenuGroup>
@@ -213,7 +215,7 @@ function ProfileCompanyCard({ user, clinics, activeClinicId }: { user: SidebarId
         render={<Link href="/dashboard/agenda" />}
         className="w-full justify-center bg-primary text-primary-foreground hover:bg-primary/90"
       >
-        <CalendarDaysIcon className="mr-2 size-4" />
+        <CalendarDaysIcon data-icon="inline-start" />
         Abrir agenda
       </Button>
     </div>
@@ -222,16 +224,13 @@ function ProfileCompanyCard({ user, clinics, activeClinicId }: { user: SidebarId
 
 function useBottomShadow<T extends HTMLElement>() {
   const ref = useRef<T>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
 
   useEffect(() => {
     const element = ref.current;
-    if (!element) return;
-
-    const sentinel = document.createElement("div");
-    sentinel.setAttribute("data-scroll-sentinel", "");
-    sentinel.className = "absolute bottom-0 left-0 h-px w-px";
-    element.appendChild(sentinel);
+    const sentinel = sentinelRef.current;
+    if (!element || !sentinel) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -244,13 +243,10 @@ function useBottomShadow<T extends HTMLElement>() {
 
     return () => {
       observer.disconnect();
-      if (sentinel.parentNode === element) {
-        element.removeChild(sentinel);
-      }
     };
   }, []);
 
-  return { ref, isAtBottom };
+  return { ref, sentinelRef, isAtBottom };
 }
 
 function NavSection({ title, children }: { title: string; children: React.ReactNode }) {
@@ -265,7 +261,7 @@ function NavSection({ title, children }: { title: string; children: React.ReactN
 }
 
 export function AppSidebar({ subscriptionPlan, role, user, clinics, activeClinicId }: { subscriptionPlan?: SubscriptionPlan | null; role?: ClinicRole; user: SidebarIdentity; clinics: SidebarClinic[]; activeClinicId?: string | null }) {
-  const { ref: contentRef, isAtBottom } = useBottomShadow<HTMLDivElement>();
+  const { ref: contentRef, sentinelRef, isAtBottom } = useBottomShadow<HTMLDivElement>();
   const showShadow = !isAtBottom;
   const entitlements = getPlanEntitlements(subscriptionPlan);
   const visibleOperationItems = operationItems.filter((item) => {
@@ -315,6 +311,8 @@ export function AppSidebar({ subscriptionPlan, role, user, clinics, activeClinic
             ))}
           </SidebarMenu>
         </NavSection>
+
+        <div ref={sentinelRef} aria-hidden className="h-px w-full shrink-0" />
 
         <div
           aria-hidden

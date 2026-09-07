@@ -9,7 +9,7 @@ import { ClinicSuspendedState } from "@/components/dashboard/clinic-suspended-st
 import { SubscriptionBanner } from "@/components/dashboard/subscription-banner";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ensureCurrentAppUser } from "@/server/auth";
-import { getAvailableClinics, getSelectedClinicId, getTenantContext, TenantResolutionError, type TenantContext } from "@/server/tenant";
+import { getAvailableClinics, getSelectedClinicId } from "@/server/tenant";
 import { isSubscriptionActive } from "@/server/subscription";
 import { getSubscriptionPlanOptions } from "@/server/services/subscription-plan-options";
 import { requiresMfaVerification } from "@/server/auth";
@@ -45,7 +45,7 @@ function DashboardShell({ children, insetClassName = "bg-background", subscripti
         <div className="px-4 pt-4 md:hidden">
           <SidebarTrigger className="size-9 border border-border/60 bg-card shadow-sm" />
         </div>
-        <div className="mx-auto flex w-full max-w-[1360px] flex-1 flex-col gap-5 p-4 pb-10 sm:gap-6 sm:p-6 sm:pb-12 lg:px-8 lg:py-8">
+        <div className="mx-auto flex w-full min-w-0 max-w-[1360px] flex-1 flex-col gap-5 p-4 pb-10 sm:gap-6 sm:p-6 sm:pb-12 lg:px-8 lg:py-8">
           {children}
         </div>
       </SidebarInset>
@@ -56,6 +56,7 @@ function DashboardShell({ children, insetClassName = "bg-background", subscripti
 
 export default async function DashboardLayout({ children }: DashboardLayoutProps) {
   if (await requiresMfaVerification()) redirect("/mfa?redirect=/dashboard");
+
   const [{ appUser }, memberships, selectedClinicId] = await Promise.all([
     ensureCurrentAppUser(),
     getAvailableClinics(),
@@ -75,28 +76,10 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
     );
   }
 
-  let tenant: TenantContext | null = null;
-  let tenantResolutionFailed = false;
-
-  try {
-    tenant = await getTenantContext();
-  } catch (error) {
-    if (error instanceof TenantResolutionError) {
-      tenantResolutionFailed = true;
-    } else {
-      throw error;
-    }
-  }
-
-  if (tenantResolutionFailed || !tenant) {
-    return (
-      <DashboardShell {...sidebarProps}>
-        <EmptyClinicState />
-      </DashboardShell>
-    );
-  }
-
-  const { clinic, role } = tenant;
+  // As associações acima já foram buscadas e validadas para o usuário atual.
+  // Reaproveitá-las evita uma segunda resolução completa do tenant em toda navegação.
+  const activeMembership = memberships.find(({ clinicId }) => clinicId === selectedClinicId) ?? memberships[0];
+  const { clinic, role } = { clinic: activeMembership.clinic, role: activeMembership.role };
 
   if (clinic.operationalStatus === "SUSPENDED" || clinic.deletedAt) {
     return (

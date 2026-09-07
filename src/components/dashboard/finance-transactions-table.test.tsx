@@ -30,28 +30,39 @@ const appointments: FinanceAppointment[] = [
   },
 ];
 
+function table(appointments: FinanceAppointment[]) {
+  return (
+    <FinanceTransactionsTable
+      data={{ items: appointments, total: appointments.length, page: 1, pageSize: 15 }}
+      timeZone="America/Sao_Paulo"
+      period="month"
+      siblingPage={1}
+    />
+  );
+}
+
 describe("FinanceTransactionsTable", () => {
   it("renderiza tabela com transações", () => {
-    render(<FinanceTransactionsTable appointments={appointments} />);
+    render(table(appointments));
 
     expect(screen.getByText("Transações recentes")).toBeInTheDocument();
-    expect(screen.getByText("João Silva")).toBeInTheDocument();
-    expect(screen.getByText("Maria Souza")).toBeInTheDocument();
-    expect(screen.getByText("Serviço A")).toBeInTheDocument();
-    expect(screen.getByText("Carlos")).toBeInTheDocument();
-    expect(screen.getByText("R$ 50,00")).toBeInTheDocument();
+    expect(screen.getAllByText("João Silva")).toHaveLength(2);
+    expect(screen.getAllByText("Maria Souza")).toHaveLength(2);
+    expect(screen.getAllByText("Serviço A")).toHaveLength(2);
+    expect(screen.getAllByText("Carlos")).toHaveLength(2);
+    expect(screen.getAllByText("R$ 50,00")).toHaveLength(2);
   });
 
   it("não exibe valor para agendamentos cancelados", () => {
-    render(<FinanceTransactionsTable appointments={appointments} />);
+    render(table(appointments));
 
-    const canceledRow = screen.getByText("Maria Souza").closest("tr");
+    const canceledRow = screen.getAllByText("Maria Souza")[0].closest("tr");
     expect(canceledRow).toHaveTextContent("Cancelado");
     expect(canceledRow).not.toHaveTextContent("R$ 35,00");
   });
 
   it("renderiza empty state quando não há transações", () => {
-    render(<FinanceTransactionsTable appointments={[]} />);
+    render(table([]));
 
     expect(screen.getByText("Nenhuma transação no período selecionado.")).toBeInTheDocument();
   });

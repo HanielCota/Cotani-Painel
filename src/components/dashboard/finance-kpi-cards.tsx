@@ -1,8 +1,10 @@
 "use client";
 
-import { AlertTriangle, BarChart3, CircleDollarSign, DollarSign } from "lucide-react";
+import { BarChart3, CalendarXIcon, CircleDollarSign, DollarSign } from "lucide-react";
 
 import { Sparkline } from "@/components/dashboard/sparkline";
+import { Card, CardContent } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/formatters";
 
 interface FinanceKpiCardProps {
   title: string;
@@ -13,14 +15,15 @@ interface FinanceKpiCardProps {
   };
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   iconBg?: string;
+  iconColor?: string;
   sparklineData?: number[];
 }
 
-function FinanceKpiCard({ title, value, change, icon: Icon, iconBg = "bg-primary/10", sparklineData }: FinanceKpiCardProps) {
+function FinanceKpiCard({ title, value, change, icon: Icon, iconBg = "bg-primary/10", iconColor = "text-primary", sparklineData }: FinanceKpiCardProps) {
   return (
-    <div className="flex items-start gap-4 rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+    <Card size="sm"><CardContent className="flex items-start gap-4">
       <div className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${iconBg}`}>
-        <Icon className="size-6 text-primary" strokeWidth={1.5} />
+        <Icon className={`size-6 ${iconColor}`} strokeWidth={1.5} />
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <span className="text-sm font-medium text-muted-foreground">{title}</span>
@@ -39,7 +42,7 @@ function FinanceKpiCard({ title, value, change, icon: Icon, iconBg = "bg-primary
           </div>
         ) : null}
       </div>
-    </div>
+    </CardContent></Card>
   );
 }
 
@@ -60,8 +63,6 @@ interface FinanceKpiCardsProps {
     cancellations: number[];
   };
 }
-
-const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 export function FinanceKpiCards({
   currentMonthRevenue,
@@ -84,7 +85,7 @@ export function FinanceKpiCards({
     <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <FinanceKpiCard
         title="Receita realizada"
-        value={priceFormatter.format(currentMonthRevenue)}
+        value={formatCurrency(currentMonthRevenue)}
         change={
           revenueChangePercent !== null
             ? { value: `${revenueChangePercent}%`, isPositive: revenueChangePercent >= 0 }
@@ -96,19 +97,21 @@ export function FinanceKpiCards({
       />
       <FinanceKpiCard
         title="Receita em aberto"
-        value={priceFormatter.format(expectedRevenue)}
+        value={formatCurrency(expectedRevenue)}
         change={{ value: `${monthPendingCount + monthConfirmedCount} agendamentos`, isPositive: true }}
         icon={CircleDollarSign}
         iconBg="bg-blue-500/10"
+        iconColor="text-blue-500"
         sparklineData={kpiSeries?.forecast}
       />
       <FinanceKpiCard
         title="Ticket médio"
-        value={priceFormatter.format(
+        value={formatCurrency(
           monthCompletedCount > 0 ? currentMonthRevenue / monthCompletedCount : 0,
         )}
         icon={BarChart3}
         iconBg="bg-purple-500/10"
+        iconColor="text-purple-500"
         sparklineData={kpiSeries?.ticket}
       />
       <FinanceKpiCard
@@ -118,8 +121,9 @@ export function FinanceKpiCards({
           value: `${monthAppointmentsTotal > 0 ? Math.round(((monthCanceledCount + monthNoShowCount) / monthAppointmentsTotal) * 100) : 0}% do total`,
           isPositive: false,
         }}
-        icon={AlertTriangle}
+        icon={CalendarXIcon}
         iconBg="bg-destructive/10"
+        iconColor="text-destructive"
         sparklineData={kpiSeries?.cancellations}
       />
     </section>

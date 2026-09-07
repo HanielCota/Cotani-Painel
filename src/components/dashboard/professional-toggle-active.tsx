@@ -36,6 +36,7 @@ export function ProfessionalToggleActive({ professional }: ProfessionalToggleAct
       size="icon"
       onClick={handleToggle}
       disabled={isPending}
+      aria-label={professional.isActive ? `Desativar profissional ${professional.name}` : `Reativar profissional ${professional.name}`}
       title={professional.isActive ? "Desativar profissional" : "Reativar profissional"}
     >
       {isPending ? <Spinner className="size-4" /> : professional.isActive ? <PowerOffIcon className="size-4" /> : <PowerIcon className="size-4" />}

@@ -9,7 +9,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -30,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import type { ActionResult } from "@/types";
 
 type AppointmentStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELED" | "NO_SHOW";
@@ -192,17 +192,17 @@ export function AppointmentActions({ appointmentId, status }: AppointmentActions
         </Alert>
       ) : null}
 
-      <Dialog
+      <AlertDialog
         open={confirmationStatus !== null}
         onOpenChange={(open) => {
           if (!open && !isPending) setConfirmationStatus(null);
         }}
       >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{confirmation?.title}</DialogTitle>
-            <DialogDescription>{confirmation?.description}</DialogDescription>
-          </DialogHeader>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{confirmation?.title}</AlertDialogTitle>
+            <AlertDialogDescription>{confirmation?.description}</AlertDialogDescription>
+          </AlertDialogHeader>
 
           {result?.status === "error" && result.message ? (
             <Alert variant="destructive">
@@ -210,10 +210,10 @@ export function AppointmentActions({ appointmentId, status }: AppointmentActions
             </Alert>
           ) : null}
 
-          <DialogFooter>
-            <DialogClose render={<Button variant="outline" disabled={isPending} />}>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>
               Voltar
-            </DialogClose>
+            </AlertDialogCancel>
             <Button
               variant="destructive"
               disabled={isPending || !confirmationStatus}
@@ -224,9 +224,9 @@ export function AppointmentActions({ appointmentId, status }: AppointmentActions
               {isPending ? <Spinner data-icon="inline-start" /> : null}
               {confirmation?.confirmLabel}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={completeDialogOpen} onOpenChange={setCompleteDialogOpen}>
         <DialogContent>

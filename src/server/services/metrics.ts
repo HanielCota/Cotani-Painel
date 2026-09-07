@@ -1,15 +1,12 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
-
 import type { Prisma } from "@/generated/prisma/client";
 import type { ClinicModel } from "@/generated/prisma/models/Clinic";
 import prisma from "@/lib/prisma";
 import { getClinicDateBounds } from "@/lib/timezone";
 import type { DashboardMetrics } from "@/types";
 
-export const getDashboardMetrics = unstable_cache(
-  async function getDashboardMetrics(clinic: ClinicModel): Promise<DashboardMetrics> {
+export async function getDashboardMetrics(clinic: ClinicModel): Promise<DashboardMetrics> {
   const { startOfToday, startOfTomorrow, startOfMonth, startOfNextMonth, startOfPreviousMonth } = getClinicDateBounds(clinic.timeZone);
 
   const monthAppointments: Prisma.AppointmentWhereInput = {
@@ -102,7 +99,4 @@ export const getDashboardMetrics = unstable_cache(
     cancellationsThisMonth,
     newCustomersThisMonth,
   };
-  },
-  ["dashboard-metrics"],
-  { tags: ["dashboard-metrics"], revalidate: 60 },
-);
+}

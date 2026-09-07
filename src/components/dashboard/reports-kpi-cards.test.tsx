@@ -21,7 +21,7 @@ const baseMetrics: ReportsMetrics = {
   monthlyData: [],
   topServices: [],
   topProfessionals: [],
-  monthAppointments: [],
+  periodAppointmentsTotal: 0,
 };
 
 describe("ReportsKpiCards", () => {
@@ -32,7 +32,7 @@ describe("ReportsKpiCards", () => {
     expect(getByText("85%")).toBeInTheDocument();
     expect(getByText("Taxa de falta")).toBeInTheDocument();
     expect(getByText("5%")).toBeInTheDocument();
-    expect(getByText("Clientes ativos no mês")).toBeInTheDocument();
+    expect(getByText("Clientes ativos")).toBeInTheDocument();
     expect(getByText("30")).toBeInTheDocument();
     expect(getByText("Receita concluída")).toBeInTheDocument();
     expect(getByText(/R\$\s*3\.000,00/)).toBeInTheDocument();

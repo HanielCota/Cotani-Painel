@@ -11,16 +11,17 @@ import { PlanUpgradeRequired } from "@/components/dashboard/plan-upgrade-require
 import { getPlanEntitlements } from "@/config/subscription-plans";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getReportsMetrics } from "@/server/services/reports";
+import { getReportAppointmentsPage, getReportsMetrics } from "@/server/services/reports";
 import { parseClinicDateTime } from "@/lib/timezone";
 import prisma from "@/lib/prisma";
 import { Input } from "@/components/ui/input";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { withTenant } from "@/server/with-tenant";
 import { isSubscriptionActive } from "@/server/subscription";
 
 export const metadata: Metadata = { title: "Relatórios" };
 
-interface ReportsPageProps { searchParams: Promise<{ from?: string; to?: string }> }
+interface ReportsPageProps { searchParams: Promise<{ from?: string; to?: string; page?: string }> }
 export default withTenant<ReportsPageProps>(async ({ clinic }, { searchParams }) => {
   const entitlements = getPlanEntitlements(clinic.subscriptionPlan);
   if (!isSubscriptionActive(clinic) || !entitlements.monthlyReports) {
@@ -32,8 +33,13 @@ export default withTenant<ReportsPageProps>(async ({ clinic }, { searchParams })
   const to = toStart ? new Date(toStart.getTime() + 24 * 60 * 60_000) : undefined;
   const ownerId = clinic.billingOwnerId ?? clinic.id;
   const unitIds = entitlements.multipleLocations ? (await prisma.clinic.findMany({ where: { OR: [{ id: ownerId }, { billingOwnerId: ownerId }], deletedAt: null }, select: { id: true } })).map((item) => item.id) : [clinic.id];
-  const metrics = await getReportsMetrics(clinic, { from, to, clinicIds: unitIds });
-  const insight = metrics.monthAppointments.length === 0
+  const page = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1);
+  const reportOptions = { from, to, clinicIds: unitIds };
+  const [metrics, appointmentsPage] = await Promise.all([
+    getReportsMetrics(clinic, reportOptions),
+    getReportAppointmentsPage(clinic, reportOptions, page),
+  ]);
+  const insight = metrics.periodAppointmentsTotal === 0
     ? "Ainda não há atendimentos no período selecionado. Amplie o intervalo para comparar tendências."
     : metrics.noShowRate >= 10
       ? `A taxa de faltas chegou a ${metrics.noShowRate}%. Priorize confirmações nos dias com maior incidência.`
@@ -60,7 +66,16 @@ export default withTenant<ReportsPageProps>(async ({ clinic }, { searchParams })
         ) : undefined}
       />
 
-      <form className="flex flex-wrap items-end gap-3 rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] dark:shadow-none"><div className="min-w-40 flex-1 space-y-1.5 sm:flex-none"><label htmlFor="report-from" className="text-sm font-medium">De</label><Input id="report-from" name="from" type="date" defaultValue={query.from} /></div><div className="min-w-40 flex-1 space-y-1.5 sm:flex-none"><label htmlFor="report-to" className="text-sm font-medium">Até</label><Input id="report-to" name="to" type="date" defaultValue={query.to} /></div><Button type="submit" variant="outline">Aplicar período</Button>{entitlements.advancedReports ? <Button type="button" nativeButton={false} variant="outline" render={<a href={`/api/reports/pdf?${exportQuery}`} download />}><DownloadIcon />Exportar PDF</Button> : null}</form>
+      <Card size="sm">
+        <CardContent>
+          <form className="flex flex-wrap items-end gap-3">
+            <Field className="min-w-40 flex-1 gap-1.5 sm:flex-none"><FieldLabel htmlFor="report-from">De</FieldLabel><Input id="report-from" name="from" type="date" defaultValue={query.from} /></Field>
+            <Field className="min-w-40 flex-1 gap-1.5 sm:flex-none"><FieldLabel htmlFor="report-to">Até</FieldLabel><Input id="report-to" name="to" type="date" defaultValue={query.to} /></Field>
+            <Button type="submit" variant="outline">Aplicar período</Button>
+            {entitlements.advancedReports ? <Button type="button" nativeButton={false} variant="outline" render={<a href={`/api/reports/pdf?${exportQuery}`} download />}><DownloadIcon />Exportar PDF</Button> : null}
+          </form>
+        </CardContent>
+      </Card>
 
       <section className="flex flex-col gap-4">
         <h2 className="text-base font-semibold text-foreground">Indicadores do período</h2>
@@ -86,7 +101,7 @@ export default withTenant<ReportsPageProps>(async ({ clinic }, { searchParams })
 
       <section className="flex flex-col gap-4">
         <h2 className="text-base font-semibold text-foreground">Agendamentos do período</h2>
-        <ReportsAppointmentsTable appointments={metrics.monthAppointments} timeZone={clinic.timeZone} />
+        <ReportsAppointmentsTable data={appointmentsPage} timeZone={clinic.timeZone} from={query.from} to={query.to} />
       </section>
 
       <Card>
@@ -97,14 +112,14 @@ export default withTenant<ReportsPageProps>(async ({ clinic }, { searchParams })
         <CardContent className="flex flex-col gap-2 text-sm text-muted-foreground">
           <p>
             <strong className="font-medium text-foreground">Taxa de confirmação:</strong> atendimentos confirmados ou
-            concluídos sobre todos os atendimentos do mês, exceto cancelados.
+            concluídos sobre todos os atendimentos do período, exceto cancelados.
           </p>
           <p>
             <strong className="font-medium text-foreground">Taxa de falta:</strong> não comparecimentos sobre os
-            atendimentos do mês, exceto cancelados.
+            atendimentos do período, exceto cancelados.
           </p>
           <p>
-            <strong className="font-medium text-foreground">Clientes ativos no mês:</strong> clientes com ao menos um
+            <strong className="font-medium text-foreground">Clientes ativos:</strong> clientes com ao menos um
             atendimento no período, exceto cancelados.
           </p>
           <p>

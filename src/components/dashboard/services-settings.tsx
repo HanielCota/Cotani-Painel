@@ -1,71 +1,19 @@
 "use client";
 
-import { useMemo } from "react";
-import type { LegacyColumnDef as ColumnDef } from "@tanstack/react-table/legacy";
-import { getCoreRowModel, useLegacyTable as useReactTable } from "@tanstack/react-table/legacy";
-import { flexRender } from "@tanstack/react-table";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { ServiceFormDialog } from "@/components/dashboard/service-form-dialog";
 import { ServiceToggleActive } from "@/components/dashboard/service-toggle-active";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useServices } from "@/hooks/use-services";
 import { usePagination } from "@/hooks/use-pagination";
-import type { ServiceListItem } from "@/types";
-
-const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+import { useServices } from "@/hooks/use-services";
+import { formatCurrency } from "@/lib/formatters";
 
 export function ServicesSettings() {
-  "use no memo";
   const { data: services, isPending, isError } = useServices();
   const pagination = usePagination(services ?? []);
-
-  const columns = useMemo<ColumnDef<ServiceListItem>[]>(
-    () => [
-      {
-        accessorKey: "name",
-        header: "Nome",
-        cell: ({ row, getValue }) => (
-          <span className={row.original.isActive ? "" : "text-muted-foreground line-through"}>{getValue<string>()}</span>
-        ),
-      },
-      {
-        accessorKey: "duration",
-        header: "Duração",
-        cell: ({ getValue }) => `${getValue<number>()} min`,
-      },
-      {
-        accessorKey: "price",
-        header: "Valor",
-        cell: ({ getValue }) => priceFormatter.format(getValue<number>()),
-      },
-      {
-        accessorKey: "isActive",
-        header: "Status",
-        cell: ({ getValue }) =>
-          getValue<boolean>() ? <Badge>Ativo</Badge> : <Badge variant="secondary">Inativo</Badge>,
-      },
-      {
-        id: "actions",
-        header: "",
-        cell: ({ row }) => (
-          <div className="flex justify-end gap-2">
-            <ServiceFormDialog service={row.original} />
-            <ServiceToggleActive service={row.original} />
-          </div>
-        ),
-      },
-    ],
-    [],
-  );
-
-  const table = useReactTable({
-    data: pagination.pageItems,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
 
   return (
     <div className="flex flex-col gap-4">
@@ -91,39 +39,46 @@ export function ServicesSettings() {
 
       {!isPending && !isError ? (
         <div>
-          <div className="overflow-x-auto rounded-xl border border-border/80">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows.length === 0 ? (
+          <div className="hidden overflow-x-auto rounded-xl border border-border/80 md:block">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={columns.length} className="py-10 text-center text-muted-foreground">
-                    Nenhum serviço cadastrado.
-                  </TableCell>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Duração</TableHead>
+                  <TableHead>Valor</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead><span className="sr-only">Ações</span></TableHead>
                 </TableRow>
-              ) : (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} className={row.original.isActive ? "" : "bg-background/60"}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                    ))}
+              </TableHeader>
+              <TableBody>
+                {pagination.pageItems.length === 0 ? (
+                  <TableRow><TableCell colSpan={5} className="py-10 text-center text-muted-foreground">Nenhum serviço cadastrado.</TableCell></TableRow>
+                ) : pagination.pageItems.map((service) => (
+                  <TableRow key={service.id} className={service.isActive ? "" : "bg-background/60"}>
+                    <TableCell className={service.isActive ? "font-medium" : "text-muted-foreground line-through"}>{service.name}</TableCell>
+                    <TableCell>{service.duration} min</TableCell>
+                    <TableCell>{formatCurrency(service.price)}</TableCell>
+                    <TableCell>{service.isActive ? <Badge>Ativo</Badge> : <Badge variant="secondary">Inativo</Badge>}</TableCell>
+                    <TableCell><div className="flex justify-end gap-2"><ServiceFormDialog service={service} /><ServiceToggleActive service={service} /></div></TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ))}
+              </TableBody>
+            </Table>
           </div>
-          <PaginationControls page={pagination.page} pageCount={pagination.pageCount} totalItems={services?.length ?? 0} onPageChange={pagination.setPage} itemLabel="serviço" />
+
+          <div className="grid gap-3 md:hidden">
+            {pagination.pageItems.length === 0 ? <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">Nenhum serviço cadastrado.</p> : pagination.pageItems.map((service) => (
+              <article key={service.id} className="rounded-xl border border-border/80 bg-card p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div><h3 className={service.isActive ? "font-medium" : "text-muted-foreground line-through"}>{service.name}</h3><p className="mt-1 text-sm text-muted-foreground">{service.duration} min · {formatCurrency(service.price)}</p></div>
+                  {service.isActive ? <Badge>Ativo</Badge> : <Badge variant="secondary">Inativo</Badge>}
+                </div>
+                <div className="mt-4 flex justify-end gap-2"><ServiceFormDialog service={service} /><ServiceToggleActive service={service} /></div>
+              </article>
+            ))}
+          </div>
+
+          <PaginationControls page={pagination.page} pageCount={pagination.pageCount} totalItems={services?.length ?? 0} onPageChange={pagination.setPage} itemLabelPlural="serviços" />
         </div>
       ) : null}
     </div>

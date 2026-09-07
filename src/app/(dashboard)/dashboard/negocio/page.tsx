@@ -22,7 +22,7 @@ export default withTenant(async ({ clinic }) => (
   <div className="flex flex-col gap-6">
     <PageHeader title="Seu negócio" description={`Cadastros e regras operacionais de ${clinic.name}.`} />
 
-    <Card className="max-w-6xl">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2"><StoreIcon />Informações principais</CardTitle>
         <CardDescription>Identificação usada no painel e no agendamento on-line.</CardDescription>
@@ -35,7 +35,7 @@ export default withTenant(async ({ clinic }) => (
       </CardContent>
     </Card>
 
-    <div className="grid max-w-6xl gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {sections.map(({ title, description, href, icon: Icon }) => (
         <Card key={href} className="transition-colors hover:border-primary/40">
           <CardHeader>

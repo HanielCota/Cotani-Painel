@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PaginationNav } from "@/components/ui/pagination-nav";
 import { subscriptionPlanLabel } from "@/lib/display-labels";
 import prisma from "@/lib/prisma";
 
@@ -99,13 +100,7 @@ export default async function StoresPage({
         </CardContent>
       </Card>
 
-      <div className="flex items-center justify-between gap-4 text-sm text-muted-foreground">
-        <span>{total} {total === 1 ? "loja" : "lojas"} · página {page} de {totalPages}</span>
-        <div className="flex gap-2">
-          <Button size="sm" variant="outline" disabled={page <= 1} nativeButton={page <= 1} render={page > 1 ? <Link href={pageHref(page - 1, query, filter)} /> : undefined}>Anterior</Button>
-          <Button size="sm" variant="outline" disabled={page >= totalPages} nativeButton={page >= totalPages} render={page < totalPages ? <Link href={pageHref(page + 1, query, filter)} /> : undefined}>Próxima</Button>
-        </div>
-      </div>
+      <PaginationNav page={page} pageCount={totalPages} totalItems={total} pageSize={PAGE_SIZE} itemLabel={total === 1 ? "loja" : "lojas"} hrefForPage={(nextPage) => pageHref(nextPage, query, filter)} />
     </>
   );
 }

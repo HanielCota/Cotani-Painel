@@ -68,7 +68,7 @@ describe("ProfessionalFormDialog", () => {
 
     render(<ProfessionalFormDialog professional={professional} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "" }));
+    fireEvent.click(screen.getByRole("button", { name: "Editar profissional Ana" }));
 
     expect(screen.getByDisplayValue("Ana")).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: /serviço b/i })).toBeChecked();

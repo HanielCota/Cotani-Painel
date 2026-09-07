@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { billingCycleLabel, paymentStatusLabel, subscriptionPlanLabel } from "@/lib/display-labels";
+import { formatCurrency } from "@/lib/formatters";
 import { usePagination } from "@/hooks/use-pagination";
 import type { PaymentHistoryItem } from "@/server/services/payment-history";
 
@@ -32,13 +33,13 @@ export function PaymentHistoryTable({ payments }: { payments: PaymentHistoryItem
                 <TableCell className="text-muted-foreground">{format(new Date(payment.createdAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}</TableCell>
                 <TableCell>{subscriptionPlanLabel(payment.plan)} · {billingCycleLabel(payment.billingCycle)}</TableCell>
                 <TableCell><Badge variant={paymentStatusVariant[payment.status] ?? "secondary"}>{paymentStatusLabel(payment.status)}</Badge></TableCell>
-                <TableCell className="text-right font-medium">{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(payment.amount)}</TableCell>
+                <TableCell className="text-right font-medium">{formatCurrency(payment.amount)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
-      <PaginationControls page={pagination.page} pageCount={pagination.pageCount} totalItems={payments.length} onPageChange={pagination.setPage} itemLabel="pagamento" />
+      <PaginationControls page={pagination.page} pageCount={pagination.pageCount} totalItems={payments.length} onPageChange={pagination.setPage} itemLabelPlural="pagamentos" />
     </div>
   );
 }

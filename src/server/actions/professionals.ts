@@ -14,8 +14,8 @@ import { allowMediaUpload } from "@/server/services/action-rate-limit";
 
 const MAX_IMAGE_SIZE_CHARS = 2_000_000;
 
-const imageUrlSchema = z
-  .union([z.string().trim().max(MAX_IMAGE_SIZE_CHARS), z.null(), z.literal("")])
+const imageValueSchema = z
+  .union([z.string().trim().max(MAX_IMAGE_SIZE_CHARS), z.instanceof(File), z.null()])
   .optional()
   .transform((value) => {
     if (!value || value === "") return null;
@@ -24,13 +24,13 @@ const imageUrlSchema = z
   .refine(
     (value) =>
       value === null ||
-      value.startsWith("data:image/") || value.startsWith("https://"),
+      value instanceof File || value.startsWith("data:image/") || value.startsWith("https://"),
     { message: "A imagem deve ser um arquivo de imagem válido ou uma URL." },
   );
 
 const professionalSchema = z.object({
   name: z.string().trim().min(2).max(120),
-  imageUrl: imageUrlSchema,
+  imageUrl: imageValueSchema,
   serviceIds: z
     .array(z.uuid())
     .min(1, "Selecione ao menos um serviço atendido pelo profissional.")
@@ -46,6 +46,17 @@ function revalidateProfessionalViews() {
   revalidatePath("/dashboard/agenda");
   revalidatePath("/dashboard/negocio/profissionais");
   revalidatePath("/dashboard/profissionais");
+}
+
+function isNewImageUpload(value: string | File | null): boolean {
+  return value instanceof File ? value.size > 0 : Boolean(value?.startsWith("data:"));
+}
+
+function getImageValue(formData: FormData): string | File | null {
+  const file = formData.get("imageFile");
+  if (file instanceof File && file.size > 0) return file;
+  const currentValue = formData.get("imageUrl");
+  return typeof currentValue === "string" && currentValue ? currentValue : null;
 }
 
 export async function createProfessional(input: unknown): Promise<ActionResult> {
@@ -67,7 +78,7 @@ export async function createProfessional(input: unknown): Promise<ActionResult> 
     return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
   }
 
-  if (parsed.data.imageUrl?.startsWith("data:") && !(await allowMediaUpload(authUser.id))) {
+  if (isNewImageUpload(parsed.data.imageUrl) && !(await allowMediaUpload(authUser.id))) {
     return { status: "error", message: "Muitos envios de imagem. Aguarde antes de tentar novamente." };
   }
 
@@ -75,7 +86,7 @@ export async function createProfessional(input: unknown): Promise<ActionResult> 
 
   try {
     const imageUrl = await persistPublicImage({ clinicId: clinic.id, kind: "professionals", value: parsed.data.imageUrl });
-    if (parsed.data.imageUrl?.startsWith("data:")) uploadedImageUrl = imageUrl;
+    if (isNewImageUpload(parsed.data.imageUrl)) uploadedImageUrl = imageUrl;
     const outcome = await prisma.$transaction(async (transaction) => {
       await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
       const current = await transaction.clinic.findUniqueOrThrow({ where: { id: clinic.id } });
@@ -116,7 +127,7 @@ export async function createProfessionalFromForm(_previousState: ActionResult, f
 
   return createProfessional({
     name: formData.get("name"),
-    imageUrl: formData.get("imageUrl") || null,
+    imageUrl: getImageValue(formData),
     serviceIds,
   });
 }
@@ -140,7 +151,7 @@ export async function updateProfessional(input: unknown): Promise<ActionResult> 
     return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
   }
 
-  if (parsed.data.imageUrl?.startsWith("data:") && !(await allowMediaUpload(authUser.id))) {
+  if (isNewImageUpload(parsed.data.imageUrl) && !(await allowMediaUpload(authUser.id))) {
     return { status: "error", message: "Muitos envios de imagem. Aguarde antes de tentar novamente." };
   }
 
@@ -167,7 +178,7 @@ export async function updateProfessional(input: unknown): Promise<ActionResult> 
 
   try {
     imageUrl = await persistPublicImage({ clinicId: clinic.id, kind: "professionals", value: parsed.data.imageUrl, currentUrl: professional.imageUrl });
-    if (parsed.data.imageUrl?.startsWith("data:")) uploadedImageUrl = imageUrl;
+    if (isNewImageUpload(parsed.data.imageUrl)) uploadedImageUrl = imageUrl;
     await prisma.$transaction(async (transaction) => {
       await transaction.professionalService.deleteMany({
         where: { professionalId: professional.id },
@@ -203,7 +214,7 @@ export async function updateProfessionalFromForm(_previousState: ActionResult, f
   return updateProfessional({
     professionalId: formData.get("professionalId"),
     name: formData.get("name"),
-    imageUrl: formData.get("imageUrl") || null,
+    imageUrl: getImageValue(formData),
     serviceIds,
   });
 }

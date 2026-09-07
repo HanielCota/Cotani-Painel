@@ -5,6 +5,7 @@ import { CheckIcon, CopyIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { copyText } from "@/lib/clipboard";
 
 interface CopyBookingLinkProps {
   /** URL completa (origin + / + slug), montada no Server Component via headers
@@ -14,6 +15,7 @@ interface CopyBookingLinkProps {
 
 export function CopyBookingLink({ url }: CopyBookingLinkProps) {
   const [copied, setCopied] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Só limpa o timer no unmount (sem setState no corpo do efeito).
@@ -26,15 +28,8 @@ export function CopyBookingLink({ url }: CopyBookingLinkProps) {
   }, []);
 
   async function handleCopy() {
-    const input = document.getElementById("booking-link-input") as HTMLInputElement | null;
-
-    try {
-      await navigator.clipboard.writeText(url);
-    } catch {
-      // Fallback sem Clipboard API (contexto não-HTTPS ou permissão negada):
-      // seleciona o texto para cópia manual.
-      input?.select();
-    }
+    const copiedSuccessfully = await copyText(url);
+    if (!copiedSuccessfully) inputRef.current?.select();
 
     setCopied(true);
 
@@ -48,6 +43,7 @@ export function CopyBookingLink({ url }: CopyBookingLinkProps) {
   return (
     <div className="flex flex-col gap-2 sm:flex-row">
       <Input
+        ref={inputRef}
         id="booking-link-input"
         readOnly
         value={url}

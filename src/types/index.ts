@@ -17,6 +17,13 @@ export interface AgendaAppointment {
   totalPrice?: number;
 }
 
+export interface AppointmentsPage {
+  items: AgendaAppointment[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export interface CustomerListItem {
   id: string;
   name: string;

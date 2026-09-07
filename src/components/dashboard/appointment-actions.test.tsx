@@ -57,7 +57,7 @@ describe("AppointmentActions", () => {
     fireEvent.click(screen.getByRole("button", { name: /ações/i }));
     fireEvent.click(screen.getByRole("menuitem", { name: /não compareceu/i }));
 
-    expect(screen.getByRole("dialog", { name: "Marcar como falta?" })).toBeInTheDocument();
+    expect(screen.getByRole("alertdialog", { name: "Marcar como falta?" })).toBeInTheDocument();
     expect(screen.getByText(/histórico do cliente/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Marcar como falta" }));
 

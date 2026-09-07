@@ -1,4 +1,4 @@
-import { CheckIcon, ClockIcon, CreditCardIcon, HistoryIcon, RefreshCwIcon, XIcon } from "lucide-react";
+import { CalendarSyncIcon, CheckIcon, ClockIcon, CreditCardIcon, HistoryIcon, XIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Metadata } from "next";
@@ -9,7 +9,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SubscriptionStatus } from "@/generated/prisma/enums";
-import { billingCycleLabel, subscriptionPlanLabel } from "@/lib/display-labels";
+import { billingCycleLabel, subscriptionPlanLabel, subscriptionStatusLabel } from "@/lib/display-labels";
 import { getPaymentHistory } from "@/server/services/payment-history";
 import { isSubscriptionActive } from "@/server/subscription";
 import { withTenant } from "@/server/with-tenant";
@@ -18,16 +18,9 @@ import { SubscriptionManagement } from "@/components/dashboard/subscription-mana
 import { getPlanFitIssues } from "@/server/services/billing-access";
 import { SubscriptionPlan } from "@/generated/prisma/enums";
 import { PaymentHistoryTable } from "@/components/dashboard/payment-history-table";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const metadata: Metadata = { title: "Assinatura" };
-
-const statusLabel: Record<SubscriptionStatus, string> = {
-  TRIALING: "Período grátis",
-  ACTIVE: "Ativa",
-  INACTIVE: "Inativa",
-  PAST_DUE: "Em atraso",
-  CANCELED: "Cancelada",
-};
 
 const statusDescription: Record<SubscriptionStatus, string> = {
   TRIALING: "Seu período grátis de 7 dias está ativo. Você pode testar a Cotani sem informar cartão.",
@@ -52,18 +45,18 @@ export default withTenant(async ({ clinic }) => {
     <div className="flex flex-col gap-6">
       <PageHeader title="Assinatura" description={`Gerencie o plano da ${clinic.name}.`} />
 
-      <Tabs defaultValue="current" className="w-full max-w-5xl">
+      <Tabs defaultValue="current" className="w-full">
         <TabsList>
           <TabsTrigger value="current">
-            <CreditCardIcon className="mr-2 size-4" />
+            <CreditCardIcon data-icon="inline-start" />
             Plano atual
           </TabsTrigger>
           <TabsTrigger value="renew">
-            <RefreshCwIcon className="mr-2 size-4" />
+            <CalendarSyncIcon data-icon="inline-start" />
             Renovar
           </TabsTrigger>
           <TabsTrigger value="history">
-            <HistoryIcon className="mr-2 size-4" />
+            <HistoryIcon data-icon="inline-start" />
             Histórico
           </TabsTrigger>
         </TabsList>
@@ -87,7 +80,7 @@ export default withTenant(async ({ clinic }) => {
                   {active ? <CheckIcon className="size-5" /> : <XIcon className="size-5" />}
                 </span>
                 <div>
-                  <p className="text-lg font-medium text-foreground">{statusLabel[clinic.subscriptionStatus]}</p>
+                  <p className="text-lg font-medium text-foreground">{subscriptionStatusLabel(clinic.subscriptionStatus)}</p>
                   <p className="text-sm text-muted-foreground">
                     {active ? "Tudo funcionando normalmente." : "Renovação necessária para continuar."}
                   </p>
@@ -127,7 +120,7 @@ export default withTenant(async ({ clinic }) => {
                     <CancelSubscriptionDialog />
                   </div>
                 </div>
-              ) : clinic.cancelAtPeriodEnd ? <p className="rounded-lg border border-amber-300/60 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">Renovação cancelada. O acesso permanece ativo até {clinic.subscriptionExpiresAt ? format(clinic.subscriptionExpiresAt, "dd/MM/yyyy", { locale: ptBR }) : "o fim do período atual"}.</p> : null}
+              ) : clinic.cancelAtPeriodEnd ? <Alert variant="warning"><AlertDescription>Renovação cancelada. O acesso permanece ativo até {clinic.subscriptionExpiresAt ? format(clinic.subscriptionExpiresAt, "dd/MM/yyyy", { locale: ptBR }) : "o fim do período atual"}.</AlertDescription></Alert> : null}
             </CardContent>
           </Card>
           {active && clinic.hasPaidOnce ? <SubscriptionManagement currentPlan={clinic.subscriptionPlan} pendingPlan={clinic.pendingSubscriptionPlan} cancelAtPeriodEnd={clinic.cancelAtPeriodEnd} refundEligible={refundEligible} issuesByPlan={{ ESSENTIAL: essentialIssues, PROFESSIONAL: professionalIssues }} /> : null}

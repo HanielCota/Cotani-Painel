@@ -1,88 +1,86 @@
-"use client";
-
 import { Badge } from "@/components/ui/badge";
-import { PaginationControls } from "@/components/ui/pagination-controls";
-import { usePagination } from "@/hooks/use-pagination";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { PaginationNav } from "@/components/ui/pagination-nav";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { appointmentStatusBadgeVariant, appointmentStatusLabel } from "@/lib/display-labels";
+import { formatCurrency, formatDateTime } from "@/lib/formatters";
 import type { ReportAppointment } from "@/server/services/reports";
 
 interface ReportsAppointmentsTableProps {
-  appointments: ReportAppointment[];
+  data: { items: ReportAppointment[]; total: number; page: number; pageSize: number };
   timeZone: string;
+  from?: string;
+  to?: string;
 }
 
-const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-
-const statusLabel: Record<string, string> = {
-  PENDING: "Pendente",
-  CONFIRMED: "Confirmado",
-  COMPLETED: "Concluído",
-  CANCELED: "Cancelado",
-  NO_SHOW: "Faltou",
-};
-
-const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline" | "success"> = {
-  PENDING: "secondary",
-  CONFIRMED: "success",
-  COMPLETED: "default",
-  CANCELED: "destructive",
-  NO_SHOW: "destructive",
-};
-
-export function ReportsAppointmentsTable({ appointments, timeZone }: ReportsAppointmentsTableProps) {
-  const pagination = usePagination(appointments);
+export function ReportsAppointmentsTable({ data, timeZone, from, to }: ReportsAppointmentsTableProps) {
+  const appointments = data.items;
 
   if (appointments.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-border/80 bg-background/50 p-8 text-center">
-        <p className="text-sm text-muted-foreground">Nenhum agendamento no período selecionado.</p>
-      </div>
+      <Empty className="min-h-40 border border-dashed border-border/80 bg-background/50">
+        <EmptyHeader><EmptyTitle>Nenhum agendamento</EmptyTitle><EmptyDescription>Nenhum agendamento no período selecionado.</EmptyDescription></EmptyHeader>
+      </Empty>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
-      <h3 className="border-b px-5 py-4 text-sm font-semibold text-card-foreground">Lista de agendamentos</h3>
-      <div className="overflow-x-auto px-5 pb-5">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border text-left text-xs font-medium text-muted-foreground">
-              <th className="pb-3 pl-2 font-medium">Data</th>
-              <th className="pb-3 font-medium">Cliente</th>
-              <th className="pb-3 font-medium">Serviço</th>
-              <th className="pb-3 font-medium">Profissional</th>
-              <th className="pb-3 font-medium">Status</th>
-              <th className="pb-3 pr-2 text-right font-medium">Valor</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/50">
-            {pagination.pageItems.map((appointment) => (
-              <tr key={appointment.id} className="text-foreground">
-                <td className="py-3 pl-2 text-muted-foreground">
-                  {new Intl.DateTimeFormat("pt-BR", {
-                    dateStyle: "short",
-                    timeStyle: "short",
-                    timeZone,
-                  }).format(new Date(appointment.startTime))}
-                </td>
-                <td className="py-3 font-medium text-foreground">{appointment.customerName}</td>
-                <td className="py-3">{appointment.serviceName}</td>
-                <td className="py-3 text-muted-foreground">{appointment.professionalName ?? "—"}</td>
-                <td className="py-3">
-                  <Badge variant={statusVariant[appointment.status]}>{statusLabel[appointment.status]}</Badge>
-                </td>
-                <td className="py-3 pr-2 text-right font-semibold text-foreground">
+    <Card className="gap-0 py-0">
+      <CardHeader className="border-b py-4"><CardTitle>Lista de agendamentos</CardTitle></CardHeader>
+      <CardContent className="px-5 py-0">
+        <div className="hidden md:block">
+        <Table>
+          <TableHeader><TableRow><TableHead>Data</TableHead><TableHead>Cliente</TableHead><TableHead>Serviço</TableHead><TableHead>Profissional</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Valor</TableHead></TableRow></TableHeader>
+          <TableBody>
+            {appointments.map((appointment) => (
+              <TableRow key={appointment.id}>
+                <TableCell className="text-muted-foreground">
+                  {formatDateTime(appointment.startTime, timeZone)}
+                </TableCell>
+                <TableCell className="font-medium">{appointment.customerName}</TableCell><TableCell>{appointment.serviceName}</TableCell><TableCell className="text-muted-foreground">{appointment.professionalName ?? "—"}</TableCell>
+                <TableCell><Badge variant={appointmentStatusBadgeVariant(appointment.status)}>{appointmentStatusLabel(appointment.status)}</Badge></TableCell>
+                <TableCell className="text-right font-semibold">
                   {appointment.status === "CANCELED" || appointment.status === "NO_SHOW"
                     ? "—"
-                    : priceFormatter.format(appointment.servicePrice)}
-                </td>
-              </tr>
+                    : formatCurrency(appointment.servicePrice)}
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+        </div>
+        <div className="divide-y md:hidden">
+          {appointments.map((appointment) => (
+            <article key={appointment.id} className="space-y-2 py-4">
+              <div className="flex items-start justify-between gap-3">
+                <div><h3 className="font-medium">{appointment.customerName}</h3><p className="text-sm text-muted-foreground">{appointment.serviceName}</p></div>
+                <Badge variant={appointmentStatusBadgeVariant(appointment.status)}>{appointmentStatusLabel(appointment.status)}</Badge>
+              </div>
+              <dl className="grid grid-cols-2 gap-2 text-sm">
+                <div><dt className="text-xs text-muted-foreground">Data</dt><dd>{formatDateTime(appointment.startTime, timeZone)}</dd></div>
+                <div><dt className="text-xs text-muted-foreground">Valor</dt><dd className="font-semibold">{appointment.status === "CANCELED" || appointment.status === "NO_SHOW" ? "—" : formatCurrency(appointment.servicePrice)}</dd></div>
+                <div className="col-span-2"><dt className="text-xs text-muted-foreground">Profissional</dt><dd>{appointment.professionalName ?? "—"}</dd></div>
+              </dl>
+            </article>
+          ))}
+        </div>
+      </CardContent>
       <div className="px-5 pb-5">
-        <PaginationControls page={pagination.page} pageCount={pagination.pageCount} totalItems={appointments.length} onPageChange={pagination.setPage} itemLabel="agendamento" />
+        <PaginationNav
+          page={data.page}
+          pageCount={Math.max(1, Math.ceil(data.total / data.pageSize))}
+          totalItems={data.total}
+          pageSize={data.pageSize}
+          itemLabel="agendamentos"
+          hrefForPage={(page) => {
+            const query = new URLSearchParams({ page: String(page) });
+            if (from) query.set("from", from);
+            if (to) query.set("to", to);
+            return `/dashboard/relatorios?${query.toString()}`;
+          }}
+        />
       </div>
-    </div>
+    </Card>
   );
 }

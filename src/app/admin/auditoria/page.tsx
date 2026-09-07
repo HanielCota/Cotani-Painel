@@ -2,14 +2,14 @@ import Link from "next/link";
 
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { adminActionLabel, adminTargetLabel } from "@/lib/display-labels";
+import { formatDateTime } from "@/lib/formatters";
 import prisma from "@/lib/prisma";
+import { PaginationNav } from "@/components/ui/pagination-nav";
 
 const PAGE_SIZE = 30;
-const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" });
 
 export default async function AuditPage({ searchParams }: { searchParams: Promise<{ pagina?: string }> }) {
   const params = await searchParams;
@@ -33,7 +33,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
           <TableBody>
             {events.map((event) => (
               <TableRow key={event.id}>
-                <TableCell className="pl-6">{dateFormatter.format(event.createdAt)}</TableCell>
+                <TableCell className="pl-6">{formatDateTime(event.createdAt, "America/Sao_Paulo")}</TableCell>
                 <TableCell><Badge variant="outline">{adminActionLabel(event.action)}</Badge></TableCell>
                 <TableCell>{event.clinic ? <Link className="font-medium hover:underline" href={`/admin/lojas/${event.clinic.id}`}>{event.clinic.name}</Link> : <span>{adminTargetLabel(event.targetType)}: {event.targetId}</span>}</TableCell>
                 <TableCell className="max-w-72 whitespace-normal text-muted-foreground">{event.reason ?? "—"}</TableCell>
@@ -44,13 +44,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
           </TableBody>
         </Table>
       </CardContent></Card>
-      <div className="flex items-center justify-between gap-4 text-sm text-muted-foreground">
-        <span>{total} eventos · página {page} de {totalPages}</span>
-        <div className="flex gap-2">
-          <Button size="sm" variant="outline" disabled={page <= 1} nativeButton={page <= 1} render={page > 1 ? <Link href={`/admin/auditoria?pagina=${page - 1}`} /> : undefined}>Anterior</Button>
-          <Button size="sm" variant="outline" disabled={page >= totalPages} nativeButton={page >= totalPages} render={page < totalPages ? <Link href={`/admin/auditoria?pagina=${page + 1}`} /> : undefined}>Próxima</Button>
-        </div>
-      </div>
+      <PaginationNav page={page} pageCount={totalPages} totalItems={total} pageSize={PAGE_SIZE} itemLabel={total === 1 ? "evento" : "eventos"} hrefForPage={(nextPage) => `/admin/auditoria?pagina=${nextPage}`} />
     </>
   );
 }

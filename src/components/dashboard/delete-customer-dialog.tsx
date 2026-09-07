@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { deleteCustomer } from "@/server/actions/customers";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Spinner } from "@/components/ui/spinner";
 import type { ActionResult } from "@/types";
 
@@ -39,16 +39,13 @@ export function DeleteCustomerDialog({ customerId, customerName }: DeleteCustome
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button type="button" size="sm" variant="outline" />}>
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger render={<Button type="button" size="sm" variant="outline" />}>
         <Trash2Icon data-icon="inline-start" />
         Remover
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Remover cliente</DialogTitle>
-          <DialogDescription>Esta ação não pode ser desfeita. Clientes com atendimentos não podem ser removidos.</DialogDescription>
-        </DialogHeader>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader><AlertDialogTitle>Remover cliente</AlertDialogTitle><AlertDialogDescription>Esta ação não pode ser desfeita. Clientes com atendimentos não podem ser removidos.</AlertDialogDescription></AlertDialogHeader>
         <p className="text-sm text-muted-foreground">
           Confirma a remoção de <strong className="font-medium text-foreground">{customerName}</strong>?
         </p>
@@ -57,14 +54,14 @@ export function DeleteCustomerDialog({ customerId, customerName }: DeleteCustome
             <AlertDescription>{result.message}</AlertDescription>
           </Alert>
         ) : null}
-        <DialogFooter>
-          <DialogClose render={<Button type="button" variant="outline" />}>Cancelar</DialogClose>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <Button type="button" variant="destructive" disabled={isPending} onClick={handleDelete}>
             {isPending ? <Spinner data-icon="inline-start" /> : <Trash2Icon data-icon="inline-start" />}
             {isPending ? "Removendo..." : "Remover cliente"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

@@ -1,15 +1,14 @@
 import type { TopServiceData } from "@/server/services/reports";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/formatters";
 
 interface ReportsTopServicesProps {
   services: TopServiceData[];
 }
 
-const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-
 export function ReportsTopServices({ services }: ReportsTopServicesProps) {
   return (
-    <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
-      <h3 className="mb-4 text-sm font-semibold text-card-foreground">Serviços mais vendidos</h3>
+    <Card><CardHeader><CardTitle>Serviços mais vendidos</CardTitle></CardHeader><CardContent>
       {services.length === 0 ? (
         <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
           Nenhuma venda no mês
@@ -32,12 +31,12 @@ export function ReportsTopServices({ services }: ReportsTopServicesProps) {
                     style={{ width: `${Math.max((service.count / services[0].count) * 100, 5)}%` }}
                   />
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground">{priceFormatter.format(service.revenue)} em receita</p>
+                <p className="mt-1 text-xs text-muted-foreground">{formatCurrency(service.revenue)} em receita</p>
               </div>
             </div>
           ))}
         </div>
       )}
-    </div>
+    </CardContent></Card>
   );
 }

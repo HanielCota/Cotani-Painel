@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { adminActionLabel, paymentStatusLabel, subscriptionPlanLabel, subscriptionStatusLabel } from "@/lib/display-labels";
+import { formatCurrency, formatDateTime } from "@/lib/formatters";
 import prisma from "@/lib/prisma";
 import {
   activateClinicAsPlatformAdmin,
@@ -23,8 +24,6 @@ import {
   updateMembershipRoleAsPlatformAdmin,
 } from "@/server/actions/platform-admin";
 
-const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" });
-const moneyFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const roleLabels = { ADMIN: "Administrador", RECEPTIONIST: "Recepcionista", PROVIDER: "Profissional" } as const;
 
 function LifecycleForm({ clinicId, action, label, variant = "default", help }: {
@@ -80,7 +79,7 @@ export default async function StoreDetailPage({
       <div className="space-y-4">
         <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/admin/lojas" />}><ArrowLeftIcon /> Voltar para lojas</Button>
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
-          <div><div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{clinic.name}</h1>{statusBadge}</div><p className="text-sm text-muted-foreground">/{clinic.slug} · criada em {dateFormatter.format(clinic.createdAt)}</p></div>
+          <div><div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{clinic.name}</h1>{statusBadge}</div><p className="text-sm text-muted-foreground">/{clinic.slug} · criada em {formatDateTime(clinic.createdAt, "America/Sao_Paulo")}</p></div>
           {!clinic.deletedAt && clinic.operationalStatus === "ACTIVE" ? <Button variant="outline" nativeButton={false} render={<Link href={`/${clinic.slug}`} target="_blank" />}>Abrir página pública</Button> : null}
         </div>
       </div>
@@ -111,7 +110,7 @@ export default async function StoreDetailPage({
           <CardContent className="space-y-3">
             <div className="flex justify-between gap-3"><span className="text-muted-foreground">Status</span><Badge variant="outline">{subscriptionStatusLabel(clinic.subscriptionStatus)}</Badge></div>
             <div className="flex justify-between gap-3"><span className="text-muted-foreground">Plano</span><span>{subscriptionPlanLabel(clinic.subscriptionPlan)}</span></div>
-            <div className="flex justify-between gap-3"><span className="text-muted-foreground">Expira em</span><span>{clinic.subscriptionExpiresAt ? dateFormatter.format(clinic.subscriptionExpiresAt) : "—"}</span></div>
+            <div className="flex justify-between gap-3"><span className="text-muted-foreground">Expira em</span><span>{clinic.subscriptionExpiresAt ? formatDateTime(clinic.subscriptionExpiresAt, "America/Sao_Paulo") : "—"}</span></div>
             <div className="flex justify-between gap-3"><span className="text-muted-foreground">Já pagou</span><span>{clinic.hasPaidOnce ? "Sim" : "Não"}</span></div>
           </CardContent>
         </Card>
@@ -164,12 +163,12 @@ export default async function StoreDetailPage({
 
       <div className="grid gap-6 xl:grid-cols-2">
         <Card className="overflow-hidden"><CardHeader><CardTitle>Pagamentos recentes</CardTitle></CardHeader><CardContent className="px-0"><Table><TableHeader className="bg-muted/40"><TableRow><TableHead className="pl-6">Data</TableHead><TableHead>Status</TableHead><TableHead>Plano</TableHead><TableHead className="pr-6 text-right">Valor</TableHead></TableRow></TableHeader><TableBody>
-          {clinic.paymentHistory.map((payment) => <TableRow key={payment.id}><TableCell className="pl-6">{dateFormatter.format(payment.createdAt)}</TableCell><TableCell>{paymentStatusLabel(payment.status)}</TableCell><TableCell>{subscriptionPlanLabel(payment.plan)}</TableCell><TableCell className="pr-6 text-right">{moneyFormatter.format(Number(payment.amount))}</TableCell></TableRow>)}
+          {clinic.paymentHistory.map((payment) => <TableRow key={payment.id}><TableCell className="pl-6">{formatDateTime(payment.createdAt, "America/Sao_Paulo")}</TableCell><TableCell>{paymentStatusLabel(payment.status)}</TableCell><TableCell>{subscriptionPlanLabel(payment.plan)}</TableCell><TableCell className="pr-6 text-right">{formatCurrency(Number(payment.amount))}</TableCell></TableRow>)}
           {!clinic.paymentHistory.length ? <TableRow><TableCell colSpan={4} className="py-10 text-center text-muted-foreground">Nenhum pagamento registrado.</TableCell></TableRow> : null}
         </TableBody></Table></CardContent></Card>
 
         <Card><CardHeader><CardTitle>Auditoria recente</CardTitle></CardHeader><CardContent className="space-y-3">
-          {clinic.adminAuditLogs.map((event) => <div key={event.id} className="border-b pb-3 last:border-0 last:pb-0"><div className="flex flex-wrap items-center justify-between gap-2"><Badge variant="outline">{adminActionLabel(event.action)}</Badge><span className="text-xs text-muted-foreground">{dateFormatter.format(event.createdAt)}</span></div><p className="mt-1 text-sm text-muted-foreground">{event.reason ?? "Sem justificativa adicional"}</p></div>)}
+          {clinic.adminAuditLogs.map((event) => <div key={event.id} className="border-b pb-3 last:border-0 last:pb-0"><div className="flex flex-wrap items-center justify-between gap-2"><Badge variant="outline">{adminActionLabel(event.action)}</Badge><span className="text-xs text-muted-foreground">{formatDateTime(event.createdAt, "America/Sao_Paulo")}</span></div><p className="mt-1 text-sm text-muted-foreground">{event.reason ?? "Sem justificativa adicional"}</p></div>)}
           {!clinic.adminAuditLogs.length ? <p className="text-sm text-muted-foreground">Nenhuma ação administrativa registrada.</p> : null}
           <Button variant="outline" size="sm" nativeButton={false} render={<Link href="/admin/auditoria" />}>Ver auditoria completa</Button>
         </CardContent></Card>

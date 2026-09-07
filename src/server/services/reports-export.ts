@@ -1,14 +1,7 @@
 import "server-only";
 
 import type { ReportAppointment } from "@/server/services/reports";
-
-const statusLabels: Record<string, string> = {
-  PENDING: "Pendente",
-  CONFIRMED: "Confirmado",
-  COMPLETED: "Concluído",
-  CANCELED: "Cancelado",
-  NO_SHOW: "Faltou",
-};
+import { appointmentStatusLabel } from "@/lib/display-labels";
 
 function escapeCsvCell(value: string | number): string {
   let normalized = String(value).replace(/\r?\n/g, " ");
@@ -33,7 +26,7 @@ export function buildAppointmentsCsv(
     appointment.customerName,
     appointment.serviceName,
     appointment.professionalName ?? "Sem profissional",
-    statusLabels[appointment.status] ?? appointment.status,
+    appointmentStatusLabel(appointment.status),
     appointment.servicePrice.toFixed(2).replace(".", ","),
   ]);
 

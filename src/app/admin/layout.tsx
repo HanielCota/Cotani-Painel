@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { getPlatformAdminContext } from "@/server/platform-admin";
 import { signOut } from "@/server/actions/auth";
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: { default: "Administração", template: "%s | Gestão Cotani" },
@@ -29,7 +30,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </Link>
             <div className="flex items-center gap-3">
               <Link href="/dashboard" className="inline-flex min-h-10 items-center rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Ir para o painel</Link>
-              <form action={signOut}><button type="submit" className="min-h-10 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Sair</button></form>
+              <form action={signOut}><Button type="submit" variant="ghost">Sair</Button></form>
             </div>
           </div>
           <AdminNav />

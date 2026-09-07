@@ -8,6 +8,7 @@ import { getWhatsAppCrmData } from "@/server/services/whatsapp-crm";
 import { withTenant } from "@/server/with-tenant";
 import { MessageCenter } from "@/components/dashboard/message-center";
 import prisma from "@/lib/prisma";
+import { formatDateTime } from "@/lib/formatters";
 
 export const metadata: Metadata = { title: "Comunicações" };
 
@@ -35,7 +36,23 @@ export default withTenant(async ({ clinic }) => {
       </Alert>
 
       <WhatsAppCrmList pending={data.pending} sent={data.sent} automaticMode={automaticMode} timeZone={clinic.timeZone} />
-      <MessageCenter automaticMode={automaticMode} timeZone={clinic.timeZone} appointments={appointments.map((item)=>({id:item.id,label:`${item.customer.name} · ${item.service.name} · ${new Intl.DateTimeFormat("pt-BR",{dateStyle:"short",timeStyle:"short",timeZone:clinic.timeZone}).format(item.startTime)}`}))} messages={messages.map((item)=>({id:item.id,channel:item.channel,status:item.status,content:item.content,recipient:item.recipient,scheduledFor:item.scheduledFor.toISOString(),error:item.error}))}/>
+      <MessageCenter
+        automaticMode={automaticMode}
+        timeZone={clinic.timeZone}
+        appointments={appointments.map((item) => ({
+          id: item.id,
+          label: `${item.customer.name} · ${item.service.name} · ${formatDateTime(item.startTime, clinic.timeZone)}`,
+        }))}
+        messages={messages.map((item) => ({
+          id: item.id,
+          channel: item.channel,
+          status: item.status,
+          content: item.content,
+          recipient: item.recipient,
+          scheduledFor: item.scheduledFor.toISOString(),
+          error: item.error,
+        }))}
+      />
     </div>
   );
 }, ["ADMIN", "RECEPTIONIST"]);

@@ -1,6 +1,7 @@
 import { UserIcon } from "lucide-react";
 
 import type { TopProfessionalData } from "@/server/services/reports";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ReportsTopProfessionalsProps {
   professionals: TopProfessionalData[];
@@ -8,8 +9,7 @@ interface ReportsTopProfessionalsProps {
 
 export function ReportsTopProfessionals({ professionals }: ReportsTopProfessionalsProps) {
   return (
-    <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
-      <h3 className="mb-4 text-sm font-semibold text-card-foreground">Profissionais em destaque</h3>
+    <Card><CardHeader><CardTitle>Profissionais em destaque</CardTitle></CardHeader><CardContent>
       {professionals.length === 0 ? (
         <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
           Nenhum atendimento no mês
@@ -37,6 +37,6 @@ export function ReportsTopProfessionals({ professionals }: ReportsTopProfessiona
           ))}
         </div>
       )}
-    </div>
+    </CardContent></Card>
   );
 }

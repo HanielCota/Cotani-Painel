@@ -1,7 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { useActionState, useMemo, useState } from "react";
 import {
   createManualReminder,
   retryNotification,
@@ -20,6 +19,10 @@ import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Textarea } from "@/components/ui/textarea";
 import { usePagination } from "@/hooks/use-pagination";
 import type { ActionResult } from "@/types";
+import { useActionFeedback } from "@/hooks/use-action-feedback";
+import { formatDateTime } from "@/lib/formatters";
+import { Card, CardContent } from "@/components/ui/card";
+import { readUrlSearchParam, replaceUrlSearchParams } from "@/lib/browser-url";
 
 const initial: ActionResult = { status: "success", message: "" };
 const templates = {
@@ -48,11 +51,7 @@ const statusLabels: Record<string, string> = {
 
 function Retry({ id }: { id: string }) {
   const [state, action, pending] = useActionState(retryNotification, initial);
-  useEffect(() => {
-    if (!state.message) return;
-    if (state.status === "success") toast.success(state.message);
-    else toast.error(state.message);
-  }, [state]);
+  useActionFeedback(state);
   return (
     <form action={action}>
       <input type="hidden" name="id" value={id} />
@@ -78,15 +77,11 @@ export function MessageCenter({
     createManualReminder,
     initial,
   );
-  const [status, setStatus] = useState("ALL");
-  const [channel, setChannel] = useState("ALL");
-  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState(() => readUrlSearchParam("status", "ALL"));
+  const [channel, setChannel] = useState(() => readUrlSearchParam("canal", "ALL"));
+  const [search, setSearch] = useState(() => readUrlSearchParam("busca"));
   const [content, setContent] = useState(templates.reminder);
-  useEffect(() => {
-    if (!state.message) return;
-    if (state.status === "success") toast.success(state.message);
-    else toast.error(state.message);
-  }, [state]);
+  useActionFeedback(state);
   const visible = useMemo(
     () =>
       messages.filter(
@@ -102,10 +97,9 @@ export function MessageCenter({
   const pagination = usePagination(visible);
   return (
     <section className="space-y-5">
-      <form
-        action={action}
-        className="grid gap-4 rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:grid-cols-2 dark:shadow-none"
-      >
+      <Card className="py-0">
+      <CardContent className="p-5">
+      <form action={action} className="grid gap-4 md:grid-cols-2">
         <div className="md:col-span-2">
           <h2 className="font-semibold">Novo lembrete</h2>
           <p className="text-xs text-muted-foreground">
@@ -114,7 +108,7 @@ export function MessageCenter({
           </p>
         </div>
         <div>
-          <Label>Atendimento</Label>
+          <Label htmlFor="reminder-appointment">Atendimento</Label>
           <Select
             name="appointmentId"
             required
@@ -123,7 +117,7 @@ export function MessageCenter({
               label: item.label,
             }))}
           >
-            <SelectTrigger>
+            <SelectTrigger id="reminder-appointment">
               <SelectValue placeholder="Selecione" />
             </SelectTrigger>
             <SelectContent>
@@ -136,7 +130,7 @@ export function MessageCenter({
           </Select>
         </div>
         <div>
-          <Label>Canal</Label>
+          <Label htmlFor="reminder-channel">Canal</Label>
           <Select
             name="channel"
             defaultValue="EMAIL"
@@ -149,7 +143,7 @@ export function MessageCenter({
                 : { EMAIL: "E-mail automático" }
             }
           >
-            <SelectTrigger>
+            <SelectTrigger id="reminder-channel">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -161,11 +155,11 @@ export function MessageCenter({
           </Select>
         </div>
         <div>
-          <Label>Enviar em</Label>
-          <Input name="scheduledFor" type="datetime-local" required />
+          <Label htmlFor="reminder-scheduled-for">Enviar em</Label>
+          <Input id="reminder-scheduled-for" name="scheduledFor" type="datetime-local" required />
         </div>
         <div>
-          <Label>Modelo</Label>
+          <Label htmlFor="reminder-template">Modelo</Label>
           <Select
             defaultValue="reminder"
             items={{
@@ -178,7 +172,7 @@ export function MessageCenter({
               setContent(templates[String(value) as keyof typeof templates])
             }
           >
-            <SelectTrigger>
+            <SelectTrigger id="reminder-template">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -189,8 +183,9 @@ export function MessageCenter({
           </Select>
         </div>
         <div className="md:col-span-2">
-          <Label>Mensagem</Label>
+          <Label htmlFor="reminder-content">Mensagem</Label>
           <Textarea
+            id="reminder-content"
             name="content"
             value={content}
             onChange={(event) => setContent(event.target.value)}
@@ -204,11 +199,14 @@ export function MessageCenter({
           </Button>
         </div>
       </form>
+      </CardContent>
+      </Card>
       <div className="grid gap-2 md:grid-cols-[minmax(16rem,1fr)_12rem_12rem]">
         <Input
           value={search}
           onChange={(event) => {
             setSearch(event.target.value);
+            replaceUrlSearchParams({ busca: event.target.value || null });
             pagination.resetPage();
           }}
           placeholder="Buscar mensagem ou contato"
@@ -225,7 +223,10 @@ export function MessageCenter({
             CANCELED: "Cancelados",
           }}
           onValueChange={(value) => {
-            if (value != null) setStatus(String(value));
+            if (value != null) {
+              setStatus(String(value));
+              replaceUrlSearchParams({ status: String(value) === "ALL" ? null : String(value) });
+            }
             pagination.resetPage();
           }}
         >
@@ -249,7 +250,10 @@ export function MessageCenter({
             WHATSAPP: "WhatsApp",
           }}
           onValueChange={(value) => {
-            if (value != null) setChannel(String(value));
+            if (value != null) {
+              setChannel(String(value));
+              replaceUrlSearchParams({ canal: String(value) === "ALL" ? null : String(value) });
+            }
             pagination.resetPage();
           }}
         >
@@ -263,7 +267,8 @@ export function MessageCenter({
           </SelectContent>
         </Select>
       </div>
-      <div className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-[0_1px_2px_rgba(15,23,42,0.04)] dark:shadow-none">
+      <Card className="gap-0 py-0">
+        <CardContent className="px-0">
         <div className="divide-y">
           {visible.length ? (
             pagination.pageItems.map((item) => (
@@ -283,11 +288,7 @@ export function MessageCenter({
                   <p className="leading-5">{item.content}</p>
                   <p className="mt-1 break-all text-xs text-muted-foreground">
                     {item.recipient} ·{" "}
-                    {new Intl.DateTimeFormat("pt-BR", {
-                      dateStyle: "short",
-                      timeStyle: "short",
-                      timeZone,
-                    }).format(new Date(item.scheduledFor))}
+                    {formatDateTime(item.scheduledFor, timeZone)}
                   </p>
                   {item.error ? (
                     <p className="mt-1 text-xs text-destructive">
@@ -304,16 +305,17 @@ export function MessageCenter({
             </p>
           )}
         </div>
+        </CardContent>
         <div className="px-4 pb-4">
           <PaginationControls
             page={pagination.page}
             pageCount={pagination.pageCount}
             totalItems={visible.length}
             onPageChange={pagination.setPage}
-            itemLabel="mensagem"
+            itemLabelPlural="mensagens"
           />
         </div>
-      </div>
+      </Card>
     </section>
   );
 }

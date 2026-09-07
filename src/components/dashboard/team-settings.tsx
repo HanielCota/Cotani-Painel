@@ -4,15 +4,6 @@ import { useActionState, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -31,6 +22,9 @@ import {
 } from "@/server/actions/clinics";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { usePagination } from "@/hooks/use-pagination";
+import { clinicRoleLabels } from "@/lib/display-labels";
+import { formatDate } from "@/lib/formatters";
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface TeamMember {
   id: string;
@@ -52,11 +46,6 @@ interface ProfessionalOption {
   name: string;
   available: boolean;
 }
-const roleLabels = {
-  ADMIN: "Administrador",
-  RECEPTIONIST: "Recepcionista",
-  PROVIDER: "Profissional",
-};
 
 function MemberRow({
   member,
@@ -102,7 +91,7 @@ function MemberRow({
         <Select
           name="role"
           value={role}
-          items={roleLabels}
+          items={clinicRoleLabels}
           onValueChange={(value) =>
             value != null && setRole(String(value) as TeamMember["role"])
           }
@@ -112,7 +101,7 @@ function MemberRow({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {Object.entries(roleLabels).map(([value, label]) => (
+            {Object.entries(clinicRoleLabels).map(([value, label]) => (
               <SelectItem key={value} value={value}>
                 {label}
               </SelectItem>
@@ -151,28 +140,22 @@ function MemberRow({
         </Button>
       </form>
       {!member.isCurrent ? (
-        <Dialog open={removing} onOpenChange={setRemoving}>
-          <DialogTrigger
+        <AlertDialog open={removing} onOpenChange={setRemoving}>
+          <AlertDialogTrigger
             render={<Button type="button" variant="ghost" size="sm" />}
           >
             Remover
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Remover acesso?</DialogTitle>
-              <DialogDescription>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Remover acesso?</AlertDialogTitle>
+              <AlertDialogDescription>
                 {member.name} perderá o acesso a esta empresa. O histórico será
                 preservado.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setRemoving(false)}
-              >
-                Cancelar
-              </Button>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
               <Button
                 type="button"
                 variant="destructive"
@@ -181,9 +164,9 @@ function MemberRow({
               >
                 Remover acesso
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       ) : null}
     </div>
   );
@@ -208,8 +191,8 @@ function InvitationRow({ invite }: { invite: PendingInvitation }) {
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{invite.email}</p>
         <p className="text-xs text-muted-foreground">
-          {roleLabels[invite.role]} · expira em{" "}
-          {new Intl.DateTimeFormat("pt-BR").format(new Date(invite.expiresAt))}
+          {clinicRoleLabels[invite.role]} · expira em{" "}
+          {formatDate(invite.expiresAt)}
         </p>
       </div>
       <Button
@@ -271,7 +254,7 @@ export function TeamSettings({
           <Select
             name="role"
             value={inviteRole}
-            items={roleLabels}
+            items={clinicRoleLabels}
             onValueChange={(value) =>
               value != null &&
               setInviteRole(String(value) as TeamMember["role"])
@@ -281,7 +264,7 @@ export function TeamSettings({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(roleLabels).map(([value, label]) => (
+              {Object.entries(clinicRoleLabels).map(([value, label]) => (
                 <SelectItem key={value} value={value}>
                   {label}
                 </SelectItem>
@@ -343,7 +326,7 @@ export function TeamSettings({
           pageCount={memberPagination.pageCount}
           totalItems={members.length}
           onPageChange={memberPagination.setPage}
-          itemLabel="pessoa"
+          itemLabelPlural="pessoas"
         />
       </div>
       {invitations.length ? (
@@ -359,7 +342,7 @@ export function TeamSettings({
             pageCount={invitationPagination.pageCount}
             totalItems={invitations.length}
             onPageChange={invitationPagination.setPage}
-            itemLabel="convite"
+            itemLabelPlural="convites"
           />
         </div>
       ) : null}

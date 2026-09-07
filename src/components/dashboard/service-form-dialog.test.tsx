@@ -65,20 +65,13 @@ describe("ServiceFormDialog", () => {
     expect(screen.getByDisplayValue("35")).toBeInTheDocument();
   });
 
-  it("converte imagem selecionada para base64 e envia no formData", async () => {
+  it("envia o arquivo selecionado diretamente no formData", async () => {
     const file = new File(["dummy"], "service.jpg", { type: "image/jpeg" });
-
-    class MockFileReader {
-      result: string | null = null;
-      onload: ((event: ProgressEvent<FileReader>) => void) | null = null;
-      readAsDataURL() {
-        this.result = "data:image/jpeg;base64,dummy";
-        setTimeout(() => {
-          this.onload?.({ target: { result: this.result } } as ProgressEvent<FileReader>);
-        }, 0);
-      }
-    }
-    vi.stubGlobal("FileReader", MockFileReader);
+    vi.stubGlobal("URL", {
+      ...URL,
+      createObjectURL: vi.fn(() => "blob:service-preview"),
+      revokeObjectURL: vi.fn(),
+    });
 
     (createServiceFromForm as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       status: "success",
@@ -97,7 +90,7 @@ describe("ServiceFormDialog", () => {
     fireEvent.change(fileInput, { target: { files: [file] } });
 
     await waitFor(() => {
-      expect(screen.getByAltText(/preview do serviço/i)).toHaveAttribute("src", "data:image/jpeg;base64,dummy");
+      expect(screen.getByAltText(/prévia do serviço/i)).toHaveAttribute("src", "blob:service-preview");
     });
     expect(screen.getByText("service.jpg")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /trocar imagem/i })).toBeInTheDocument();
@@ -107,6 +100,8 @@ describe("ServiceFormDialog", () => {
     await waitFor(() => {
       expect(createServiceFromForm).toHaveBeenCalled();
     });
+    const submittedData = (createServiceFromForm as ReturnType<typeof vi.fn>).mock.calls.at(-1)?.[1] as FormData;
+    expect(submittedData.get("imageFile")).toBeInstanceOf(File);
 
     vi.unstubAllGlobals();
   });

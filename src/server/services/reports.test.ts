@@ -102,7 +102,7 @@ describe("getReportsMetrics", () => {
     expect(metrics.activeCustomersThisMonth).toBe(1);
     expect(metrics.confirmationRate).toBe(67); // 2 confirmados/completados de 3 atendimentos não cancelados
     expect(metrics.noShowRate).toBe(33); // 1 no-show de 3 atendimentos não cancelados
-    expect(metrics.monthAppointments).toHaveLength(4);
+    expect(metrics.periodAppointmentsTotal).toBe(4);
     expect(metrics.topServices).toHaveLength(2);
     expect(metrics.topServices[0]?.name).toBe("Serviço A");
     expect(metrics.topServices[0]?.count).toBe(2);

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPlanEntitlements } from "@/config/subscription-plans";
 import { checkApiRateLimit } from "@/lib/api-rate-limit";
 import { buildAppointmentsCsv } from "@/server/services/reports-export";
-import { getReportsMetrics } from "@/server/services/reports";
+import { getReportAppointmentsForExport } from "@/server/services/reports";
 import { isSubscriptionActive } from "@/server/subscription";
 import { getApiTenant } from "@/server/tenant";
 import { parseClinicDateTime } from "@/lib/timezone";
@@ -31,8 +31,8 @@ export async function GET(request: NextRequest) {
   const to = toStart ? new Date(toStart.getTime() + 24 * 60 * 60_000) : undefined;
   const ownerId = clinic.billingOwnerId ?? clinic.id;
   const clinicIds = (await prisma.clinic.findMany({ where: { OR: [{ id: ownerId }, { billingOwnerId: ownerId }], deletedAt: null }, select: { id: true } })).map((item) => item.id);
-  const metrics = await getReportsMetrics(clinic, { from, to, clinicIds });
-  const csv = buildAppointmentsCsv(metrics.monthAppointments, clinic.timeZone);
+  const appointments = await getReportAppointmentsForExport(clinic, { from, to, clinicIds });
+  const csv = buildAppointmentsCsv(appointments, clinic.timeZone);
   const month = new Intl.DateTimeFormat("en-CA", {
     timeZone: clinic.timeZone,
     year: "numeric",

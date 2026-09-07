@@ -13,6 +13,7 @@ import type { WhatsAppNotificationItem } from "@/server/services/whatsapp-crm";
 import type { ActionResult } from "@/types";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { usePagination } from "@/hooks/use-pagination";
+import { formatDateTime } from "@/lib/formatters";
 
 interface WhatsAppCrmListProps {
   pending: WhatsAppNotificationItem[];
@@ -73,7 +74,7 @@ function NotificationCard({
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant={kindVariant[notification.kind] ?? "secondary"}>{kindLabels[notification.kind] ?? notification.kind}</Badge>
             <span className="text-xs text-muted-foreground">
-              {new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone }).format(new Date(notification.scheduledFor))}
+              {formatDateTime(notification.scheduledFor, timeZone)}
             </span>
           </div>
           {isSent ? (
@@ -173,7 +174,7 @@ export function WhatsAppCrmList({ pending, sent, automaticMode = false, timeZone
               ))}
             </div>
           )}
-          <PaginationControls page={pendingPagination.page} pageCount={pendingPagination.pageCount} totalItems={visiblePending.length} onPageChange={pendingPagination.setPage} itemLabel="mensagem" />
+          <PaginationControls page={pendingPagination.page} pageCount={pendingPagination.pageCount} totalItems={visiblePending.length} onPageChange={pendingPagination.setPage} itemLabelPlural="mensagens" />
         </CardContent>
       </Card>
 
@@ -194,7 +195,7 @@ export function WhatsAppCrmList({ pending, sent, automaticMode = false, timeZone
                 <NotificationCard key={notification.id} notification={notification} isSent timeZone={timeZone} />
               ))}
             </div>
-            <PaginationControls page={sentPagination.page} pageCount={sentPagination.pageCount} totalItems={visibleSent.length} onPageChange={sentPagination.setPage} itemLabel="mensagem" />
+            <PaginationControls page={sentPagination.page} pageCount={sentPagination.pageCount} totalItems={visibleSent.length} onPageChange={sentPagination.setPage} itemLabelPlural="mensagens" />
           </CardContent>
         </Card>
       ) : null}

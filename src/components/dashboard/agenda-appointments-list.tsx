@@ -13,27 +13,12 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/
 import { Skeleton } from "@/components/ui/skeleton";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useAppointments } from "@/hooks/use-appointments";
-import { usePagination } from "@/hooks/use-pagination";
-import { formatClinicDateKey, formatClinicDateTimeInput } from "@/lib/timezone";
+import { formatClinicDateTimeInput } from "@/lib/timezone";
+import { appointmentStatusBadgeVariant, appointmentStatusLabel } from "@/lib/display-labels";
 import type { AgendaAppointment } from "@/types";
+import { readUrlSearchParam, replaceUrlSearchParams } from "@/lib/browser-url";
 
-export const appointmentStatusLabel = {
-  PENDING: "Pendente",
-  CONFIRMED: "Confirmado",
-  COMPLETED: "Concluído",
-  CANCELED: "Cancelado",
-  NO_SHOW: "Não compareceu",
-} as const;
-
-type AppointmentStatus = keyof typeof appointmentStatusLabel;
-
-const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  CONFIRMED: "default",
-  PENDING: "secondary",
-  COMPLETED: "outline",
-  CANCELED: "destructive",
-  NO_SHOW: "destructive",
-};
+type AppointmentStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELED" | "NO_SHOW";
 
 const filters: Array<{ status: AppointmentStatus | "ALL"; label: string }> = [
   { status: "ALL", label: "Todos" },
@@ -63,27 +48,22 @@ interface AgendaAppointmentsListProps {
 }
 
 export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, customers = [], services = [] }: AgendaAppointmentsListProps) {
-  const { data: appointments, isPending, isError, refetch } = useAppointments();
-  const [statusFilter, setStatusFilter] = useState<AppointmentStatus | "ALL">("ALL");
-  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>("ALL");
-  const now = new Date();
-  const todayKey = formatClinicDateKey(now, timeZone);
-  const weekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1_000);
-  const filteredAppointments = (appointments ?? []).filter((appointment) => {
-    const startTime = new Date(appointment.startTime);
-    const matchesStatus = statusFilter === "ALL" || appointment.status === statusFilter;
-    const matchesPeriod = periodFilter === "ALL"
-      ? true
-      : periodFilter === "TODAY"
-        ? formatClinicDateKey(startTime, timeZone) === todayKey
-        : periodFilter === "WEEK"
-          ? startTime >= now && startTime <= weekEnd
-          : periodFilter === "UPCOMING"
-            ? startTime >= now
-            : startTime < now;
-    return matchesStatus && matchesPeriod;
+  const [page, setPageState] = useState(() => Math.max(1, Number.parseInt(readUrlSearchParam("pagina", "1"), 10) || 1));
+  const [statusFilter, setStatusFilter] = useState<AppointmentStatus | "ALL">(() => {
+    const value = readUrlSearchParam("status", "ALL");
+    return filters.some((item) => item.status === value) ? value as AppointmentStatus | "ALL" : "ALL";
   });
-  const pagination = usePagination(filteredAppointments);
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>(() => {
+    const value = readUrlSearchParam("periodo", "ALL");
+    return periodFilters.some((item) => item.value === value) ? value as PeriodFilter : "ALL";
+  });
+  function setPage(nextPage: number) {
+    setPageState(nextPage);
+    replaceUrlSearchParams({ pagina: nextPage > 1 ? String(nextPage) : null });
+  }
+  const { data, isPending, isError, isFetching, refetch } = useAppointments({ page, status: statusFilter, period: periodFilter });
+  const appointments = data?.items ?? [];
+  const pageCount = Math.max(1, Math.ceil((data?.total ?? 0) / (data?.pageSize ?? 15)));
 
   if (isPending) {
     return (
@@ -107,7 +87,7 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
     );
   }
 
-  if (!appointments || appointments.length === 0) {
+  if ((data?.total ?? 0) === 0 && statusFilter === "ALL" && periodFilter === "ALL") {
     return (
       <Empty className="min-h-48 border border-dashed border-border/80 bg-background/50">
         <EmptyHeader>
@@ -122,7 +102,7 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4" aria-busy={isFetching}>
       <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar por período">
         {periodFilters.map((filter) => (
           <Button
@@ -133,7 +113,8 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
             aria-pressed={periodFilter === filter.value}
             onClick={() => {
               setPeriodFilter(filter.value);
-              pagination.resetPage();
+              replaceUrlSearchParams({ periodo: filter.value === "ALL" ? null : filter.value, pagina: null });
+              setPage(1);
             }}
           >
             {filter.label}
@@ -150,7 +131,8 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
             aria-pressed={statusFilter === filter.status}
             onClick={() => {
               setStatusFilter(filter.status);
-              pagination.resetPage();
+              replaceUrlSearchParams({ status: filter.status === "ALL" ? null : filter.status, pagina: null });
+              setPage(1);
             }}
           >
             {filter.label}
@@ -158,7 +140,7 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
         ))}
       </div>
 
-      {filteredAppointments.length === 0 ? (
+      {appointments.length === 0 ? (
         <Empty className="min-h-32 border border-dashed border-border/80 bg-background/50">
           <EmptyHeader>
             <EmptyMedia variant="icon"><Clock3Icon /></EmptyMedia>
@@ -168,7 +150,7 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
         </Empty>
       ) : (
         <div className="flex flex-col divide-y">
-          {pagination.pageItems.map((appointment: AgendaAppointment) => {
+          {appointments.map((appointment: AgendaAppointment) => {
             const startTime = new Date(appointment.startTime);
             const dateTime = new Intl.DateTimeFormat("pt-BR", {
               dateStyle: "medium",
@@ -197,8 +179,8 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 xl:justify-end">
-                  <Badge variant={statusVariant[appointment.status] ?? "secondary"}>
-                    {appointmentStatusLabel[appointment.status]}
+                  <Badge variant={appointmentStatusBadgeVariant(appointment.status)}>
+                    {appointmentStatusLabel(appointment.status)}
                   </Badge>
                   {appointment.status !== "CANCELED" && appointment.status !== "NO_SHOW" && appointment.status !== "COMPLETED" ? (
                     canSchedule ? <EditAppointmentDialog appointment={appointment} customers={customers} services={services} currentStartTime={formatClinicDateTimeInput(startTime, timeZone)} minStartTime={minStartTime} /> : <RescheduleAppointmentDialog appointmentId={appointment.id} currentStartTime={formatClinicDateTimeInput(startTime, timeZone)} minStartTime={minStartTime} />
@@ -210,7 +192,7 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
           })}
         </div>
       )}
-      <PaginationControls page={pagination.page} pageCount={pagination.pageCount} totalItems={filteredAppointments.length} onPageChange={pagination.setPage} itemLabel="atendimento" />
+      <PaginationControls page={data?.page ?? page} pageCount={pageCount} totalItems={data?.total ?? 0} onPageChange={setPage} itemLabelPlural="atendimentos" />
     </div>
   );
 }

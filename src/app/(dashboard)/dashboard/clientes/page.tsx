@@ -18,7 +18,7 @@ export default withTenant(async ({ clinic }) => {
       <PageHeader
         title="Clientes"
         description={`Centralize sua base e o histórico de atendimentos de ${clinic.name}.`}
-        actions={<div className="flex flex-wrap items-center gap-2"><ImportCustomersButton /><Button nativeButton={false} variant="outline" render={<a href="/api/customers/export" download />}><DownloadIcon />Exportar</Button><NewCustomerDialog /></div>}
+        actions={<div className="flex w-full flex-wrap items-center gap-2 lg:w-auto"><ImportCustomersButton /><Button nativeButton={false} variant="outline" render={<a href="/api/customers/export" download />}><DownloadIcon />Exportar</Button><NewCustomerDialog /></div>}
       />
       <Card>
         <CardHeader className="border-b">

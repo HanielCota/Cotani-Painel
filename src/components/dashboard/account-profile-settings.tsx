@@ -1,22 +1,18 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
-import { toast } from "sonner";
+import { useActionState } from "react";
 import { updateAccountProfile } from "@/server/actions/account";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { ActionResult } from "@/types";
+import { useActionFeedback } from "@/hooks/use-action-feedback";
 const initial: ActionResult = { status: "success", message: "" };
 
 export function AccountProfileSettings({ user }: { user: { name: string; email: string | null } }) {
   const [state, action, pending] = useActionState(updateAccountProfile, initial);
 
-  useEffect(() => {
-    if (!state.message) return;
-    if (state.status === "success") toast.success(state.message);
-    else toast.error(state.message);
-  }, [state]);
+  useActionFeedback(state);
 
   return (
     <form action={action} className="grid gap-4 sm:grid-cols-2">

@@ -35,7 +35,7 @@ describe("SubscriptionCheckout", () => {
     expect(screen.getByText("Essencial")).toBeInTheDocument();
     expect(screen.getByText(/R\$\s*34,90/)).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: /anual/i }));
+    await userEvent.click(screen.getByRole("radio", { name: /anual/i }));
     expect(screen.getByText(/R\$\s*335,04/)).toBeInTheDocument();
   });
 

@@ -1,8 +1,7 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import { ClockIcon } from "lucide-react";
-import { toast } from "sonner";
 
 import { saveBusinessHoursFromForm, saveProfessionalAvailabilityFromForm } from "@/server/actions/business-hours";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -12,6 +11,7 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import type { ActionResult, BusinessHourItem } from "@/types";
+import { useActionFeedback } from "@/hooks/use-action-feedback";
 
 const initialState: ActionResult = { status: "success", message: "" };
 
@@ -26,18 +26,7 @@ export function BusinessHoursSettings({ businessHours, professionalId }: Busines
   const [state, formAction, isPending] = useActionState(professionalId ? saveProfessionalAvailabilityFromForm : saveBusinessHoursFromForm, initialState);
   const [localHours, setLocalHours] = useState<BusinessHourItem[]>(() => normalizeBusinessHours(businessHours));
 
-  useEffect(() => {
-    if (!state.message) {
-      return;
-    }
-
-    if (state.status === "error") {
-      toast.error(state.message);
-      return;
-    }
-
-    toast.success(state.message);
-  }, [state]);
+  useActionFeedback(state);
 
   function toggleDay(dayOfWeek: number) {
     setLocalHours((current) =>

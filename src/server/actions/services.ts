@@ -13,8 +13,8 @@ import { allowMediaUpload } from "@/server/services/action-rate-limit";
 
 const MAX_IMAGE_SIZE_CHARS = 2_000_000;
 
-const imageUrlSchema = z
-  .union([z.string().trim().max(MAX_IMAGE_SIZE_CHARS), z.null(), z.literal("")])
+const imageValueSchema = z
+  .union([z.string().trim().max(MAX_IMAGE_SIZE_CHARS), z.instanceof(File), z.null()])
   .optional()
   .transform((value) => {
     if (!value || value === "") return null;
@@ -23,7 +23,7 @@ const imageUrlSchema = z
   .refine(
     (value) =>
       value === null ||
-      value.startsWith("data:image/") || value.startsWith("https://"),
+      value instanceof File || value.startsWith("data:image/") || value.startsWith("https://"),
     { message: "A imagem deve ser um arquivo de imagem válido ou uma URL." },
   );
 
@@ -31,7 +31,7 @@ const serviceSchema = z.object({
   name: z.string().trim().min(2).max(120),
   duration: z.coerce.number().int().min(5).max(480),
   price: z.coerce.number().min(0).max(100_000),
-  imageUrl: imageUrlSchema,
+  imageUrl: imageValueSchema,
 });
 
 const updateServiceSchema = serviceSchema.extend({
@@ -42,6 +42,17 @@ function revalidateServiceViews() {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/agenda");
   revalidatePath("/dashboard/negocio/servicos");
+}
+
+function isNewImageUpload(value: string | File | null): boolean {
+  return value instanceof File ? value.size > 0 : Boolean(value?.startsWith("data:"));
+}
+
+function getImageValue(formData: FormData): string | File | null {
+  const file = formData.get("imageFile");
+  if (file instanceof File && file.size > 0) return file;
+  const currentValue = formData.get("imageUrl");
+  return typeof currentValue === "string" && currentValue ? currentValue : null;
 }
 
 export async function createService(input: unknown): Promise<ActionResult> {
@@ -63,7 +74,7 @@ export async function createService(input: unknown): Promise<ActionResult> {
     return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
   }
 
-  if (parsed.data.imageUrl?.startsWith("data:") && !(await allowMediaUpload(authUser.id))) {
+  if (isNewImageUpload(parsed.data.imageUrl) && !(await allowMediaUpload(authUser.id))) {
     return { status: "error", message: "Muitos envios de imagem. Aguarde antes de tentar novamente." };
   }
 
@@ -71,7 +82,7 @@ export async function createService(input: unknown): Promise<ActionResult> {
 
   try {
     const imageUrl = await persistPublicImage({ clinicId: clinic.id, kind: "services", value: parsed.data.imageUrl });
-    if (parsed.data.imageUrl?.startsWith("data:")) uploadedImageUrl = imageUrl;
+    if (isNewImageUpload(parsed.data.imageUrl)) uploadedImageUrl = imageUrl;
     await prisma.service.create({
       data: {
         clinicId: clinic.id,
@@ -95,7 +106,7 @@ export async function createServiceFromForm(_previousState: ActionResult, formDa
     name: formData.get("name"),
     duration: formData.get("duration"),
     price: formData.get("price"),
-    imageUrl: formData.get("imageUrl") || null,
+    imageUrl: getImageValue(formData),
   });
 }
 
@@ -118,7 +129,7 @@ export async function updateService(input: unknown): Promise<ActionResult> {
     return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
   }
 
-  if (parsed.data.imageUrl?.startsWith("data:") && !(await allowMediaUpload(authUser.id))) {
+  if (isNewImageUpload(parsed.data.imageUrl) && !(await allowMediaUpload(authUser.id))) {
     return { status: "error", message: "Muitos envios de imagem. Aguarde antes de tentar novamente." };
   }
 
@@ -136,7 +147,7 @@ export async function updateService(input: unknown): Promise<ActionResult> {
 
   try {
     imageUrl = await persistPublicImage({ clinicId: clinic.id, kind: "services", value: parsed.data.imageUrl, currentUrl: service.imageUrl });
-    if (parsed.data.imageUrl?.startsWith("data:")) uploadedImageUrl = imageUrl;
+    if (isNewImageUpload(parsed.data.imageUrl)) uploadedImageUrl = imageUrl;
     await prisma.service.update({
       where: { id: service.id },
       data: {
@@ -165,7 +176,7 @@ export async function updateServiceFromForm(_previousState: ActionResult, formDa
     name: formData.get("name"),
     duration: formData.get("duration"),
     price: formData.get("price"),
-    imageUrl: formData.get("imageUrl") || null,
+    imageUrl: getImageValue(formData),
   });
 }
 
