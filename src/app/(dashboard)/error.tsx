@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { RefreshCwIcon, TriangleAlertIcon } from "lucide-react";
+import { OctagonXIcon, RefreshCwIcon } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ export default function DashboardError({ error, unstable_retry }: { error: Error
 
   return (
     <Alert variant="destructive" className="max-w-xl">
-      <TriangleAlertIcon />
+      <OctagonXIcon aria-hidden="true" />
       <AlertTitle>Não foi possível carregar esta área</AlertTitle>
       <AlertDescription className="flex flex-col items-start gap-4">
         <span>Tente novamente. Se o problema persistir, atualize a página ou entre em contato com o suporte.</span>

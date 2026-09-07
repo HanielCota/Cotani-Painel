@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangleIcon, HomeIcon, RefreshCwIcon } from "lucide-react";
+import { HomeIcon, OctagonXIcon, RefreshCwIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
 
@@ -26,7 +26,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
       <Card className="w-full">
         <CardHeader className="text-center">
           <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
-            <AlertTriangleIcon className="size-6" />
+            <OctagonXIcon aria-hidden="true" className="size-6" />
           </div>
           <CardTitle className="text-xl">Algo deu errado</CardTitle>
           <CardDescription>

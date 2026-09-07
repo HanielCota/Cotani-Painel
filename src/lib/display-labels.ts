@@ -47,6 +47,40 @@ const adminTargetLabels: Record<string, string> = {
   Membership: "Vínculo de membro",
 };
 
+export const clinicRoleLabels = {
+  ADMIN: "Administrador",
+  RECEPTIONIST: "Recepcionista",
+  PROVIDER: "Profissional",
+} as const;
+
+const appointmentStatusLabels: Record<string, string> = {
+  PENDING: "Pendente",
+  CONFIRMED: "Confirmado",
+  COMPLETED: "Concluído",
+  CANCELED: "Cancelado",
+  NO_SHOW: "Não compareceu",
+};
+
+const appointmentStatusBadgeVariants = {
+  PENDING: "secondary",
+  CONFIRMED: "success",
+  COMPLETED: "default",
+  CANCELED: "destructive",
+  NO_SHOW: "destructive",
+} as const;
+
+export function appointmentStatusLabel(status: string): string {
+  return appointmentStatusLabels[status] ?? "Status não reconhecido";
+}
+
+export function appointmentStatusBadgeVariant(status: string): "default" | "secondary" | "destructive" | "success" {
+  return appointmentStatusBadgeVariants[status as keyof typeof appointmentStatusBadgeVariants] ?? "secondary";
+}
+
+export function clinicRoleLabel(role: string): string {
+  return clinicRoleLabels[role as keyof typeof clinicRoleLabels] ?? "Perfil não reconhecido";
+}
+
 export function subscriptionStatusLabel(status: string): string {
   return subscriptionStatusLabels[status] ?? "Status não reconhecido";
 }

@@ -9,7 +9,8 @@ interface PaginationControlsProps {
   pageCount: number;
   totalItems: number;
   onPageChange: (page: number) => void;
-  itemLabel?: string;
+  pageSize?: number;
+  itemLabelPlural?: string;
 }
 
 export function PaginationControls({
@@ -17,24 +18,18 @@ export function PaginationControls({
   pageCount,
   totalItems,
   onPageChange,
-  itemLabel = "item",
+  pageSize = 15,
+  itemLabelPlural = "itens",
 }: PaginationControlsProps) {
-  if (totalItems <= 15) return null;
+  if (totalItems <= pageSize) return null;
 
-  const firstItem = (page - 1) * 15 + 1;
-  const lastItem = Math.min(page * 15, totalItems);
-  const pluralLabel = itemLabel.endsWith("ção")
-    ? `${itemLabel.slice(0, -3)}ções`
-    : itemLabel.endsWith("m")
-      ? `${itemLabel.slice(0, -1)}ns`
-      : itemLabel.endsWith("l")
-        ? `${itemLabel.slice(0, -1)}is`
-        : `${itemLabel}s`;
+  const firstItem = (page - 1) * pageSize + 1;
+  const lastItem = Math.min(page * pageSize, totalItems);
 
   return (
     <nav className="flex flex-col gap-3 pt-4 sm:flex-row sm:items-center sm:justify-between" aria-label="Paginação">
       <p className="text-sm text-muted-foreground" aria-live="polite">
-        {firstItem}–{lastItem} de {totalItems} {pluralLabel}
+        {firstItem}–{lastItem} de {totalItems} {itemLabelPlural}
       </p>
       <div className="flex gap-2">
         <Button type="button" size="sm" variant="outline" disabled={page === 1} onClick={() => onPageChange(page - 1)}>

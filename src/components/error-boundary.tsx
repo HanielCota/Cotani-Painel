@@ -1,7 +1,7 @@
 "use client";
 
 import { Component, type ErrorInfo, type ReactNode } from "react";
-import { AlertTriangleIcon } from "lucide-react";
+import { OctagonXIcon } from "lucide-react";
 
 import { logger } from "@/lib/logger";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -48,7 +48,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
       return (
         <Alert variant="destructive" className="m-4">
-          <AlertTriangleIcon className="size-4" />
+          <OctagonXIcon aria-hidden="true" className="size-4" />
           <AlertTitle>Erro ao carregar este componente</AlertTitle>
           <AlertDescription className="flex flex-col gap-2">
             <span>

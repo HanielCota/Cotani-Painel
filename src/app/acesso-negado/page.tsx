@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Acesso negado" };
 export default function AccessDeniedPage() {
   return (
     <main id="main-content" tabIndex={-1} className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden px-4 py-10 outline-none">
-      <div aria-hidden="true" className="absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top,oklch(0.91_0.08_165_/_0.45),transparent_68%)]" />
+      <div aria-hidden="true" className="public-page-glow absolute inset-x-0 top-0 h-72" />
       <Card className="relative w-full max-w-md">
         <CardHeader className="items-center text-center">
           <span className="flex size-11 items-center justify-center rounded-xl bg-accent text-accent-foreground"><LockKeyholeIcon className="size-5" /></span>

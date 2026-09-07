@@ -27,6 +27,9 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -64,6 +67,9 @@
   --accent: #e7f7f1;
   --accent-foreground: #08745a;
   --destructive: #dc2626;
+  --success: #08745a;
+  --warning: #b45309;
+  --info: #2563eb;
   --border: #e2e6ea;
   --input: #d7ddda;
   --ring: #08745a;
@@ -99,6 +105,9 @@
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --success: #3dd9c0;
+  --warning: #fbbf24;
+  --info: #60a5fa;
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: #3DD9C0;
@@ -243,6 +252,10 @@
 
 .animate-fade-in-up {
   animation: fade-in-up 250ms ease-out forwards;
+}
+
+.public-page-glow {
+  background: radial-gradient(circle at top, color-mix(in oklab, var(--primary) 18%, transparent), transparent 68%);
 }
 
 @media (prefers-reduced-motion: reduce) {

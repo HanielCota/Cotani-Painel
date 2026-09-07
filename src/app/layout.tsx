@@ -41,6 +41,8 @@ export const metadata: Metadata = {
   },
 };
 
+const analyticsEnabled = process.env.NEXT_PUBLIC_VERCEL_ANALYTICS_ENABLED === "true";
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
@@ -55,7 +57,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           {children}
           <ThemeToggle />
         </AppProviders>
-        <Analytics />
+        {analyticsEnabled ? <Analytics /> : null}
       </body>
     </html>
   );
