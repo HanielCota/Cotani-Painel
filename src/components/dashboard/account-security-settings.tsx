@@ -29,11 +29,11 @@ export function AccountSecuritySettings() {
           <LogOutIcon />Encerrar outras sessões
         </Button>
         {verifiedFactorId ? (
-          <Button type="button" variant="destructive" className="h-auto min-h-10 w-full justify-start whitespace-normal py-2 text-left leading-5 sm:col-span-2" onClick={disable} disabled={pending}>
+          <Button type="button" variant="destructive" className="h-auto min-h-10 w-full justify-start whitespace-normal py-2 text-left leading-5" onClick={disable} disabled={pending}>
             <ShieldCheckIcon />Desativar autenticação em dois fatores
           </Button>
         ) : (
-          <Button type="button" variant="outline" className="h-auto min-h-10 w-full justify-start whitespace-normal py-2 text-left leading-5 sm:col-span-2" onClick={enroll} disabled={pending}>
+          <Button type="button" variant="outline" className="h-auto min-h-10 w-full justify-start whitespace-normal py-2 text-left leading-5" onClick={enroll} disabled={pending}>
             <ShieldCheckIcon />Ativar autenticação em dois fatores
           </Button>
         )}
