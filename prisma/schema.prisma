@@ -270,6 +270,7 @@ model ClinicInvitation {
   @@index([clinicId, status])
   @@index([authUserId])
   @@index([professionalId])
+  @@index([invitedByUserId])
 }
 
 model Membership {
@@ -448,6 +449,7 @@ model Notification {
   @@index([status, scheduledFor])
   @@index([status, nextAttemptAt])
   @@index([clinicId, appointmentId])
+  @@index([appointmentId])
 }
 
 model WebhookEvent {
