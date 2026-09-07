@@ -1,7 +1,7 @@
 "use client";
 
 import { createBrowserClient } from "@supabase/ssr";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient as createSupabaseClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { getPublicSupabaseConfig } from "@/lib/supabase/config";
 
@@ -11,4 +11,16 @@ export function createClient(): SupabaseClient {
   const { supabaseUrl, supabasePublishableKey } = getPublicSupabaseConfig();
   browserClient ??= createBrowserClient(supabaseUrl, supabasePublishableKey);
   return browserClient;
+}
+
+export function createPasswordVerificationClient(): SupabaseClient {
+  const { supabaseUrl, supabasePublishableKey } = getPublicSupabaseConfig();
+
+  return createSupabaseClient(supabaseUrl, supabasePublishableKey, {
+    auth: {
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+      persistSession: false,
+    },
+  });
 }
