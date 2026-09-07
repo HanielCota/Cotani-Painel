@@ -111,6 +111,7 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
       }
       const params = new URLSearchParams();
       if (selectedService?.name) params.set("service", selectedService.name);
+      if (selectedService?.duration) params.set("duration", String(selectedService.duration));
       if (selectedProfessional?.name) params.set("professional", selectedProfessional.name);
       if (date) params.set("date", date);
       params.set("time", slot.label);

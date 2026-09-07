@@ -1,19 +1,21 @@
 "use client";
 
-import { CalendarIcon, CalendarPlusIcon, Share2Icon, SmartphoneIcon } from "lucide-react";
-import { toast } from "sonner";
+import { CalendarIcon, CalendarPlusIcon, MapPinIcon, MessageCircleIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { buildWhatsAppLink } from "@/lib/phone";
 
 interface SuccessActionsProps {
-  slug: string;
   clinicName: string;
   service?: string;
   professional?: string;
   date?: string;
   time?: string;
+  duration?: string;
   customer?: string;
   timeZone: string;
+  phone?: string | null;
+  address?: string | null;
 }
 
 export function parseLocalDateTime(date: string, time: string, timeZone: string): Date | null {
@@ -126,115 +128,117 @@ function downloadIcs(event: {
 }
 
 export function SuccessActions({
-  slug,
   clinicName,
   service,
   professional,
   date,
   time,
+  duration,
   customer,
   timeZone,
+  phone,
+  address,
 }: SuccessActionsProps) {
   const eventStart = date && time ? parseLocalDateTime(date, time, timeZone) : null;
-  const eventEnd = eventStart && service ? new Date(eventStart.getTime() + 60 * 60 * 1000) : null;
+  const parsedDuration = Number(duration);
+  const durationMinutes = Number.isInteger(parsedDuration) && parsedDuration > 0 && parsedDuration <= 24 * 60 ? parsedDuration : 60;
+  const eventEnd = eventStart ? new Date(eventStart.getTime() + durationMinutes * 60 * 1000) : null;
+  const displayDate = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date.split("-").reverse().join("/") : date;
 
   const eventTitle = service ? `Atendimento: ${service}` : "Agendamento na loja";
   const eventDetails = [
     service ? `Serviço: ${service}` : "",
     professional ? `Profissional: ${professional}` : "",
     customer ? `Cliente: ${customer}` : "",
+    displayDate ? `Data: ${displayDate}` : "",
+    time ? `Horário: ${time}` : "",
     "",
     `Agendamento feito em ${clinicName}.`,
   ]
     .filter(Boolean)
     .join("\n");
 
-  const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/${slug}` : "";
-
-  async function handleShare() {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: `Agendamento confirmado em ${clinicName}`,
-          text: eventDetails,
-          url: publicUrl,
-        });
-        return;
-      }
-
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(publicUrl);
-        toast.success("Link copiado para a área de transferência.");
-        return;
-      }
-
-      toast.error("O compartilhamento não está disponível neste navegador.");
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") return;
-      toast.error("Não foi possível compartilhar o link.");
-    }
-  }
+  const contactMessage = `Olá! Gostaria de solicitar uma alteração ou o cancelamento deste atendimento.\n\n${eventDetails}`;
+  const whatsappUrl = phone ? buildWhatsAppLink(phone, contactMessage) : null;
+  const mapsUrl = address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}` : null;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex w-full flex-col gap-4">
       {eventStart && eventEnd ? (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-12 w-full"
-            onClick={() =>
-              window.open(
-                formatGoogleCalendarUrl({
+        <section className="space-y-3 rounded-xl border bg-muted/30 p-4" aria-labelledby="calendar-actions-title">
+          <div>
+            <h2 id="calendar-actions-title" className="font-semibold">Salvar na agenda</h2>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Adicione o horário ao seu calendário e ative um lembrete.</p>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 w-full"
+              onClick={() =>
+                window.open(
+                  formatGoogleCalendarUrl({
+                    title: `${eventTitle} - ${clinicName}`,
+                    start: eventStart,
+                    end: eventEnd,
+                    details: eventDetails,
+                    location: address || clinicName,
+                  }),
+                  "_blank",
+                  "noopener,noreferrer",
+                )
+              }
+            >
+              <CalendarPlusIcon data-icon="inline-start" />
+              Google Agenda
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 w-full"
+              onClick={() =>
+                downloadIcs({
                   title: `${eventTitle} - ${clinicName}`,
                   start: eventStart,
                   end: eventEnd,
-                  details: eventDetails,
-                  location: clinicName,
-                }),
-                "_blank",
-                "noopener,noreferrer",
-              )
-            }
-          >
-            <CalendarPlusIcon data-icon="inline-start" />
-            Google Calendar
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="h-12 w-full"
-            onClick={() =>
-              downloadIcs({
-                title: `${eventTitle} - ${clinicName}`,
-                start: eventStart,
-                end: eventEnd,
-                description: eventDetails,
-                location: clinicName,
-              })
-            }
-          >
-            <CalendarIcon data-icon="inline-start" />
-            Adicionar ao calendário
-          </Button>
-        </div>
+                  description: eventDetails,
+                  location: address || clinicName,
+                })
+              }
+            >
+              <CalendarIcon data-icon="inline-start" />
+              Outros calendários
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">Compatível com Apple, Outlook, Samsung e outros aplicativos (.ics).</p>
+        </section>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Button
-          type="button"
-          variant="outline"
-          className="h-12 w-full"
-          onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`${eventDetails}\n\n${publicUrl}`)}`, "_blank", "noopener,noreferrer")}
-        >
-          <SmartphoneIcon data-icon="inline-start" />
-          Enviar por WhatsApp
-        </Button>
-        <Button type="button" variant="outline" className="h-12 w-full" onClick={handleShare}>
-          <Share2Icon data-icon="inline-start" />
-          Compartilhar link
-        </Button>
-      </div>
+      {whatsappUrl || mapsUrl ? (
+        <section className="space-y-3 rounded-xl border bg-muted/30 p-4" aria-labelledby="support-actions-title">
+          <div>
+            <h2 id="support-actions-title" className="font-semibold">Precisa mudar algo?</h2>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              A alteração ou o cancelamento será combinado diretamente com a empresa.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {whatsappUrl ? (
+              <Button nativeButton={false} render={<a href={whatsappUrl} target="_blank" rel="noopener noreferrer" />} variant="outline" className="h-12 w-full">
+                <MessageCircleIcon data-icon="inline-start" />
+                Falar pelo WhatsApp
+              </Button>
+            ) : null}
+            {mapsUrl ? (
+              <Button nativeButton={false} render={<a href={mapsUrl} target="_blank" rel="noopener noreferrer" />} variant="outline" className="h-12 w-full">
+                <MapPinIcon data-icon="inline-start" />
+                Como chegar
+              </Button>
+            ) : null}
+          </div>
+          {whatsappUrl ? <p className="text-xs text-muted-foreground">O pedido não altera o atendimento automaticamente.</p> : null}
+        </section>
+      ) : null}
     </div>
   );
 }
