@@ -21,19 +21,19 @@ export function AccountSecuritySettings() {
   async function changePassword(){if(password.length<8){toast.error("Use pelo menos 8 caracteres.");return;}setPending(true);const{error}=await createClient().auth.updateUser({password});setPending(false);if(error)toast.error(error.message);else{toast.success("Senha atualizada.");setPassword("");}}
   return (
     <div className="space-y-6">
-      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-        <Button type="button" nativeButton={false} variant="outline" className="w-full justify-start" render={<Link href="/forgot-password" />}>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Button type="button" nativeButton={false} variant="outline" className="h-auto min-h-10 w-full justify-start whitespace-normal py-2 text-left leading-5" render={<Link href="/forgot-password" />}>
           <MailIcon />Recuperar por e-mail
         </Button>
-        <Button type="button" variant="outline" className="w-full justify-start" onClick={others} disabled={pending}>
+        <Button type="button" variant="outline" className="h-auto min-h-10 w-full justify-start whitespace-normal py-2 text-left leading-5" onClick={others} disabled={pending}>
           <LogOutIcon />Encerrar outras sessões
         </Button>
         {verifiedFactorId ? (
-          <Button type="button" variant="destructive" className="w-full justify-start sm:col-span-2 xl:col-span-1" onClick={disable} disabled={pending}>
+          <Button type="button" variant="destructive" className="h-auto min-h-10 w-full justify-start whitespace-normal py-2 text-left leading-5 sm:col-span-2" onClick={disable} disabled={pending}>
             <ShieldCheckIcon />Desativar autenticação em dois fatores
           </Button>
         ) : (
-          <Button type="button" variant="outline" className="w-full justify-start sm:col-span-2 xl:col-span-1" onClick={enroll} disabled={pending}>
+          <Button type="button" variant="outline" className="h-auto min-h-10 w-full justify-start whitespace-normal py-2 text-left leading-5 sm:col-span-2" onClick={enroll} disabled={pending}>
             <ShieldCheckIcon />Ativar autenticação em dois fatores
           </Button>
         )}
