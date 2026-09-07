@@ -71,17 +71,18 @@ function SelectContent({
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Positioner
+        alignItemWithTrigger={false}
         sideOffset={4}
         align="start"
+        collisionAvoidance={{ side: "flip", align: "shift", fallbackAxisSide: "none" }}
         className={cn(
           "z-50 min-w-[var(--anchor-width)] max-w-[var(--anchor-width)]",
-          position === "popper" && "max-h-72",
         )}
       >
         <SelectPrimitive.Popup
           data-slot="select-content"
           className={cn(
-            "relative max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md",
+            "relative flex max-h-[min(20rem,var(--available-height))] min-w-[8rem] flex-col overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md",
             "data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 data-[ending-style]:scale-95 data-[starting-style]:scale-95",
             "transition-[opacity,transform] duration-100 ease-out",
             position === "popper" && "w-full",
@@ -90,7 +91,9 @@ function SelectContent({
           {...props}
         >
           <SelectScrollUpButton />
-          {children}
+          <SelectPrimitive.List className="min-h-0 overflow-y-auto overscroll-contain scroll-py-1">
+            {children}
+          </SelectPrimitive.List>
           <SelectScrollDownButton />
         </SelectPrimitive.Popup>
       </SelectPrimitive.Positioner>

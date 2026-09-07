@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { createAppointmentFromForm } from "@/server/actions/appointments";
 import { useActiveClinicId } from "@/components/dashboard/active-clinic-context";
+import { CustomerCombobox } from "@/components/dashboard/customer-combobox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,7 +71,6 @@ export function AppointmentForm({ customers, services, minStartTime, className, 
   const availableProfessionals = professionals?.filter(
     (professional) => professional.isActive && professional.serviceIds.includes(serviceId),
   );
-  const customerItems = customers.map((customer) => ({ value: customer.id, label: customer.name }));
   const serviceItems = services.map((service) => ({
     value: service.id,
     label: `${service.name} · ${service.duration} min`,
@@ -100,18 +100,7 @@ export function AppointmentForm({ customers, services, minStartTime, className, 
           <FieldGroup className="md:grid md:grid-cols-2">
             <Field>
               <FieldLabel htmlFor="customerId">Cliente</FieldLabel>
-              <Select name="customerId" defaultValue={initialCustomerId} items={customerItems} disabled={isPending} required>
-                <SelectTrigger id="customerId" className="w-full">
-                  <SelectValue placeholder="Selecione um cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {customers.map((customer) => (
-                    <SelectItem key={customer.id} value={customer.id}>
-                      {customer.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <CustomerCombobox customers={customers} defaultCustomerId={initialCustomerId} disabled={isPending} />
             </Field>
             <Field>
               <FieldLabel htmlFor="serviceId">Serviço</FieldLabel>
