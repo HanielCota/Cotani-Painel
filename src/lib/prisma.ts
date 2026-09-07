@@ -18,6 +18,9 @@ function createPrismaClient() {
     max: Number(process.env.DATABASE_POOL_MAX ?? 3),
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 10_000,
+    verify(client, done) {
+      client.query("SET ROLE cotani_backend").then(() => done()).catch((error: Error) => done(error));
+    },
   });
 
   return new PrismaClient({ adapter });
