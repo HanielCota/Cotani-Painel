@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
-import { SaveIcon } from "lucide-react";
+import { ExternalLinkIcon, SaveIcon } from "lucide-react";
+import Link from "next/link";
 
 import { saveBusinessProfile } from "@/server/actions/clinic-settings";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,12 @@ export function BusinessProfileForm({ clinic }: Props) {
         {clinic.imageUrl ? <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground"><Checkbox name="removeImage" value="on" /> Remover imagem atual</label> : null}
       </div>
       <div className="space-y-1.5 sm:col-span-2"><Label htmlFor="business-description">Descrição pública</Label><Textarea id="business-description" name="publicDescription" defaultValue={clinic.publicDescription ?? ""} maxLength={500} rows={4} placeholder="Explique brevemente o que sua empresa oferece." /></div>
-      <div className="sm:col-span-2 flex justify-end"><Button type="submit" disabled={pending}><SaveIcon />{pending ? "Salvando..." : "Salvar informações"}</Button></div>
+      <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
+        <Button type="button" nativeButton={false} variant="outline" className="w-full sm:w-auto" render={<Link href={`/${clinic.slug}`} target="_blank" rel="noreferrer" />}>
+          <ExternalLinkIcon />Abrir página pública
+        </Button>
+        <Button type="submit" disabled={pending} className="w-full sm:w-auto"><SaveIcon />{pending ? "Salvando..." : "Salvar informações"}</Button>
+      </div>
     </form>
   );
 }

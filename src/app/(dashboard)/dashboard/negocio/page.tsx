@@ -1,4 +1,4 @@
-import { Building2Icon, CalendarDaysIcon, ExternalLinkIcon, SparklesIcon, StoreIcon, Users2Icon, UsersIcon } from "lucide-react";
+import { Building2Icon, CalendarDaysIcon, SparklesIcon, StoreIcon, Users2Icon, UsersIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -27,12 +27,7 @@ export default withTenant(async ({ clinic }) => (
         <CardTitle className="flex items-center gap-2"><StoreIcon />Informações principais</CardTitle>
         <CardDescription>Identificação usada no painel e no agendamento on-line.</CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col gap-5">
-        <BusinessProfileForm clinic={clinic} />
-        <Button nativeButton={false} variant="outline" className="self-start" render={<Link href={`/${clinic.slug}`} target="_blank" rel="noreferrer" />}>
-          <ExternalLinkIcon />Abrir página pública
-        </Button>
-      </CardContent>
+      <CardContent><BusinessProfileForm clinic={clinic} /></CardContent>
     </Card>
 
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
