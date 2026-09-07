@@ -41,4 +41,15 @@ describe("seletor pesquisável de clientes", () => {
 
     expect(screen.getByRole("combobox", { name: "Cliente" })).toHaveValue("Rafael Cunha");
   });
+
+  it("aceita um identificador próprio quando há vários formulários na página", () => {
+    render(
+      <form>
+        <label htmlFor="edit-customer">Cliente do atendimento</label>
+        <CustomerCombobox customers={customers} id="edit-customer" />
+      </form>,
+    );
+
+    expect(screen.getByRole("combobox", { name: "Cliente do atendimento" })).toHaveAttribute("id", "edit-customer");
+  });
 });

@@ -6,6 +6,7 @@ import { PencilIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { useActiveClinicId } from "@/components/dashboard/active-clinic-context";
+import { CustomerCombobox } from "@/components/dashboard/customer-combobox";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -80,33 +81,35 @@ export function EditAppointmentDialog({
         <PencilIcon />
         Editar
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Editar atendimento</DialogTitle>
+          <DialogTitle className="text-lg">Editar ou reagendar atendimento</DialogTitle>
           <DialogDescription>
-            Altere cliente, serviço, profissional, valor, horário ou observações.
+            Atualize os dados do atendimento ou escolha uma nova data e horário para reagendar.
           </DialogDescription>
         </DialogHeader>
-        <form id={formId} action={action} className="grid gap-4 sm:grid-cols-2">
+        <form id={formId} action={action} className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
           <input type="hidden" name="appointmentId" value={appointment.id} />
           <div className="space-y-1.5">
             <Label htmlFor={fieldId("customer")}>Cliente</Label>
-            <Select name="customerId" defaultValue={appointment.customerId ?? ""} items={customers.map((item) => ({ value: item.id, label: item.name }))}>
-              <SelectTrigger id={fieldId("customer")}><SelectValue /></SelectTrigger>
-              <SelectContent>{customers.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent>
-            </Select>
+            <CustomerCombobox
+              id={fieldId("customer")}
+              customers={customers}
+              defaultCustomerId={appointment.customerId ?? ""}
+              disabled={pending}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor={fieldId("service")}>Serviço</Label>
             <Select name="serviceId" value={serviceId} onValueChange={(value) => setServiceId(value == null ? "" : String(value))} items={services.map((item) => ({ value: item.id, label: item.name }))}>
-              <SelectTrigger id={fieldId("service")}><SelectValue /></SelectTrigger>
+              <SelectTrigger id={fieldId("service")} className="overflow-hidden"><SelectValue className="min-w-0 flex-1 truncate text-left" /></SelectTrigger>
               <SelectContent>{services.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor={fieldId("professional")}>Profissional</Label>
             <Select name="professionalId" defaultValue={appointment.professionalId ?? null} items={[{ value: null, label: "Sem profissional específico" }, ...available.map((item) => ({ value: item.id, label: item.name }))]}>
-              <SelectTrigger id={fieldId("professional")}><SelectValue /></SelectTrigger>
+              <SelectTrigger id={fieldId("professional")} className="overflow-hidden"><SelectValue className="min-w-0 flex-1 truncate text-left" /></SelectTrigger>
               <SelectContent><SelectItem value={null}>Sem profissional específico</SelectItem>{available.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
@@ -120,12 +123,12 @@ export function EditAppointmentDialog({
           </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor={fieldId("notes")}>Observações</Label>
-            <Textarea id={fieldId("notes")} name="notes" defaultValue={appointment.notes ?? ""} maxLength={2000} />
+            <Textarea id={fieldId("notes")} name="notes" defaultValue={appointment.notes ?? ""} maxLength={2000} className="min-h-24" />
           </div>
         </form>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button type="submit" form={formId} disabled={pending}>{pending ? "Salvando..." : "Salvar alterações"}</Button>
+        <DialogFooter className="mt-1">
+          <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">Fechar sem salvar</Button>
+          <Button type="submit" form={formId} disabled={pending} className="w-full sm:w-auto">{pending ? "Salvando..." : "Salvar alterações"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

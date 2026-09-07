@@ -8,6 +8,8 @@ interface CustomerComboboxProps {
   customers: Array<{ id: string; name: string }>;
   defaultCustomerId?: string;
   disabled?: boolean;
+  id?: string;
+  name?: string;
 }
 
 interface CustomerOption {
@@ -15,7 +17,7 @@ interface CustomerOption {
   label: string;
 }
 
-export function CustomerCombobox({ customers, defaultCustomerId = "", disabled = false }: CustomerComboboxProps) {
+export function CustomerCombobox({ customers, defaultCustomerId = "", disabled = false, id = "customerId", name = "customerId" }: CustomerComboboxProps) {
   const items = useMemo<CustomerOption[]>(
     () => customers.map((customer) => ({ value: customer.id, label: customer.name })),
     [customers],
@@ -25,7 +27,7 @@ export function CustomerCombobox({ customers, defaultCustomerId = "", disabled =
   return (
     <Combobox.Root
       items={items}
-      name="customerId"
+      name={name}
       defaultValue={defaultValue}
       disabled={disabled}
       required
@@ -33,7 +35,7 @@ export function CustomerCombobox({ customers, defaultCustomerId = "", disabled =
     >
       <Combobox.InputGroup className="flex h-10 w-full items-center rounded-lg border border-input bg-background/70 ring-offset-background transition-[border-color,background-color,box-shadow] hover:border-foreground/25 focus-within:border-ring focus-within:bg-background focus-within:ring-3 focus-within:ring-ring/40">
         <Combobox.Input
-          id="customerId"
+          id={id}
           placeholder="Busque ou selecione um cliente"
           autoComplete="off"
           className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
