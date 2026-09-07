@@ -1,10 +1,10 @@
 import { ShieldCheckIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { AdminNav } from "@/components/admin/admin-nav";
-import { getPlatformAdminContext } from "@/server/platform-admin";
+import { getPlatformAdminAccess } from "@/server/platform-admin";
 import { signOut } from "@/server/actions/auth";
 import { Button } from "@/components/ui/button";
 
@@ -14,8 +14,10 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const admin = await getPlatformAdminContext();
-  if (!admin) notFound();
+  const access = await getPlatformAdminAccess();
+  if (access.status === "denied") notFound();
+  if (access.status === "mfa-enrollment-required") redirect("/dashboard/minha-conta#seguranca");
+  if (access.status === "mfa-challenge-required") redirect("/mfa?redirect=/admin");
 
   return (
     <div className="min-h-svh bg-background">

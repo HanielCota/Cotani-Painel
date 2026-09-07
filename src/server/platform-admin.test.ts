@@ -5,14 +5,39 @@ vi.mock("@/server/auth", () => ({
   AuthenticationRequiredError: class AuthenticationRequiredError extends Error {},
   requireAuthenticatedUser: vi.fn(),
 }));
+const listFactors = vi.fn();
+const getAuthenticatorAssuranceLevel = vi.fn();
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: vi.fn(async () => ({
+    auth: { mfa: { listFactors, getAuthenticatorAssuranceLevel } },
+  })),
+}));
 
 const { AuthenticationRequiredError, requireAuthenticatedUser } = await import("@/server/auth");
-const { getPlatformAdminContext, PlatformAdminAccessError, requirePlatformAdmin } = await import("@/server/platform-admin");
+const { getPlatformAdminAccess, getPlatformAdminContext, PlatformAdminAccessError, requirePlatformAdmin } = await import("@/server/platform-admin");
 
 describe("platform admin access", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     delete process.env.PLATFORM_ADMIN_USER_IDS;
+    listFactors.mockResolvedValue({ data: { totp: [{ id: "factor-1", status: "verified" }] }, error: null });
+    getAuthenticatorAssuranceLevel.mockResolvedValue({ data: { currentLevel: "aal2", nextLevel: "aal2" }, error: null });
+  });
+
+  it("exige que o administrador global cadastre MFA", async () => {
+    process.env.PLATFORM_ADMIN_USER_IDS = "user_owner";
+    (requireAuthenticatedUser as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ id: "user_owner" });
+    listFactors.mockResolvedValueOnce({ data: { totp: [] }, error: null });
+
+    await expect(getPlatformAdminAccess()).resolves.toEqual({ status: "mfa-enrollment-required" });
+  });
+
+  it("exige desafio AAL2 quando o fator já está cadastrado", async () => {
+    process.env.PLATFORM_ADMIN_USER_IDS = "user_owner";
+    (requireAuthenticatedUser as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ id: "user_owner" });
+    getAuthenticatorAssuranceLevel.mockResolvedValueOnce({ data: { currentLevel: "aal1", nextLevel: "aal2" }, error: null });
+
+    await expect(getPlatformAdminAccess()).resolves.toEqual({ status: "mfa-challenge-required" });
   });
 
   it("permite somente um Supabase user ID da allowlist", async () => {

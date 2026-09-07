@@ -6,6 +6,9 @@ export default async function MfaPage({ searchParams }: { searchParams: Promise<
   if (!await getAuthenticatedUser()) redirect("/sign-in");
   if (!await requiresMfaVerification()) redirect("/dashboard");
   const requested = (await searchParams).redirect;
-  const destination = requested?.startsWith("/dashboard") ? requested : "/dashboard";
+  const destination = requested?.startsWith("/") && !requested.startsWith("//")
+    && (requested.startsWith("/dashboard") || requested.startsWith("/admin"))
+    ? requested
+    : "/dashboard";
   return <MfaChallengeForm destination={destination}/>;
 }

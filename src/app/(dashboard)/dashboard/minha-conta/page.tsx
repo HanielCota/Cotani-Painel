@@ -38,7 +38,7 @@ export default withTenant(async ({ membership, role }) => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card id="seguranca" className="scroll-mt-24">
             <CardHeader>
               <CardTitle><KeyRoundIcon className="text-primary" />Segurança</CardTitle>
               <CardDescription>Altere sua senha, proteja a conta com 2FA e encerre outras sessões.</CardDescription>
