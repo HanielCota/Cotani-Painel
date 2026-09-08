@@ -56,12 +56,27 @@ export interface CreateCheckoutInput {
   idempotencyKey: string;
   payerEmail: string;
   backUrl: string;
-  remotePlanId?: string;
 }
 
 export interface CreateCheckoutResult {
   checkoutUrl: string;
   mercadoPagoSubscriptionId: string;
+}
+
+export function buildHostedSubscriptionBody(input: CreateCheckoutInput, planConfig: PlanConfig) {
+  return {
+    payer_email: input.payerEmail,
+    external_reference: input.clinicId,
+    back_url: input.backUrl,
+    reason: `Cotani - ${planConfig.name}`,
+    auto_recurring: {
+      frequency: input.cycle === BillingCycle.ANNUAL ? 12 : 1,
+      frequency_type: "months" as const,
+      transaction_amount: planConfig.price,
+      currency_id: "BRL" as const,
+    },
+    status: "pending" as const,
+  };
 }
 
 export async function createSubscriptionCheckout(
@@ -72,14 +87,7 @@ export async function createSubscriptionCheckout(
   const planConfig = getPlanConfig(input.plan, input.cycle);
 
   const response = await preApproval.create({
-    body: {
-      preapproval_plan_id: input.remotePlanId ?? planConfig.mercadoPagoPlanId,
-      payer_email: input.payerEmail,
-      external_reference: input.clinicId,
-      back_url: input.backUrl,
-      reason: `Cotani - ${planConfig.name}`,
-      status: "pending",
-    },
+    body: buildHostedSubscriptionBody(input, planConfig),
     requestOptions: { idempotencyKey: input.idempotencyKey },
   });
 

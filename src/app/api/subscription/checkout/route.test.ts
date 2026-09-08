@@ -85,7 +85,7 @@ describe("checkout de assinatura", () => {
 
 describe("limites e idempotência do checkout", () => {
   const clinic = { id: "clinic-1", hasPaidOnce: false, mercadoPagoSubscriptionId: "old", mercadoPagoCheckoutKey: "key" };
-  const contract = { id: "key", state: "CREATING", plan: "ESSENTIAL", cycle: "MONTHLY", remotePlanId: "plan-1" };
+  const contract = { id: "key", state: "CREATING", plan: "ESSENTIAL", cycle: "MONTHLY", remotePlanId: null };
   beforeEach(() => {
     vi.clearAllMocks();
     transaction.clinic.count.mockResolvedValue(0);
@@ -120,8 +120,16 @@ describe("limites e idempotência do checkout", () => {
   });
   it("repete tentativa ambígua com a mesma chave", async () => {
     expect((await checkout()).status).toBe(200);
-    expect(createSubscriptionCheckout).toHaveBeenCalledWith(expect.objectContaining({ idempotencyKey: "key", remotePlanId: "plan-1" }));
+    expect(createSubscriptionCheckout).toHaveBeenCalledWith(expect.objectContaining({ idempotencyKey: "key" }));
+    expect(createSubscriptionCheckout).not.toHaveBeenCalledWith(expect.objectContaining({ remotePlanId: expect.anything() }));
     expect(transaction.billingContract.create).not.toHaveBeenCalled();
+  });
+  it("descarta a chave usada pelo fluxo antigo e cria uma tentativa nova", async () => {
+    transaction.billingContract.findUnique.mockResolvedValue({ ...contract, remotePlanId: "plan-1" });
+    transaction.billingContract.create.mockResolvedValue({ ...contract, id: "new-key", remotePlanId: null });
+    expect((await checkout()).status).toBe(200);
+    expect(transaction.billingContract.update).toHaveBeenCalledWith({ where: { id: "key" }, data: { state: "FAILED" } });
+    expect(createSubscriptionCheckout).toHaveBeenCalledWith(expect.objectContaining({ idempotencyKey: "new-key" }));
   });
   it("não reutiliza chave entre planos diferentes", async () => {
     transaction.billingContract.findUnique.mockResolvedValue({ ...contract, plan: "PROFESSIONAL" });

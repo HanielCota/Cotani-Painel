@@ -25,7 +25,7 @@ describe("liquidação de assinaturas", () => {
     mocks.clinic.findUniqueOrThrow.mockResolvedValue(clinic);
     mocks.clinic.count.mockResolvedValue(0);
     mocks.professional.count.mockResolvedValue(1);
-    mocks.remote.mockResolvedValue({ externalReference: "clinic", planId: "plan", rawStatus: "authorized", status: null });
+    mocks.remote.mockResolvedValue({ externalReference: "clinic", planId: "plan", rawStatus: "authorized", status: null, amount: 49.99, currency: "BRL" });
     mocks.invoice.mockResolvedValue({ id: "invoice", subscriptionId: "remote", paymentId: "payment", status: "approved",
       amount: 49.99, currency: "BRL", paidAt: new Date("2099-01-01T12:00:00Z") });
     mocks.history.findUnique.mockResolvedValue(null);
@@ -54,12 +54,12 @@ describe("liquidação de assinaturas", () => {
   });
   it("cancelamento antigo não cancela o contrato atual", async () => {
     mocks.clinic.findUniqueOrThrow.mockResolvedValue({ ...clinic, mercadoPagoSubscriptionId: "new-remote" });
-    mocks.remote.mockResolvedValue({ externalReference: "clinic", planId: "plan", rawStatus: "cancelled" });
+    mocks.remote.mockResolvedValue({ externalReference: "clinic", planId: "plan", rawStatus: "cancelled", amount: 49.99, currency: "BRL" });
     await settleSubscription("remote");
     expect(mocks.clinic.update).not.toHaveBeenCalled();
   });
   it("cancelar renovação preserva a data paga, sem inventar outro período", async () => {
-    mocks.remote.mockResolvedValue({ externalReference: "clinic", planId: "plan", rawStatus: "cancelled" });
+    mocks.remote.mockResolvedValue({ externalReference: "clinic", planId: "plan", rawStatus: "cancelled", amount: 49.99, currency: "BRL" });
     await settleSubscription("remote");
     expect(mocks.clinic.update).toHaveBeenCalledWith({ where: { id: "clinic" }, data: { cancelAtPeriodEnd: true } });
   });
@@ -90,5 +90,15 @@ describe("liquidação de assinaturas", () => {
     mocks.clinic.count.mockResolvedValue(1);
     await expect(settleSubscription("remote", "invoice")).rejects.toThrow("somente uma unidade");
     expect(mocks.clinic.update).not.toHaveBeenCalled();
+  });
+  it("aceita checkout hospedado sem plano quando valor e moeda conferem", async () => {
+    mocks.contract.findUnique.mockResolvedValue({ ...contract, remotePlanId: null });
+    mocks.remote.mockResolvedValue({ externalReference: "clinic", rawStatus: "pending", status: null, amount: 49.99, currency: "BRL" });
+    await expect(settleSubscription("remote")).resolves.toBeUndefined();
+  });
+  it("rejeita checkout hospedado com valor remoto divergente", async () => {
+    mocks.contract.findUnique.mockResolvedValue({ ...contract, remotePlanId: null });
+    mocks.remote.mockResolvedValue({ externalReference: "clinic", rawStatus: "pending", status: null, amount: 1, currency: "BRL" });
+    await expect(settleSubscription("remote")).rejects.toThrow("valor ou da moeda");
   });
 });

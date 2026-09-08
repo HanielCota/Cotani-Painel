@@ -244,7 +244,7 @@ export type BillingContractGroupByOutputType = {
   cycle: $Enums.BillingCycle
   amount: runtime.Decimal
   currency: string
-  remotePlanId: string
+  remotePlanId: string | null
   remoteId: string | null
   checkoutUrl: string | null
   state: string
@@ -284,7 +284,7 @@ export type BillingContractWhereInput = {
   cycle?: Prisma.EnumBillingCycleFilter<"BillingContract"> | $Enums.BillingCycle
   amount?: Prisma.DecimalFilter<"BillingContract"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFilter<"BillingContract"> | string
-  remotePlanId?: Prisma.StringFilter<"BillingContract"> | string
+  remotePlanId?: Prisma.StringNullableFilter<"BillingContract"> | string | null
   remoteId?: Prisma.StringNullableFilter<"BillingContract"> | string | null
   checkoutUrl?: Prisma.StringNullableFilter<"BillingContract"> | string | null
   state?: Prisma.StringFilter<"BillingContract"> | string
@@ -302,7 +302,7 @@ export type BillingContractOrderByWithRelationInput = {
   cycle?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
-  remotePlanId?: Prisma.SortOrder
+  remotePlanId?: Prisma.SortOrderInput | Prisma.SortOrder
   remoteId?: Prisma.SortOrderInput | Prisma.SortOrder
   checkoutUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   state?: Prisma.SortOrder
@@ -324,7 +324,7 @@ export type BillingContractWhereUniqueInput = Prisma.AtLeast<{
   cycle?: Prisma.EnumBillingCycleFilter<"BillingContract"> | $Enums.BillingCycle
   amount?: Prisma.DecimalFilter<"BillingContract"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFilter<"BillingContract"> | string
-  remotePlanId?: Prisma.StringFilter<"BillingContract"> | string
+  remotePlanId?: Prisma.StringNullableFilter<"BillingContract"> | string | null
   checkoutUrl?: Prisma.StringNullableFilter<"BillingContract"> | string | null
   state?: Prisma.StringFilter<"BillingContract"> | string
   lastReconciledAt?: Prisma.DateTimeNullableFilter<"BillingContract"> | Date | string | null
@@ -341,7 +341,7 @@ export type BillingContractOrderByWithAggregationInput = {
   cycle?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
-  remotePlanId?: Prisma.SortOrder
+  remotePlanId?: Prisma.SortOrderInput | Prisma.SortOrder
   remoteId?: Prisma.SortOrderInput | Prisma.SortOrder
   checkoutUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   state?: Prisma.SortOrder
@@ -366,7 +366,7 @@ export type BillingContractScalarWhereWithAggregatesInput = {
   cycle?: Prisma.EnumBillingCycleWithAggregatesFilter<"BillingContract"> | $Enums.BillingCycle
   amount?: Prisma.DecimalWithAggregatesFilter<"BillingContract"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringWithAggregatesFilter<"BillingContract"> | string
-  remotePlanId?: Prisma.StringWithAggregatesFilter<"BillingContract"> | string
+  remotePlanId?: Prisma.StringNullableWithAggregatesFilter<"BillingContract"> | string | null
   remoteId?: Prisma.StringNullableWithAggregatesFilter<"BillingContract"> | string | null
   checkoutUrl?: Prisma.StringNullableWithAggregatesFilter<"BillingContract"> | string | null
   state?: Prisma.StringWithAggregatesFilter<"BillingContract"> | string
@@ -382,7 +382,7 @@ export type BillingContractCreateInput = {
   cycle: $Enums.BillingCycle
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
-  remotePlanId: string
+  remotePlanId?: string | null
   remoteId?: string | null
   checkoutUrl?: string | null
   state?: string
@@ -400,7 +400,7 @@ export type BillingContractUncheckedCreateInput = {
   cycle: $Enums.BillingCycle
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
-  remotePlanId: string
+  remotePlanId?: string | null
   remoteId?: string | null
   checkoutUrl?: string | null
   state?: string
@@ -416,7 +416,7 @@ export type BillingContractUpdateInput = {
   cycle?: Prisma.EnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
-  remotePlanId?: Prisma.StringFieldUpdateOperationsInput | string
+  remotePlanId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remoteId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.StringFieldUpdateOperationsInput | string
@@ -434,7 +434,7 @@ export type BillingContractUncheckedUpdateInput = {
   cycle?: Prisma.EnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
-  remotePlanId?: Prisma.StringFieldUpdateOperationsInput | string
+  remotePlanId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remoteId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.StringFieldUpdateOperationsInput | string
@@ -451,7 +451,7 @@ export type BillingContractCreateManyInput = {
   cycle: $Enums.BillingCycle
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
-  remotePlanId: string
+  remotePlanId?: string | null
   remoteId?: string | null
   checkoutUrl?: string | null
   state?: string
@@ -467,7 +467,7 @@ export type BillingContractUpdateManyMutationInput = {
   cycle?: Prisma.EnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
-  remotePlanId?: Prisma.StringFieldUpdateOperationsInput | string
+  remotePlanId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remoteId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.StringFieldUpdateOperationsInput | string
@@ -484,7 +484,7 @@ export type BillingContractUncheckedUpdateManyInput = {
   cycle?: Prisma.EnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
-  remotePlanId?: Prisma.StringFieldUpdateOperationsInput | string
+  remotePlanId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remoteId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.StringFieldUpdateOperationsInput | string
@@ -629,7 +629,7 @@ export type BillingContractCreateWithoutClinicInput = {
   cycle: $Enums.BillingCycle
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
-  remotePlanId: string
+  remotePlanId?: string | null
   remoteId?: string | null
   checkoutUrl?: string | null
   state?: string
@@ -645,7 +645,7 @@ export type BillingContractUncheckedCreateWithoutClinicInput = {
   cycle: $Enums.BillingCycle
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
-  remotePlanId: string
+  remotePlanId?: string | null
   remoteId?: string | null
   checkoutUrl?: string | null
   state?: string
@@ -691,7 +691,7 @@ export type BillingContractScalarWhereInput = {
   cycle?: Prisma.EnumBillingCycleFilter<"BillingContract"> | $Enums.BillingCycle
   amount?: Prisma.DecimalFilter<"BillingContract"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFilter<"BillingContract"> | string
-  remotePlanId?: Prisma.StringFilter<"BillingContract"> | string
+  remotePlanId?: Prisma.StringNullableFilter<"BillingContract"> | string | null
   remoteId?: Prisma.StringNullableFilter<"BillingContract"> | string | null
   checkoutUrl?: Prisma.StringNullableFilter<"BillingContract"> | string | null
   state?: Prisma.StringFilter<"BillingContract"> | string
@@ -707,7 +707,7 @@ export type BillingContractCreateManyClinicInput = {
   cycle: $Enums.BillingCycle
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
-  remotePlanId: string
+  remotePlanId?: string | null
   remoteId?: string | null
   checkoutUrl?: string | null
   state?: string
@@ -723,7 +723,7 @@ export type BillingContractUpdateWithoutClinicInput = {
   cycle?: Prisma.EnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
-  remotePlanId?: Prisma.StringFieldUpdateOperationsInput | string
+  remotePlanId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remoteId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.StringFieldUpdateOperationsInput | string
@@ -739,7 +739,7 @@ export type BillingContractUncheckedUpdateWithoutClinicInput = {
   cycle?: Prisma.EnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
-  remotePlanId?: Prisma.StringFieldUpdateOperationsInput | string
+  remotePlanId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remoteId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.StringFieldUpdateOperationsInput | string
@@ -755,7 +755,7 @@ export type BillingContractUncheckedUpdateManyWithoutClinicInput = {
   cycle?: Prisma.EnumBillingCycleFieldUpdateOperationsInput | $Enums.BillingCycle
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
-  remotePlanId?: Prisma.StringFieldUpdateOperationsInput | string
+  remotePlanId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remoteId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.StringFieldUpdateOperationsInput | string
@@ -861,7 +861,7 @@ export type $BillingContractPayload<ExtArgs extends runtime.Types.Extensions.Int
     cycle: $Enums.BillingCycle
     amount: runtime.Decimal
     currency: string
-    remotePlanId: string
+    remotePlanId: string | null
     remoteId: string | null
     checkoutUrl: string | null
     state: string

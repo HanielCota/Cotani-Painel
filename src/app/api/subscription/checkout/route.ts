@@ -58,8 +58,15 @@ export async function POST(request: NextRequest) {
         throw new Error("Sua assinatura ainda está ativa. Alterações de plano ficam disponíveis após o período atual ou pelo suporte.");
       }
       await assertPlanFits(transaction, clinic.id, parsed.data.plan);
-      const pending = current.mercadoPagoCheckoutKey
+      let pending = current.mercadoPagoCheckoutKey
         ? await transaction.billingContract.findUnique({ where: { id: current.mercadoPagoCheckoutKey } }) : null;
+      // Attempts from the former associated-plan flow failed before a remote
+      // subscription was created. A fresh key is required because the old
+      // idempotency key was already submitted with a different request body.
+      if (pending?.state === "CREATING" && pending.remotePlanId) {
+        await transaction.billingContract.update({ where: { id: pending.id }, data: { state: "FAILED" } });
+        pending = null;
+      }
       if (pending?.state === "CREATING") {
         if (current.mercadoPagoCheckoutStartedAt && Date.now() - current.mercadoPagoCheckoutStartedAt.getTime() > 24 * 60 * 60_000) {
           throw new Error("O plano escolhido possui uma tentativa antiga sem confirmação. Contate o suporte para conciliar antes de tentar novamente.");
@@ -77,7 +84,7 @@ export async function POST(request: NextRequest) {
       const config = getPlanConfig(parsed.data.plan, parsed.data.cycle);
       const contract = await transaction.billingContract.create({ data: {
         id: randomUUID(), clinicId: clinic.id, plan: parsed.data.plan, cycle: parsed.data.cycle,
-        amount: config.price, remotePlanId: config.mercadoPagoPlanId,
+        amount: config.price, remotePlanId: null,
       } });
       await transaction.clinic.update({ where: { id: clinic.id }, data: {
         mercadoPagoCheckoutKey: contract.id, mercadoPagoCheckoutStartedAt: new Date(),
@@ -97,7 +104,6 @@ export async function POST(request: NextRequest) {
       plan: parsed.data.plan,
       cycle: parsed.data.cycle,
       idempotencyKey: checkoutAttempt.contract.id,
-      remotePlanId: checkoutAttempt.contract.remotePlanId,
       payerEmail,
       backUrl,
     });

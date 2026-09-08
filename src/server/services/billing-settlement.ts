@@ -31,8 +31,19 @@ export async function settleSubscription(remoteId: string, invoiceId?: string) {
         remotePlanId: config.mercadoPagoPlanId, state: remote.rawStatus,
       } });
     }
-    if (remote.planId !== contract.remotePlanId) throw new Error("Plano remoto divergente do contrato.");
     const current = clinic.mercadoPagoSubscriptionId === remoteId;
+    const expectedSubscriptionAmount = current && clinic.pendingSubscriptionPlan && clinic.pendingSubscriptionCycle
+      ? getPlanPrice(clinic.pendingSubscriptionPlan, clinic.pendingSubscriptionCycle)
+      : Number(contract.amount);
+    if (contract.remotePlanId) {
+      if (remote.planId !== contract.remotePlanId) throw new Error("Plano remoto divergente do contrato.");
+    } else if (remote.planId) {
+      throw new Error("A assinatura remota possui um plano inesperado.");
+    }
+    if (remote.currency !== contract.currency || typeof remote.amount !== "number"
+      || Math.abs(remote.amount - expectedSubscriptionAmount) > 0.01) {
+      throw new Error("A assinatura remota diverge do valor ou da moeda contratados.");
+    }
     if (invoiceId) {
       const invoice = await getInvoiceFromMercadoPago(invoiceId);
       const existing = await tx.paymentHistory.findUnique({ where: { mercadoPagoPaymentId: invoice.paymentId } });

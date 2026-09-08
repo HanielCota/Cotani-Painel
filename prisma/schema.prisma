@@ -197,7 +197,7 @@ model BillingContract {
   cycle                      BillingCycle
   amount                     Decimal          @db.Decimal(10, 2)
   currency                   String           @default("BRL")
-  remotePlanId               String
+  remotePlanId               String?
   remoteId                   String?          @unique
   checkoutUrl                String?
   state                      String           @default("CREATING")
