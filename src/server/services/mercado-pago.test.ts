@@ -1,8 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { buildHostedSubscriptionBody, normalizeSubscriptionStatus, subscriptionPeriodEnd } from "./mercado-pago";
+import { buildHostedSubscriptionBody, isMercadoPagoCheckoutUrl, normalizeSubscriptionStatus, subscriptionPeriodEnd } from "./mercado-pago";
 import { BillingCycle, SubscriptionPlan } from "@/generated/prisma/enums";
 
 describe("checkout hospedado de assinatura", () => {
+  it("aceita somente URLs HTTPS oficiais para o redirecionamento", () => {
+    expect(isMercadoPagoCheckoutUrl("https://www.mercadopago.com.br/subscriptions/checkout")).toBe(true);
+    expect(isMercadoPagoCheckoutUrl("https://checkout.mercadopago.com/path")).toBe(true);
+    expect(isMercadoPagoCheckoutUrl("https://mercadopago.com.br.evil.example/checkout")).toBe(false);
+    expect(isMercadoPagoCheckoutUrl("javascript:alert(1)")).toBe(false);
+    expect(isMercadoPagoCheckoutUrl("http://www.mercadopago.com.br/checkout")).toBe(false);
+  });
+
   it.each([
     [BillingCycle.MONTHLY, 1],
     [BillingCycle.ANNUAL, 12],

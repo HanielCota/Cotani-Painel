@@ -201,12 +201,19 @@ model BillingContract {
   remoteId                   String?          @unique
   checkoutUrl                String?
   state                      String           @default("CREATING")
+  checkoutSource             String?
+  checkoutEmail              String?
+  checkoutName               String?
+  activationStartedAt        DateTime?
+  activationSentAt           DateTime?
+  activationError            String?
   lastReconciledAt            DateTime?
   reconciliationOffset       Int              @default(0)
   createdAt                  DateTime         @default(now())
   updatedAt                  DateTime         @updatedAt
 
   @@index([clinicId, createdAt])
+  @@index([checkoutSource, checkoutEmail, createdAt])
   @@index([lastReconciledAt])
 }
 

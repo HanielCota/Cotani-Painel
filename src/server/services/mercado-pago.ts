@@ -63,6 +63,20 @@ export interface CreateCheckoutResult {
   mercadoPagoSubscriptionId: string;
 }
 
+export function isMercadoPagoCheckoutUrl(value: string) {
+  try {
+    const url = new URL(value);
+    const hostname = url.hostname.toLowerCase();
+    const officialHost = hostname === "mercadopago.com"
+      || hostname.endsWith(".mercadopago.com")
+      || hostname === "mercadopago.com.br"
+      || hostname.endsWith(".mercadopago.com.br");
+    return url.protocol === "https:" && officialHost;
+  } catch {
+    return false;
+  }
+}
+
 export function buildHostedSubscriptionBody(input: CreateCheckoutInput, planConfig: PlanConfig) {
   return {
     payer_email: input.payerEmail,
@@ -91,7 +105,7 @@ export async function createSubscriptionCheckout(
     requestOptions: { idempotencyKey: input.idempotencyKey },
   });
 
-  if (!response.id || !response.init_point) {
+  if (!response.id || !response.init_point || !isMercadoPagoCheckoutUrl(response.init_point)) {
     throw new Error("O Mercado Pago não retornou os dados necessários para o checkout.");
   }
 

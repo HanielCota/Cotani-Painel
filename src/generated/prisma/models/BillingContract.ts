@@ -47,6 +47,12 @@ export type BillingContractMinAggregateOutputType = {
   remoteId: string | null
   checkoutUrl: string | null
   state: string | null
+  checkoutSource: string | null
+  checkoutEmail: string | null
+  checkoutName: string | null
+  activationStartedAt: Date | null
+  activationSentAt: Date | null
+  activationError: string | null
   lastReconciledAt: Date | null
   reconciliationOffset: number | null
   createdAt: Date | null
@@ -64,6 +70,12 @@ export type BillingContractMaxAggregateOutputType = {
   remoteId: string | null
   checkoutUrl: string | null
   state: string | null
+  checkoutSource: string | null
+  checkoutEmail: string | null
+  checkoutName: string | null
+  activationStartedAt: Date | null
+  activationSentAt: Date | null
+  activationError: string | null
   lastReconciledAt: Date | null
   reconciliationOffset: number | null
   createdAt: Date | null
@@ -81,6 +93,12 @@ export type BillingContractCountAggregateOutputType = {
   remoteId: number
   checkoutUrl: number
   state: number
+  checkoutSource: number
+  checkoutEmail: number
+  checkoutName: number
+  activationStartedAt: number
+  activationSentAt: number
+  activationError: number
   lastReconciledAt: number
   reconciliationOffset: number
   createdAt: number
@@ -110,6 +128,12 @@ export type BillingContractMinAggregateInputType = {
   remoteId?: true
   checkoutUrl?: true
   state?: true
+  checkoutSource?: true
+  checkoutEmail?: true
+  checkoutName?: true
+  activationStartedAt?: true
+  activationSentAt?: true
+  activationError?: true
   lastReconciledAt?: true
   reconciliationOffset?: true
   createdAt?: true
@@ -127,6 +151,12 @@ export type BillingContractMaxAggregateInputType = {
   remoteId?: true
   checkoutUrl?: true
   state?: true
+  checkoutSource?: true
+  checkoutEmail?: true
+  checkoutName?: true
+  activationStartedAt?: true
+  activationSentAt?: true
+  activationError?: true
   lastReconciledAt?: true
   reconciliationOffset?: true
   createdAt?: true
@@ -144,6 +174,12 @@ export type BillingContractCountAggregateInputType = {
   remoteId?: true
   checkoutUrl?: true
   state?: true
+  checkoutSource?: true
+  checkoutEmail?: true
+  checkoutName?: true
+  activationStartedAt?: true
+  activationSentAt?: true
+  activationError?: true
   lastReconciledAt?: true
   reconciliationOffset?: true
   createdAt?: true
@@ -248,6 +284,12 @@ export type BillingContractGroupByOutputType = {
   remoteId: string | null
   checkoutUrl: string | null
   state: string
+  checkoutSource: string | null
+  checkoutEmail: string | null
+  checkoutName: string | null
+  activationStartedAt: Date | null
+  activationSentAt: Date | null
+  activationError: string | null
   lastReconciledAt: Date | null
   reconciliationOffset: number
   createdAt: Date
@@ -288,6 +330,12 @@ export type BillingContractWhereInput = {
   remoteId?: Prisma.StringNullableFilter<"BillingContract"> | string | null
   checkoutUrl?: Prisma.StringNullableFilter<"BillingContract"> | string | null
   state?: Prisma.StringFilter<"BillingContract"> | string
+  checkoutSource?: Prisma.StringNullableFilter<"BillingContract"> | string | null
+  checkoutEmail?: Prisma.StringNullableFilter<"BillingContract"> | string | null
+  checkoutName?: Prisma.StringNullableFilter<"BillingContract"> | string | null
+  activationStartedAt?: Prisma.DateTimeNullableFilter<"BillingContract"> | Date | string | null
+  activationSentAt?: Prisma.DateTimeNullableFilter<"BillingContract"> | Date | string | null
+  activationError?: Prisma.StringNullableFilter<"BillingContract"> | string | null
   lastReconciledAt?: Prisma.DateTimeNullableFilter<"BillingContract"> | Date | string | null
   reconciliationOffset?: Prisma.IntFilter<"BillingContract"> | number
   createdAt?: Prisma.DateTimeFilter<"BillingContract"> | Date | string
@@ -306,6 +354,12 @@ export type BillingContractOrderByWithRelationInput = {
   remoteId?: Prisma.SortOrderInput | Prisma.SortOrder
   checkoutUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   state?: Prisma.SortOrder
+  checkoutSource?: Prisma.SortOrderInput | Prisma.SortOrder
+  checkoutEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  checkoutName?: Prisma.SortOrderInput | Prisma.SortOrder
+  activationStartedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  activationSentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  activationError?: Prisma.SortOrderInput | Prisma.SortOrder
   lastReconciledAt?: Prisma.SortOrderInput | Prisma.SortOrder
   reconciliationOffset?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -327,6 +381,12 @@ export type BillingContractWhereUniqueInput = Prisma.AtLeast<{
   remotePlanId?: Prisma.StringNullableFilter<"BillingContract"> | string | null
   checkoutUrl?: Prisma.StringNullableFilter<"BillingContract"> | string | null
   state?: Prisma.StringFilter<"BillingContract"> | string
+  checkoutSource?: Prisma.StringNullableFilter<"BillingContract"> | string | null
+  checkoutEmail?: Prisma.StringNullableFilter<"BillingContract"> | string | null
+  checkoutName?: Prisma.StringNullableFilter<"BillingContract"> | string | null
+  activationStartedAt?: Prisma.DateTimeNullableFilter<"BillingContract"> | Date | string | null
+  activationSentAt?: Prisma.DateTimeNullableFilter<"BillingContract"> | Date | string | null
+  activationError?: Prisma.StringNullableFilter<"BillingContract"> | string | null
   lastReconciledAt?: Prisma.DateTimeNullableFilter<"BillingContract"> | Date | string | null
   reconciliationOffset?: Prisma.IntFilter<"BillingContract"> | number
   createdAt?: Prisma.DateTimeFilter<"BillingContract"> | Date | string
@@ -345,6 +405,12 @@ export type BillingContractOrderByWithAggregationInput = {
   remoteId?: Prisma.SortOrderInput | Prisma.SortOrder
   checkoutUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   state?: Prisma.SortOrder
+  checkoutSource?: Prisma.SortOrderInput | Prisma.SortOrder
+  checkoutEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  checkoutName?: Prisma.SortOrderInput | Prisma.SortOrder
+  activationStartedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  activationSentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  activationError?: Prisma.SortOrderInput | Prisma.SortOrder
   lastReconciledAt?: Prisma.SortOrderInput | Prisma.SortOrder
   reconciliationOffset?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -370,6 +436,12 @@ export type BillingContractScalarWhereWithAggregatesInput = {
   remoteId?: Prisma.StringNullableWithAggregatesFilter<"BillingContract"> | string | null
   checkoutUrl?: Prisma.StringNullableWithAggregatesFilter<"BillingContract"> | string | null
   state?: Prisma.StringWithAggregatesFilter<"BillingContract"> | string
+  checkoutSource?: Prisma.StringNullableWithAggregatesFilter<"BillingContract"> | string | null
+  checkoutEmail?: Prisma.StringNullableWithAggregatesFilter<"BillingContract"> | string | null
+  checkoutName?: Prisma.StringNullableWithAggregatesFilter<"BillingContract"> | string | null
+  activationStartedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"BillingContract"> | Date | string | null
+  activationSentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"BillingContract"> | Date | string | null
+  activationError?: Prisma.StringNullableWithAggregatesFilter<"BillingContract"> | string | null
   lastReconciledAt?: Prisma.DateTimeNullableWithAggregatesFilter<"BillingContract"> | Date | string | null
   reconciliationOffset?: Prisma.IntWithAggregatesFilter<"BillingContract"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"BillingContract"> | Date | string
@@ -386,6 +458,12 @@ export type BillingContractCreateInput = {
   remoteId?: string | null
   checkoutUrl?: string | null
   state?: string
+  checkoutSource?: string | null
+  checkoutEmail?: string | null
+  checkoutName?: string | null
+  activationStartedAt?: Date | string | null
+  activationSentAt?: Date | string | null
+  activationError?: string | null
   lastReconciledAt?: Date | string | null
   reconciliationOffset?: number
   createdAt?: Date | string
@@ -404,6 +482,12 @@ export type BillingContractUncheckedCreateInput = {
   remoteId?: string | null
   checkoutUrl?: string | null
   state?: string
+  checkoutSource?: string | null
+  checkoutEmail?: string | null
+  checkoutName?: string | null
+  activationStartedAt?: Date | string | null
+  activationSentAt?: Date | string | null
+  activationError?: string | null
   lastReconciledAt?: Date | string | null
   reconciliationOffset?: number
   createdAt?: Date | string
@@ -420,6 +504,12 @@ export type BillingContractUpdateInput = {
   remoteId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.StringFieldUpdateOperationsInput | string
+  checkoutSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkoutEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkoutName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activationStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activationSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activationError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reconciliationOffset?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -438,6 +528,12 @@ export type BillingContractUncheckedUpdateInput = {
   remoteId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.StringFieldUpdateOperationsInput | string
+  checkoutSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkoutEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkoutName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activationStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activationSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activationError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reconciliationOffset?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -455,6 +551,12 @@ export type BillingContractCreateManyInput = {
   remoteId?: string | null
   checkoutUrl?: string | null
   state?: string
+  checkoutSource?: string | null
+  checkoutEmail?: string | null
+  checkoutName?: string | null
+  activationStartedAt?: Date | string | null
+  activationSentAt?: Date | string | null
+  activationError?: string | null
   lastReconciledAt?: Date | string | null
   reconciliationOffset?: number
   createdAt?: Date | string
@@ -471,6 +573,12 @@ export type BillingContractUpdateManyMutationInput = {
   remoteId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.StringFieldUpdateOperationsInput | string
+  checkoutSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkoutEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkoutName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activationStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activationSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activationError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reconciliationOffset?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -488,6 +596,12 @@ export type BillingContractUncheckedUpdateManyInput = {
   remoteId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.StringFieldUpdateOperationsInput | string
+  checkoutSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkoutEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkoutName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activationStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activationSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activationError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reconciliationOffset?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -515,6 +629,12 @@ export type BillingContractCountOrderByAggregateInput = {
   remoteId?: Prisma.SortOrder
   checkoutUrl?: Prisma.SortOrder
   state?: Prisma.SortOrder
+  checkoutSource?: Prisma.SortOrder
+  checkoutEmail?: Prisma.SortOrder
+  checkoutName?: Prisma.SortOrder
+  activationStartedAt?: Prisma.SortOrder
+  activationSentAt?: Prisma.SortOrder
+  activationError?: Prisma.SortOrder
   lastReconciledAt?: Prisma.SortOrder
   reconciliationOffset?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -537,6 +657,12 @@ export type BillingContractMaxOrderByAggregateInput = {
   remoteId?: Prisma.SortOrder
   checkoutUrl?: Prisma.SortOrder
   state?: Prisma.SortOrder
+  checkoutSource?: Prisma.SortOrder
+  checkoutEmail?: Prisma.SortOrder
+  checkoutName?: Prisma.SortOrder
+  activationStartedAt?: Prisma.SortOrder
+  activationSentAt?: Prisma.SortOrder
+  activationError?: Prisma.SortOrder
   lastReconciledAt?: Prisma.SortOrder
   reconciliationOffset?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -554,6 +680,12 @@ export type BillingContractMinOrderByAggregateInput = {
   remoteId?: Prisma.SortOrder
   checkoutUrl?: Prisma.SortOrder
   state?: Prisma.SortOrder
+  checkoutSource?: Prisma.SortOrder
+  checkoutEmail?: Prisma.SortOrder
+  checkoutName?: Prisma.SortOrder
+  activationStartedAt?: Prisma.SortOrder
+  activationSentAt?: Prisma.SortOrder
+  activationError?: Prisma.SortOrder
   lastReconciledAt?: Prisma.SortOrder
   reconciliationOffset?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -633,6 +765,12 @@ export type BillingContractCreateWithoutClinicInput = {
   remoteId?: string | null
   checkoutUrl?: string | null
   state?: string
+  checkoutSource?: string | null
+  checkoutEmail?: string | null
+  checkoutName?: string | null
+  activationStartedAt?: Date | string | null
+  activationSentAt?: Date | string | null
+  activationError?: string | null
   lastReconciledAt?: Date | string | null
   reconciliationOffset?: number
   createdAt?: Date | string
@@ -649,6 +787,12 @@ export type BillingContractUncheckedCreateWithoutClinicInput = {
   remoteId?: string | null
   checkoutUrl?: string | null
   state?: string
+  checkoutSource?: string | null
+  checkoutEmail?: string | null
+  checkoutName?: string | null
+  activationStartedAt?: Date | string | null
+  activationSentAt?: Date | string | null
+  activationError?: string | null
   lastReconciledAt?: Date | string | null
   reconciliationOffset?: number
   createdAt?: Date | string
@@ -695,6 +839,12 @@ export type BillingContractScalarWhereInput = {
   remoteId?: Prisma.StringNullableFilter<"BillingContract"> | string | null
   checkoutUrl?: Prisma.StringNullableFilter<"BillingContract"> | string | null
   state?: Prisma.StringFilter<"BillingContract"> | string
+  checkoutSource?: Prisma.StringNullableFilter<"BillingContract"> | string | null
+  checkoutEmail?: Prisma.StringNullableFilter<"BillingContract"> | string | null
+  checkoutName?: Prisma.StringNullableFilter<"BillingContract"> | string | null
+  activationStartedAt?: Prisma.DateTimeNullableFilter<"BillingContract"> | Date | string | null
+  activationSentAt?: Prisma.DateTimeNullableFilter<"BillingContract"> | Date | string | null
+  activationError?: Prisma.StringNullableFilter<"BillingContract"> | string | null
   lastReconciledAt?: Prisma.DateTimeNullableFilter<"BillingContract"> | Date | string | null
   reconciliationOffset?: Prisma.IntFilter<"BillingContract"> | number
   createdAt?: Prisma.DateTimeFilter<"BillingContract"> | Date | string
@@ -711,6 +861,12 @@ export type BillingContractCreateManyClinicInput = {
   remoteId?: string | null
   checkoutUrl?: string | null
   state?: string
+  checkoutSource?: string | null
+  checkoutEmail?: string | null
+  checkoutName?: string | null
+  activationStartedAt?: Date | string | null
+  activationSentAt?: Date | string | null
+  activationError?: string | null
   lastReconciledAt?: Date | string | null
   reconciliationOffset?: number
   createdAt?: Date | string
@@ -727,6 +883,12 @@ export type BillingContractUpdateWithoutClinicInput = {
   remoteId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.StringFieldUpdateOperationsInput | string
+  checkoutSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkoutEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkoutName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activationStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activationSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activationError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reconciliationOffset?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -743,6 +905,12 @@ export type BillingContractUncheckedUpdateWithoutClinicInput = {
   remoteId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.StringFieldUpdateOperationsInput | string
+  checkoutSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkoutEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkoutName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activationStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activationSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activationError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reconciliationOffset?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -759,6 +927,12 @@ export type BillingContractUncheckedUpdateManyWithoutClinicInput = {
   remoteId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   checkoutUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.StringFieldUpdateOperationsInput | string
+  checkoutSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkoutEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkoutName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activationStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activationSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activationError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reconciliationOffset?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -778,6 +952,12 @@ export type BillingContractSelect<ExtArgs extends runtime.Types.Extensions.Inter
   remoteId?: boolean
   checkoutUrl?: boolean
   state?: boolean
+  checkoutSource?: boolean
+  checkoutEmail?: boolean
+  checkoutName?: boolean
+  activationStartedAt?: boolean
+  activationSentAt?: boolean
+  activationError?: boolean
   lastReconciledAt?: boolean
   reconciliationOffset?: boolean
   createdAt?: boolean
@@ -796,6 +976,12 @@ export type BillingContractSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   remoteId?: boolean
   checkoutUrl?: boolean
   state?: boolean
+  checkoutSource?: boolean
+  checkoutEmail?: boolean
+  checkoutName?: boolean
+  activationStartedAt?: boolean
+  activationSentAt?: boolean
+  activationError?: boolean
   lastReconciledAt?: boolean
   reconciliationOffset?: boolean
   createdAt?: boolean
@@ -814,6 +1000,12 @@ export type BillingContractSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   remoteId?: boolean
   checkoutUrl?: boolean
   state?: boolean
+  checkoutSource?: boolean
+  checkoutEmail?: boolean
+  checkoutName?: boolean
+  activationStartedAt?: boolean
+  activationSentAt?: boolean
+  activationError?: boolean
   lastReconciledAt?: boolean
   reconciliationOffset?: boolean
   createdAt?: boolean
@@ -832,13 +1024,19 @@ export type BillingContractSelectScalar = {
   remoteId?: boolean
   checkoutUrl?: boolean
   state?: boolean
+  checkoutSource?: boolean
+  checkoutEmail?: boolean
+  checkoutName?: boolean
+  activationStartedAt?: boolean
+  activationSentAt?: boolean
+  activationError?: boolean
   lastReconciledAt?: boolean
   reconciliationOffset?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type BillingContractOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clinicId" | "plan" | "cycle" | "amount" | "currency" | "remotePlanId" | "remoteId" | "checkoutUrl" | "state" | "lastReconciledAt" | "reconciliationOffset" | "createdAt" | "updatedAt", ExtArgs["result"]["billingContract"]>
+export type BillingContractOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clinicId" | "plan" | "cycle" | "amount" | "currency" | "remotePlanId" | "remoteId" | "checkoutUrl" | "state" | "checkoutSource" | "checkoutEmail" | "checkoutName" | "activationStartedAt" | "activationSentAt" | "activationError" | "lastReconciledAt" | "reconciliationOffset" | "createdAt" | "updatedAt", ExtArgs["result"]["billingContract"]>
 export type BillingContractInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   clinic?: boolean | Prisma.ClinicDefaultArgs<ExtArgs>
 }
@@ -865,6 +1063,12 @@ export type $BillingContractPayload<ExtArgs extends runtime.Types.Extensions.Int
     remoteId: string | null
     checkoutUrl: string | null
     state: string
+    checkoutSource: string | null
+    checkoutEmail: string | null
+    checkoutName: string | null
+    activationStartedAt: Date | null
+    activationSentAt: Date | null
+    activationError: string | null
     lastReconciledAt: Date | null
     reconciliationOffset: number
     createdAt: Date
@@ -1303,6 +1507,12 @@ export interface BillingContractFieldRefs {
   readonly remoteId: Prisma.FieldRef<"BillingContract", 'String'>
   readonly checkoutUrl: Prisma.FieldRef<"BillingContract", 'String'>
   readonly state: Prisma.FieldRef<"BillingContract", 'String'>
+  readonly checkoutSource: Prisma.FieldRef<"BillingContract", 'String'>
+  readonly checkoutEmail: Prisma.FieldRef<"BillingContract", 'String'>
+  readonly checkoutName: Prisma.FieldRef<"BillingContract", 'String'>
+  readonly activationStartedAt: Prisma.FieldRef<"BillingContract", 'DateTime'>
+  readonly activationSentAt: Prisma.FieldRef<"BillingContract", 'DateTime'>
+  readonly activationError: Prisma.FieldRef<"BillingContract", 'String'>
   readonly lastReconciledAt: Prisma.FieldRef<"BillingContract", 'DateTime'>
   readonly reconciliationOffset: Prisma.FieldRef<"BillingContract", 'Int'>
   readonly createdAt: Prisma.FieldRef<"BillingContract", 'DateTime'>

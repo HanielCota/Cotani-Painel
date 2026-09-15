@@ -58,7 +58,7 @@ export type AdminAuditLog = Prisma.AdminAuditLogModel
 export type PaymentHistory = Prisma.PaymentHistoryModel
 /**
  * Model ClinicSlugAlias
- *
+ * 
  */
 export type ClinicSlugAlias = Prisma.ClinicSlugAliasModel
 /**
@@ -103,7 +103,7 @@ export type Service = Prisma.ServiceModel
 export type Professional = Prisma.ProfessionalModel
 /**
  * Model ProfessionalAvailability
- *
+ * 
  */
 export type ProfessionalAvailability = Prisma.ProfessionalAvailabilityModel
 /**
@@ -118,7 +118,7 @@ export type ProfessionalService = Prisma.ProfessionalServiceModel
 export type Appointment = Prisma.AppointmentModel
 /**
  * Model FinancialEntry
- *
+ * 
  */
 export type FinancialEntry = Prisma.FinancialEntryModel
 /**

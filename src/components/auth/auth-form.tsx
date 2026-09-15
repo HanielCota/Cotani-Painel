@@ -32,7 +32,7 @@ function safeRedirect(value: string | null) {
 export function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [mode, setMode] = useState<Mode>("sign-in");
+  const [mode, setMode] = useState<Mode>(() => searchParams.get("mode") === "sign-up" ? "sign-up" : "sign-in");
   const [pending, setPending] = useState(false);
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
   const [mfaCode, setMfaCode] = useState("");

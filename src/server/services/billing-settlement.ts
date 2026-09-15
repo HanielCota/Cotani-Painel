@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { getPlanConfig, getInvoiceFromMercadoPago, syncSubscriptionFromMercadoPago, subscriptionPeriodEnd } from "./mercado-pago";
 import { assertPlanFits } from "./billing-access";
 import { getPlanPrice } from "@/config/subscription-plans";
+import { finalizeLandingCheckoutAccess } from "./landing-checkout";
 
 // Older contracts may report refunds, but can never replace the current contract.
 export async function settleSubscription(remoteId: string, invoiceId?: string) {
@@ -11,7 +12,7 @@ export async function settleSubscription(remoteId: string, invoiceId?: string) {
   const linked = known ? null : await prisma.clinic.findUnique({ where: { mercadoPagoSubscriptionId: remoteId } });
   if (!known && !linked) throw new Error("Contrato ainda não vinculado; repetir notificação.");
   const clinicId = known?.clinicId ?? linked!.id;
-  return prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx) => {
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinicId}, 0))`;
     const clinic = await tx.clinic.findUniqueOrThrow({ where: { id: clinicId } });
     const remote = await syncSubscriptionFromMercadoPago({ mercadoPagoSubscriptionId: remoteId });
@@ -97,4 +98,5 @@ export async function settleSubscription(remoteId: string, invoiceId?: string) {
     }
     await tx.billingContract.update({ where: { id: contract.id }, data: { state: remote.rawStatus } });
   }, { timeout: 40000, maxWait: 10000 });
+  await finalizeLandingCheckoutAccess(remoteId);
 }

@@ -1976,6 +1976,12 @@ export const BillingContractScalarFieldEnum = {
   remoteId: 'remoteId',
   checkoutUrl: 'checkoutUrl',
   state: 'state',
+  checkoutSource: 'checkoutSource',
+  checkoutEmail: 'checkoutEmail',
+  checkoutName: 'checkoutName',
+  activationStartedAt: 'activationStartedAt',
+  activationSentAt: 'activationSentAt',
+  activationError: 'activationError',
   lastReconciledAt: 'lastReconciledAt',
   reconciliationOffset: 'reconciliationOffset',
   createdAt: 'createdAt',
@@ -2449,28 +2455,28 @@ export type ListEnumPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType
  * Reference to a field of type 'FinancialEntryType'
  */
 export type EnumFinancialEntryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FinancialEntryType'>
-
+    
 
 
 /**
  * Reference to a field of type 'FinancialEntryType[]'
  */
 export type ListEnumFinancialEntryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FinancialEntryType[]'>
-
+    
 
 
 /**
  * Reference to a field of type 'FinancialEntryStatus'
  */
 export type EnumFinancialEntryStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FinancialEntryStatus'>
-
+    
 
 
 /**
  * Reference to a field of type 'FinancialEntryStatus[]'
  */
 export type ListEnumFinancialEntryStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FinancialEntryStatus[]'>
-
+    
 
 
 /**
@@ -2760,3 +2766,4 @@ export type PrismaAction =
  * `PrismaClient` proxy available in interactive transactions.
  */
 export type TransactionClient = Omit<DefaultPrismaClient, runtime.ITXClientDenyList>
+
