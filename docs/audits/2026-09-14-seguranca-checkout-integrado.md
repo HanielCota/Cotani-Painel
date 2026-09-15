@@ -13,8 +13,8 @@ Pago, atravessar o isolamento entre empresas ou acessar as APIs privadas sem
 sessão. As vulnerabilidades conhecidas nas dependências foram corrigidas e o
 checkout legado da landing foi removido.
 
-O deploy ainda é necessário para que as remoções e correções passem a valer nos
-domínios públicos.
+As correções foram publicadas nos domínios oficiais e passaram pela validação
+pós-deploy descrita ao final deste relatório.
 
 ## Achados corrigidos
 
@@ -114,3 +114,6 @@ estilos para nonce/hash em uma etapa separada.
   navegador aprovados e build de produção aprovado.
 - Auditoria de dependências de produção: zero vulnerabilidades conhecidas nos
   dois projetos.
+- Pós-deploy: `painel.cotani.com.br` e `cotani.com.br` servindo as versões
+  novas; CORS, autenticação, CSP e remoção das rotas legadas confirmados nos
+  domínios oficiais.
