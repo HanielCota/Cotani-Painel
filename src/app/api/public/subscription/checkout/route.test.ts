@@ -45,6 +45,7 @@ const validBody = {
 describe("checkout público da landing", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.stubEnv("TURNSTILE_SECRET_KEY", "secret");
     mocks.rateLimit.mockResolvedValue({ success: true });
     mocks.verifyTurnstile.mockResolvedValue(true);
     mocks.create.mockResolvedValue({ checkoutId: "id", checkoutUrl: "https://mercadopago.com/checkout" });
@@ -86,5 +87,11 @@ describe("checkout público da landing", () => {
     mocks.verifyTurnstile.mockResolvedValueOnce(false);
     expect((await POST(request(validBody))).status).toBe(400);
     expect(mocks.create).not.toHaveBeenCalled();
+  });
+
+  it("mantém o checkout disponível quando o Turnstile não está configurado", async () => {
+    vi.stubEnv("TURNSTILE_SECRET_KEY", "");
+    expect((await POST(request({ ...validBody, turnstileToken: "" }))).status).toBe(201);
+    expect(mocks.verifyTurnstile).not.toHaveBeenCalled();
   });
 });

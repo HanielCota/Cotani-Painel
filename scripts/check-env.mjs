@@ -38,8 +38,6 @@ const productionOnly = [
   "PLATFORM_ADMIN_USER_IDS",
   "RESEND_API_KEY",
   "EMAIL_FROM",
-  "NEXT_PUBLIC_TURNSTILE_SITE_KEY",
-  "TURNSTILE_SECRET_KEY",
 ];
 
 const turnstileTestSiteKey = "1x00000000000000000000AA";

@@ -58,7 +58,8 @@ export async function POST(request: NextRequest) {
       return json(request, { message: "Muitas tentativas. Aguarde alguns minutos e tente novamente." }, 429);
     }
 
-    if (!await verifyTurnstileToken(parsed.data.turnstileToken, clientIp(request))) {
+    const turnstileEnabled = Boolean(process.env.TURNSTILE_SECRET_KEY?.trim());
+    if (turnstileEnabled && !await verifyTurnstileToken(parsed.data.turnstileToken, clientIp(request))) {
       return json(request, { message: "Não foi possível confirmar a verificação de segurança. Tente novamente." }, 400);
     }
 
