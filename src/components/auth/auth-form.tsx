@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createClient } from "@/lib/supabase/client";
 import { AuthCard } from "@/components/auth/auth-card";
+import { TurnstileWidget, type TurnstileWidgetHandle } from "@/components/security/turnstile-widget";
 
 type Mode = "sign-in" | "sign-up";
 
@@ -36,6 +37,10 @@ export function AuthForm() {
   const [pending, setPending] = useState(false);
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
   const [mfaCode, setMfaCode] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<TurnstileWidgetHandle>(null);
+  const captchaRequired = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim());
+  const handleCaptchaToken = useCallback((token: string | null) => setCaptchaToken(token), []);
   const redirectTo = safeRedirect(searchParams.get("redirect"));
 
   useEffect(() => {
@@ -49,15 +54,16 @@ export function AuthForm() {
     const password = String(formData.get("password") ?? "");
 
     const result = mode === "sign-in"
-      ? await supabase.auth.signInWithPassword({ email, password })
+      ? await supabase.auth.signInWithPassword({ email, password, ...(captchaToken ? { options: { captchaToken } } : {}) })
       : await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}` },
+          options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}`, ...(captchaToken ? { captchaToken } : {}) },
         });
 
     if (result.error) {
       setPending(false);
+      captchaRef.current?.reset();
       toast.error(result.error.message === "Invalid login credentials"
         ? "E-mail ou senha incorretos."
         : "Não foi possível concluir o acesso. Tente novamente.");
@@ -120,7 +126,8 @@ export function AuthForm() {
         <div className="space-y-1.5"><Label htmlFor="email">E-mail</Label><Input id="email" name="email" type="email" autoComplete="email" required /></div>
         <div className="space-y-1.5"><Label htmlFor="password">Senha</Label><Input id="password" name="password" type="password" autoComplete={mode === "sign-in" ? "current-password" : "new-password"} minLength={8} required /></div>
         {mode === "sign-in" ? <Link href="/forgot-password" className="block text-right text-sm text-primary hover:underline">Esqueci minha senha</Link> : <p className="text-center text-xs text-muted-foreground">Use ao menos 8 caracteres. Você receberá a confirmação por e-mail.</p>}
-        <Button type="submit" className="w-full" disabled={pending}>{pending ? "Aguarde..." : mode === "sign-in" ? "Entrar" : "Criar conta e testar grátis"}</Button>
+        <TurnstileWidget ref={captchaRef} action="authentication" onTokenChange={handleCaptchaToken} />
+        <Button type="submit" className="w-full" disabled={pending || (captchaRequired && !captchaToken)}>{pending ? "Aguarde..." : mode === "sign-in" ? "Entrar" : "Criar conta e testar grátis"}</Button>
       </form>}
     </AuthCard>
   );

@@ -9,25 +9,6 @@ const nextConfig: NextConfig = {
     },
   },
   async headers() {
-    const supabaseOrigin = (() => { try { return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").origin; } catch { return ""; } })();
-    const contentSecurityPolicy = [
-      "default-src 'self'",
-      `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
-      "script-src-attr 'none'",
-      "style-src 'self' 'unsafe-inline'",
-      `img-src 'self' data: blob: https: ${supabaseOrigin}`,
-      `connect-src 'self' ${supabaseOrigin} https://api.mercadopago.com https://*.mercadopago.com`,
-      "font-src 'self' data:",
-      "frame-src https://*.mercadopago.com",
-      "media-src 'self'",
-      "manifest-src 'self'",
-      "worker-src 'self' blob:",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "frame-ancestors 'none'",
-      "upgrade-insecure-requests",
-    ].join("; ");
     return [
       {
         source: "/(.*)",
@@ -40,7 +21,6 @@ const nextConfig: NextConfig = {
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
           { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
           { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
-          { key: "Content-Security-Policy", value: contentSecurityPolicy },
         ],
       },
     ];

@@ -38,6 +38,12 @@ vi.mock("sonner", () => ({
   toast: { error: toastError, success: toastSuccess },
 }));
 
+vi.mock("@/components/security/turnstile-widget", () => ({
+  TurnstileWidget: ({ onTokenChange }: { onTokenChange(token: string | null): void }) => (
+    <button type="button" onClick={() => onTokenChange("captcha-test-token")}>Concluir verificação de segurança</button>
+  ),
+}));
+
 describe("AccountSecuritySettings", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -54,11 +60,16 @@ describe("AccountSecuritySettings", () => {
     fireEvent.change(screen.getByLabelText("Confirmar nova senha"), { target: { value: "NovaSenha456!" } });
   }
 
+  function completeCaptcha() {
+    fireEvent.click(screen.getByRole("button", { name: "Concluir verificação de segurança" }));
+  }
+
   it("não altera a senha quando a senha atual estiver incorreta", async () => {
     signInWithPassword.mockResolvedValue({ data: { session: null }, error: { code: "invalid_credentials" } });
     render(<AccountSecuritySettings />);
     await waitFor(() => expect(listFactors).toHaveBeenCalled());
     fillPasswordFields();
+    completeCaptcha();
 
     fireEvent.click(screen.getByRole("button", { name: "Atualizar senha" }));
 
@@ -70,6 +81,7 @@ describe("AccountSecuritySettings", () => {
     render(<AccountSecuritySettings />);
     await waitFor(() => expect(listFactors).toHaveBeenCalled());
     fillPasswordFields();
+    completeCaptcha();
 
     fireEvent.click(screen.getByRole("button", { name: "Atualizar senha" }));
 
@@ -80,6 +92,7 @@ describe("AccountSecuritySettings", () => {
     expect(signInWithPassword).toHaveBeenCalledWith({
       email: "pessoa@cotani.com.br",
       password: "SenhaAtual123!",
+      options: { captchaToken: "captcha-test-token" },
     });
     expect(verificationSignOut).toHaveBeenCalledWith({ scope: "local" });
     expect(toastSuccess).toHaveBeenCalledWith("Senha atualizada com segurança.");

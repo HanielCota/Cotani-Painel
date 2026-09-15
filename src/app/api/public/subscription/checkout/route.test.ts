@@ -1,12 +1,16 @@
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ create: vi.fn(), rateLimit: vi.fn() }));
+const mocks = vi.hoisted(() => ({ create: vi.fn(), rateLimit: vi.fn(), verifyTurnstile: vi.fn() }));
 vi.mock("@/server/services/landing-checkout", () => ({
   createLandingCheckout: mocks.create,
   LandingCheckoutConflictError: class LandingCheckoutConflictError extends Error {},
 }));
 vi.mock("@/lib/rate-limit", () => ({ rateLimit: mocks.rateLimit }));
+vi.mock("@/lib/turnstile", () => ({
+  verifyTurnstileToken: mocks.verifyTurnstile,
+  TurnstileConfigurationError: class TurnstileConfigurationError extends Error {},
+}));
 
 const { OPTIONS, POST } = await import("./route");
 
@@ -35,12 +39,14 @@ const validBody = {
   cycle: "anual",
   acceptedTerms: true,
   website: "",
+  turnstileToken: "valid-turnstile-token",
 };
 
 describe("checkout público da landing", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     mocks.rateLimit.mockResolvedValue({ success: true });
+    mocks.verifyTurnstile.mockResolvedValue(true);
     mocks.create.mockResolvedValue({ checkoutId: "id", checkoutUrl: "https://mercadopago.com/checkout" });
   });
 
@@ -73,6 +79,12 @@ describe("checkout público da landing", () => {
   it("limita abuso antes de criar cobrança", async () => {
     mocks.rateLimit.mockResolvedValueOnce({ success: false }).mockResolvedValueOnce({ success: true });
     expect((await POST(request(validBody))).status).toBe(429);
+    expect(mocks.create).not.toHaveBeenCalled();
+  });
+
+  it("recusa desafio anti-bot inválido antes de criar cobrança", async () => {
+    mocks.verifyTurnstile.mockResolvedValueOnce(false);
+    expect((await POST(request(validBody))).status).toBe(400);
     expect(mocks.create).not.toHaveBeenCalled();
   });
 });

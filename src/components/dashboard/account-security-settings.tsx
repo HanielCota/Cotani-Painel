@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { KeyRoundIcon, LogOutIcon, MailIcon, ShieldCheckIcon } from "lucide-react";
@@ -9,9 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient, createPasswordVerificationClient } from "@/lib/supabase/client";
+import { TurnstileWidget, type TurnstileWidgetHandle } from "@/components/security/turnstile-widget";
 
 export function AccountSecuritySettings() {
   const [qr,setQr]=useState(""); const [factorId,setFactorId]=useState(""); const [verifiedFactorId,setVerifiedFactorId]=useState(""); const [code,setCode]=useState(""); const [currentPassword,setCurrentPassword]=useState(""); const [password,setPassword]=useState(""); const [passwordConfirmation,setPasswordConfirmation]=useState(""); const [pending,setPending]=useState(false);
+  const [captchaToken,setCaptchaToken]=useState<string|null>(null); const captchaRef=useRef<TurnstileWidgetHandle>(null); const captchaRequired=Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim()); const handleCaptchaToken=useCallback((token:string|null)=>setCaptchaToken(token),[]);
   async function refreshFactors(){const {data}=await createClient().auth.mfa.listFactors();setVerifiedFactorId(data?.totp.find(item=>item.status==="verified")?.id??"");}
   useEffect(()=>{queueMicrotask(()=>void refreshFactors())},[]);
   async function others(){setPending(true);const{error}=await createClient().auth.signOut({scope:"others"});setPending(false);if(error)toast.error("Não foi possível encerrar as outras sessões.");else toast.success("Outras sessões encerradas.")}
@@ -32,7 +34,7 @@ export function AccountSecuritySettings() {
       const {data:{user},error:userError}=await client.auth.getUser();
       if(userError||!user?.email){toast.error("Não foi possível confirmar sua identidade.");return;}
 
-      const {error:verificationError}=await verificationClient.auth.signInWithPassword({email:user.email,password:currentPassword});
+      const {error:verificationError}=await verificationClient.auth.signInWithPassword({email:user.email,password:currentPassword,...(captchaToken?{options:{captchaToken}}:{})});
       if(verificationError){toast.error("A senha atual está incorreta.");return;}
 
       const{error}=await client.auth.updateUser({password,current_password:currentPassword});
@@ -42,6 +44,7 @@ export function AccountSecuritySettings() {
       setCurrentPassword("");setPassword("");setPasswordConfirmation("");
     } finally {
       await verificationClient.auth.signOut({scope:"local"});
+      captchaRef.current?.reset();
       setPending(false);
     }
   }
@@ -100,8 +103,9 @@ export function AccountSecuritySettings() {
             <Input id="confirm-password" type="password" value={passwordConfirmation} onChange={event => setPasswordConfirmation(event.target.value)} minLength={8} autoComplete="new-password" />
           </div>
           <div className="flex items-end">
-            <Button type="button" variant="outline" onClick={changePassword} disabled={pending} className="w-full">{pending?"Confirmando...":"Atualizar senha"}</Button>
+            <Button type="button" variant="outline" onClick={changePassword} disabled={pending || (captchaRequired&&!captchaToken)} className="w-full">{pending?"Confirmando...":"Atualizar senha"}</Button>
           </div>
+          <div className="sm:col-span-2"><TurnstileWidget ref={captchaRef} action="password-change" onTokenChange={handleCaptchaToken} /></div>
         </div>
         <p className="mt-3 max-w-xl text-xs text-muted-foreground">Entrou somente pelo Google e não possui uma senha atual? Use “Recuperar por e-mail” para criar uma senha com confirmação pelo endereço cadastrado.</p>
       </div>

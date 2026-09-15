@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import { Geist, Geist_Mono } from "next/font/google";
+import { connection } from "next/server";
+import { headers } from "next/headers";
 
 import { AppProviders } from "@/app/providers";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -43,7 +45,11 @@ export const metadata: Metadata = {
 
 const analyticsEnabled = process.env.NEXT_PUBLIC_VERCEL_ANALYTICS_ENABLED === "true";
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  // A CSP baseada em nonce exige HTML gerado por requisição para que todos os
+  // scripts e estilos recebam o mesmo nonce criado no proxy.
+  await connection();
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <body suppressHydrationWarning>
@@ -53,7 +59,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         >
           Pular para o conteúdo principal
         </a>
-        <AppProviders>
+        <AppProviders nonce={nonce}>
           {children}
           <ThemeToggle />
         </AppProviders>

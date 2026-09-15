@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
 import { AuthCard } from "@/components/auth/auth-card";
+import { TurnstileWidget, type TurnstileWidgetHandle } from "@/components/security/turnstile-widget";
 
 function recoveryErrorMessage(error: { code?: string; message: string }, mode: "request" | "update") {
   if (mode === "request") return "Não foi possível enviar o e-mail agora. Tente novamente em instantes.";
@@ -35,6 +36,9 @@ export function PasswordRecoveryForm({ mode }: { mode: "request" | "update" }) {
   const [requestedEmail, setRequestedEmail] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const submittingRef = useRef(false);
+  const captchaRef = useRef<TurnstileWidgetHandle>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRequired = mode === "request" && Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim());
   const router = useRouter();
 
   useEffect(() => {
@@ -71,7 +75,7 @@ export function PasswordRecoveryForm({ mode }: { mode: "request" | "update" }) {
       const supabase = createClient();
       const email = String(formData.get("email") ?? "").trim();
       const error = mode === "request"
-        ? (await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/auth/callback?next=/update-password` })).error
+        ? (await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/auth/callback?next=/update-password`, ...(captchaToken ? { captchaToken } : {}) })).error
         : (await supabase.auth.updateUser({ password: String(formData.get("password") ?? "") })).error;
 
       if (error) {
@@ -99,6 +103,7 @@ export function PasswordRecoveryForm({ mode }: { mode: "request" | "update" }) {
     } finally {
       setPending(false);
       if (!succeeded) submittingRef.current = false;
+      if (!succeeded && mode === "request") captchaRef.current?.reset();
     }
   }
 
@@ -166,7 +171,8 @@ export function PasswordRecoveryForm({ mode }: { mode: "request" | "update" }) {
             <AlertDescription>{submitError}</AlertDescription>
           </Alert>
         ) : null}
-        <Button type="submit" className="w-full" disabled={pending || !ready}>
+        {mode === "request" ? <TurnstileWidget ref={captchaRef} action="authentication" onTokenChange={setCaptchaToken} /> : null}
+        <Button type="submit" className="w-full" disabled={pending || !ready || (captchaRequired && !captchaToken)}>
           {pending ? (mode === "request" ? "Enviando..." : "Atualizando...") : mode === "request" ? "Enviar e-mail de recuperação" : "Atualizar senha"}
         </Button>
         <Button type="button" variant="ghost" className="w-full" onClick={() => router.push("/sign-in")}>Voltar</Button>

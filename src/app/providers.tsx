@@ -9,9 +9,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 interface AppProvidersProps {
   children: React.ReactNode;
+  nonce?: string;
 }
 
-export function AppProviders({ children }: AppProvidersProps) {
+export function AppProviders({ children, nonce }: AppProvidersProps) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -26,7 +27,7 @@ export function AppProviders({ children }: AppProvidersProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange nonce={nonce}>
         <TooltipProvider>
           {children}
           <Toaster />

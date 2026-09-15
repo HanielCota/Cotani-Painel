@@ -5,6 +5,7 @@ import { isAllowedLandingOrigin, landingCorsHeaders } from "@/lib/landing-cors";
 import { logger } from "@/lib/logger";
 import { rateLimit } from "@/lib/rate-limit";
 import { readRequestText, RequestBodyTooLargeError } from "@/lib/request-body";
+import { TurnstileConfigurationError, verifyTurnstileToken } from "@/lib/turnstile";
 import { createLandingCheckout, LandingCheckoutConflictError } from "@/server/services/landing-checkout";
 
 const schema = z.object({
@@ -19,6 +20,7 @@ const schema = z.object({
   cycle: z.enum(["mensal", "anual"]),
   acceptedTerms: z.literal(true),
   website: z.string().max(0).optional(),
+  turnstileToken: z.string().trim().max(2048).optional().default(""),
 });
 
 function json(request: Request, body: unknown, status = 200) {
@@ -56,6 +58,10 @@ export async function POST(request: NextRequest) {
       return json(request, { message: "Muitas tentativas. Aguarde alguns minutos e tente novamente." }, 429);
     }
 
+    if (!await verifyTurnstileToken(parsed.data.turnstileToken, clientIp(request))) {
+      return json(request, { message: "Não foi possível confirmar a verificação de segurança. Tente novamente." }, 400);
+    }
+
     const result = await createLandingCheckout({
       name: parsed.data.name,
       email: parsed.data.email,
@@ -67,6 +73,10 @@ export async function POST(request: NextRequest) {
     return json(request, result, 201);
   } catch (error) {
     if (error instanceof LandingCheckoutConflictError) return json(request, { message: error.message }, 409);
+    if (error instanceof TurnstileConfigurationError) {
+      logger.error("Turnstile não configurado no checkout público", { error: error.message });
+      return json(request, { message: "O pagamento está temporariamente indisponível." }, 503);
+    }
     logger.error("Falha ao iniciar checkout público da landing", { error: error instanceof Error ? error.message : String(error) });
     return json(request, { message: "Não foi possível abrir o pagamento agora. Tente novamente em instantes." }, 500);
   }

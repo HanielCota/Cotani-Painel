@@ -38,7 +38,12 @@ const productionOnly = [
   "PLATFORM_ADMIN_USER_IDS",
   "RESEND_API_KEY",
   "EMAIL_FROM",
+  "NEXT_PUBLIC_TURNSTILE_SITE_KEY",
+  "TURNSTILE_SECRET_KEY",
 ];
+
+const turnstileTestSiteKey = "1x00000000000000000000AA";
+const turnstileTestSecret = "1x0000000000000000000000000000000AA";
 
 const twilioKeys = ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_SMS_FROM"];
 
@@ -86,7 +91,6 @@ if (isProduction) {
       hasError = true;
     }
   }
-
 }
 
 const graceDays = Number(process.env.SUBSCRIPTION_GRACE_PERIOD_DAYS ?? 3);
@@ -98,6 +102,20 @@ if (!Number.isInteger(graceDays) || graceDays < 1 || graceDays > 30) {
 const databasePoolMax = Number(process.env.DATABASE_POOL_MAX ?? 3);
 if (!Number.isInteger(databasePoolMax) || databasePoolMax < 1 || databasePoolMax > 20) {
   console.error("✗ DATABASE_POOL_MAX — use um inteiro entre 1 e 20");
+  hasError = true;
+}
+
+if (isProduction && (
+  process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() === turnstileTestSiteKey
+  || process.env.TURNSTILE_SECRET_KEY?.trim() === turnstileTestSecret
+)) {
+  console.error("✗ TURNSTILE — as chaves oficiais de teste não podem ser usadas em produção");
+  hasError = true;
+}
+
+const abandonedCheckoutRetentionDays = Number(process.env.ABANDONED_CHECKOUT_RETENTION_DAYS ?? 30);
+if (!Number.isInteger(abandonedCheckoutRetentionDays) || abandonedCheckoutRetentionDays < 7 || abandonedCheckoutRetentionDays > 90) {
+  console.error("✗ ABANDONED_CHECKOUT_RETENTION_DAYS — use um inteiro entre 7 e 90");
   hasError = true;
 }
 
