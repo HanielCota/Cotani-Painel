@@ -1,6 +1,17 @@
-import { describe, expect, it } from "vitest";
-import { buildHostedSubscriptionBody, isMercadoPagoCheckoutUrl, normalizeSubscriptionStatus, subscriptionPeriodEnd } from "./mercado-pago";
+import { Invoice } from "mercadopago";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
 import { BillingCycle, SubscriptionPlan } from "@/generated/prisma/enums";
+import {
+  buildHostedSubscriptionBody,
+  isMercadoPagoCheckoutUrl,
+  normalizeMercadoPagoCheckoutUrl,
+  normalizeSubscriptionStatus,
+  searchSubscriptionInvoices,
+  subscriptionPeriodEnd,
+} from "./mercado-pago";
+
+afterEach(() => vi.restoreAllMocks());
 
 describe("checkout hospedado de assinatura", () => {
   it("aceita somente URLs HTTPS oficiais para o redirecionamento", () => {
@@ -9,6 +20,16 @@ describe("checkout hospedado de assinatura", () => {
     expect(isMercadoPagoCheckoutUrl("https://mercadopago.com.br.evil.example/checkout")).toBe(false);
     expect(isMercadoPagoCheckoutUrl("javascript:alert(1)")).toBe(false);
     expect(isMercadoPagoCheckoutUrl("http://www.mercadopago.com.br/checkout")).toBe(false);
+  });
+
+  it("remove apenas o parâmetro de ativação que quebra o checkout de assinaturas", () => {
+    expect(normalizeMercadoPagoCheckoutUrl(
+      "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_id=sub-1&activation=true&source=cotani",
+    )).toBe("https://www.mercadopago.com.br/subscriptions/checkout?preapproval_id=sub-1&source=cotani");
+    expect(normalizeMercadoPagoCheckoutUrl(
+      "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_id=sub-1&activation=false",
+    )).toContain("activation=false");
+    expect(normalizeMercadoPagoCheckoutUrl("https://mercadopago.com.br.evil.example/checkout")).toBeNull();
   });
 
   it.each([
@@ -36,6 +57,26 @@ describe("checkout hospedado de assinatura", () => {
       status: "pending",
       external_reference: "clinic-1",
       auto_recurring: { frequency, frequency_type: "months", currency_id: "BRL" },
+    });
+  });
+});
+
+describe("paginação de faturas", () => {
+  it("consulta a API em páginas de dez itens", async () => {
+    const firstPage = Array.from({ length: 10 }, (_, index) => ({
+      id: `invoice-${index}`,
+      payment: { id: index + 1 },
+    }));
+    const search = vi.spyOn(Invoice.prototype, "search")
+      .mockResolvedValueOnce({ results: firstPage } as never)
+      .mockResolvedValueOnce({ results: [{ id: "invoice-10", payment: { id: 11 } }] } as never);
+
+    await expect(searchSubscriptionInvoices("subscription-1")).resolves.toHaveLength(11);
+    expect(search).toHaveBeenNthCalledWith(1, {
+      options: { preapproval_id: "subscription-1", offset: 0, limit: 10 },
+    });
+    expect(search).toHaveBeenNthCalledWith(2, {
+      options: { preapproval_id: "subscription-1", offset: 10, limit: 10 },
     });
   });
 });

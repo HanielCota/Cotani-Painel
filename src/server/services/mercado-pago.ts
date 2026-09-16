@@ -63,7 +63,7 @@ export interface CreateCheckoutResult {
   mercadoPagoSubscriptionId: string;
 }
 
-export function isMercadoPagoCheckoutUrl(value: string) {
+function parseMercadoPagoCheckoutUrl(value: string) {
   try {
     const url = new URL(value);
     const hostname = url.hostname.toLowerCase();
@@ -71,10 +71,25 @@ export function isMercadoPagoCheckoutUrl(value: string) {
       || hostname.endsWith(".mercadopago.com")
       || hostname === "mercadopago.com.br"
       || hostname.endsWith(".mercadopago.com.br");
-    return url.protocol === "https:" && officialHost;
+    return url.protocol === "https:" && officialHost ? url : null;
   } catch {
-    return false;
+    return null;
   }
+}
+
+export function isMercadoPagoCheckoutUrl(value: string) {
+  return parseMercadoPagoCheckoutUrl(value) !== null;
+}
+
+export function normalizeMercadoPagoCheckoutUrl(value: string) {
+  const url = parseMercadoPagoCheckoutUrl(value);
+  if (!url) return null;
+
+  if (url.pathname === "/subscriptions/checkout" && url.searchParams.get("activation") === "true") {
+    url.searchParams.delete("activation");
+  }
+
+  return url.toString();
 }
 
 export function buildHostedSubscriptionBody(input: CreateCheckoutInput, planConfig: PlanConfig) {
@@ -105,12 +120,16 @@ export async function createSubscriptionCheckout(
     requestOptions: { idempotencyKey: input.idempotencyKey },
   });
 
-  if (!response.id || !response.init_point || !isMercadoPagoCheckoutUrl(response.init_point)) {
+  const checkoutUrl = response.init_point
+    ? normalizeMercadoPagoCheckoutUrl(response.init_point)
+    : null;
+
+  if (!response.id || !checkoutUrl) {
     throw new Error("O Mercado Pago não retornou os dados necessários para o checkout.");
   }
 
   return {
-    checkoutUrl: response.init_point,
+    checkoutUrl,
     mercadoPagoSubscriptionId: String(response.id),
   };
 }
@@ -255,6 +274,8 @@ export interface MercadoPagoInvoice {
   currency: string;
 }
 
+const MERCADO_PAGO_INVOICE_PAGE_SIZE = 10;
+
 export async function getInvoiceFromMercadoPago(invoiceId: string): Promise<MercadoPagoInvoice> {
   const invoice = await new Invoice(getConfig()).get({ id: invoiceId });
   const id = String(invoice.id ?? invoiceId);
@@ -287,24 +308,28 @@ export async function getInvoiceFromMercadoPago(invoiceId: string): Promise<Merc
 
 export async function searchSubscriptionInvoices(subscriptionId?: string, paymentId?: string) {
   const ids: string[] = [];
-  for (let offset = 0; ; offset += 100) {
+  for (let offset = 0; ; offset += MERCADO_PAGO_INVOICE_PAGE_SIZE) {
     const page = await new Invoice(getConfig()).search({ options: {
       ...(subscriptionId ? { preapproval_id: subscriptionId } : {}),
-      ...(paymentId ? { payment_id: Number(paymentId) } : {}), offset, limit: 100,
+      ...(paymentId ? { payment_id: Number(paymentId) } : {}),
+      offset,
+      limit: MERCADO_PAGO_INVOICE_PAGE_SIZE,
     } });
     for (const invoice of page.results ?? []) if (invoice.id && invoice.payment?.id) ids.push(String(invoice.id));
-    if ((page.results?.length ?? 0) < 100) break;
+    if ((page.results?.length ?? 0) < MERCADO_PAGO_INVOICE_PAGE_SIZE) break;
     if (offset >= 9900) throw new Error("Paginação de faturas excedeu o limite de segurança.");
   }
   return ids;
 }
 
 export async function getSubscriptionInvoicePage(subscriptionId: string, offset: number) {
-  const page = await new Invoice(getConfig()).search({ options: { preapproval_id: subscriptionId, offset, limit: 10 } });
+  const page = await new Invoice(getConfig()).search({
+    options: { preapproval_id: subscriptionId, offset, limit: MERCADO_PAGO_INVOICE_PAGE_SIZE },
+  });
   const results = page.results ?? [];
   return {
     invoices: results.map((invoice) => invoice.id && invoice.payment?.id ? String(invoice.id) : null),
-    hasMore: results.length === 10,
+    hasMore: results.length === MERCADO_PAGO_INVOICE_PAGE_SIZE,
   };
 }
 
