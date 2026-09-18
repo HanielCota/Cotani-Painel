@@ -27,11 +27,8 @@ export const metadata: Metadata = {
   description:
     "Plataforma de gestão para lojas com agenda on-line, clientes, relatórios e agendamento público.",
   icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/icon.svg", type: "image/svg+xml" },
-    ],
-    shortcut: "/favicon.ico",
+    icon: [{ url: "/images/cotani-logo.png", type: "image/png" }],
+    apple: "/images/cotani-logo.png",
   },
   openGraph: {
     type: "website",
@@ -40,6 +37,21 @@ export const metadata: Metadata = {
     title: "Cotani — Gestão inteligente para lojas",
     description:
       "Plataforma de gestão para lojas com agenda on-line, clientes, relatórios e agendamento público.",
+    images: [
+      {
+        url: "https://painel.cotani.com.br/images/cotani-logo.png",
+        width: 1254,
+        height: 1254,
+        alt: "Cotani",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Cotani — Gestão inteligente para lojas",
+    description:
+      "Plataforma de gestão para lojas com agenda on-line, clientes, relatórios e agendamento público.",
+    images: ["https://painel.cotani.com.br/images/cotani-logo.png"],
   },
 };
 
