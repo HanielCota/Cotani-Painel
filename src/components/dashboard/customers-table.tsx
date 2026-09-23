@@ -95,12 +95,12 @@ export function CustomersTable() {
                 {items.length === 0 ? <TableRow><TableCell colSpan={8} className="py-10 text-center text-muted-foreground">{debouncedSearch ? "Nenhum cliente encontrado para esta busca." : "Nenhum cliente cadastrado."}</TableCell></TableRow> : items.map((customer) => (
                   <TableRow key={customer.id}>
                     <TableCell className="font-medium">{customer.name}</TableCell>
-                    <TableCell>{customer.email ?? "—"}</TableCell>
+                    <TableCell>{customer.email ?? "-"}</TableCell>
                     <TableCell>{formatBrazilianPhone(customer.phone)}</TableCell>
                     <TableCell><RelationshipBadge customer={customer} /></TableCell>
                     <TableCell className="tabular-nums">{customer.appointmentCount}</TableCell>
-                    <TableCell>{customer.lastAppointmentAt ? <div><p>{formatDate(customer.lastAppointmentAt)}</p><p className="max-w-40 truncate text-xs text-muted-foreground">{customer.lastServiceName}</p></div> : "—"}</TableCell>
-                    <TableCell>{customer.nextReturnAt ? formatDate(customer.nextReturnAt) : "—"}</TableCell>
+                    <TableCell>{customer.lastAppointmentAt ? <div><p>{formatDate(customer.lastAppointmentAt)}</p><p className="max-w-40 truncate text-xs text-muted-foreground">{customer.lastServiceName}</p></div> : "-"}</TableCell>
+                    <TableCell>{customer.nextReturnAt ? formatDate(customer.nextReturnAt) : "-"}</TableCell>
                     <TableCell><CustomerActions customer={customer} /></TableCell>
                   </TableRow>
                 ))}
@@ -112,7 +112,7 @@ export function CustomersTable() {
             {items.length === 0 ? <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">{debouncedSearch ? "Nenhum cliente encontrado para esta busca." : "Nenhum cliente cadastrado."}</p> : items.map((customer) => (
               <article key={customer.id} className="rounded-xl border border-border/80 bg-card p-4">
                 <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="truncate font-medium">{customer.name}</h3><p className="truncate text-sm text-muted-foreground">{customer.email ?? formatBrazilianPhone(customer.phone)}</p></div><RelationshipBadge customer={customer} /></div>
-                <dl className="mt-4 grid grid-cols-2 gap-3 text-sm"><div><dt className="text-muted-foreground">Atendimentos</dt><dd className="font-medium tabular-nums">{customer.appointmentCount}</dd></div><div><dt className="text-muted-foreground">Último atendimento</dt><dd className="font-medium">{customer.lastAppointmentAt ? formatDate(customer.lastAppointmentAt) : "—"}</dd></div></dl>
+                <dl className="mt-4 grid grid-cols-2 gap-3 text-sm"><div><dt className="text-muted-foreground">Atendimentos</dt><dd className="font-medium tabular-nums">{customer.appointmentCount}</dd></div><div><dt className="text-muted-foreground">Último atendimento</dt><dd className="font-medium">{customer.lastAppointmentAt ? formatDate(customer.lastAppointmentAt) : "-"}</dd></div></dl>
                 <div className="mt-4 border-t pt-3"><CustomerActions customer={customer} /></div>
               </article>
             ))}

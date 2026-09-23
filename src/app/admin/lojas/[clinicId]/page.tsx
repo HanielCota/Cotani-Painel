@@ -110,7 +110,7 @@ export default async function StoreDetailPage({
           <CardContent className="space-y-3">
             <div className="flex justify-between gap-3"><span className="text-muted-foreground">Status</span><Badge variant="outline">{subscriptionStatusLabel(clinic.subscriptionStatus)}</Badge></div>
             <div className="flex justify-between gap-3"><span className="text-muted-foreground">Plano</span><span>{subscriptionPlanLabel(clinic.subscriptionPlan)}</span></div>
-            <div className="flex justify-between gap-3"><span className="text-muted-foreground">Expira em</span><span>{clinic.subscriptionExpiresAt ? formatDateTime(clinic.subscriptionExpiresAt, "America/Sao_Paulo") : "—"}</span></div>
+            <div className="flex justify-between gap-3"><span className="text-muted-foreground">Expira em</span><span>{clinic.subscriptionExpiresAt ? formatDateTime(clinic.subscriptionExpiresAt, "America/Sao_Paulo") : "-"}</span></div>
             <div className="flex justify-between gap-3"><span className="text-muted-foreground">Já pagou</span><span>{clinic.hasPaidOnce ? "Sim" : "Não"}</span></div>
           </CardContent>
         </Card>

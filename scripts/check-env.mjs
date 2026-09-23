@@ -57,7 +57,7 @@ console.log("Verificando variáveis de ambiente...\n");
 for (const key of required) {
   const value = process.env[key];
   if (!value || value.trim() === "") {
-    console.error(`✗ ${key} — ausente ou vazia`);
+    console.error(`✗ ${key} - ausente ou vazia`);
     hasError = true;
   } else {
     console.log(`✓ ${key}`);
@@ -69,7 +69,7 @@ if (isProduction) {
   for (const key of productionOnly) {
     const value = process.env[key];
     if (!value || value.trim() === "") {
-      console.error(`✗ ${key} — obrigatória em produção`);
+      console.error(`✗ ${key} - obrigatória em produção`);
       hasError = true;
     } else {
       console.log(`✓ ${key}`);
@@ -77,7 +77,7 @@ if (isProduction) {
   }
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL?.startsWith("https://")) {
-    console.error("✗ NEXT_PUBLIC_SUPABASE_URL — URL HTTPS inválida");
+    console.error("✗ NEXT_PUBLIC_SUPABASE_URL - URL HTTPS inválida");
     hasError = true;
   }
 
@@ -85,7 +85,7 @@ if (isProduction) {
     try {
       if (new URL(process.env[urlKey]).protocol !== "https:") throw new Error();
     } catch {
-      console.error(`✗ ${urlKey} — deve ser uma URL HTTPS válida em produção`);
+      console.error(`✗ ${urlKey} - deve ser uma URL HTTPS válida em produção`);
       hasError = true;
     }
   }
@@ -93,13 +93,13 @@ if (isProduction) {
 
 const graceDays = Number(process.env.SUBSCRIPTION_GRACE_PERIOD_DAYS ?? 3);
 if (!Number.isInteger(graceDays) || graceDays < 1 || graceDays > 30) {
-  console.error("✗ SUBSCRIPTION_GRACE_PERIOD_DAYS — use um inteiro entre 1 e 30");
+  console.error("✗ SUBSCRIPTION_GRACE_PERIOD_DAYS - use um inteiro entre 1 e 30");
   hasError = true;
 }
 
 const databasePoolMax = Number(process.env.DATABASE_POOL_MAX ?? 3);
 if (!Number.isInteger(databasePoolMax) || databasePoolMax < 1 || databasePoolMax > 20) {
-  console.error("✗ DATABASE_POOL_MAX — use um inteiro entre 1 e 20");
+  console.error("✗ DATABASE_POOL_MAX - use um inteiro entre 1 e 20");
   hasError = true;
 }
 
@@ -107,26 +107,26 @@ if (isProduction && (
   process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() === turnstileTestSiteKey
   || process.env.TURNSTILE_SECRET_KEY?.trim() === turnstileTestSecret
 )) {
-  console.error("✗ TURNSTILE — as chaves oficiais de teste não podem ser usadas em produção");
+  console.error("✗ TURNSTILE - as chaves oficiais de teste não podem ser usadas em produção");
   hasError = true;
 }
 
 const abandonedCheckoutRetentionDays = Number(process.env.ABANDONED_CHECKOUT_RETENTION_DAYS ?? 30);
 if (!Number.isInteger(abandonedCheckoutRetentionDays) || abandonedCheckoutRetentionDays < 7 || abandonedCheckoutRetentionDays > 90) {
-  console.error("✗ ABANDONED_CHECKOUT_RETENTION_DAYS — use um inteiro entre 7 e 90");
+  console.error("✗ ABANDONED_CHECKOUT_RETENTION_DAYS - use um inteiro entre 7 e 90");
   hasError = true;
 }
 
 const whatsAppMode = process.env.WHATSAPP_SENDER_MODE?.trim() || "manual";
 if (!["manual", "api"].includes(whatsAppMode)) {
-  console.error("✗ WHATSAPP_SENDER_MODE — use 'manual' ou 'api'");
+  console.error("✗ WHATSAPP_SENDER_MODE - use 'manual' ou 'api'");
   hasError = true;
 }
 
 if (whatsAppMode === "api") {
   for (const key of ["META_WHATSAPP_ACCESS_TOKEN", "META_WHATSAPP_PHONE_NUMBER_ID", "META_WHATSAPP_VERIFY_TOKEN", "META_APP_SECRET", "META_WHATSAPP_APPOINTMENT_TEMPLATE"]) {
     if (!process.env[key]?.trim()) {
-      console.error(`✗ ${key} — obrigatória quando WHATSAPP_SENDER_MODE=api`);
+      console.error(`✗ ${key} - obrigatória quando WHATSAPP_SENDER_MODE=api`);
       hasError = true;
     }
   }
@@ -134,7 +134,7 @@ if (whatsAppMode === "api") {
 
 const configuredTwilioKeys = twilioKeys.filter((key) => process.env[key]?.trim());
 if (configuredTwilioKeys.length > 0 && configuredTwilioKeys.length < twilioKeys.length) {
-  console.error("✗ Twilio — configure TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN e TWILIO_SMS_FROM juntos, ou deixe os três vazios");
+  console.error("✗ Twilio - configure TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN e TWILIO_SMS_FROM juntos, ou deixe os três vazios");
   hasError = true;
 }
 

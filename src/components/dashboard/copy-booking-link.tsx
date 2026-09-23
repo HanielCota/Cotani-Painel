@@ -9,7 +9,7 @@ import { copyText } from "@/lib/clipboard";
 
 interface CopyBookingLinkProps {
   /** URL completa (origin + / + slug), montada no Server Component via headers
-   *  — nada de window.location.origin, então não há risco de hydration mismatch. */
+   *  - nada de window.location.origin, então não há risco de hydration mismatch. */
   url: string;
 }
 

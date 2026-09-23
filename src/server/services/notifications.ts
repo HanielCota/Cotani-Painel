@@ -129,7 +129,7 @@ export async function enqueueAppointmentNotifications(
 
 /**
  * Remove as notificações PENDENTES do atendimento. Usamos delete em vez de
- * marcar como CANCELED para liberar a `idempotencyKey` (única) — assim um
+ * marcar como CANCELED para liberar a `idempotencyKey` (única) - assim um
  * reagendamento pode reenfileirar o mesmo tipo de lembrete sem colisão.
  * Linhas com lock fresco (em processamento pelo dispatcher) são preservadas.
  */

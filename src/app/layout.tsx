@@ -21,20 +21,20 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   applicationName: "Cotani",
   title: {
-    default: "Cotani — Gestão inteligente para lojas",
+    default: "Cotani - Gestão inteligente para lojas",
     template: "%s | Cotani",
   },
   description:
     "Plataforma de gestão para lojas com agenda on-line, clientes, relatórios e agendamento público.",
   icons: {
-    icon: [{ url: "/images/cotani-logo.png", type: "image/png" }],
-    apple: "/images/cotani-logo.png",
+    icon: [{ url: "/images/cotani-favicon.png", type: "image/png" }],
+    apple: "/images/cotani-favicon.png",
   },
   openGraph: {
     type: "website",
     locale: "pt_BR",
     siteName: "Cotani",
-    title: "Cotani — Gestão inteligente para lojas",
+    title: "Cotani - Gestão inteligente para lojas",
     description:
       "Plataforma de gestão para lojas com agenda on-line, clientes, relatórios e agendamento público.",
     images: [
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Cotani — Gestão inteligente para lojas",
+    title: "Cotani - Gestão inteligente para lojas",
     description:
       "Plataforma de gestão para lojas com agenda on-line, clientes, relatórios e agendamento público.",
     images: ["https://painel.cotani.com.br/images/cotani-logo.png"],

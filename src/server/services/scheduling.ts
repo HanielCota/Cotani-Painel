@@ -15,7 +15,7 @@ export const DOUBLE_BOOKING_MESSAGE = "Horário indisponível. Por favor, escolh
  * Detecta violação das exclusion constraints de agendamento
  * ("Appointment_customer_no_overlap" / "Appointment_service_no_overlap", SQLSTATE 23P01).
  * Com o driver adapter do Prisma 7, o erro chega como DriverAdapterError envolvendo
- * o erro original do pg na cadeia de `cause` — por isso a varredura é estrutural.
+ * o erro original do pg na cadeia de `cause` - por isso a varredura é estrutural.
  */
 export function isDoubleBookingError(error: unknown): boolean {
   let current: unknown = error;

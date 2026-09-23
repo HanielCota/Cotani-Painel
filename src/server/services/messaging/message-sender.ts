@@ -14,7 +14,7 @@ export interface OutboundMessage {
   content: string;
   /** Presente para mensagens proativas da fila; permite usar template aprovado no WhatsApp. */
   notificationKind?: NotificationKind;
-  /** Chave única por mensagem lógica — o provedor e a fila deduplicam por ela. */
+  /** Chave única por mensagem lógica - o provedor e a fila deduplicam por ela. */
   idempotencyKey: string;
 }
 

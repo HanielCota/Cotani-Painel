@@ -103,7 +103,7 @@ export default withTenant(async ({ clinic }) => {
                   <dd className="font-medium">
                     {(clinic.subscriptionStatus === SubscriptionStatus.TRIALING ? clinic.trialEndsAt : clinic.subscriptionExpiresAt)
                       ? format(clinic.subscriptionStatus === SubscriptionStatus.TRIALING ? clinic.trialEndsAt! : clinic.subscriptionExpiresAt!, "dd/MM/yyyy", { locale: ptBR })
-                      : "—"}
+                      : "-"}
                   </dd>
                 </div>
               </dl>

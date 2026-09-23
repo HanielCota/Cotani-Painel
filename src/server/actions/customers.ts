@@ -209,7 +209,7 @@ export async function deleteCustomer(customerId: string): Promise<ActionResult> 
     return { status: "error", message: "Cliente não encontrado." };
   }
 
-  // Appointment.customer tem onDelete: Restrict — remover cliente com histórico quebraria a integridade.
+  // Appointment.customer tem onDelete: Restrict - remover cliente com histórico quebraria a integridade.
   const appointments = await prisma.appointment.count({
     where: { customerId: customer.id },
   });

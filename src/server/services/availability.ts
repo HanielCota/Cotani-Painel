@@ -71,7 +71,7 @@ function getClinicDayOfWeek(dateString: string, timeZone: string): number {
  * atendimentos já marcados da grade de candidatos do expediente configurado.
  *
  * Retorna `null` quando a data é inválida. A decisão de exibir ou não um slot
- * é derivada (ocupação + passado), nunca persistida — a verdade continua
+ * é derivada (ocupação + passado), nunca persistida - a verdade continua
  * sendo a tabela de atendimentos, e a garantia final contra concorrência é a
  * exclusion constraint do banco (ver services/scheduling.ts).
  */

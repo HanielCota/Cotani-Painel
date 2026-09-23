@@ -38,11 +38,11 @@ export function ReportsAppointmentsTable({ data, timeZone, from, to }: ReportsAp
                 <TableCell className="text-muted-foreground">
                   {formatDateTime(appointment.startTime, timeZone)}
                 </TableCell>
-                <TableCell className="font-medium">{appointment.customerName}</TableCell><TableCell>{appointment.serviceName}</TableCell><TableCell className="text-muted-foreground">{appointment.professionalName ?? "—"}</TableCell>
+                <TableCell className="font-medium">{appointment.customerName}</TableCell><TableCell>{appointment.serviceName}</TableCell><TableCell className="text-muted-foreground">{appointment.professionalName ?? "-"}</TableCell>
                 <TableCell><Badge variant={appointmentStatusBadgeVariant(appointment.status)}>{appointmentStatusLabel(appointment.status)}</Badge></TableCell>
                 <TableCell className="text-right font-semibold">
                   {appointment.status === "CANCELED" || appointment.status === "NO_SHOW"
-                    ? "—"
+                    ? "-"
                     : formatCurrency(appointment.servicePrice)}
                 </TableCell>
               </TableRow>
@@ -59,8 +59,8 @@ export function ReportsAppointmentsTable({ data, timeZone, from, to }: ReportsAp
               </div>
               <dl className="grid grid-cols-2 gap-2 text-sm">
                 <div><dt className="text-xs text-muted-foreground">Data</dt><dd>{formatDateTime(appointment.startTime, timeZone)}</dd></div>
-                <div><dt className="text-xs text-muted-foreground">Valor</dt><dd className="font-semibold">{appointment.status === "CANCELED" || appointment.status === "NO_SHOW" ? "—" : formatCurrency(appointment.servicePrice)}</dd></div>
-                <div className="col-span-2"><dt className="text-xs text-muted-foreground">Profissional</dt><dd>{appointment.professionalName ?? "—"}</dd></div>
+                <div><dt className="text-xs text-muted-foreground">Valor</dt><dd className="font-semibold">{appointment.status === "CANCELED" || appointment.status === "NO_SHOW" ? "-" : formatCurrency(appointment.servicePrice)}</dd></div>
+                <div className="col-span-2"><dt className="text-xs text-muted-foreground">Profissional</dt><dd>{appointment.professionalName ?? "-"}</dd></div>
               </dl>
             </article>
           ))}
