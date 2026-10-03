@@ -5,6 +5,7 @@ import { logger } from "@/lib/logger";
 import { readRequestText, RequestBodyTooLargeError } from "@/lib/request-body";
 import { getInvoiceFromMercadoPago, searchSubscriptionInvoices, validateMercadoPagoWebhook } from "@/server/services/mercado-pago";
 import { settleSubscription } from "@/server/services/billing-settlement";
+import { monitorOperation } from "@/server/services/operational-monitoring";
 
 export const maxDuration = 60;
 
@@ -26,24 +27,31 @@ export async function POST(request: NextRequest) {
   }
   const eventId = String(body.id ?? `${eventType}:${dataId}:${request.headers.get("x-request-id")}`);
   try {
-    if (await prisma.webhookEvent.findUnique({ where: { provider_eventId: { provider: "mercado-pago", eventId } } })) {
-      return NextResponse.json({ received: true, skipped: true });
-    }
-    if (eventType === "subscription_preapproval") {
-      await settleSubscription(dataId);
-    } else if (eventType === "subscription_authorized_payment" || eventType === "payment") {
-      const invoiceIds = eventType === "payment" ? await searchSubscriptionInvoices(undefined, dataId) : [dataId];
-      for (const id of invoiceIds) {
-        const invoice = await getInvoiceFromMercadoPago(id);
-        await settleSubscription(invoice.subscriptionId, id);
+    return await monitorOperation({ category: "WEBHOOK", operation: "mercado-pago" }, async () => {
+      if (await prisma.webhookEvent.findUnique({ where: { provider_eventId: { provider: "mercado-pago", eventId } } })) {
+        return NextResponse.json({ received: true, skipped: true });
       }
-    }
-    // Settlement is independently idempotent. A crash before this record safely retries.
-    await prisma.webhookEvent.upsert({
-      where: { provider_eventId: { provider: "mercado-pago", eventId } }, update: {},
-      create: { provider: "mercado-pago", eventId, type: eventType, payloadSnapshot: body as Prisma.InputJsonValue },
-    });
-    return NextResponse.json({ received: true });
+      if (eventType === "subscription_preapproval") {
+        await settleSubscription(dataId);
+      } else if (eventType === "subscription_authorized_payment" || eventType === "payment") {
+        const invoiceIds = eventType === "payment" ? await searchSubscriptionInvoices(undefined, dataId) : [dataId];
+        for (const id of invoiceIds) {
+          const invoice = await getInvoiceFromMercadoPago(id);
+          await settleSubscription(invoice.subscriptionId, id);
+        }
+      }
+      // Settlement is independently idempotent. A crash before this record safely retries.
+      await prisma.webhookEvent.upsert({
+        where: { provider_eventId: { provider: "mercado-pago", eventId } }, update: {},
+        create: { provider: "mercado-pago", eventId, type: eventType, payloadSnapshot: body as Prisma.InputJsonValue },
+      });
+      return NextResponse.json({ received: true });
+    }, (response) => ({
+      status: response.status >= 500 ? "FAILURE" : "SUCCESS",
+      summary: { eventType, httpStatus: response.status },
+      externalEventId: eventId.slice(0, 160),
+      ...(response.status >= 500 ? { error: `O webhook retornou HTTP ${response.status}.` } : {}),
+    }));
   } catch (error) {
     logger.error("Falha ao conciliar notificação Mercado Pago", { eventId, eventType, error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ message: "Falha ao conciliar evento." }, { status: 500 });

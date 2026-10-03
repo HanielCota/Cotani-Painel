@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2Icon, GaugeIcon, ScrollTextIcon } from "lucide-react";
+import { ActivityIcon, BellRingIcon, Building2Icon, GaugeIcon, ScrollTextIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/admin", label: "Visão geral", icon: GaugeIcon },
+  { href: "/admin/operacoes", label: "Operações", icon: ActivityIcon },
+  { href: "/admin/notificacoes", label: "Notificações", icon: BellRingIcon },
   { href: "/admin/lojas", label: "Lojas", icon: Building2Icon },
   { href: "/admin/auditoria", label: "Auditoria", icon: ScrollTextIcon },
 ];
