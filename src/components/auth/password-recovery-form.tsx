@@ -30,11 +30,11 @@ function recoveryErrorMessage(error: { code?: string; message: string }, mode: "
   return "Não foi possível atualizar a senha. Solicite um novo link e tente novamente.";
 }
 
-export function PasswordRecoveryForm({ mode }: { mode: "request" | "update" }) {
+export function PasswordRecoveryForm({ mode, initialError = null }: { mode: "request" | "update"; initialError?: string | null }) {
   const [pending, setPending] = useState(false);
   const [ready, setReady] = useState(mode === "request");
   const [requestedEmail, setRequestedEmail] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(initialError);
   const submittingRef = useRef(false);
   const captchaRef = useRef<TurnstileWidgetHandle>(null);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
@@ -91,8 +91,11 @@ export function PasswordRecoveryForm({ mode }: { mode: "request" | "update" }) {
         toast.success("Solicitação enviada. Verifique sua caixa de entrada.");
       } else {
         toast.success("Senha atualizada.");
-        router.push("/dashboard");
-        router.refresh();
+        try {
+          await supabase.auth.signOut({ scope: "local" });
+        } finally {
+          window.location.replace("/sign-in?password=updated");
+        }
       }
     } catch {
       const message = mode === "request"
@@ -110,6 +113,18 @@ export function PasswordRecoveryForm({ mode }: { mode: "request" | "update" }) {
   function resetRequest() {
     submittingRef.current = false;
     setRequestedEmail(null);
+  }
+
+  async function backToSignIn() {
+    if (mode === "update") {
+      try {
+        await createClient().auth.signOut({ scope: "local" });
+      } finally {
+        window.location.replace("/sign-in");
+      }
+      return;
+    }
+    router.push("/sign-in");
   }
 
   if (mode === "request" && requestedEmail) {
@@ -175,7 +190,7 @@ export function PasswordRecoveryForm({ mode }: { mode: "request" | "update" }) {
         <Button type="submit" className="w-full" disabled={pending || !ready || (captchaRequired && !captchaToken)}>
           {pending ? (mode === "request" ? "Enviando..." : "Atualizando...") : mode === "request" ? "Enviar e-mail de recuperação" : "Atualizar senha"}
         </Button>
-        <Button type="button" variant="ghost" className="w-full" onClick={() => router.push("/sign-in")}>Voltar</Button>
+        <Button type="button" variant="ghost" className="w-full" onClick={() => void backToSignIn()}>Voltar</Button>
       </form>
     </AuthCard>
   );

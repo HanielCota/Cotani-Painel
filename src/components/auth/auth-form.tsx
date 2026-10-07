@@ -45,6 +45,7 @@ export function AuthForm() {
 
   useEffect(() => {
     if (searchParams.get("error") === "auth_callback") toast.error("O link de acesso é inválido ou expirou. Solicite um novo e tente novamente.");
+    if (searchParams.get("password") === "updated") toast.success("Senha atualizada. Entre com a nova senha.");
   }, [searchParams]);
 
   async function handleCredentials(formData: FormData) {
