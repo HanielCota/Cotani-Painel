@@ -7,6 +7,7 @@ import prisma from "@/lib/prisma";
 import { getNotificationChannels } from "@/config/subscription-plans";
 import { parseClinicDateTime } from "@/lib/timezone";
 import { checkAppointmentTransition, PAYMENT_METHODS } from "@/lib/appointment-status";
+import { isWithinStaffBookingHorizon, STAFF_MAX_BOOKING_HORIZON_DAYS } from "@/config/booking";
 import { getClinicForRoles, getTenantContext } from "@/server/tenant";
 import {
   DOUBLE_BOOKING_MESSAGE,
@@ -50,6 +51,14 @@ function revalidateScheduleViews() {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/agenda");
   revalidatePath("/dashboard/relatorios");
+}
+
+/** Horário escolhido pela equipe: futuro e com até 1 ano de antecedência. */
+function staffStartTimeError(startTime: Date | null): string | null {
+  if (!startTime) return "Informe uma data e horário válidos.";
+  if (startTime <= new Date()) return "Escolha um horário futuro para o atendimento.";
+  if (!isWithinStaffBookingHorizon(startTime)) return `Agendamentos podem ser feitos com até ${STAFF_MAX_BOOKING_HORIZON_DAYS} dias de antecedência. Confira a data.`;
+  return null;
 }
 
 async function getAgendaActor() {
@@ -158,13 +167,9 @@ export async function createAppointmentFromForm(_previousState: ActionResult, fo
   }
 
   const startTime = parseClinicDateTime(String(formData.get("startTime") ?? ""), clinic.timeZone);
-
-  if (!startTime) {
-    return { status: "error", message: "Informe uma data e horário válidos." };
-  }
-
-  if (startTime <= new Date()) {
-    return { status: "error", message: "Escolha um horário futuro para o atendimento." };
+  const startTimeError = staffStartTimeError(startTime);
+  if (startTimeError || !startTime) {
+    return { status: "error", message: startTimeError ?? "Informe uma data e horário válidos." };
   }
 
   return createAppointment({
@@ -209,12 +214,9 @@ export async function rescheduleAppointmentFromForm(_previousState: ActionResult
 
   const startTime = parseClinicDateTime(parsed.data.startTime, clinic.timeZone);
 
-  if (!startTime) {
-    return { status: "error", message: "Informe uma nova data e horário válidos." };
-  }
-
-  if (startTime <= new Date()) {
-    return { status: "error", message: "Escolha um horário futuro para o atendimento." };
+  const startTimeError = staffStartTimeError(startTime);
+  if (startTimeError || !startTime) {
+    return { status: "error", message: startTimeError ?? "Informe uma nova data e horário válidos." };
   }
 
   const result = await rescheduleScheduledAppointment({
@@ -266,7 +268,8 @@ export async function updateAppointmentFromForm(_previousState: ActionResult, fo
   ]);
   if (!appointment || !customer || !service || (parsed.data.professionalId && !professional)) return { status: "error", message: "Cliente, serviço ou profissional inválido." };
   const startTime = parseClinicDateTime(parsed.data.startTime, clinic.timeZone);
-  if (!startTime || startTime <= new Date()) return { status: "error", message: "Escolha um horário futuro válido." };
+  const startTimeError = staffStartTimeError(startTime);
+  if (startTimeError || !startTime) return { status: "error", message: startTimeError ?? "Escolha um horário futuro válido." };
   const result = await rescheduleScheduledAppointment({ appointmentId: parsed.data.appointmentId, clinicId: clinic.id, clinicSlug: clinic.slug, clinicName: clinic.name, timeZone: clinic.timeZone, customerId: customer.id, customerName: customer.name, customerPhone: customer.phone, customerEmail: customer.email, notificationChannels: getNotificationChannels(clinic.subscriptionPlan), serviceId: service.id, serviceName: service.name, serviceDuration: service.duration, servicePrice: parsed.data.totalPrice, professionalId: professional?.id ?? null, startTime, notes: parsed.data.notes, cancellationToken: appointment.cancellationToken, maxAppointmentsPerDay: clinic.maxAppointmentsPerDay });
   if (result.status === "conflict") return { status: "error", message: DOUBLE_BOOKING_MESSAGE };
   if (result.status === "error") return { status: "error", message: "Não foi possível atualizar o atendimento." };

@@ -48,7 +48,8 @@ describe("scheduleAppointment", () => {
     serviceName: "Serviço A",
     serviceDuration: 30,
     servicePrice: 50,
-    startTime: new Date("2099-07-20T14:00:00.000Z"),
+    // Daqui a 2 dias, 14:00 UTC (11:00 em São Paulo): futuro e dentro do horizonte de 1 ano.
+    startTime: new Date(new Date(Date.now() + 2 * 86_400_000).toISOString().slice(0, 10) + "T14:00:00.000Z"),
   };
 
   it("cria agendamento quando não há conflito", async () => {
@@ -113,6 +114,15 @@ describe("scheduleAppointment", () => {
     prismaMock.$transaction.mockImplementationOnce(async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock));
 
     const result = await scheduleAppointment({ ...baseParams, professionalId: "550e8400-e29b-41d4-a716-446655440099" });
+
+    expect(result.status).toBe("conflict");
+    expect(prismaMock.appointment.create).not.toHaveBeenCalled();
+  });
+
+  it("recusa horário além do horizonte de 1 ano (data digitada errada)", async () => {
+    prismaMock.$transaction.mockImplementationOnce(async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock));
+
+    const result = await scheduleAppointment({ ...baseParams, startTime: new Date("2099-07-20T14:00:00.000Z") });
 
     expect(result.status).toBe("conflict");
     expect(prismaMock.appointment.create).not.toHaveBeenCalled();
