@@ -50,5 +50,6 @@ describe("Button em formulários", () => {
     }
 
     expect(violations).toEqual([]);
-  });
+  // Analisa todos os .tsx do projeto; em máquina carregada passa de 5 s.
+  }, 30_000);
 });
