@@ -54,6 +54,7 @@ export default withTenant(async ({ clinic }) => {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Painel de controle"
+        subtitle={new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "numeric", month: "long", timeZone: clinic.timeZone }).format(new Date())}
         description={`Acompanhe a operação da ${clinic.name} em tempo real.`}
         actions={
           <Button nativeButton={false} render={<Link href="/dashboard/agenda" />}>

@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 
 interface PageHeaderProps {
   title: string;
+  /** Segunda linha do título, em cinza (ex.: a data de hoje). */
+  subtitle?: ReactNode;
   description?: ReactNode;
   /** Ações primárias da página (botões, filtros). */
   actions?: ReactNode;
@@ -10,12 +12,15 @@ interface PageHeaderProps {
 }
 
 /** Cabeçalho único de páginas do painel e da administração. */
-export function PageHeader({ title, description, actions, eyebrow }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, description, actions, eyebrow }: PageHeaderProps) {
   return (
     <header className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0 space-y-1">
         {eyebrow ? <div className="text-sm text-muted-foreground">{eyebrow}</div> : null}
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem]">{title}</h1>
+        <h1 className="text-2xl leading-tight font-semibold tracking-[-0.035em] text-foreground sm:text-[1.75rem]">
+          {title}
+          {subtitle ? <span className="block text-muted-foreground first-letter:uppercase">{subtitle}</span> : null}
+        </h1>
         {description ? <p className="max-w-2xl text-sm leading-6 text-muted-foreground">{description}</p> : null}
       </div>
       {actions ? <div className="flex min-w-0 flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">{actions}</div> : null}
@@ -35,7 +40,7 @@ export function SectionHeader({ title, description, actions, id }: SectionHeader
   return (
     <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
-        <h2 id={id} className="text-base font-semibold text-foreground">{title}</h2>
+        <h2 id={id} className="text-base font-semibold tracking-[-0.02em] text-foreground">{title}</h2>
         {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
