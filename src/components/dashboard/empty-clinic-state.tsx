@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { Building2Icon } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ import {
   EmptyContent,
   EmptyDescription,
   EmptyHeader,
-  EmptyMedia,
+  EmptyMascot,
   EmptyTitle,
 } from "@/components/ui/empty";
 
@@ -23,9 +22,7 @@ export function EmptyClinicState() {
   return (
     <Empty className="min-h-[60vh] border">
       <EmptyHeader>
-        <EmptyMedia variant="icon">
-          <Building2Icon />
-        </EmptyMedia>
+        <EmptyMascot />
         <EmptyTitle>Cadastre seu negócio</EmptyTitle>
         <EmptyDescription className="max-w-md">
           Configure seu negócio para iniciar os 7 dias grátis e publicar sua agenda online.

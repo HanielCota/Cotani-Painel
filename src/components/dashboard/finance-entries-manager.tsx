@@ -1,7 +1,6 @@
-import { ReceiptTextIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMascot, EmptyTitle } from "@/components/ui/empty";
 import { PaginationNav } from "@/components/ui/pagination-nav";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { financialEntryStatusBadgeVariant, financialEntryStatusLabel, financialEntryTypeLabel } from "@/lib/display-labels";
@@ -65,7 +64,7 @@ function EntriesEmpty() {
   return (
     <Empty className="border-0">
       <EmptyHeader>
-        <EmptyMedia variant="icon"><ReceiptTextIcon /></EmptyMedia>
+        <EmptyMascot />
         <EmptyTitle>Nenhuma movimentação neste período</EmptyTitle>
         <EmptyDescription>Registre aluguel, compras de produtos ou valores a receber para acompanhar o caixa.</EmptyDescription>
       </EmptyHeader>
