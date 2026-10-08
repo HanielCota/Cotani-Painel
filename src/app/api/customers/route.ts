@@ -47,7 +47,8 @@ export async function GET(request: NextRequest) {
     prisma.customer.findMany({
       where,
       include: {
-        _count: { select: { appointments: true } },
+        // Cancelados não contam para classificar o cliente como recorrente.
+        _count: { select: { appointments: { where: { status: { not: "CANCELED" } } } } },
         appointments: {
           where: { status: { not: "CANCELED" } },
           orderBy: { startTime: "desc" },

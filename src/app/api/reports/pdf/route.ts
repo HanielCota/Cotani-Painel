@@ -1,30 +1,52 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { getPlanEntitlements } from "@/config/subscription-plans";
-import { getAuthorizedReportClinicIds } from "@/server/services/report-scope";
-import { parseClinicDateTime } from "@/lib/timezone";
+import { checkApiRateLimit } from "@/lib/api-rate-limit";
+import { parseClinicDateRange } from "@/lib/timezone";
 import { getReportAppointmentsForExport, getReportsMetrics } from "@/server/services/reports";
+import { buildReportPdf } from "@/server/services/reports-pdf";
+import { getAuthorizedReportClinicIds } from "@/server/services/report-scope";
 import { isSubscriptionActive } from "@/server/subscription";
 import { getApiTenant } from "@/server/tenant";
 
+function formatDateKey(value: string | null) {
+  const match = value ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(value) : null;
+  return match ? `${match[3]}/${match[2]}/${match[1]}` : null;
+}
+
 export async function GET(request: NextRequest) {
-  const tenant = await getApiTenant(["ADMIN"]); if (!tenant.ok) return NextResponse.json({ message: tenant.message }, { status: tenant.status });
-  const { clinic } = tenant.context; const entitlements = getPlanEntitlements(clinic.subscriptionPlan);
-  if (!isSubscriptionActive(clinic) || !entitlements.advancedReports) return NextResponse.json({ message: "Exportação indisponível para este plano." }, { status: 403 });
-  const fromValue = request.nextUrl.searchParams.get("from"); const toValue = request.nextUrl.searchParams.get("to");
-  const from = fromValue ? parseClinicDateTime(`${fromValue}T00:00`, clinic.timeZone) ?? undefined : undefined; const toStart = toValue ? parseClinicDateTime(`${toValue}T00:00`, clinic.timeZone) : null; const to = toStart ? new Date(toStart.getTime() + 86400000) : undefined;
+  const tenant = await getApiTenant(["ADMIN"]);
+  if (!tenant.ok) return NextResponse.json({ message: tenant.message }, { status: tenant.status });
+  // Gerar PDF é mais caro que o CSV; mesmo limite da exportação em planilha.
+  const rateLimitResponse = await checkApiRateLimit(request, "reports-pdf", 10, 60_000);
+  if (rateLimitResponse) return rateLimitResponse;
+
+  const { clinic } = tenant.context;
+  if (!isSubscriptionActive(clinic) || !getPlanEntitlements(clinic.subscriptionPlan).advancedReports) {
+    return NextResponse.json({ message: "Exportação indisponível para este plano." }, { status: 403 });
+  }
+
+  const fromValue = request.nextUrl.searchParams.get("from");
+  const toValue = request.nextUrl.searchParams.get("to");
+  const { from, to } = parseClinicDateRange(fromValue, toValue, clinic.timeZone);
   const clinicIds = await getAuthorizedReportClinicIds(tenant.context);
   const [metrics, appointments] = await Promise.all([
     getReportsMetrics(clinic, { from, to, clinicIds }),
     getReportAppointmentsForExport(clinic, { from, to, clinicIds }),
   ]);
-  const document = await PDFDocument.create(); const regular = await document.embedFont(StandardFonts.Helvetica); const bold = await document.embedFont(StandardFonts.HelveticaBold); const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-  let page = document.addPage([595, 842]); let y = 790;
-  const line = (text: string, size = 10, strong = false) => { if (y < 50) { page = document.addPage([595,842]); y=790; } page.drawText(text.normalize("NFKD").replace(/[\u0300-\u036f]/g, ""), { x: 45, y, size, font: strong ? bold : regular, color: rgb(0.08,0.12,0.1) }); y -= size + 8; };
-  page.drawRectangle({ x:0,y:812,width:595,height:30,color:rgb(0.04,0.65,0.48) }); line(`Cotani | Relatorio gerencial - ${clinic.name}`, 18, true); line(`Periodo: ${fromValue ?? "mes atual"} a ${toValue ?? "hoje"}`); y-=8;
-  line(`Agendamentos: ${metrics.totalAppointments}`, 12, true); line(`Clientes ativos: ${metrics.activeCustomersThisMonth}`); line(`Receita concluida: ${money.format(metrics.completedRevenue)}`); line(`Ticket medio: ${money.format(metrics.averageTicket)}`); line(`Confirmacao: ${metrics.confirmationRate}% | Faltas: ${metrics.noShowRate}% | Cancelamentos: ${metrics.cancellationRate}% | Retencao: ${metrics.retentionRate}%`); y-=10;
-  line("Agendamentos do periodo", 14, true);
-  for (const item of appointments) line(`${new Intl.DateTimeFormat("pt-BR", { dateStyle:"short", timeStyle:"short", timeZone:clinic.timeZone }).format(new Date(item.startTime))} | ${item.customerName} | ${item.serviceName} | ${item.status} | ${money.format(item.servicePrice)}`);
-  const bytes = await document.save();
-  return new NextResponse(Buffer.from(bytes), { headers: { "Content-Type":"application/pdf", "Content-Disposition":'attachment; filename="relatorio-cotani.pdf"', "Cache-Control":"private, no-store" } });
+
+  const bytes = await buildReportPdf({
+    clinicName: clinic.name,
+    timeZone: clinic.timeZone,
+    periodLabel: `${formatDateKey(fromValue) ?? "início do mês"} a ${formatDateKey(toValue) ?? "hoje"}`,
+    metrics,
+    appointments,
+  });
+
+  return new NextResponse(Buffer.from(bytes), {
+    headers: {
+      "Content-Type": "application/pdf",
+      "Content-Disposition": 'attachment; filename="relatorio-cotani.pdf"',
+      "Cache-Control": "private, no-store",
+    },
+  });
 }

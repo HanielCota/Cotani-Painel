@@ -2,6 +2,9 @@ export type ActionResult =
   | { status: "success"; message: string }
   | { status: "error"; message: string };
 
+/** Estado inicial neutro para `useActionState` (mensagem vazia não gera toast). */
+export const INITIAL_ACTION_RESULT: ActionResult = { status: "success", message: "" };
+
 export interface AgendaAppointment {
   id: string;
   customerId?: string;

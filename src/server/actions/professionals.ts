@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
-import { getPlanEntitlements } from "@/config/subscription-plans";
+import { ACTIVE_APPOINTMENT_STATUSES } from "@/lib/appointment-status";
+import { findProfessionalLimitReached, professionalLimitMessage } from "@/server/services/billing-access";
 import { getClinicForRoles } from "@/server/tenant";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
@@ -91,25 +92,18 @@ export async function createProfessional(input: unknown): Promise<ActionResult> 
       await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
       const current = await transaction.clinic.findUniqueOrThrow({ where: { id: clinic.id } });
       if (!isSubscriptionActive(current)) throw new Error(SUBSCRIPTION_INACTIVE_MESSAGE);
-      const maxProfessionals = Math.min(
-        getPlanEntitlements(current.subscriptionPlan).maxProfessionals ?? Infinity,
-        current.pendingSubscriptionPlan ? getPlanEntitlements(current.pendingSubscriptionPlan).maxProfessionals ?? Infinity : Infinity,
-      );
-      if (maxProfessionals !== null) {
-        const activeProfessionals = await transaction.professional.count({ where: { clinicId: clinic.id, isActive: true } });
-        if (activeProfessionals >= maxProfessionals) return "limit" as const;
-      }
+      const limit = await findProfessionalLimitReached(transaction, current);
+      if (limit !== null) return { kind: "limit", limit } as const;
       const services = await transaction.service.findMany({ where: { id: { in: parsed.data.serviceIds }, clinicId: clinic.id, isActive: true }, select: { id: true } });
-      if (services.length !== parsed.data.serviceIds.length) return "services" as const;
+      if (services.length !== parsed.data.serviceIds.length) return { kind: "services" } as const;
       await transaction.professional.create({ data: { clinicId: clinic.id, name: parsed.data.name, imageUrl, services: { create: parsed.data.serviceIds.map((serviceId) => ({ serviceId })) } } });
-      return "created" as const;
+      return { kind: "created" } as const;
     });
-    if (outcome === "limit") {
+    if (outcome.kind === "limit") {
       await removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "professionals" });
-      const max = getPlanEntitlements(clinic.subscriptionPlan).maxProfessionals!;
-      return { status: "error", message: `Seu plano permite até ${max} ${max === 1 ? "profissional" : "profissionais"}. Faça upgrade para adicionar mais.` };
+      return { status: "error", message: professionalLimitMessage(outcome.limit, "add") };
     }
-    if (outcome === "services") {
+    if (outcome.kind === "services") {
       await removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "professionals" });
       return { status: "error", message: "Um ou mais serviços selecionados são inválidos." };
     }
@@ -249,43 +243,33 @@ export async function toggleProfessionalActive(professionalId: string): Promise<
 
   const nextIsActive = !professional.isActive;
 
-  if (!nextIsActive) {
-    const pendingAppointments = await prisma.appointment.count({
-      where: {
-        professionalId: professional.id,
-        status: { in: ["PENDING", "CONFIRMED"] },
-        startTime: { gte: new Date() },
-      },
-    });
-
-    if (pendingAppointments > 0) {
-      return {
-        status: "error",
-        message: "Este profissional possui agendamentos futuros pendentes ou confirmados. Cancele ou reagende-os antes de desativar.",
-      };
-    }
-  }
-
   const outcome = await prisma.$transaction(async (transaction) => {
     await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
     if (nextIsActive) {
       const current = await transaction.clinic.findUniqueOrThrow({ where: { id: clinic.id } });
       if (!isSubscriptionActive(current)) throw new Error(SUBSCRIPTION_INACTIVE_MESSAGE);
-      const maxProfessionals = Math.min(
-        getPlanEntitlements(current.subscriptionPlan).maxProfessionals ?? Infinity,
-        current.pendingSubscriptionPlan ? getPlanEntitlements(current.pendingSubscriptionPlan).maxProfessionals ?? Infinity : Infinity,
-      );
-      if (maxProfessionals !== null) {
-        const activeProfessionals = await transaction.professional.count({ where: { clinicId: clinic.id, isActive: true } });
-        if (activeProfessionals >= maxProfessionals) return "limit" as const;
-      }
+      const limit = await findProfessionalLimitReached(transaction, current);
+      if (limit !== null) return { kind: "limit", limit } as const;
+    } else {
+      // FOR UPDATE espera agendamentos em andamento (que seguram a linha com
+      // FOR SHARE) terminarem, então a contagem abaixo já os enxerga.
+      await transaction.$queryRaw`SELECT id FROM "Professional" WHERE id = ${professional.id} FOR UPDATE`;
+      const pendingAppointments = await transaction.appointment.count({
+        where: { professionalId: professional.id, status: { in: [...ACTIVE_APPOINTMENT_STATUSES] }, startTime: { gte: new Date() } },
+      });
+      if (pendingAppointments > 0) return { kind: "has-appointments" } as const;
     }
     await transaction.professional.update({ where: { id: professional.id }, data: { isActive: nextIsActive } });
-    return "updated" as const;
+    return { kind: "updated" } as const;
   });
-  if (outcome === "limit") {
-    const max = getPlanEntitlements(clinic.subscriptionPlan).maxProfessionals!;
-    return { status: "error", message: `Seu plano permite até ${max} ${max === 1 ? "profissional ativo" : "profissionais ativos"}. Faça upgrade para reativar este profissional.` };
+  if (outcome.kind === "limit") {
+    return { status: "error", message: professionalLimitMessage(outcome.limit, "reactivate") };
+  }
+  if (outcome.kind === "has-appointments") {
+    return {
+      status: "error",
+      message: "Este profissional possui agendamentos futuros pendentes ou confirmados. Cancele ou reagende-os antes de desativar.",
+    };
   }
 
   revalidateProfessionalViews();

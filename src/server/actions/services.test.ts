@@ -154,6 +154,7 @@ describe("toggleServiceActive", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
+    prismaMock.$transaction.mockImplementation(async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock));
   });
 
   it("retorna erro para ID inválido", async () => {

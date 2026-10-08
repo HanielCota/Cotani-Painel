@@ -4,10 +4,10 @@ import { getPlanEntitlements } from "@/config/subscription-plans";
 import { checkApiRateLimit } from "@/lib/api-rate-limit";
 import { buildAppointmentsCsv } from "@/server/services/reports-export";
 import { getReportAppointmentsForExport } from "@/server/services/reports";
+import { getAuthorizedReportClinicIds } from "@/server/services/report-scope";
 import { isSubscriptionActive } from "@/server/subscription";
 import { getApiTenant } from "@/server/tenant";
-import { parseClinicDateTime } from "@/lib/timezone";
-import { getAuthorizedReportClinicIds } from "@/server/services/report-scope";
+import { parseClinicDateRange } from "@/lib/timezone";
 
 export async function GET(request: NextRequest) {
   const tenant = await getApiTenant(["ADMIN"]);
@@ -26,9 +26,7 @@ export async function GET(request: NextRequest) {
 
   const fromValue = request.nextUrl.searchParams.get("from");
   const toValue = request.nextUrl.searchParams.get("to");
-  const from = fromValue ? parseClinicDateTime(`${fromValue}T00:00`, clinic.timeZone) ?? undefined : undefined;
-  const toStart = toValue ? parseClinicDateTime(`${toValue}T00:00`, clinic.timeZone) : null;
-  const to = toStart ? new Date(toStart.getTime() + 24 * 60 * 60_000) : undefined;
+  const { from, to } = parseClinicDateRange(fromValue, toValue, clinic.timeZone);
   const clinicIds = await getAuthorizedReportClinicIds(tenant.context);
   const appointments = await getReportAppointmentsForExport(clinic, { from, to, clinicIds });
   const csv = buildAppointmentsCsv(appointments, clinic.timeZone);

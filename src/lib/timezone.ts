@@ -122,3 +122,31 @@ export function getClinicMonthlyBounds(timeZone: string, months: number, now = n
 
   return result;
 }
+
+const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Converte um valor de `<input type="date">` (YYYY-MM-DD) num instante ao
+ * meio-dia do fuso da loja. Ao contrário de `new Date("YYYY-MM-DD")` (00:00
+ * UTC, ou seja, véspera em horário de Brasília), o resultado cai no mesmo dia
+ * tanto no fuso da loja quanto em UTC - por isso filtros por período e a
+ * exibição com `formatDateOnly` concordam sobre a data escolhida.
+ */
+export function parseClinicDateOnly(value: string, timeZone: string) {
+  return DATE_ONLY_PATTERN.test(value) ? parseClinicDateTime(`${value}T12:00`, timeZone) : null;
+}
+
+function nextDateKey(dateKey: string) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
+}
+
+/**
+ * Converte o filtro `from`/`to` (YYYY-MM-DD, ambos inclusivos) em limites
+ * `[from, to)` no fuso da loja. Valores ausentes ou inválidos ficam indefinidos.
+ */
+export function parseClinicDateRange(fromValue: string | null | undefined, toValue: string | null | undefined, timeZone: string) {
+  const from = fromValue && DATE_ONLY_PATTERN.test(fromValue) ? parseClinicDateTime(`${fromValue}T00:00`, timeZone) ?? undefined : undefined;
+  const to = toValue && DATE_ONLY_PATTERN.test(toValue) ? parseClinicDateTime(`${nextDateKey(toValue)}T00:00`, timeZone) ?? undefined : undefined;
+  return { from, to };
+}

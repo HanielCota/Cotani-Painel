@@ -12,8 +12,8 @@ import { getPlanEntitlements } from "@/config/subscription-plans";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getReportAppointmentsPage, getReportsMetrics } from "@/server/services/reports";
-import { parseClinicDateTime } from "@/lib/timezone";
 import { getAuthorizedReportClinicIds } from "@/server/services/report-scope";
+import { parseClinicDateRange } from "@/lib/timezone";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { withTenant } from "@/server/with-tenant";
@@ -29,10 +29,7 @@ export default withTenant<ReportsPageProps>(async (context, { searchParams }) =>
     return <PlanUpgradeRequired feature="Relatórios mensais" />;
   }
   const query = await searchParams;
-  const from = query.from ? parseClinicDateTime(`${query.from}T00:00`, clinic.timeZone) ?? undefined : undefined;
-  const toStart = query.to ? parseClinicDateTime(`${query.to}T00:00`, clinic.timeZone) : null;
-  const to = toStart ? new Date(toStart.getTime() + 24 * 60 * 60_000) : undefined;
-  // Só administradores da loja principal veem relatórios consolidados das unidades.
+  const { from, to } = parseClinicDateRange(query.from, query.to, clinic.timeZone);
   const unitIds = await getAuthorizedReportClinicIds(context);
   const page = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1);
   const reportOptions = { from, to, clinicIds: unitIds };

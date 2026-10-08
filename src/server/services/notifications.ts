@@ -119,11 +119,16 @@ export async function enqueueAppointmentNotifications(
     }] : [];
   });
 
+  // `skipDuplicates`: ao editar um atendimento sem mudar o horário (ou voltar
+  // ao horário original), a confirmação/lembrete com a mesma chave já pode ter
+  // sido enviada (SENT/FAILED) ou estar travada pelo dispatcher. Não reenviar
+  // é o comportamento correto e evita P2002 derrubar a transação inteira.
   await transaction.notification.createMany({
     data: [
       ...confirmations,
       ...buildReminderInputs(params, now),
     ],
+    skipDuplicates: true,
   });
 }
 

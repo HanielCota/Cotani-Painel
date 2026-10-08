@@ -271,6 +271,26 @@ describe("getAvailableDatesInMonth", () => {
     expect(result).toEqual([]);
   });
 
+  it.each([
+    ["2027-03", 31], // início do horário de verão em Nova York (14/03)
+    ["2027-11", 30], // fim do horário de verão em Nova York (07/11)
+  ])("percorre todos os dias de %s em fuso com horário de verão", async (yearMonth, days) => {
+    vi.setSystemTime(new Date(`${yearMonth}-01T00:00:00.000Z`));
+    prismaMock.businessHour.findMany.mockResolvedValueOnce(
+      [0, 1, 2, 3, 4, 5, 6].map((dayOfWeek) => ({
+        id: `bh-${dayOfWeek}`, clinicId, dayOfWeek, isOpen: true, openTime: "09:00", closeTime: "18:00",
+        breakStart: null, breakEnd: null, createdAt: new Date(), updatedAt: new Date(),
+      })),
+    );
+    prismaMock.appointment.findMany.mockResolvedValueOnce([]);
+
+    const result = await getAvailableDatesInMonth({ clinicId, timeZone: "America/New_York", serviceDuration: 30, yearMonth });
+
+    // Sem datas puladas nem repetidas; o primeiro dia fica fora pela antecedência mínima.
+    const expected = Array.from({ length: days }, (_, index) => `${yearMonth}-${String(index + 1).padStart(2, "0")}`).slice(1);
+    expect(result.filter((day) => day !== `${yearMonth}-01`)).toEqual(expected);
+  });
+
   it("retorna apenas dias com expediente aberto e slots livres", async () => {
     vi.setSystemTime(new Date("2026-07-01T06:00:00.000Z"));
 

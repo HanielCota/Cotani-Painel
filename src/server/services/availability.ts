@@ -1,7 +1,7 @@
 import "server-only";
 
 import prisma from "@/lib/prisma";
-import { formatClinicDateTimeInput, getClinicDateBounds, parseClinicDateTime } from "@/lib/timezone";
+import { getClinicDateBounds, parseClinicDateTime } from "@/lib/timezone";
 import { isWithinBookingWindow } from "@/config/booking";
 
 // Resolução mínima da grade de horários. Os slots são gerados a cada 30 minutos
@@ -200,7 +200,9 @@ export async function getAvailableDatesInMonth(params: GetAvailableDatesParams):
     return [];
   }
 
-  const daysInMonth = Math.round((monthEnd.getTime() - monthStart.getTime()) / (24 * 60 * 60 * 1000));
+  // Dias de calendário (não somas de 24 h): em fusos com horário de verão um
+  // dia pode ter 23 ou 25 horas, e somar 24 h pulava ou repetia datas.
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
   const [businessHours, professionalHours, appointments] = await Promise.all([
     prisma.businessHour.findMany({ where: { clinicId: params.clinicId } }),
     params.professionalId ? prisma.professionalAvailability.findMany({ where: { clinicId: params.clinicId, professionalId: params.professionalId } }) : [],
@@ -221,8 +223,12 @@ export async function getAvailableDatesInMonth(params: GetAvailableDatesParams):
   const now = new Date();
 
   for (let dayOffset = 0; dayOffset < daysInMonth; dayOffset += 1) {
-    const dayDate = new Date(monthStart.getTime() + dayOffset * 24 * 60 * 60 * 1000);
-    const dayString = formatClinicDateTimeInput(dayDate, params.timeZone).slice(0, 10);
+    const dayString = `${params.yearMonth}-${String(dayOffset + 1).padStart(2, "0")}`;
+    const dayDate = parseClinicDateTime(`${dayString}T00:00`, params.timeZone);
+    const nextDayDate = dayOffset + 1 < daysInMonth
+      ? parseClinicDateTime(`${params.yearMonth}-${String(dayOffset + 2).padStart(2, "0")}T00:00`, params.timeZone)
+      : monthEnd;
+    if (!dayDate || !nextDayDate) continue;
     const dayOfWeek = getClinicDayOfWeek(dayString, params.timeZone);
     const businessHour = businessHoursByDay.get(dayOfWeek);
     const professionalHour = professionalHoursByDay.get(dayOfWeek);
@@ -238,7 +244,7 @@ export async function getAvailableDatesInMonth(params: GetAvailableDatesParams):
       professionalHour?.breakStart && professionalHour.breakEnd ? [minutesFromTime(professionalHour.breakStart), minutesFromTime(professionalHour.breakEnd)] : null,
     ].filter((value): value is [number, number] => value !== null);
     const allDayAppointments = appointments.filter(
-      (appointment) => appointment.startTime < new Date(dayDate.getTime() + 24 * 60 * 60 * 1000) && appointment.endTime > dayDate,
+      (appointment) => appointment.startTime < nextDayDate && appointment.endTime > dayDate,
     );
     const dayAppointments = params.professionalId
       ? allDayAppointments.filter((appointment) => appointment.professionalId === params.professionalId)

@@ -104,3 +104,36 @@ export function adminActionLabel(action: string): string {
 export function adminTargetLabel(target: string): string {
   return adminTargetLabels[target] ?? "Registro";
 }
+
+export const financialEntryStatusLabels = {
+  PENDING: "Pendente",
+  PARTIAL: "Parcial",
+  PAID: "Pago",
+  REFUNDED: "Estornado",
+  CANCELED: "Cancelado",
+} as const;
+
+const financialEntryStatusBadgeVariants = {
+  PENDING: "warning",
+  PARTIAL: "info",
+  PAID: "success",
+  REFUNDED: "secondary",
+  CANCELED: "outline",
+} as const;
+
+export const financialEntryTypeLabels = {
+  INCOME: "Receita",
+  EXPENSE: "Despesa",
+} as const;
+
+export function financialEntryStatusLabel(status: string): string {
+  return financialEntryStatusLabels[status as keyof typeof financialEntryStatusLabels] ?? "Status não reconhecido";
+}
+
+export function financialEntryStatusBadgeVariant(status: string) {
+  return financialEntryStatusBadgeVariants[status as keyof typeof financialEntryStatusBadgeVariants] ?? "secondary";
+}
+
+export function financialEntryTypeLabel(type: string): string {
+  return financialEntryTypeLabels[type as keyof typeof financialEntryTypeLabels] ?? "Movimentação";
+}
