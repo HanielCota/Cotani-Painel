@@ -72,7 +72,7 @@ export async function createProfessional(input: unknown): Promise<ActionResult> 
   const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de cadastrar profissionais." };
+    return { status: "error", message: "Selecione um negócio antes de cadastrar profissionais." };
   }
 
   if (!isSubscriptionActive(clinic)) {
@@ -138,7 +138,7 @@ export async function updateProfessional(input: unknown): Promise<ActionResult> 
   const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de atualizar profissionais." };
+    return { status: "error", message: "Selecione um negócio antes de atualizar profissionais." };
   }
 
   if (!isSubscriptionActive(clinic)) {
@@ -225,7 +225,7 @@ export async function toggleProfessionalActive(professionalId: string): Promise<
   const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de alterar profissionais." };
+    return { status: "error", message: "Selecione um negócio antes de alterar profissionais." };
   }
 
   if (!isSubscriptionActive(clinic)) {

@@ -54,7 +54,7 @@ export async function inviteClinicMember(_previousState: ActionResult, formData:
   const existingUser = await prisma.user.findFirst({ where: { email: { equals: parsed.data.email, mode: "insensitive" } } });
   if (existingUser) {
     const existingMembership = await prisma.membership.findUnique({ where: { clinicId_userId: { clinicId: tenant.clinic.id, userId: existingUser.id } } });
-    if (existingMembership) return { status: "error", message: "Este usuário já faz parte da loja." };
+    if (existingMembership) return { status: "error", message: "Este usuário já faz parte do negócio." };
     await prisma.$transaction(async (transaction) => {
       const membership = await transaction.membership.create({ data: { clinicId: tenant.clinic.id, userId: existingUser.id, role: parsed.data.role } });
       if (selectedProfessional) await transaction.professional.update({ where: { id: selectedProfessional.id }, data: { membershipId: membership.id } });
@@ -109,7 +109,7 @@ export async function updateClinicMemberRole(formData: FormData): Promise<Action
       await transaction.professional.update({ where: { id: professional.id }, data: { membershipId: membership.id } });
     }
   });
-  if (blockedLastAdmin) return { status: "error", message: "A empresa precisa manter pelo menos um administrador." };
+  if (blockedLastAdmin) return { status: "error", message: "O negócio precisa manter pelo menos um administrador." };
   revalidateTeam();
   return { status: "success", message: "Acesso atualizado." };
 }

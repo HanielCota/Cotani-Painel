@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Cotani",
     short_name: "Cotani",
-    description: "Painel de gestão para lojas",
+    description: "Painel de gestão para negócios",
     start_url: "/dashboard",
     display: "standalone",
     background_color: "#ffffff",

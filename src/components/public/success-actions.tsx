@@ -145,7 +145,7 @@ export function SuccessActions({
   const eventEnd = eventStart ? new Date(eventStart.getTime() + durationMinutes * 60 * 1000) : null;
   const displayDate = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date.split("-").reverse().join("/") : date;
 
-  const eventTitle = service ? `Atendimento: ${service}` : "Agendamento na loja";
+  const eventTitle = service ? `Atendimento: ${service}` : "Agendamento";
   const eventDetails = [
     service ? `Serviço: ${service}` : "",
     professional ? `Profissional: ${professional}` : "",
@@ -219,7 +219,7 @@ export function SuccessActions({
           <div>
             <h2 id="support-actions-title" className="font-semibold">Precisa mudar algo?</h2>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              A alteração ou o cancelamento será combinado diretamente com a empresa.
+              A alteração ou o cancelamento será combinado diretamente com o estabelecimento.
             </p>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

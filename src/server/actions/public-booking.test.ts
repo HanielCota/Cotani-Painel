@@ -61,7 +61,7 @@ describe("createPublicAppointment", () => {
     const result = await createPublicAppointment({ status: "success", message: "" }, createFormData());
 
     expect(result.status).toBe("error");
-    expect(result.message).toContain("Loja não encontrada");
+    expect(result.message).toContain("Negócio não encontrado");
   });
 
   it("retorna erro quando assinatura não está ativa", async () => {

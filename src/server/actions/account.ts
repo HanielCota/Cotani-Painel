@@ -24,7 +24,7 @@ export async function deleteOwnAccount(_previousState: ActionResult, formData: F
   if (String(formData.get("confirmation") ?? "") !== "EXCLUIR MINHA CONTA") return { status: "error", message: "Digite EXCLUIR MINHA CONTA para confirmar." };
   const authUser = await requireAuthenticatedUser(); const { appUser } = await ensureCurrentAppUser();
   const memberships = await prisma.membership.findMany({ where: { userId: appUser.id }, select: { id: true, clinicId: true, role: true } });
-  for (const membership of memberships.filter((item) => item.role === "ADMIN")) { const admins = await prisma.membership.count({ where: { clinicId: membership.clinicId, role: "ADMIN" } }); if (admins <= 1) return { status: "error", message: "Transfira a administração das suas empresas antes de excluir a conta." }; }
+  for (const membership of memberships.filter((item) => item.role === "ADMIN")) { const admins = await prisma.membership.count({ where: { clinicId: membership.clinicId, role: "ADMIN" } }); if (admins <= 1) return { status: "error", message: "Transfira a administração dos seus negócios antes de excluir a conta." }; }
   let blockedByAdministration = false;
   await prisma.$transaction(async (transaction) => {
     const administeredClinicIds = memberships.filter((item) => item.role === "ADMIN").map((item) => item.clinicId).sort();
@@ -39,7 +39,7 @@ export async function deleteOwnAccount(_previousState: ActionResult, formData: F
     await transaction.membership.deleteMany({ where: { userId: appUser.id } });
     await transaction.user.delete({ where: { id: appUser.id } });
   });
-  if (blockedByAdministration) return { status: "error", message: "Transfira a administração das suas empresas antes de excluir a conta." };
+  if (blockedByAdministration) return { status: "error", message: "Transfira a administração dos seus negócios antes de excluir a conta." };
   const { error } = await createAdminClient().auth.admin.deleteUser(authUser.id); if (error) return { status: "error", message: "Dados removidos, mas o acesso de autenticação precisa ser encerrado pelo suporte." };
   return { status: "success", message: "Conta excluída." };
 }

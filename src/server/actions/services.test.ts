@@ -71,7 +71,7 @@ describe("createService", () => {
     const result = await createService(validService);
 
     expect(result.status).toBe("error");
-    expect(result.message).toContain("Selecione uma loja");
+    expect(result.message).toContain("Selecione um negócio");
   });
 
   it("cria serviço com sucesso", async () => {

@@ -78,7 +78,7 @@ export default async function StoreDetailPage({
   return (
     <>
       <div className="space-y-4">
-        <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/admin/lojas" />}><ArrowLeftIcon /> Voltar para lojas</Button>
+        <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/admin/lojas" />}><ArrowLeftIcon /> Voltar para negócios</Button>
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
           <div><div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{clinic.name}</h1>{statusBadge}</div><p className="text-sm text-muted-foreground">/{clinic.slug} · criada em {formatDateTime(clinic.createdAt, "America/Sao_Paulo")}</p></div>
           {!clinic.deletedAt && clinic.operationalStatus === "ACTIVE" ? <Button variant="outline" nativeButton={false} render={<Link href={`/${clinic.slug}`} target="_blank" />}>Abrir página pública</Button> : null}
@@ -93,7 +93,7 @@ export default async function StoreDetailPage({
 
       <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
         <Card>
-          <CardHeader><CardTitle>Dados da loja</CardTitle><CardDescription>Alterações de nome, endereço público e limites ficam registradas na auditoria.</CardDescription></CardHeader>
+          <CardHeader><CardTitle>Dados do negócio</CardTitle><CardDescription>Alterações de nome, endereço público e limites ficam registradas na auditoria.</CardDescription></CardHeader>
           <CardContent>
             <form action={updateClinicAsPlatformAdmin} className="grid gap-4 sm:grid-cols-2">
               <input type="hidden" name="clinicId" value={clinic.id} />
@@ -121,13 +121,13 @@ export default async function StoreDetailPage({
         <CardHeader><CardTitle>Controle operacional</CardTitle><CardDescription>Suspender bloqueia o painel e o agendamento público. Excluir é sempre reversível e não apaga os dados.</CardDescription></CardHeader>
         <CardContent className="grid gap-4 lg:grid-cols-2">
           {clinic.deletedAt ? (
-            <LifecycleForm clinicId={clinic.id} action={restoreClinicAsPlatformAdmin} label="Restaurar loja" help="Restaura e reativa imediatamente a loja." />
+            <LifecycleForm clinicId={clinic.id} action={restoreClinicAsPlatformAdmin} label="Restaurar negócio" help="Restaura e reativa imediatamente o negócio." />
           ) : clinic.operationalStatus === "SUSPENDED" ? (
-            <LifecycleForm clinicId={clinic.id} action={activateClinicAsPlatformAdmin} label="Reativar loja" help="Libera novamente o painel e os agendamentos." />
+            <LifecycleForm clinicId={clinic.id} action={activateClinicAsPlatformAdmin} label="Reativar negócio" help="Libera novamente o painel e os agendamentos." />
           ) : (
-            <LifecycleForm clinicId={clinic.id} action={suspendClinicAsPlatformAdmin} label="Suspender loja" variant="secondary" help="Bloqueia temporariamente a operação, preservando os dados." confirm={{ title: "Suspender esta loja?", description: "O painel e o agendamento público ficam bloqueados até a reativação. Os dados são preservados." }} />
+            <LifecycleForm clinicId={clinic.id} action={suspendClinicAsPlatformAdmin} label="Suspender negócio" variant="secondary" help="Bloqueia temporariamente a operação, preservando os dados." confirm={{ title: "Suspender este negócio?", description: "O painel e o agendamento público ficam bloqueados até a reativação. Os dados são preservados." }} />
           )}
-          {!clinic.deletedAt ? <LifecycleForm clinicId={clinic.id} action={deleteClinicAsPlatformAdmin} label="Excluir loja" variant="destructive" help="Executa uma exclusão lógica que poderá ser revertida." confirm={{ title: "Excluir esta loja?", description: "A loja sai do ar e deixa de aparecer para a equipe. A exclusão é lógica e pode ser revertida depois." }} /> : null}
+          {!clinic.deletedAt ? <LifecycleForm clinicId={clinic.id} action={deleteClinicAsPlatformAdmin} label="Excluir negócio" variant="destructive" help="Executa uma exclusão lógica que poderá ser revertida." confirm={{ title: "Excluir este negócio?", description: "O negócio sai do ar e deixa de aparecer para a equipe. A exclusão é lógica e pode ser revertida depois." }} /> : null}
           {clinic.suspensionReason ? <p className="text-sm text-muted-foreground lg:col-span-2">Último motivo: {clinic.suspensionReason}</p> : null}
         </CardContent>
       </Card>
@@ -154,12 +154,12 @@ export default async function StoreDetailPage({
                   <input type="hidden" name="clinicId" value={clinic.id} /><input type="hidden" name="membershipId" value={membership.id} />
                   <Label htmlFor={`remove-${membership.id}`}>Remover acesso</Label>
                   <Input id={`remove-${membership.id}`} name="reason" required minLength={5} maxLength={500} placeholder="Motivo da remoção" />
-                  <AdminSubmitButton variant="destructive" confirm={{ title: `Remover ${membership.user.name}?`, description: "A pessoa perde o acesso a esta loja imediatamente. A conta dela e os acessos a outras lojas não são afetados." }}>Remover membro</AdminSubmitButton>
+                  <AdminSubmitButton variant="destructive" confirm={{ title: `Remover ${membership.user.name}?`, description: "A pessoa perde o acesso a este negócio imediatamente. A conta dela e os acessos a outros negócios não são afetados." }}>Remover membro</AdminSubmitButton>
                 </form>
               </div>
             </div>
           ))}
-          {!clinic.memberships.length ? <p className="text-sm text-muted-foreground">Esta loja não possui membros sincronizados.</p> : null}
+          {!clinic.memberships.length ? <p className="text-sm text-muted-foreground">Este negócio não possui membros sincronizados.</p> : null}
         </CardContent>
       </Card>
 

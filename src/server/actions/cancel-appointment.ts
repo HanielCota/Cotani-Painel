@@ -39,7 +39,7 @@ export async function cancelAppointmentByToken(input: unknown): Promise<ActionRe
   });
 
   if (!clinic) {
-    return { status: "error", message: "Loja não encontrada." };
+    return { status: "error", message: "Negócio não encontrado." };
   }
 
   const appointment = await prisma.appointment.findFirst({

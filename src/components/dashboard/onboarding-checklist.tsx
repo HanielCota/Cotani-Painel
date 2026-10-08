@@ -88,7 +88,7 @@ export function OnboardingChecklist({
     {
       id: "professionals",
       label: "Cadastrar profissionais",
-      description: "Defina quem realizará os serviços da loja.",
+      description: "Defina quem realizará os serviços do negócio.",
       done: hasProfessionals,
       href: "/dashboard/negocio/profissionais",
       icon: UsersIcon,

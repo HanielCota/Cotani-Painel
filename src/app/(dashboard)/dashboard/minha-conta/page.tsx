@@ -73,7 +73,7 @@ export default withTenant(async ({ membership, role }) => {
       <Card className="border-destructive/35 bg-destructive/[0.025]">
         <CardHeader>
           <CardTitle className="text-destructive">Excluir conta</CardTitle>
-          <CardDescription>Remove seu acesso definitivamente. Os dados das empresas precisam permanecer sob outro administrador.</CardDescription>
+          <CardDescription>Remove seu acesso definitivamente. Os dados dos negócios precisam permanecer sob outro administrador.</CardDescription>
         </CardHeader>
         <CardContent><DeleteAccountForm /></CardContent>
       </Card>

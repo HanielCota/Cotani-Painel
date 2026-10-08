@@ -33,17 +33,17 @@ const paymentStatusLabels: Record<string, string> = {
 };
 
 const adminActionLabels: Record<string, string> = {
-  CLINIC_UPDATED: "Loja atualizada",
-  CLINIC_SUSPENDED: "Loja suspensa",
-  CLINIC_ACTIVATED: "Loja reativada",
-  CLINIC_SOFT_DELETED: "Loja excluída",
-  CLINIC_RESTORED: "Loja restaurada",
+  CLINIC_UPDATED: "Negócio atualizado",
+  CLINIC_SUSPENDED: "Negócio suspenso",
+  CLINIC_ACTIVATED: "Negócio reativado",
+  CLINIC_SOFT_DELETED: "Negócio excluído",
+  CLINIC_RESTORED: "Negócio restaurado",
   MEMBERSHIP_ROLE_UPDATED: "Papel do membro alterado",
   MEMBERSHIP_REMOVED: "Membro removido",
 };
 
 const adminTargetLabels: Record<string, string> = {
-  Clinic: "Loja",
+  Clinic: "Negócio",
   Membership: "Vínculo de membro",
 };
 

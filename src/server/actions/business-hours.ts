@@ -49,7 +49,7 @@ export async function saveBusinessHours(input: unknown): Promise<ActionResult> {
   const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de salvar o expediente." };
+    return { status: "error", message: "Selecione um negócio antes de salvar o expediente." };
   }
 
   if (!isSubscriptionActive(clinic)) {
@@ -150,7 +150,7 @@ export async function saveProfessionalAvailabilityFromForm(_previousState: Actio
   const parsed = businessHoursSchema.safeParse(items);
   if (!professionalId.success || !parsed.success) return { status: "error", message: "Revise os horários informados." };
   const clinic = await getClinicForRoles(["ADMIN"]);
-  if (!clinic || !isSubscriptionActive(clinic)) return { status: "error", message: clinic ? SUBSCRIPTION_INACTIVE_MESSAGE : "Selecione uma loja." };
+  if (!clinic || !isSubscriptionActive(clinic)) return { status: "error", message: clinic ? SUBSCRIPTION_INACTIVE_MESSAGE : "Selecione um negócio." };
   const professional = await prisma.professional.findFirst({ where: { id: professionalId.data, clinicId: clinic.id, isActive: true }, select: { id: true } });
   if (!professional) return { status: "error", message: "Profissional não encontrado." };
   for (const item of parsed.data) {

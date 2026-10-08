@@ -88,7 +88,7 @@ export function NotificationBell() {
       >
         <PopoverHeader className="border-b border-border/60 px-4 py-3">
           <PopoverTitle>Notificações</PopoverTitle>
-          <PopoverDescription>Próximos agendamentos da sua loja.</PopoverDescription>
+          <PopoverDescription>Próximos agendamentos do seu negócio.</PopoverDescription>
         </PopoverHeader>
 
         <div className="max-h-80 overflow-y-auto p-2">

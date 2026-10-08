@@ -53,7 +53,7 @@ describe("saveBusinessHours", () => {
     const result = await saveBusinessHours(createValidHours());
 
     expect(result.status).toBe("error");
-    expect(result.message).toContain("Selecione uma loja");
+    expect(result.message).toContain("Selecione um negócio");
   });
 
   it("retorna erro quando abertura é após fechamento", async () => {

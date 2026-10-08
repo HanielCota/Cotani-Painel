@@ -28,7 +28,7 @@ export function BusinessProfileForm({ clinic }: Props) {
 
   return (
     <form action={action} className="grid gap-4 sm:grid-cols-2">
-      <div className="space-y-1.5"><Label htmlFor="business-name">Nome da empresa</Label><Input id="business-name" name="name" defaultValue={clinic.name} minLength={2} maxLength={120} required /></div>
+      <div className="space-y-1.5"><Label htmlFor="business-name">Nome do negócio</Label><Input id="business-name" name="name" defaultValue={clinic.name} minLength={2} maxLength={120} required /></div>
       <div className="space-y-1.5"><Label htmlFor="business-slug">Endereço público</Label><div className="flex items-center rounded-md border bg-background pl-3 text-sm text-muted-foreground"><span>/</span><Input id="business-slug" name="slug" defaultValue={clinic.slug} minLength={2} maxLength={120} required className="border-0 shadow-none" /></div><p className="text-xs text-muted-foreground">Links antigos continuarão funcionando.</p></div>
       <div className="space-y-1.5"><Label htmlFor="business-email">E-mail comercial</Label><Input id="business-email" name="contactEmail" type="email" defaultValue={clinic.contactEmail ?? ""} /></div>
       <div className="space-y-1.5"><Label htmlFor="business-phone">Telefone</Label><Input id="business-phone" name="phone" defaultValue={clinic.phone ?? ""} maxLength={30} /></div>
@@ -40,7 +40,7 @@ export function BusinessProfileForm({ clinic }: Props) {
         <input type="hidden" name="currentImageUrl" value={clinic.imageUrl ?? ""} />
         {clinic.imageUrl ? <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground"><Checkbox name="removeImage" value="on" /> Remover imagem atual</label> : null}
       </div>
-      <div className="space-y-1.5 sm:col-span-2"><Label htmlFor="business-description">Descrição pública</Label><Textarea id="business-description" name="publicDescription" defaultValue={clinic.publicDescription ?? ""} maxLength={500} rows={4} placeholder="Explique brevemente o que sua empresa oferece." /></div>
+      <div className="space-y-1.5 sm:col-span-2"><Label htmlFor="business-description">Descrição pública</Label><Textarea id="business-description" name="publicDescription" defaultValue={clinic.publicDescription ?? ""} maxLength={500} rows={4} placeholder="Explique brevemente o que seu negócio oferece." /></div>
       <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
         <Button type="button" nativeButton={false} variant="outline" className="w-full sm:w-auto" render={<Link href={`/${clinic.slug}`} target="_blank" rel="noreferrer" />}>
           <ExternalLinkIcon />Abrir página pública

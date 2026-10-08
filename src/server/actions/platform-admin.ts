@@ -73,7 +73,7 @@ export async function updateClinicAsPlatformAdmin(formData: FormData): Promise<v
     timeZone: formData.get("timeZone"),
     maxAppointmentsPerDay: formData.get("maxAppointmentsPerDay"),
   });
-  if (!parsed.success) redirectToClinic(String(formData.get("clinicId") ?? ""), "error", "Revise os dados da loja.");
+  if (!parsed.success) redirectToClinic(String(formData.get("clinicId") ?? ""), "error", "Revise os dados do negócio.");
 
   try {
     await prisma.$transaction(async (transaction) => {
@@ -101,14 +101,14 @@ export async function updateClinicAsPlatformAdmin(formData: FormData): Promise<v
     });
   } catch (error) {
     redirectToClinic(parsed.data.clinicId, "error", error instanceof SlugInUseError
-      ? "Esse slug já é usado por outra loja (atual ou antigo)."
+      ? "Esse slug já é usado por outro negócio (atual ou antigo)."
       : "Não foi possível atualizar. Verifique se o slug já está em uso.");
   }
 
   revalidatePath("/admin");
   revalidatePath(`/admin/lojas/${parsed.data.clinicId}`);
   revalidatePath(`/${parsed.data.slug}`);
-  redirectToClinic(parsed.data.clinicId, "success", "Loja atualizada com sucesso.");
+  redirectToClinic(parsed.data.clinicId, "success", "Negócio atualizado com sucesso.");
 }
 
 async function changeClinicLifecycle(
@@ -150,7 +150,7 @@ async function changeClinicLifecycle(
   revalidatePath("/admin");
   revalidatePath(`/admin/lojas/${parsed.data.clinicId}`);
   redirectToClinic(parsed.data.clinicId, "success", {
-    suspend: "Loja suspensa.", activate: "Loja reativada.", delete: "Loja excluída de forma reversível.", restore: "Loja restaurada.",
+    suspend: "Negócio suspenso.", activate: "Negócio reativado.", delete: "Negócio excluído de forma reversível.", restore: "Negócio restaurado.",
   }[operation]);
 }
 
@@ -184,7 +184,7 @@ export async function updateMembershipRoleAsPlatformAdmin(formData: FormData): P
   if (!membership) redirectToClinic(parsed.data.clinicId, "error", "Vínculo não encontrado.");
   if (membership.role === "ADMIN" && parsed.data.role !== "ADMIN") {
     const admins = await prisma.membership.count({ where: { clinicId: membership.clinicId, role: "ADMIN" } });
-    if (admins <= 1) redirectToClinic(parsed.data.clinicId, "error", "A loja precisa manter pelo menos um administrador.");
+    if (admins <= 1) redirectToClinic(parsed.data.clinicId, "error", "O negócio precisa manter pelo menos um administrador.");
   }
 
   try {
@@ -212,7 +212,7 @@ export async function updateMembershipRoleAsPlatformAdmin(formData: FormData): P
     });
   } catch (error) {
     redirectToClinic(parsed.data.clinicId, "error", error instanceof Error && error.message === "LAST_ADMIN"
-      ? "A loja precisa manter pelo menos um administrador."
+      ? "O negócio precisa manter pelo menos um administrador."
       : "Não foi possível alterar o papel do usuário.");
   }
 

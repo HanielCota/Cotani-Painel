@@ -68,7 +68,7 @@ export async function createService(input: unknown): Promise<ActionResult> {
   const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de cadastrar serviços." };
+    return { status: "error", message: "Selecione um negócio antes de cadastrar serviços." };
   }
 
   if (!isSubscriptionActive(clinic)) {
@@ -123,7 +123,7 @@ export async function updateService(input: unknown): Promise<ActionResult> {
   const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de atualizar serviços." };
+    return { status: "error", message: "Selecione um negócio antes de atualizar serviços." };
   }
 
   if (!isSubscriptionActive(clinic)) {
@@ -193,7 +193,7 @@ export async function toggleServiceActive(serviceId: string): Promise<ActionResu
   const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de alterar serviços." };
+    return { status: "error", message: "Selecione um negócio antes de alterar serviços." };
   }
 
   if (!isSubscriptionActive(clinic)) {

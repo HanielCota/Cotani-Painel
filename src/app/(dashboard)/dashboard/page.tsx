@@ -86,7 +86,7 @@ export default withTenant(async ({ clinic }) => {
               </span>
               <div>
                 <h3 className="text-sm font-medium">Link de agendamento</h3>
-                <p className="text-xs leading-5 text-muted-foreground">Compartilhe o endereço público da sua loja.</p>
+                <p className="text-xs leading-5 text-muted-foreground">Compartilhe o endereço público do seu negócio.</p>
               </div>
             </div>
             <CopyBookingLink url={bookingUrl} />

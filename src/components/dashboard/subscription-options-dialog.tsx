@@ -15,7 +15,7 @@ export function SubscriptionOptionsDialog({ plans }: { plans: SubscriptionPlanDa
       </DialogTrigger>
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-5xl">
         <DialogHeader>
-          <DialogTitle>Escolha o plano da sua empresa</DialogTitle>
+          <DialogTitle>Escolha o plano do seu negócio</DialogTitle>
           <DialogDescription>
             Selecione a forma de cobrança e continue para o ambiente seguro de pagamento.
           </DialogDescription>

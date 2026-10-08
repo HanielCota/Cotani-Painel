@@ -28,7 +28,7 @@ export function DeleteAccountForm() {
   return (
     <form action={action} className="max-w-2xl space-y-4">
       <p className="text-sm leading-6 text-muted-foreground">
-        Para excluir, transfira antes a administração das empresas e digite <strong className="text-foreground">EXCLUIR MINHA CONTA</strong>.
+        Para excluir, transfira antes a administração dos negócios e digite <strong className="text-foreground">EXCLUIR MINHA CONTA</strong>.
       </p>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <Input name="confirmation" aria-label="Confirmação para excluir a conta" autoComplete="off" />

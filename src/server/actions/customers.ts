@@ -40,7 +40,7 @@ export async function createCustomer(input: unknown): Promise<ActionResult> {
   const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de cadastrar clientes." };
+    return { status: "error", message: "Selecione um negócio antes de cadastrar clientes." };
   }
 
   if (!isSubscriptionActive(clinic)) {
@@ -100,7 +100,7 @@ export async function updateCustomer(input: unknown): Promise<ActionResult> {
   const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de atualizar clientes." };
+    return { status: "error", message: "Selecione um negócio antes de atualizar clientes." };
   }
 
   if (!isSubscriptionActive(clinic)) {
@@ -153,7 +153,7 @@ export async function updateCustomerFromForm(_previousState: ActionResult, formD
 export async function importCustomersFromCsv(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
   await requireAuthenticatedUser();
   const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
-  if (!clinic || !isSubscriptionActive(clinic)) return { status: "error", message: clinic ? SUBSCRIPTION_INACTIVE_MESSAGE : "Selecione uma loja." };
+  if (!clinic || !isSubscriptionActive(clinic)) return { status: "error", message: clinic ? SUBSCRIPTION_INACTIVE_MESSAGE : "Selecione um negócio." };
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0 || file.size > 1024 * 1024) return { status: "error", message: "Selecione um CSV de até 1 MB." };
 
@@ -193,7 +193,7 @@ export async function deleteCustomer(customerId: string): Promise<ActionResult> 
   const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de remover clientes." };
+    return { status: "error", message: "Selecione um negócio antes de remover clientes." };
   }
 
   if (!isSubscriptionActive(clinic)) {

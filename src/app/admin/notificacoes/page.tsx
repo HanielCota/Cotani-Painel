@@ -76,7 +76,7 @@ export default async function FailedNotificationsPage({
                 <Badge variant="destructive">Falhou</Badge>
               </div>
               {item.error ? <p className="break-words rounded-md bg-destructive/5 p-3 text-sm text-destructive">{item.error}</p> : null}
-              <Link className="inline-block text-sm font-medium text-primary hover:underline" href={`/admin/lojas/${item.clinicId}`}>Ver loja</Link>
+              <Link className="inline-block text-sm font-medium text-primary hover:underline" href={`/admin/lojas/${item.clinicId}`}>Ver negócio</Link>
             </CardContent>
           </Card>
         ))}

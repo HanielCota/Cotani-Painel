@@ -32,7 +32,7 @@ describe("cancelAppointmentByToken", () => {
     const result = await cancelAppointmentByToken({ slug: "inexistente", token: TOKEN });
 
     expect(result.status).toBe("error");
-    expect(result.message).toContain("Loja não encontrada");
+    expect(result.message).toContain("Negócio não encontrado");
   });
 
   it("retorna erro quando agendamento não existe", async () => {
