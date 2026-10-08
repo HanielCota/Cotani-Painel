@@ -7,6 +7,7 @@ import { format, parseISO } from "date-fns";
 import { ArrowLeftIcon, ArrowRightIcon, CalendarPlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { ANY_PROFESSIONAL_ID } from "@/config/booking";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,7 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
   }, [step]);
 
   const selectedService = services.find((service) => service.id === serviceId);
+  const anyProfessional = professionalId === ANY_PROFESSIONAL_ID;
   const selectedProfessional = professionals.find((professional) => professional.id === professionalId);
   const availableProfessionals = selectedService ? professionals.filter((professional) => professional.serviceIds.includes(selectedService.id)) : [];
   const hasProfessionals = availableProfessionals.length > 0;
@@ -119,7 +121,9 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
       const params = new URLSearchParams();
       if (selectedService?.name) params.set("service", selectedService.name);
       if (selectedService?.duration) params.set("duration", String(selectedService.duration));
-      if (selectedProfessional?.name) params.set("professional", selectedProfessional.name);
+      // Em "sem preferência", o servidor informa quem ficou com o atendimento.
+      const professionalName = nextResult.professionalName ?? selectedProfessional?.name;
+      if (professionalName) params.set("professional", professionalName);
       if (date) params.set("date", date);
       params.set("time", slot.label);
       router.push(`/${slug}/sucesso?${params.toString()}`);
@@ -136,9 +140,9 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
         <BookingStepIndicator current={step} />
         <form id="public-booking" onSubmit={handleSubmit}>
           <ErrorBoundary>
-            {step === "service-professional" ? <BookingSelectionStep services={services} professionals={professionals} selectedServiceId={serviceId} selectedProfessionalId={professionalId} onServiceSelect={handleServiceSelect} onProfessionalSelect={(professional) => setProfessionalId(professional.id)} /> : null}
+            {step === "service-professional" ? <BookingSelectionStep services={services} professionals={professionals} selectedServiceId={serviceId} selectedProfessionalId={professionalId} onServiceSelect={handleServiceSelect} onProfessionalSelect={setProfessionalId} /> : null}
             {step === "datetime" ? <BookingDateTimeStep minDate={minDate} selectedDate={date} selectedSlot={slot} slots={data?.slots ?? []} isFetching={isFetching} availableDates={new Set(availableDatesData?.dates ?? [])} isLoadingAvailableDates={isLoadingAvailableDates} onDateChange={(nextDate) => { setDate(nextDate); setSlot(null); }} onSlotChange={setSlot} onMonthChange={setCalendarMonth} /> : null}
-            {step === "customer" ? <BookingCustomerStep isPending={isPending} slug={slug} clinicName={clinicName} service={selectedService} professional={selectedProfessional} date={date} slot={slot} /> : null}
+            {step === "customer" ? <BookingCustomerStep isPending={isPending} slug={slug} clinicName={clinicName} service={selectedService} professional={selectedProfessional} anyProfessional={anyProfessional} date={date} slot={slot} /> : null}
           </ErrorBoundary>
           {result?.status === "error" ? <Alert variant="destructive" className="mt-5"><AlertTitle>Não foi possível agendar</AlertTitle><AlertDescription>{result.message}</AlertDescription></Alert> : null}
         </form>

@@ -20,3 +20,6 @@ export function isWithinBookingWindow(date: Date, now = new Date()): boolean {
 export function isWithinStaffBookingHorizon(date: Date, now = new Date()): boolean {
   return date.getTime() <= now.getTime() + STAFF_MAX_BOOKING_HORIZON_DAYS * DAY_MS;
 }
+
+/** Valor de `professionalId` na reserva pública quando o cliente não tem preferência de profissional. */
+export const ANY_PROFESSIONAL_ID = "any";

@@ -1,8 +1,9 @@
 "use client";
 
-import { CalendarPlusIcon, CheckIcon, ImageIcon, UserIcon } from "lucide-react";
+import { CalendarPlusIcon, CheckIcon, ImageIcon, UserIcon, UsersIcon } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ANY_PROFESSIONAL_ID } from "@/config/booking";
 import { formatCurrency } from "@/lib/formatters";
 import type { BookingProfessional, BookingService, BookingStep } from "./booking-types";
 
@@ -40,7 +41,7 @@ interface BookingSelectionStepProps {
   selectedServiceId: string;
   selectedProfessionalId: string;
   onServiceSelect: (service: BookingService) => void;
-  onProfessionalSelect: (professional: BookingProfessional) => void;
+  onProfessionalSelect: (professionalId: string) => void;
 }
 
 export function BookingSelectionStep({ services, professionals, selectedServiceId, selectedProfessionalId, onServiceSelect, onProfessionalSelect }: BookingSelectionStepProps) {
@@ -71,10 +72,16 @@ export function BookingSelectionStep({ services, professionals, selectedServiceI
             <div className="rounded-xl border border-dashed bg-background/50 p-6 text-center"><UserIcon className="mx-auto size-8 text-muted-foreground" /><p className="mt-2 text-sm font-medium text-foreground">Nenhum profissional disponível</p><p className="text-sm text-muted-foreground">Não há profissionais vinculados a este serviço no momento.</p></div>
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {availableProfessionals.length > 1 ? (
+                <button type="button" aria-pressed={selectedProfessionalId === ANY_PROFESSIONAL_ID} onClick={() => onProfessionalSelect(ANY_PROFESSIONAL_ID)} className={`flex min-h-[4.5rem] min-w-0 items-center gap-4 overflow-hidden rounded-xl border p-4 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.99] ${selectedProfessionalId === ANY_PROFESSIONAL_ID ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"}`}>
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary sm:size-14"><UsersIcon aria-hidden="true" className="size-5 sm:size-6" /></div>
+                  <div className="flex min-w-0 flex-col gap-0.5 overflow-hidden"><span className="truncate font-semibold leading-tight">Sem preferência</span><span className="text-sm text-muted-foreground">Mais horários: quem estiver livre</span></div>
+                </button>
+              ) : null}
               {availableProfessionals.map((professional) => {
                 const selected = selectedProfessionalId === professional.id;
                 return (
-                  <button key={professional.id} type="button" aria-pressed={selected} onClick={() => onProfessionalSelect(professional)} className={`flex min-h-[4.5rem] min-w-0 items-center gap-4 overflow-hidden rounded-xl border p-4 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.99] ${selected ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"}`}>
+                  <button key={professional.id} type="button" aria-pressed={selected} onClick={() => onProfessionalSelect(professional.id)} className={`flex min-h-[4.5rem] min-w-0 items-center gap-4 overflow-hidden rounded-xl border p-4 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.99] ${selected ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"}`}>
                     <Avatar className="size-12 sm:size-14">{professional.imageUrl ? <AvatarImage src={professional.imageUrl} alt="" /> : null}<AvatarFallback className="bg-primary/10 text-primary"><UserIcon className="size-5 sm:size-6" /></AvatarFallback></Avatar>
                     <div className="flex min-w-0 flex-col gap-0.5 overflow-hidden"><span className="truncate font-semibold leading-tight">{professional.name}</span><span className="text-sm text-muted-foreground">Profissional</span></div>
                   </button>
