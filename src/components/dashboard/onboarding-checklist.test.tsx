@@ -83,6 +83,21 @@ describe("OnboardingChecklist", () => {
     await waitFor(() => expect(screen.queryByTestId("onboarding-progress")).not.toBeInTheDocument());
   });
 
+  it("com agendamentos recebidos, o link conta como divulgado e o checklist some", () => {
+    render(
+      <OnboardingChecklist
+        bookingUrl="https://localhost:3000/loja-teste"
+        hasServices={true}
+        hasBusinessHours={true}
+        hasProfessionals={true}
+        hasAppointments={true}
+        isSubscriptionActive={true}
+      />
+    );
+
+    expect(screen.queryByTestId("onboarding-progress")).not.toBeInTheDocument();
+  });
+
   it("persiste no localStorage ao copiar o link de agendamento", async () => {
     const { rerender } = render(
       <OnboardingChecklist
