@@ -55,89 +55,183 @@
 
 /*
  * Paleta Cotani. Toda cor da interface vem destes tokens (nada de
- * `text-gray-*`/hex nos componentes). Os dois temas usam o mesmo matiz da
- * marca (~170, verde-água); neutros levemente tingidos para não parecer cinza
- * genérico. Gráficos: 5 cores distinguíveis em claro e escuro.
+ * `text-gray-*`/hex nos componentes). Base neutra (cinza levemente frio) em
+ * claro e escuro; a cor de destaque padrão também é neutra e pode ser trocada
+ * pelo usuário. Gráficos: 5 cores distinguíveis em claro e escuro.
  */
 :root {
-  --background: oklch(0.977 0.004 170);
-  --foreground: oklch(0.22 0.02 172);
+  --background: oklch(0.985 0.002 265);
+  --foreground: oklch(0.21 0.006 265);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.02 172);
+  --card-foreground: oklch(0.21 0.006 265);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.02 172);
-  --primary: oklch(0.49 0.1 168);
-  --primary-foreground: oklch(0.99 0.005 170);
-  --secondary: oklch(0.955 0.008 170);
-  --secondary-foreground: oklch(0.34 0.02 172);
-  --muted: oklch(0.955 0.008 170);
-  --muted-foreground: oklch(0.51 0.016 172);
-  --accent: oklch(0.95 0.032 168);
-  --accent-foreground: oklch(0.42 0.09 168);
+  --popover-foreground: oklch(0.21 0.006 265);
+  --primary: oklch(0.21 0.006 265);
+  --primary-foreground: oklch(0.985 0.002 265);
+  --secondary: oklch(0.965 0.003 265);
+  --secondary-foreground: oklch(0.3 0.006 265);
+  --muted: oklch(0.965 0.003 265);
+  --muted-foreground: oklch(0.52 0.01 265);
+  --accent: oklch(0.955 0.004 265);
+  --accent-foreground: oklch(0.21 0.006 265);
   --destructive: oklch(0.577 0.215 27);
   --success: oklch(0.52 0.12 155);
   --warning: oklch(0.56 0.14 55);
   --info: oklch(0.55 0.19 260);
-  --border: oklch(0.915 0.008 170);
-  --input: oklch(0.885 0.01 170);
-  --ring: oklch(0.49 0.1 168);
-  --chart-1: oklch(0.6 0.12 170);
+  --border: oklch(0.92 0.004 265);
+  --input: oklch(0.89 0.005 265);
+  --ring: oklch(0.55 0.01 265);
+  --chart-1: oklch(0.45 0.01 265);
   --chart-2: oklch(0.58 0.17 255);
   --chart-3: oklch(0.72 0.15 70);
   --chart-4: oklch(0.62 0.15 145);
   --chart-5: oklch(0.56 0.2 295);
   --radius: 0.75rem;
-  --shadow-color: 172 30% 15%;
+  --shadow-color: 220 15% 15%;
   --card-shadow: 0 1px 2px hsl(var(--shadow-color) / 0.05), 0 1px 1px hsl(var(--shadow-color) / 0.03);
   --raised-shadow: 0 8px 24px -12px hsl(var(--shadow-color) / 0.18), 0 2px 6px -2px hsl(var(--shadow-color) / 0.08);
   --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.3 0.02 172);
+  --sidebar-foreground: oklch(0.3 0.006 265);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: oklch(0.95 0.032 168);
-  --sidebar-accent-foreground: oklch(0.38 0.09 168);
-  --sidebar-border: oklch(0.925 0.008 170);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: oklch(0.93 0.004 265);
   --sidebar-ring: var(--ring);
 }
 
 .dark {
-  --background: oklch(0.17 0.012 175);
-  --foreground: oklch(0.96 0.006 170);
-  --card: oklch(0.205 0.014 175);
-  --card-foreground: oklch(0.96 0.006 170);
-  --popover: oklch(0.225 0.014 175);
-  --popover-foreground: oklch(0.96 0.006 170);
-  --primary: oklch(0.78 0.13 170);
-  --primary-foreground: oklch(0.2 0.04 175);
-  --secondary: oklch(0.27 0.015 175);
-  --secondary-foreground: oklch(0.93 0.008 170);
-  --muted: oklch(0.255 0.014 175);
-  --muted-foreground: oklch(0.72 0.015 172);
-  --accent: oklch(0.3 0.045 170);
-  --accent-foreground: oklch(0.9 0.06 170);
+  --background: oklch(0.155 0.004 265);
+  --foreground: oklch(0.97 0.002 265);
+  --card: oklch(0.195 0.005 265);
+  --card-foreground: oklch(0.97 0.002 265);
+  --popover: oklch(0.215 0.005 265);
+  --popover-foreground: oklch(0.97 0.002 265);
+  --primary: oklch(0.96 0.002 265);
+  --primary-foreground: oklch(0.2 0.006 265);
+  --secondary: oklch(0.26 0.006 265);
+  --secondary-foreground: oklch(0.94 0.002 265);
+  --muted: oklch(0.245 0.006 265);
+  --muted-foreground: oklch(0.71 0.01 265);
+  --accent: oklch(0.27 0.006 265);
+  --accent-foreground: oklch(0.96 0.002 265);
   --destructive: oklch(0.7 0.19 22);
   --success: oklch(0.76 0.15 155);
   --warning: oklch(0.82 0.15 80);
   --info: oklch(0.72 0.14 250);
   --border: oklch(1 0 0 / 9%);
   --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.78 0.13 170);
-  --chart-1: oklch(0.76 0.13 170);
+  --ring: oklch(0.7 0.01 265);
+  --chart-1: oklch(0.8 0.01 265);
   --chart-2: oklch(0.7 0.15 255);
   --chart-3: oklch(0.8 0.15 75);
   --chart-4: oklch(0.74 0.16 145);
   --chart-5: oklch(0.7 0.17 295);
-  --shadow-color: 180 30% 2%;
+  --shadow-color: 220 20% 2%;
   --card-shadow: 0 0 0 transparent;
   --raised-shadow: 0 12px 32px -12px hsl(var(--shadow-color) / 0.6);
-  --sidebar: oklch(0.19 0.013 175);
-  --sidebar-foreground: oklch(0.88 0.01 170);
+  --sidebar: oklch(0.18 0.005 265);
+  --sidebar-foreground: oklch(0.88 0.005 265);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: oklch(0.28 0.04 172);
-  --sidebar-accent-foreground: oklch(0.92 0.05 170);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
   --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: var(--ring);
+}
+
+/*
+ * Cores de destaque opcionais (Minha conta > Aparência). Mudam só a cor da
+ * marca; a base neutra acima vale para todas. Ver src/lib/accent.ts.
+ */
+:root[data-accent="azul"] {
+  --primary: oklch(0.53 0.2 262);
+  --primary-foreground: oklch(0.99 0.003 262);
+  --ring: oklch(0.53 0.2 262);
+  --accent: oklch(0.95 0.03 262);
+  --accent-foreground: oklch(0.45 0.18 262);
+  --chart-1: oklch(0.55 0.18 262);
+}
+
+:root.dark[data-accent="azul"] {
+  --primary: oklch(0.72 0.15 258);
+  --primary-foreground: oklch(0.18 0.05 262);
+  --ring: oklch(0.72 0.15 258);
+  --accent: oklch(0.3 0.06 262);
+  --accent-foreground: oklch(0.88 0.07 262);
+  --chart-1: oklch(0.72 0.15 258);
+}
+
+:root[data-accent="verde"] {
+  --primary: oklch(0.49 0.1 168);
+  --primary-foreground: oklch(0.99 0.005 170);
+  --ring: oklch(0.49 0.1 168);
+  --accent: oklch(0.95 0.032 168);
+  --accent-foreground: oklch(0.42 0.09 168);
+  --chart-1: oklch(0.6 0.12 170);
+}
+
+:root.dark[data-accent="verde"] {
+  --primary: oklch(0.78 0.13 170);
+  --primary-foreground: oklch(0.2 0.04 175);
+  --ring: oklch(0.78 0.13 170);
+  --accent: oklch(0.3 0.045 170);
+  --accent-foreground: oklch(0.9 0.06 170);
+  --chart-1: oklch(0.76 0.13 170);
+}
+
+:root[data-accent="violeta"] {
+  --primary: oklch(0.53 0.2 293);
+  --primary-foreground: oklch(0.99 0.003 293);
+  --ring: oklch(0.53 0.2 293);
+  --accent: oklch(0.95 0.03 293);
+  --accent-foreground: oklch(0.45 0.17 293);
+  --chart-1: oklch(0.56 0.19 293);
+}
+
+:root.dark[data-accent="violeta"] {
+  --primary: oklch(0.74 0.14 293);
+  --primary-foreground: oklch(0.2 0.05 293);
+  --ring: oklch(0.74 0.14 293);
+  --accent: oklch(0.3 0.06 293);
+  --accent-foreground: oklch(0.89 0.06 293);
+  --chart-1: oklch(0.74 0.14 293);
+}
+
+:root[data-accent="rosa"] {
+  --primary: oklch(0.56 0.2 355);
+  --primary-foreground: oklch(0.99 0.003 355);
+  --ring: oklch(0.56 0.2 355);
+  --accent: oklch(0.95 0.025 355);
+  --accent-foreground: oklch(0.47 0.17 355);
+  --chart-1: oklch(0.6 0.19 355);
+}
+
+:root.dark[data-accent="rosa"] {
+  --primary: oklch(0.75 0.14 355);
+  --primary-foreground: oklch(0.2 0.05 355);
+  --ring: oklch(0.75 0.14 355);
+  --accent: oklch(0.3 0.06 355);
+  --accent-foreground: oklch(0.9 0.06 355);
+  --chart-1: oklch(0.75 0.14 355);
+}
+
+:root[data-accent="laranja"] {
+  --primary: oklch(0.56 0.17 42);
+  --primary-foreground: oklch(0.99 0.005 50);
+  --ring: oklch(0.56 0.17 42);
+  --accent: oklch(0.955 0.03 55);
+  --accent-foreground: oklch(0.48 0.14 45);
+  --chart-1: oklch(0.65 0.16 50);
+}
+
+:root.dark[data-accent="laranja"] {
+  --primary: oklch(0.78 0.15 60);
+  --primary-foreground: oklch(0.2 0.05 50);
+  --ring: oklch(0.78 0.15 60);
+  --accent: oklch(0.31 0.06 55);
+  --accent-foreground: oklch(0.9 0.07 65);
+  --chart-1: oklch(0.78 0.15 60);
 }
 
 @layer base {
