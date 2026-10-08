@@ -62,6 +62,8 @@ No painel do Supabase:
 
 As callbacks da aplicação terminam em `/auth/callback`. Convites administrativos definem a senha em `/update-password`.
 
+O administrador global usa a mesma conta Supabase, com MFA obrigatório e UUID permitido em `PLATFORM_ADMIN_USER_IDS`. Veja o [guia de acesso e monitoramento](./docs/admin-operacao.md).
+
 ## Migração do banco anterior
 
 As migrations já definem o catálogo e a autenticação Supabase. Para uma única cópia de dados do banco PostgreSQL anterior:

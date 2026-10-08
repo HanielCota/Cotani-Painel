@@ -415,6 +415,7 @@ export const ModelName = {
   FinancialEntry: 'FinancialEntry',
   Notification: 'Notification',
   WebhookEvent: 'WebhookEvent',
+  OperationalEvent: 'OperationalEvent',
   RateLimit: 'RateLimit'
 } as const
 
@@ -431,7 +432,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "clinic" | "adminAuditLog" | "paymentHistory" | "clinicSlugAlias" | "billingContract" | "businessHour" | "user" | "clinicInvitation" | "membership" | "customer" | "service" | "professional" | "professionalAvailability" | "professionalService" | "appointment" | "financialEntry" | "notification" | "webhookEvent" | "rateLimit"
+    modelProps: "clinic" | "adminAuditLog" | "paymentHistory" | "clinicSlugAlias" | "billingContract" | "businessHour" | "user" | "clinicInvitation" | "membership" | "customer" | "service" | "professional" | "professionalAvailability" | "professionalService" | "appointment" | "financialEntry" | "notification" | "webhookEvent" | "operationalEvent" | "rateLimit"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1767,6 +1768,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    OperationalEvent: {
+      payload: Prisma.$OperationalEventPayload<ExtArgs>
+      fields: Prisma.OperationalEventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OperationalEventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalEventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OperationalEventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalEventPayload>
+        }
+        findFirst: {
+          args: Prisma.OperationalEventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalEventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OperationalEventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalEventPayload>
+        }
+        findMany: {
+          args: Prisma.OperationalEventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalEventPayload>[]
+        }
+        create: {
+          args: Prisma.OperationalEventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalEventPayload>
+        }
+        createMany: {
+          args: Prisma.OperationalEventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OperationalEventCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalEventPayload>[]
+        }
+        delete: {
+          args: Prisma.OperationalEventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalEventPayload>
+        }
+        update: {
+          args: Prisma.OperationalEventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalEventPayload>
+        }
+        deleteMany: {
+          args: Prisma.OperationalEventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OperationalEventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OperationalEventUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalEventPayload>[]
+        }
+        upsert: {
+          args: Prisma.OperationalEventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OperationalEventPayload>
+        }
+        aggregate: {
+          args: Prisma.OperationalEventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOperationalEvent>
+        }
+        groupBy: {
+          args: Prisma.OperationalEventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OperationalEventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OperationalEventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OperationalEventCountAggregateOutputType> | number
+        }
+      }
+    }
     RateLimit: {
       payload: Prisma.$RateLimitPayload<ExtArgs>
       fields: Prisma.RateLimitFieldRefs
@@ -2202,6 +2277,23 @@ export const WebhookEventScalarFieldEnum = {
 export type WebhookEventScalarFieldEnum = (typeof WebhookEventScalarFieldEnum)[keyof typeof WebhookEventScalarFieldEnum]
 
 
+export const OperationalEventScalarFieldEnum = {
+  id: 'id',
+  category: 'category',
+  operation: 'operation',
+  status: 'status',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  durationMs: 'durationMs',
+  summary: 'summary',
+  error: 'error',
+  externalEventId: 'externalEventId',
+  createdAt: 'createdAt'
+} as const
+
+export type OperationalEventScalarFieldEnum = (typeof OperationalEventScalarFieldEnum)[keyof typeof OperationalEventScalarFieldEnum]
+
+
 export const RateLimitScalarFieldEnum = {
   id: 'id',
   key: 'key',
@@ -2522,6 +2614,34 @@ export type ListEnumNotificationStatusFieldRefInput<$PrismaModel> = FieldRefInpu
 
 
 /**
+ * Reference to a field of type 'OperationalCategory'
+ */
+export type EnumOperationalCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OperationalCategory'>
+    
+
+
+/**
+ * Reference to a field of type 'OperationalCategory[]'
+ */
+export type ListEnumOperationalCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OperationalCategory[]'>
+    
+
+
+/**
+ * Reference to a field of type 'OperationalStatus'
+ */
+export type EnumOperationalStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OperationalStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'OperationalStatus[]'
+ */
+export type ListEnumOperationalStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OperationalStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -2703,6 +2823,7 @@ export type GlobalOmitConfig = {
   financialEntry?: Prisma.FinancialEntryOmit
   notification?: Prisma.NotificationOmit
   webhookEvent?: Prisma.WebhookEventOmit
+  operationalEvent?: Prisma.OperationalEventOmit
   rateLimit?: Prisma.RateLimitOmit
 }
 

@@ -86,6 +86,17 @@ enum NotificationStatus {
   CANCELED
 }
 
+enum OperationalCategory {
+  JOB
+  WEBHOOK
+}
+
+enum OperationalStatus {
+  SUCCESS
+  WARNING
+  FAILURE
+}
+
 model Clinic {
   id                           String                  @id @default(uuid())
   legacyExternalId             String?                 @unique
@@ -469,6 +480,24 @@ model WebhookEvent {
 
   @@unique([provider, eventId])
   @@index([processedAt])
+}
+
+model OperationalEvent {
+  id              String              @id @default(uuid())
+  category        OperationalCategory
+  operation       String
+  status          OperationalStatus
+  startedAt       DateTime
+  finishedAt      DateTime
+  durationMs      Int
+  summary         Json?
+  error           String?
+  externalEventId String?
+  createdAt       DateTime            @default(now())
+
+  @@index([category, startedAt])
+  @@index([status, startedAt])
+  @@index([operation, startedAt])
 }
 
 model RateLimit {
