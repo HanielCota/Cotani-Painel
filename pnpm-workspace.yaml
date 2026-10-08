@@ -3,11 +3,23 @@ allowBuilds:
   prisma: true
   sharp: true
   unrs-resolver: true
+# Correções de segurança em dependências transitivas. Use faixas (^) para que
+# patches futuros entrem sozinhos: versão exata aqui envelhece e passa a
+# BLOQUEAR a correção (foi o que aconteceu com sharp 0.35.4).
 overrides:
   browserslist: 4.28.8
   deepmerge-ts: 8.0.0
-  fast-uri: 3.1.6
+  fast-uri: ^3.1.8
   mysql2: 3.23.1
-  "minimatch@>=10.0.0>brace-expansion": 5.0.9
-  postcss: 8.5.23
-  sharp: 0.35.4
+  postcss: ^8.5.23
+  sharp: ^0.35.5
+  source-map-js: ^1.2.2
+  # Ferramentas de desenvolvimento (CLI do shadcn, ESLint, jsdom):
+  "@modelcontextprotocol/sdk": ^1.31.0
+  "brace-expansion@^1": ^1.1.21
+  "brace-expansion@>=4 <6": ^5.0.12
+  hono: ^4.13.7
+  ip-address: ^10.7.1
+  "postcss-selector-parser@^7": ^7.1.6
+  proxy-addr: ^2.0.8
+  "undici@^7": ^7.29.1
