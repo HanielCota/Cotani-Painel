@@ -51,7 +51,7 @@ export default withTenant(async ({ membership, role }) => {
           <Card>
             <CardHeader>
               <CardTitle><PaletteIcon className="text-primary" />Aparência</CardTitle>
-              <CardDescription>Modo claro/escuro e cor de destaque. Vale para este navegador.</CardDescription>
+              <CardDescription>Modo claro/escuro, tema de fundo e cor de destaque. Vale para este navegador.</CardDescription>
             </CardHeader>
             <CardContent><AccountThemeSettings /></CardContent>
           </Card>

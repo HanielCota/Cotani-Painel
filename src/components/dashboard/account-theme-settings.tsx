@@ -1,11 +1,11 @@
 "use client";
 
-import { CheckIcon, MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
+import { CheckIcon, MonitorIcon, MoonIcon, SparklesIcon, SunIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useSyncExternalStore } from "react";
 
 import { Button } from "@/components/ui/button";
-import { ACCENTS, applyAccent, DEFAULT_ACCENT, isAccent, type Accent } from "@/lib/accent";
+import { ACCENTS, applyAppearance, readStoredAppearance, storeAppearance, SURFACES, type AccentChoice, type Surface } from "@/lib/appearance";
 import { cn } from "@/lib/utils";
 
 const themes = [
@@ -14,21 +14,58 @@ const themes = [
   { value: "dark", label: "Escuro", icon: MoonIcon },
 ] as const;
 
-const accentListeners = new Set<() => void>();
+// Estado compartilhado das escolhas (fonte: localStorage), lido via useSyncExternalStore.
+const listeners = new Set<() => void>();
+let snapshot: ReturnType<typeof readStoredAppearance> | null = null;
 
-function subscribeAccent(listener: () => void) {
-  accentListeners.add(listener);
-  return () => accentListeners.delete(listener);
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
 }
 
-function readAccent(): Accent {
-  const value = document.documentElement.dataset.accent;
-  return isAccent(value) ? value : DEFAULT_ACCENT;
+function getSnapshot() {
+  snapshot ??= readStoredAppearance();
+  return snapshot;
 }
 
-function selectAccent(accent: Accent) {
-  applyAccent(accent);
-  accentListeners.forEach((listener) => listener());
+function update(next: { surface: Surface; accent: AccentChoice }) {
+  snapshot = next;
+  storeAppearance(next.surface, next.accent);
+  applyAppearance(next.surface, next.accent);
+  listeners.forEach((listener) => listener());
+}
+
+interface SwatchProps {
+  label: string;
+  selected: boolean;
+  onSelect: () => void;
+  color: string | null;
+  /** Amostra clara: o ícone de selecionado fica escuro. */
+  pale?: boolean;
+}
+
+function Swatch({ label, selected, onSelect, color, pale = false }: SwatchProps) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      onClick={onSelect}
+      className="group flex w-16 flex-col items-center gap-1.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <span
+        className={cn(
+          "flex size-9 items-center justify-center rounded-full ring-offset-2 ring-offset-background transition-shadow",
+          selected ? "ring-2 ring-foreground" : "ring-1 ring-border group-hover:ring-foreground/40",
+          color === null && "bg-muted text-muted-foreground",
+        )}
+        style={color ? { backgroundColor: color } : undefined}
+      >
+        {selected ? <CheckIcon aria-hidden="true" className={cn("size-4", color === null ? "text-foreground" : pale ? "text-black/80" : "text-white")} /> : color === null ? <SparklesIcon aria-hidden="true" className="size-4" /> : null}
+      </span>
+      <span className={cn("text-xs", selected ? "font-medium text-foreground" : "text-muted-foreground")}>{label}</span>
+    </button>
+  );
 }
 
 export function AccountThemeSettings() {
@@ -38,10 +75,10 @@ export function AccountThemeSettings() {
     () => true,
     () => false,
   );
-  const accent = useSyncExternalStore(subscribeAccent, readAccent, () => null);
+  const appearance = useSyncExternalStore(subscribe, getSnapshot, () => null);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
         <p className="text-sm font-medium">Modo</p>
         <div className="flex flex-wrap gap-2" role="group" aria-label="Escolher modo claro ou escuro">
@@ -62,32 +99,35 @@ export function AccountThemeSettings() {
       </div>
 
       <div className="flex flex-col gap-2">
+        <p className="text-sm font-medium">Tema de fundo</p>
+        <p className="text-xs text-muted-foreground">Tom do painel: fundo, cartões e barra lateral.</p>
+        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Tema de fundo">
+          {SURFACES.map((option) => (
+            <Swatch
+              key={option.value}
+              label={option.label}
+              color={option.swatch}
+              pale={option.value !== "grafite"}
+              selected={appearance?.surface === option.value}
+              onSelect={() => update({ surface: option.value, accent: appearance?.accent ?? "verde" })}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
         <p className="text-sm font-medium">Cor de destaque</p>
-        <div className="flex flex-wrap gap-3" role="radiogroup" aria-label="Cor de destaque">
-          {ACCENTS.map((option) => {
-            const selected = accent === option.value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                onClick={() => selectAccent(option.value)}
-                className="group flex w-14 flex-col items-center gap-1.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <span
-                  className={cn(
-                    "flex size-9 items-center justify-center rounded-full ring-offset-2 ring-offset-background transition-shadow",
-                    selected ? "ring-2 ring-foreground" : "ring-1 ring-border group-hover:ring-foreground/40",
-                  )}
-                  style={{ backgroundColor: option.swatch }}
-                >
-                  {selected ? <CheckIcon aria-hidden="true" className="size-4 text-white" /> : null}
-                </span>
-                <span className={cn("text-xs", selected ? "font-medium text-foreground" : "text-muted-foreground")}>{option.label}</span>
-              </button>
-            );
-          })}
+        <p className="text-xs text-muted-foreground">Botões, ícones e itens selecionados. &quot;Automática&quot; combina com o tema de fundo.</p>
+        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Cor de destaque">
+          {ACCENTS.map((option) => (
+            <Swatch
+              key={option.value}
+              label={option.label}
+              color={option.swatch}
+              selected={appearance?.accent === option.value}
+              onSelect={() => update({ surface: appearance?.surface ?? "neutro", accent: option.value })}
+            />
+          ))}
         </div>
       </div>
     </div>
