@@ -1,0 +1,34 @@
+name: Bug
+description: Algo não funciona como deveria
+labels: [bug]
+body:
+  - type: textarea
+    id: descricao
+    attributes:
+      label: O que aconteceu?
+      description: Descreva o problema e o que você esperava que acontecesse.
+    validations:
+      required: true
+  - type: textarea
+    id: passos
+    attributes:
+      label: Como reproduzir
+      placeholder: |
+        1. Acesse ...
+        2. Clique em ...
+        3. Veja o erro ...
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options: [Agenda, Clientes, Financeiro, Relatórios, Agendamento público, Login / conta, Assinatura, Administração, Outra]
+  - type: input
+    id: ambiente
+    attributes:
+      label: Navegador e dispositivo
+      placeholder: Chrome 140 no Android
+  - type: markdown
+    attributes:
+      value: "**Vulnerabilidade de segurança?** Não abra issue: siga o [SECURITY.md](../../SECURITY.md)."
