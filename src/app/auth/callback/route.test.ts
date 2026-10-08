@@ -75,7 +75,7 @@ describe("recuperação de senha", () => {
     auth.mfa.getAuthenticatorAssuranceLevel.mockResolvedValue({ data: { currentLevel: "aal2", nextLevel: "aal2" }, error: null });
     const response = await POST(post("password", password, ["sb-project-ref-auth-token.3", "session-value"]));
     expect(auth.updateUser).toHaveBeenCalledWith({ password: password.password });
-    expect(auth.signOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(auth.signOut).toHaveBeenCalledWith({ scope: "global" });
     expect(response.headers.get("location")).toBe(`${origin}/sign-in?password=updated`);
     expect(response.cookies.get("sb-project-ref-auth-token.3")?.value).toBe("");
   });
@@ -108,7 +108,28 @@ describe("recuperação de senha", () => {
     expect(auth.updateUser).not.toHaveBeenCalled();
   });
 
+  it("link no formato code também entra no fluxo protegido, nunca direto no painel", async () => {
+    auth.mfa.getAuthenticatorAssuranceLevel.mockResolvedValue({ data: { currentLevel: "aal1", nextLevel: "aal2" }, error: null });
+    const response = await GET(new NextRequest(`${origin}/auth/callback?code=valid&next=/update-password`));
+    expect(auth.exchangeCodeForSession).toHaveBeenCalledWith("valid");
+    expect(response.headers.get("location")).toBe(`${origin}/auth/recovery-mfa`);
+    expect(response.cookies.get("cotani_recovery_pending")?.value).toBe("1");
+  });
+
+  it("link de recuperação vencido explica o motivo na tela de recuperação", async () => {
+    auth.exchangeCodeForSession.mockResolvedValueOnce({ error: { code: "flow_state_not_found" } });
+    const response = await GET(new NextRequest(`${origin}/auth/callback?code=old&next=/auth/confirm-recovery`));
+    expect(response.headers.get("location")).toBe(`${origin}/forgot-password?error=link`);
+  });
+
+  it("sessão comum (convite/login) segue para o destino pedido", async () => {
+    auth.getClaims.mockResolvedValueOnce({ data: { claims: { sub: "user-1", amr: [{ method: "otp" }] } }, error: null });
+    const response = await GET(new NextRequest(`${origin}/auth/callback?code=valid&next=/dashboard/agenda`));
+    expect(response.headers.get("location")).toBe(`${origin}/dashboard/agenda`);
+  });
+
   it("não redireciona para domínio externo", async () => {
+    auth.getClaims.mockResolvedValueOnce({ data: { claims: { sub: "user-1", amr: [{ method: "oauth" }] } }, error: null });
     const response = await GET(new NextRequest(`${origin}/auth/callback?code=valid&next=${encodeURIComponent("//evil.example")}`));
     expect(response.headers.get("location")).toBe(`${origin}/dashboard`);
   });

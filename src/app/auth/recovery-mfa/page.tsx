@@ -7,7 +7,7 @@ import { isRecoverySession } from "@/lib/supabase/recovery-session";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "Confirmar recuperação de senha | Cotani",
+  title: "Confirmar recuperação de senha",
   robots: { index: false, follow: false },
   referrer: "no-referrer",
 };
