@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { getClinicForRoles } from "@/server/tenant";
 import { requireClinicAction } from "@/server/clinic-action";
 import { requireAuthenticatedUser } from "@/server/auth";
 import { parseClinicDateTime } from "@/lib/timezone";
@@ -18,4 +17,4 @@ export async function createManualReminder(_previousState: ActionResult, formDat
   await prisma.notification.create({data:{kind:"REMINDER_24H",channel:parsed.data.channel,recipient,content:parsed.data.content,idempotencyKey:`manual:${crypto.randomUUID()}`,scheduledFor,nextAttemptAt:scheduledFor,clinicId:clinic.id,appointmentId:appointment.id}});revalidatePath("/dashboard/comunicacoes");return{status:"success",message:"Lembrete programado."};
 }
 
-export async function retryNotification(_previousState: ActionResult,formData:FormData):Promise<ActionResult>{await requireAuthenticatedUser();const clinic=await getClinicForRoles(["ADMIN","RECEPTIONIST"]);const id=z.uuid().safeParse(formData.get("id"));if(!clinic||!id.success)return{status:"error",message:"Mensagem inválida."};const result=await prisma.notification.updateMany({where:{id:id.data,clinicId:clinic.id,status:"FAILED",appointment:{startTime:{gt:new Date()},status:{in:["PENDING","CONFIRMED"]}}},data:{status:"PENDING",attempts:0,error:null,lockedAt:null,nextAttemptAt:new Date()}});if(!result.count)return{status:"error",message:"Esta mensagem não pode mais ser reenviada."};revalidatePath("/dashboard/comunicacoes");return{status:"success",message:"Mensagem colocada novamente na fila."}}
+export async function retryNotification(_previousState: ActionResult,formData:FormData):Promise<ActionResult>{await requireAuthenticatedUser();const id=z.uuid().safeParse(formData.get("id"));if(!id.success)return{status:"error",message:"Mensagem inválida."};const access=await requireClinicAction(["ADMIN","RECEPTIONIST"]);if(!access.ok)return access.result;const {clinic}=access;const result=await prisma.notification.updateMany({where:{id:id.data,clinicId:clinic.id,status:"FAILED",appointment:{startTime:{gt:new Date()},status:{in:["PENDING","CONFIRMED"]}}},data:{status:"PENDING",attempts:0,error:null,lockedAt:null,nextAttemptAt:new Date()}});if(!result.count)return{status:"error",message:"Esta mensagem não pode mais ser reenviada."};revalidatePath("/dashboard/comunicacoes");return{status:"success",message:"Mensagem colocada novamente na fila."}}
