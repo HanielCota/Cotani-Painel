@@ -9,6 +9,7 @@ import {
   LayoutDashboardIcon,
   MessageCircleIcon,
   ScissorsIcon,
+  SettingsIcon,
   StoreIcon,
   UserCogIcon,
   UserRoundIcon,
@@ -68,6 +69,7 @@ export const DASHBOARD_NAVIGATION: readonly NavigationSection[] = [
     title: "Conta",
     items: [
       { title: "Assinatura", href: "/dashboard/assinatura", icon: CreditCardIcon, roles: ADMIN_ONLY },
+      { title: "Configurações", href: "/dashboard/minha-conta", icon: SettingsIcon },
     ],
   },
 ];

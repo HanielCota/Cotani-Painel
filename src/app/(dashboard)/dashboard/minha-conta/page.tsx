@@ -13,7 +13,7 @@ import prisma from "@/lib/prisma";
 import { withTenant } from "@/server/with-tenant";
 import { clinicRoleLabel } from "@/lib/display-labels";
 
-export const metadata: Metadata = { title: "Minha conta" };
+export const metadata: Metadata = { title: "Configurações" };
 
 export default withTenant(async ({ membership, role }) => {
   const user = await prisma.user.findUniqueOrThrow({
@@ -23,7 +23,7 @@ export default withTenant(async ({ membership, role }) => {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Minha conta" description="Gerencie sua identidade, segurança e preferências pessoais." />
+      <PageHeader title="Configurações" description="Sua conta, segurança e aparência do painel." />
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
         <div className="flex min-w-0 flex-col gap-4">

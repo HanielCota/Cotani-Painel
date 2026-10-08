@@ -41,9 +41,9 @@ function DashboardShell({ children, insetClassName = "bg-background", subscripti
   return (
     <ActiveClinicProvider clinicId={activeClinicId}>
     <SidebarProvider className="min-h-svh">
-      <AppSidebar subscriptionPlan={subscriptionPlan} role={role} user={user} clinics={clinics} activeClinicId={activeClinicId} />
+      <AppSidebar subscriptionPlan={subscriptionPlan} role={role} user={user} clinics={clinics} activeClinicId={activeClinicId} showNotifications={Boolean(activeClinicId)} />
       <SidebarInset id="main-content" tabIndex={-1} className={insetClassName}>
-        <DashboardTopbar showNotifications={Boolean(activeClinicId)} />
+        <DashboardTopbar />
         <div className="mx-auto flex w-full min-w-0 max-w-[1360px] flex-1 flex-col gap-6 p-4 pb-12 sm:p-6 lg:px-8 lg:pt-7">
           {children}
         </div>
