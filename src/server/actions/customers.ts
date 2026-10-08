@@ -7,8 +7,7 @@ import prisma from "@/lib/prisma";
 import { normalizeWhatsAppPhone } from "@/lib/phone";
 import { parseClinicDateOnly } from "@/lib/timezone";
 import { parseCustomerCsv } from "@/server/services/customer-import";
-import { getClinicForRoles } from "@/server/tenant";
-import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
+import { requireClinicAction } from "@/server/clinic-action";
 import type { ActionResult } from "@/types";
 import { requireAuthenticatedUser } from "@/server/auth";
 
@@ -37,15 +36,9 @@ export async function createCustomer(input: unknown): Promise<ActionResult> {
   const normalizedPhone = normalizeWhatsAppPhone(parsed.data.phone);
   if (!normalizedPhone) return { status: "error", message: "Informe um telefone com DDD válido." };
 
-  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione um negócio antes de cadastrar clientes." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN", "RECEPTIONIST"], "Selecione um negócio antes de cadastrar clientes.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   try {
     await prisma.customer.create({
@@ -97,15 +90,9 @@ export async function updateCustomer(input: unknown): Promise<ActionResult> {
   const normalizedPhone = normalizeWhatsAppPhone(parsed.data.phone);
   if (!normalizedPhone) return { status: "error", message: "Informe um telefone com DDD válido." };
 
-  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione um negócio antes de atualizar clientes." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN", "RECEPTIONIST"], "Selecione um negócio antes de atualizar clientes.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   const customer = await prisma.customer.findFirst({
     where: { id: parsed.data.customerId, clinicId: clinic.id },
@@ -152,8 +139,9 @@ export async function updateCustomerFromForm(_previousState: ActionResult, formD
 
 export async function importCustomersFromCsv(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
   await requireAuthenticatedUser();
-  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
-  if (!clinic || !isSubscriptionActive(clinic)) return { status: "error", message: clinic ? SUBSCRIPTION_INACTIVE_MESSAGE : "Selecione um negócio." };
+  const access = await requireClinicAction(["ADMIN", "RECEPTIONIST"]);
+  if (!access.ok) return access.result;
+  const { clinic } = access;
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0 || file.size > 1024 * 1024) return { status: "error", message: "Selecione um CSV de até 1 MB." };
 
@@ -190,15 +178,9 @@ export async function deleteCustomer(customerId: string): Promise<ActionResult> 
     return { status: "error", message: "Não foi possível remover este cliente." };
   }
 
-  const clinic = await getClinicForRoles(["ADMIN"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione um negócio antes de remover clientes." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN"], "Selecione um negócio antes de remover clientes.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   const customer = await prisma.customer.findFirst({
     where: { id: parsedId.data, clinicId: clinic.id },

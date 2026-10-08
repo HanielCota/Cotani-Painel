@@ -4,13 +4,13 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { getClinicForRoles } from "@/server/tenant";
+import { requireClinicAction } from "@/server/clinic-action";
 import { requireAuthenticatedUser } from "@/server/auth";
 import { parseClinicDateTime } from "@/lib/timezone";
-import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
 
 export async function createManualReminder(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
-  await requireAuthenticatedUser(); const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]); if (!clinic || !isSubscriptionActive(clinic)) return { status:"error", message: clinic ? SUBSCRIPTION_INACTIVE_MESSAGE : "Selecione um negócio." };
+  await requireAuthenticatedUser(); const access = await requireClinicAction(["ADMIN", "RECEPTIONIST"]); if (!access.ok) return access.result; const { clinic } = access;
   const parsed=z.object({appointmentId:z.uuid(),channel:z.enum(["WHATSAPP","EMAIL"]),content:z.string().trim().min(3).max(1000),scheduledFor:z.string().min(1)}).safeParse({appointmentId:formData.get("appointmentId"),channel:formData.get("channel"),content:formData.get("content"),scheduledFor:formData.get("scheduledFor")}); if(!parsed.success)return{status:"error",message:"Revise os dados do lembrete."};
   if (parsed.data.channel === "WHATSAPP" && process.env.WHATSAPP_SENDER_MODE !== "api") return { status: "error", message: "O WhatsApp automático ainda não está habilitado. Use o envio manual desta tela." };
   const appointment=await prisma.appointment.findFirst({where:{id:parsed.data.appointmentId,clinicId:clinic.id,status:{in:["PENDING","CONFIRMED"]},startTime:{gt:new Date()}},include:{customer:true}});if(!appointment)return{status:"error",message:"Atendimento não encontrado."};
