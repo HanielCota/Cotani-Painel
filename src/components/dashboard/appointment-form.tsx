@@ -37,9 +37,11 @@ interface AppointmentFormProps {
   className?: string;
   onSuccess?: () => void;
   initialCustomerId?: string;
+  /** Horário pré-preenchido (YYYY-MM-DDTHH:mm), ex.: clique num horário vago da agenda. */
+  initialStartTime?: string;
 }
 
-export function AppointmentForm({ customers, services, minStartTime, className, onSuccess, initialCustomerId = "" }: AppointmentFormProps) {
+export function AppointmentForm({ customers, services, minStartTime, className, onSuccess, initialCustomerId = "", initialStartTime }: AppointmentFormProps) {
   const clinicId = useActiveClinicId();
   const [state, formAction, isPending] = useActionState(createAppointmentFromForm, initialState);
   const [serviceId, setServiceId] = useState("");
@@ -159,7 +161,7 @@ export function AppointmentForm({ customers, services, minStartTime, className, 
             </Field>
             <Field>
               <FieldLabel htmlFor="startTime">Data e horário</FieldLabel>
-              <Input id="startTime" name="startTime" type="datetime-local" min={minStartTime} required disabled={isPending} />
+              <Input id="startTime" name="startTime" type="datetime-local" min={minStartTime} defaultValue={initialStartTime} required disabled={isPending} />
               <FieldDescription>Escolha um horário futuro.</FieldDescription>
             </Field>
             <Field className="md:col-span-2">

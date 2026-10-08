@@ -19,24 +19,39 @@ interface AppointmentFormDialogProps {
   minStartTime: string;
   timeZone: string;
   initialCustomerId?: string;
+  /** Horário pré-preenchido (YYYY-MM-DDTHH:mm). */
+  initialStartTime?: string;
+  /** Abertura controlada por fora (ex.: clique num horário vago da agenda), sem botão próprio. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function AppointmentFormDialog(props: AppointmentFormDialogProps) {
-  const [open, setOpen] = useState(Boolean(props.initialCustomerId));
-  const closeDialog = useCallback(() => setOpen(false), []);
+export function AppointmentFormDialog({ open: controlledOpen, onOpenChange, ...props }: AppointmentFormDialogProps) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(Boolean(props.initialCustomerId));
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : uncontrolledOpen;
+  const setOpen = useCallback((next: boolean) => {
+    if (isControlled) onOpenChange?.(next);
+    else setUncontrolledOpen(next);
+  }, [isControlled, onOpenChange]);
+  const closeDialog = useCallback(() => setOpen(false), [setOpen]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button type="button" />}>
-        <CalendarPlusIcon data-icon="inline-start" />
-        Novo atendimento
-      </DialogTrigger>
+      {isControlled ? null : (
+        <DialogTrigger render={<Button type="button" />}>
+          <CalendarPlusIcon data-icon="inline-start" />
+          Novo atendimento
+        </DialogTrigger>
+      )}
       <DialogContent className="max-h-[90svh] overflow-y-auto p-0 sm:max-w-3xl">
         <DialogTitle className="sr-only">Adicionar atendimento</DialogTitle>
         <DialogDescription className="sr-only">
           Cadastre o cliente, serviço, profissional, data e horário do atendimento.
         </DialogDescription>
         <AppointmentForm
+          // Remonta ao trocar o horário escolhido para refletir o novo valor inicial.
+          key={props.initialStartTime ?? "novo"}
           {...props}
           onSuccess={closeDialog}
           className="rounded-none border-0 shadow-none"
