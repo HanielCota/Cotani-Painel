@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { BillingCycle, ClinicRole, SubscriptionPlan } from "@/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getPlanConfig, createSubscriptionCheckout } from "@/server/services/mercado-pago";
+import { assertSubscriptionCheckoutReady, createSubscriptionCheckout } from "@/server/services/mercado-pago";
 import { generateClinicSlug } from "@/server/services/clinic-provisioning";
 import { landingPageUrl } from "@/lib/landing-cors";
 
@@ -24,6 +24,8 @@ export interface LandingCheckoutInput {
 export class LandingCheckoutConflictError extends Error {}
 
 export async function createLandingCheckout(input: LandingCheckoutInput) {
+  const landingOrigin = landingPageUrl();
+  const config = assertSubscriptionCheckoutReady(input.plan, input.cycle, `${landingOrigin}/checkout/retorno`);
   const recentSince = new Date(Date.now() - ACTIVE_ATTEMPT_MS);
   const attempt = await prisma.$transaction(async (tx) => {
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${input.email}, 0))`;
@@ -62,7 +64,6 @@ export async function createLandingCheckout(input: LandingCheckoutInput) {
 
     const clinicId = randomUUID();
     const contractId = randomUUID();
-    const config = getPlanConfig(input.plan, input.cycle);
     await tx.clinic.create({
       data: {
         id: clinicId,
@@ -98,7 +99,7 @@ export async function createLandingCheckout(input: LandingCheckoutInput) {
     return { checkoutId: attempt.contract.id, checkoutUrl: attempt.resumeUrl, resumed: true };
   }
 
-  const backUrl = `${landingPageUrl()}/checkout/retorno?checkout=${encodeURIComponent(attempt.contract.id)}`;
+  const backUrl = `${landingOrigin}/checkout/retorno?checkout=${encodeURIComponent(attempt.contract.id)}`;
   // A chave é reaproveitada quando uma resposta remota é ambígua. Assim, um
   // timeout não pode gerar duas assinaturas recorrentes para a mesma pessoa.
   const remote = await createSubscriptionCheckout({

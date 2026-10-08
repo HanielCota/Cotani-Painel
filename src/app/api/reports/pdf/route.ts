@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { getPlanEntitlements } from "@/config/subscription-plans";
-import prisma from "@/lib/prisma";
+import { getAuthorizedReportClinicIds } from "@/server/services/report-scope";
 import { parseClinicDateTime } from "@/lib/timezone";
 import { getReportAppointmentsForExport, getReportsMetrics } from "@/server/services/reports";
 import { isSubscriptionActive } from "@/server/subscription";
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   if (!isSubscriptionActive(clinic) || !entitlements.advancedReports) return NextResponse.json({ message: "Exportação indisponível para este plano." }, { status: 403 });
   const fromValue = request.nextUrl.searchParams.get("from"); const toValue = request.nextUrl.searchParams.get("to");
   const from = fromValue ? parseClinicDateTime(`${fromValue}T00:00`, clinic.timeZone) ?? undefined : undefined; const toStart = toValue ? parseClinicDateTime(`${toValue}T00:00`, clinic.timeZone) : null; const to = toStart ? new Date(toStart.getTime() + 86400000) : undefined;
-  const ownerId = clinic.billingOwnerId ?? clinic.id; const clinicIds = (await prisma.clinic.findMany({ where: { OR: [{ id: ownerId }, { billingOwnerId: ownerId }], deletedAt: null }, select: { id: true } })).map((item) => item.id);
+  const clinicIds = await getAuthorizedReportClinicIds(tenant.context);
   const [metrics, appointments] = await Promise.all([
     getReportsMetrics(clinic, { from, to, clinicIds }),
     getReportAppointmentsForExport(clinic, { from, to, clinicIds }),
