@@ -55,7 +55,7 @@ export function CopyBookingLink({ url }: CopyBookingLinkProps) {
       />
       <Button type="button" variant="outline" onClick={handleCopy} aria-label="Copiar link de agendamento">
         {copied ? <CheckIcon data-icon="inline-start" /> : <CopyIcon data-icon="inline-start" />}
-        {copied ? "Copiado!" : "Copiar link"}
+        {copied ? "Copiado" : "Copiar link"}
       </Button>
     </div>
   );

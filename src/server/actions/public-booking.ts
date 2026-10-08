@@ -156,5 +156,5 @@ export async function createPublicAppointment(_previousState: ActionResult, form
     return { status: "error", message: "Não foi possível concluir o agendamento. Tente novamente." };
   }
 
-  return { status: "success", message: "Agendamento realizado! A confirmação será enviada pelos canais disponíveis.", professionalName: await professionalNameOf(professionalId) };
+  return { status: "success", message: "Agendamento realizado. A confirmação será enviada pelos canais disponíveis.", professionalName: await professionalNameOf(professionalId) };
 }

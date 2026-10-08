@@ -50,7 +50,7 @@ export default withTenant<ReportsPageProps>(async (context, { searchParams }) =>
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Relatórios"
-        description={`Transforme a rotina da ${clinic.name} em decisões claras.`}
+        description={`Atendimentos, faturamento e clientes da ${clinic.name} no período.`}
         actions={entitlements.advancedReports ? (
           <Button
             type="button"
@@ -82,7 +82,7 @@ export default withTenant<ReportsPageProps>(async (context, { searchParams }) =>
 
       <section className="grid gap-4 md:grid-cols-3"><Card><CardHeader><CardTitle>Retenção</CardTitle><CardDescription>Clientes com dois ou mais atendimentos no período.</CardDescription></CardHeader><CardContent className="text-3xl font-semibold">{metrics.retentionRate}%</CardContent></Card><Card><CardHeader><CardTitle>Faltas por dia</CardTitle></CardHeader><CardContent className="space-y-1 text-sm">{metrics.noShowsByWeekday.map((item) => <div key={item.day} className="flex justify-between"><span>{item.day}</span><strong>{item.count}</strong></div>)}</CardContent></Card><Card><CardHeader><CardTitle>Confirmações enviadas</CardTitle></CardHeader><CardContent className="space-y-1 text-sm">{metrics.confirmationsByChannel.length ? metrics.confirmationsByChannel.map((item) => <div key={item.channel} className="flex justify-between"><span>{item.channel}</span><strong>{item.sent}</strong></div>) : <p className="text-muted-foreground">Nenhuma no período.</p>}</CardContent></Card></section>
 
-      <Card className="border-primary/20 bg-primary/5"><CardHeader><CardTitle>Insight automático</CardTitle><CardDescription>Leitura objetiva dos indicadores do período.</CardDescription></CardHeader><CardContent><p className="text-sm">{insight}</p></CardContent></Card>
+      <Card className="border-primary/20 bg-primary/5"><CardHeader><CardTitle>Insight automático</CardTitle><CardDescription>Gerado a partir das faltas e da retenção do período.</CardDescription></CardHeader><CardContent><p className="text-sm">{insight}</p></CardContent></Card>
 
       <section className="flex flex-col gap-4">
         <h2 className="text-base font-semibold text-foreground">Análise do período</h2>
