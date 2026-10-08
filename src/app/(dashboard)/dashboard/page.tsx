@@ -16,7 +16,8 @@ import {
   DashboardMetricCardsSkeleton,
 } from "@/components/dashboard/dashboard-metric-cards";
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
-import { PageHeader } from "@/components/dashboard/page-header";
+import { PageHeader, SectionHeader } from "@/components/dashboard/page-header";
+import { NavCard } from "@/components/ui/nav-card";
 import {
   TodayAgendaList,
   TodayAgendaListSkeleton,
@@ -76,53 +77,28 @@ export default withTenant(async ({ clinic }) => {
       </Suspense>
 
       <section className="space-y-3">
-        <div>
-          <h2 className="font-semibold text-foreground">Ações rápidas</h2>
-          <p className="text-sm text-muted-foreground">Atalhos para as tarefas mais frequentes.</p>
-        </div>
+        <SectionHeader title="Ações rápidas" description="Atalhos para as tarefas mais frequentes." />
         <div className="grid gap-3 lg:grid-cols-[1.5fr_1fr_1fr]">
-          <div className="rounded-2xl border border-border/80 bg-card p-4">
+          <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-card">
             <div className="mb-3 flex items-start gap-3">
               <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <LinkIcon className="size-4" />
               </span>
               <div>
-                <h2 className="text-sm font-medium">Link de agendamento</h2>
+                <h3 className="text-sm font-medium">Link de agendamento</h3>
                 <p className="text-xs leading-5 text-muted-foreground">Compartilhe o endereço público da sua loja.</p>
               </div>
             </div>
             <CopyBookingLink url={bookingUrl} />
           </div>
 
-          <Link
-            href="/dashboard/negocio/horarios"
-            className="group flex items-center gap-3 rounded-2xl border border-border/80 bg-card p-4 no-underline transition-colors hover:border-primary/40 hover:bg-primary/5"
-          >
-            <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <SettingsIcon className="size-4" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-medium text-foreground">Configurar horários</span>
-              <span className="mt-1 block text-xs leading-5 text-muted-foreground">Ajuste o expediente e as regras da agenda.</span>
-            </span>
-            <ArrowRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
-          </Link>
-
-          <Link
+          <NavCard href="/dashboard/negocio/horarios" icon={SettingsIcon} title="Configurar horários" description="Ajuste o expediente e as regras da agenda." />
+          <NavCard
             href="/dashboard/negocio/servicos"
-            className="group flex items-center gap-3 rounded-2xl border border-border/80 bg-card p-4 no-underline transition-colors hover:border-primary/40 hover:bg-primary/5"
-          >
-            <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <TagIcon className="size-4" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-medium text-foreground">Serviços</span>
-              <span className="mt-1 block text-xs leading-5 text-muted-foreground">
-                {servicesCount} serviço{servicesCount === 1 ? "" : "s"} ativo{servicesCount === 1 ? "" : "s"}.
-              </span>
-            </span>
-            <ArrowRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
-          </Link>
+            icon={TagIcon}
+            title="Serviços"
+            description={`${servicesCount} serviço${servicesCount === 1 ? "" : "s"} ativo${servicesCount === 1 ? "" : "s"}.`}
+          />
         </div>
       </section>
 

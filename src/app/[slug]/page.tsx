@@ -1,7 +1,9 @@
+import { MapPinIcon } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { ClinicUnavailable } from "@/components/public/clinic-unavailable";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookingSteps } from "@/components/public/booking-steps";
 import { isSubscriptionActive } from "@/server/subscription";
 import prisma from "@/lib/prisma";
@@ -55,6 +57,9 @@ export default async function PublicBookingPage({ params }: PublicBookingPagePro
       name: true,
       slug: true,
       timeZone: true,
+      imageUrl: true,
+      publicDescription: true,
+      address: true,
       subscriptionStatus: true,
       subscriptionExpiresAt: true,
       subscriptionPlan: true,
@@ -87,12 +92,24 @@ export default async function PublicBookingPage({ params }: PublicBookingPagePro
   return (
     <main id="main-content" tabIndex={-1} className="relative mx-auto flex min-h-svh w-full max-w-3xl flex-col gap-6 overflow-x-hidden px-4 py-8 outline-none sm:py-12">
       <div aria-hidden="true" className="public-page-glow pointer-events-none absolute inset-x-0 top-0 -z-10 h-72" />
-      <header className="flex flex-col items-center gap-2 text-center">
+      <header className="flex flex-col items-center gap-3 text-center">
+        {clinic.imageUrl ? (
+          <Avatar className="size-16 ring-1 ring-border sm:size-20">
+            <AvatarImage src={clinic.imageUrl} alt={`Logo de ${clinic.name}`} />
+            <AvatarFallback className="bg-primary/10 text-lg font-semibold text-primary">{clinic.name.slice(0, 1).toUpperCase()}</AvatarFallback>
+          </Avatar>
+        ) : null}
         <span className="rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">Agendamento on-line</span>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{clinic.name}</h1>
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          Agende seu atendimento em poucos passos. Os horários seguem o fuso local da loja.
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{clinic.name}</h1>
+        <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
+          {clinic.publicDescription || "Agende seu atendimento em poucos passos."}
         </p>
+        {clinic.address ? (
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <MapPinIcon aria-hidden="true" className="size-3.5 shrink-0" />
+            <span>{clinic.address}</span>
+          </p>
+        ) : null}
       </header>
       <BookingSteps
         slug={clinic.slug}

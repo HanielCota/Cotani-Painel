@@ -133,7 +133,7 @@ export default async function ConfirmRecoveryPage({ searchParams }: ConfirmRecov
   }
 
   return (
-    <main id="main-content" tabIndex={-1} className="flex min-h-svh items-center justify-center bg-background p-4 outline-none">
+    <main id="main-content" tabIndex={-1} className="flex min-h-svh items-center justify-center p-4 outline-none">
       <AuthCard>{content}</AuthCard>
     </main>
   );

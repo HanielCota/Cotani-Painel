@@ -11,7 +11,7 @@ const errorMessages: Record<string, string> = {
 export default async function ForgotPasswordPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams;
   return (
-    <main id="main-content" tabIndex={-1} className="flex min-h-svh items-center justify-center bg-background p-4 outline-none">
+    <main id="main-content" tabIndex={-1} className="flex min-h-svh items-center justify-center p-4 outline-none">
       <PasswordRecoveryForm mode="request" initialError={error ? errorMessages[error] ?? null : null} />
     </main>
   );

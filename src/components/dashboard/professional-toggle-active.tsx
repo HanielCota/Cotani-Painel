@@ -1,45 +1,41 @@
 "use client";
 
-import { useTransition } from "react";
 import { PowerIcon, PowerOffIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { toggleProfessionalActive } from "@/server/actions/professionals";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
+import { ConfirmAction } from "@/components/ui/confirm-action";
 import type { ProfessionalListItem } from "@/types";
 
 interface ProfessionalToggleActiveProps {
   professional: ProfessionalListItem;
 }
 
+/** Mesmo padrão de `ServiceToggleActive`: sempre confirma antes de alternar. */
 export function ProfessionalToggleActive({ professional }: ProfessionalToggleActiveProps) {
-  const [isPending, startTransition] = useTransition();
+  const isActive = professional.isActive;
 
-  function handleToggle() {
-    startTransition(async () => {
-      const result = await toggleProfessionalActive(professional.id);
-
-      if (result.status === "error") {
-        toast.error(result.message);
-        return;
-      }
-
-      toast.success(result.message);
-    });
+  async function handleToggle() {
+    const result = await toggleProfessionalActive(professional.id);
+    if (result.status === "error") {
+      toast.error(result.message);
+      return false;
+    }
+    toast.success(result.message);
   }
 
   return (
-    <Button
-      type="button"
-      variant={professional.isActive ? "outline" : "default"}
-      size="icon"
-      onClick={handleToggle}
-      disabled={isPending}
-      aria-label={professional.isActive ? `Desativar profissional ${professional.name}` : `Reativar profissional ${professional.name}`}
-      title={professional.isActive ? "Desativar profissional" : "Reativar profissional"}
-    >
-      {isPending ? <Spinner className="size-4" /> : professional.isActive ? <PowerOffIcon className="size-4" /> : <PowerIcon className="size-4" />}
-    </Button>
+    <ConfirmAction
+      trigger={<Button type="button" size="sm" variant={isActive ? "outline" : "secondary"} aria-label={`${isActive ? "Desativar" : "Reativar"} profissional ${professional.name}`} />}
+      triggerContent={<>{isActive ? <PowerOffIcon data-icon="inline-start" /> : <PowerIcon data-icon="inline-start" />}{isActive ? "Desativar" : "Reativar"}</>}
+      title={isActive ? "Desativar profissional?" : "Reativar profissional?"}
+      description={isActive
+        ? <><strong className="font-medium text-foreground">{professional.name}</strong> deixará de aparecer no agendamento on-line. O histórico de atendimentos é mantido.</>
+        : <><strong className="font-medium text-foreground">{professional.name}</strong> voltará a receber agendamentos on-line.</>}
+      confirmLabel={isActive ? "Desativar" : "Reativar"}
+      destructive={isActive}
+      onConfirm={handleToggle}
+    />
   );
 }

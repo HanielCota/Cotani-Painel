@@ -7,7 +7,8 @@ import { EmptyClinicState } from "@/components/dashboard/empty-clinic-state";
 import { PaymentRequiredState } from "@/components/dashboard/payment-required-state";
 import { ClinicSuspendedState } from "@/components/dashboard/clinic-suspended-state";
 import { SubscriptionBanner } from "@/components/dashboard/subscription-banner";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { DashboardTopbar } from "@/components/dashboard/dashboard-topbar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ensureCurrentAppUser } from "@/server/auth";
 import { getAvailableClinics, getSelectedClinicId } from "@/server/tenant";
 import { isSubscriptionActive } from "@/server/subscription";
@@ -42,10 +43,8 @@ function DashboardShell({ children, insetClassName = "bg-background", subscripti
     <SidebarProvider className="min-h-svh">
       <AppSidebar subscriptionPlan={subscriptionPlan} role={role} user={user} clinics={clinics} activeClinicId={activeClinicId} />
       <SidebarInset id="main-content" tabIndex={-1} className={insetClassName}>
-        <div className="px-4 pt-4 md:hidden">
-          <SidebarTrigger className="size-9 border border-border/60 bg-card shadow-sm" />
-        </div>
-        <div className="mx-auto flex w-full min-w-0 max-w-[1360px] flex-1 flex-col gap-5 p-4 pb-10 sm:gap-6 sm:p-6 sm:pb-12 lg:px-8 lg:py-8">
+        <DashboardTopbar showNotifications={Boolean(activeClinicId)} />
+        <div className="mx-auto flex w-full min-w-0 max-w-[1360px] flex-1 flex-col gap-6 p-4 pb-12 sm:p-6 lg:px-8 lg:pt-7">
           {children}
         </div>
       </SidebarInset>

@@ -54,7 +54,7 @@ export function MfaChallengeForm({ destination, recovery = false }: MfaChallenge
   }
 
   return (
-    <main id="main-content" tabIndex={-1} className="flex min-h-svh items-center justify-center bg-background p-4 outline-none">
+    <main id="main-content" tabIndex={-1} className="flex min-h-svh items-center justify-center p-4 outline-none">
       <AuthCard>
         {recovery ? <RecoverySteps current="mfa" includeMfa /> : null}
         <div className="mb-5 flex flex-col items-center gap-3 text-center">

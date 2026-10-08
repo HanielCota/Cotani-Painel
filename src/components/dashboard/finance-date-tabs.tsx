@@ -12,7 +12,7 @@ const periods: Array<{ id: FinancePeriod; label: string }> = [
 
 export function FinanceDateTabs({ activePeriod }: { activePeriod: FinancePeriod }) {
   return (
-    <div role="group" aria-label="Período financeiro" className="flex flex-wrap items-center gap-1 rounded-xl border border-border/80 bg-card p-1 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+    <div role="group" aria-label="Período financeiro" className="flex flex-wrap items-center gap-1 rounded-xl border border-border/80 bg-card p-1 shadow-card">
       {periods.map((period) => {
         const isActive = activePeriod === period.id;
 

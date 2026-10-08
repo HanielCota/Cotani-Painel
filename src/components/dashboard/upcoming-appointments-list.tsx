@@ -69,7 +69,7 @@ export function UpcomingAppointmentsList({ timeZone, limit = 10 }: UpcomingAppoi
             <div className="flex min-w-0 items-center gap-3">
               <div className="flex size-8 shrink-0 flex-col items-center justify-center rounded-md border bg-muted text-xs font-medium">
                 <span>{startTime.toLocaleDateString("pt-BR", { day: "2-digit", timeZone })}</span>
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   {startTime.toLocaleDateString("pt-BR", { month: "short", timeZone })}
                 </span>
               </div>

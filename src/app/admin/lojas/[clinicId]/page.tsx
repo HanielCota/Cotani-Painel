@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { adminActionLabel, paymentStatusLabel, subscriptionPlanLabel, subscriptionStatusLabel } from "@/lib/display-labels";
+import { adminActionLabel, clinicRoleLabels, paymentStatusLabel, subscriptionPlanLabel, subscriptionStatusLabel } from "@/lib/display-labels";
 import { formatCurrency, formatDateTime } from "@/lib/formatters";
 import prisma from "@/lib/prisma";
 import {
@@ -24,21 +24,22 @@ import {
   updateMembershipRoleAsPlatformAdmin,
 } from "@/server/actions/platform-admin";
 
-const roleLabels = { ADMIN: "Administrador", RECEPTIONIST: "Recepcionista", PROVIDER: "Profissional" } as const;
+const roleLabels = clinicRoleLabels;
 
-function LifecycleForm({ clinicId, action, label, variant = "default", help }: {
+function LifecycleForm({ clinicId, action, label, variant = "default", help, confirm }: {
   clinicId: string;
   action: (formData: FormData) => Promise<void>;
   label: string;
   variant?: "default" | "destructive" | "outline" | "secondary";
   help: string;
+  confirm?: { title: string; description: string };
 }) {
   return (
     <form action={action} className="space-y-3 rounded-xl border border-border/80 bg-background/50 p-4">
       <input type="hidden" name="clinicId" value={clinicId} />
       <div><p className="font-medium">{label}</p><p className="text-xs text-muted-foreground">{help}</p></div>
       <div className="space-y-1.5"><Label htmlFor={`reason-${label}`}>Motivo obrigatório</Label><Input id={`reason-${label}`} name="reason" minLength={5} maxLength={500} required placeholder="Registre a justificativa" /></div>
-      <AdminSubmitButton variant={variant}>{label}</AdminSubmitButton>
+      <AdminSubmitButton variant={variant} confirm={confirm}>{label}</AdminSubmitButton>
     </form>
   );
 }
@@ -124,9 +125,9 @@ export default async function StoreDetailPage({
           ) : clinic.operationalStatus === "SUSPENDED" ? (
             <LifecycleForm clinicId={clinic.id} action={activateClinicAsPlatformAdmin} label="Reativar loja" help="Libera novamente o painel e os agendamentos." />
           ) : (
-            <LifecycleForm clinicId={clinic.id} action={suspendClinicAsPlatformAdmin} label="Suspender loja" variant="secondary" help="Bloqueia temporariamente a operação, preservando os dados." />
+            <LifecycleForm clinicId={clinic.id} action={suspendClinicAsPlatformAdmin} label="Suspender loja" variant="secondary" help="Bloqueia temporariamente a operação, preservando os dados." confirm={{ title: "Suspender esta loja?", description: "O painel e o agendamento público ficam bloqueados até a reativação. Os dados são preservados." }} />
           )}
-          {!clinic.deletedAt ? <LifecycleForm clinicId={clinic.id} action={deleteClinicAsPlatformAdmin} label="Excluir loja" variant="destructive" help="Executa uma exclusão lógica que poderá ser revertida." /> : null}
+          {!clinic.deletedAt ? <LifecycleForm clinicId={clinic.id} action={deleteClinicAsPlatformAdmin} label="Excluir loja" variant="destructive" help="Executa uma exclusão lógica que poderá ser revertida." confirm={{ title: "Excluir esta loja?", description: "A loja sai do ar e deixa de aparecer para a equipe. A exclusão é lógica e pode ser revertida depois." }} /> : null}
           {clinic.suspensionReason ? <p className="text-sm text-muted-foreground lg:col-span-2">Último motivo: {clinic.suspensionReason}</p> : null}
         </CardContent>
       </Card>
@@ -145,14 +146,15 @@ export default async function StoreDetailPage({
                     <SelectTrigger id={`role-${membership.id}`}><SelectValue /></SelectTrigger>
                     <SelectContent><SelectItem value="ADMIN">Administrador</SelectItem><SelectItem value="RECEPTIONIST">Recepcionista</SelectItem><SelectItem value="PROVIDER">Profissional</SelectItem></SelectContent>
                   </Select>
-                  <Input name="reason" required minLength={5} maxLength={500} placeholder="Motivo da alteração" />
+                  <Label htmlFor={`role-reason-${membership.id}`} className="sr-only">Motivo da alteração</Label>
+                  <Input id={`role-reason-${membership.id}`} name="reason" required minLength={5} maxLength={500} placeholder="Motivo da alteração" />
                   <AdminSubmitButton variant="outline">Atualizar papel</AdminSubmitButton>
                 </form>
                 <form action={removeMembershipAsPlatformAdmin} className="space-y-2">
                   <input type="hidden" name="clinicId" value={clinic.id} /><input type="hidden" name="membershipId" value={membership.id} />
                   <Label htmlFor={`remove-${membership.id}`}>Remover acesso</Label>
                   <Input id={`remove-${membership.id}`} name="reason" required minLength={5} maxLength={500} placeholder="Motivo da remoção" />
-                  <AdminSubmitButton variant="destructive">Remover membro</AdminSubmitButton>
+                  <AdminSubmitButton variant="destructive" confirm={{ title: `Remover ${membership.user.name}?`, description: "A pessoa perde o acesso a esta loja imediatamente. A conta dela e os acessos a outras lojas não são afetados." }}>Remover membro</AdminSubmitButton>
                 </form>
               </div>
             </div>
