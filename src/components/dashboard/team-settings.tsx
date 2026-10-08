@@ -19,7 +19,7 @@ import {
   resendClinicInvitation,
   revokeClinicInvitation,
   updateClinicMemberRole,
-} from "@/server/actions/clinics";
+} from "@/server/actions/team";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { usePagination } from "@/hooks/use-pagination";
 import { clinicRoleLabels } from "@/lib/display-labels";

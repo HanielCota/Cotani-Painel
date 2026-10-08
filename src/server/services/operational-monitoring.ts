@@ -4,7 +4,7 @@ import type { OperationalCategory, OperationalStatus, Prisma } from "@/generated
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
-interface OperationOutcome {
+export interface OperationOutcome {
   status: OperationalStatus;
   summary?: Prisma.InputJsonValue;
   error?: string;
