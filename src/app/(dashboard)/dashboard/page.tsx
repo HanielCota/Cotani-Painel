@@ -66,6 +66,7 @@ export default withTenant(async ({ clinic }) => {
 
       <OnboardingChecklist
         bookingUrl={bookingUrl}
+        linkSharedOnServer={clinic.bookingLinkSharedAt !== null}
         hasServices={hasServices}
         hasBusinessHours={hasBusinessHours}
         hasProfessionals={hasProfessionals}
