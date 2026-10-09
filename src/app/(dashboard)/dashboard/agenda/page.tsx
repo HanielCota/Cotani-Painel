@@ -11,7 +11,7 @@ import { withTenant } from "@/server/with-tenant";
 
 export const metadata: Metadata = { title: "Agenda" };
 
-interface AgendaPageProps { searchParams: Promise<{ customerId?: string | string[]; visao?: string | string[]; data?: string | string[] }> }
+interface AgendaPageProps { searchParams: Promise<{ customerId?: string | string[]; visao?: string | string[]; data?: string | string[]; novo?: string | string[] }> }
 
 const firstParam = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value);
 export default withTenant<AgendaPageProps>(async ({ clinic, membership, role }, { searchParams }) => {
@@ -49,6 +49,7 @@ export default withTenant<AgendaPageProps>(async ({ clinic, membership, role }, 
               minStartTime={minStartTime}
               timeZone={clinic.timeZone}
               initialCustomerId={customers.some((customer) => customer.id === initialCustomerId) ? initialCustomerId : undefined}
+              defaultOpen={firstParam(query.novo) === "1"}
             />
           ) : undefined
         }

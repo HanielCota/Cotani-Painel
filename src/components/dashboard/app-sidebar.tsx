@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CheckIcon, ChevronsUpDownIcon, LogOutIcon, StoreIcon } from "lucide-react";
 
+import { CommandPalette } from "@/components/dashboard/command-palette";
 import { NotificationBell } from "@/components/dashboard/notification-bell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -188,6 +189,15 @@ export function AppSidebar({ subscriptionPlan, role, user, clinics, activeClinic
       </SidebarHeader>
 
       <SidebarContent className="gap-1 px-1">
+        {role ? (
+          <SidebarGroup className="pb-0">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <CommandPalette sections={sections} canCreateAppointment={role !== "PROVIDER"} canSearchCustomers={role !== "PROVIDER"} />
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroup>
+        ) : null}
         {sections.map((section) => (
           <SidebarGroup key={section.title}>
             <SidebarGroupLabel>{section.title}</SidebarGroupLabel>
