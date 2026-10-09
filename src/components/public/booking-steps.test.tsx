@@ -5,6 +5,9 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { BookingSteps } from "@/components/public/booking-steps";
 import { render } from "@/test/utils";
 
+// Fluxos completos digitam tecla por tecla; com a suíte inteira em paralelo passam de 5 s.
+vi.setConfig({ testTimeout: 15_000 });
+
 const mockPush = vi.fn();
 const mockRefetch = vi.fn();
 
