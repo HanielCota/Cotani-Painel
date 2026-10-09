@@ -75,7 +75,10 @@ function shiftDateKey(dateKey: string, days: number) {
 }
 
 function rawFinancePeriodBounds(period: FinancePeriod, timeZone: string, now: Date) {
-  const { startOfToday, startOfTomorrow, startOfMonth, startOfNextMonth, startOfPreviousMonth } = getClinicDateBounds(timeZone, now);
+  const { startOfToday, startOfTomorrow, startOfMonth, startOfNextMonth, startOfPreviousMonth } = getClinicDateBounds(
+    timeZone,
+    now,
+  );
   const todayKey = formatClinicDateKey(now, timeZone);
   const year = Number(todayKey.slice(0, 4));
 
@@ -83,7 +86,7 @@ function rawFinancePeriodBounds(period: FinancePeriod, timeZone: string, now: Da
     return {
       start: startOfToday,
       end: startOfTomorrow,
-      previousStart: parseClinicDateTime(`${shiftDateKey(todayKey, -1)}T00:00`, timeZone)!,
+      previousStart: clinicDateTime(`${shiftDateKey(todayKey, -1)}T00:00`, timeZone),
     };
   }
 
@@ -91,17 +94,17 @@ function rawFinancePeriodBounds(period: FinancePeriod, timeZone: string, now: Da
     const days = period === "7days" ? 7 : 30;
     const startKey = shiftDateKey(todayKey, -(days - 1));
     return {
-      start: parseClinicDateTime(`${startKey}T00:00`, timeZone)!,
+      start: clinicDateTime(`${startKey}T00:00`, timeZone),
       end: startOfTomorrow,
-      previousStart: parseClinicDateTime(`${shiftDateKey(startKey, -days)}T00:00`, timeZone)!,
+      previousStart: clinicDateTime(`${shiftDateKey(startKey, -days)}T00:00`, timeZone),
     };
   }
 
   if (period === "year") {
     return {
-      start: parseClinicDateTime(`${year}-01-01T00:00`, timeZone)!,
-      end: parseClinicDateTime(`${year + 1}-01-01T00:00`, timeZone)!,
-      previousStart: parseClinicDateTime(`${year - 1}-01-01T00:00`, timeZone)!,
+      start: clinicDateTime(`${year}-01-01T00:00`, timeZone),
+      end: clinicDateTime(`${year + 1}-01-01T00:00`, timeZone),
+      previousStart: clinicDateTime(`${year - 1}-01-01T00:00`, timeZone),
     };
   }
 
@@ -118,6 +121,13 @@ export function financePeriodBounds(period: FinancePeriod, timeZone: string, now
   const elapsed = Math.max(0, Math.min(now.getTime(), bounds.end.getTime()) - bounds.start.getTime());
   const previousEnd = new Date(Math.min(bounds.previousStart.getTime() + elapsed, bounds.start.getTime()));
   return { ...bounds, previousEnd };
+}
+
+/** Data/hora no fuso do negócio a partir de uma chave gerada aqui mesmo; inválida é erro de programação. */
+function clinicDateTime(value: string, timeZone: string): Date {
+  const date = parseClinicDateTime(value, timeZone);
+  if (!date) throw new Error(`Data inválida: ${value}`);
+  return date;
 }
 
 export async function getFinanceAppointmentsPage(
@@ -177,10 +187,7 @@ function toFinanceAppointment(appointment: {
 }
 
 export async function getFinanceMetrics(clinic: ClinicModel, period: FinancePeriod = "month"): Promise<FinanceMetrics> {
-  const {
-    startOfMonth,
-    startOfNextMonth,
-  } = getClinicDateBounds(clinic.timeZone);
+  const { startOfMonth, startOfNextMonth } = getClinicDateBounds(clinic.timeZone);
   const periodBounds = financePeriodBounds(period, clinic.timeZone);
 
   const monthlyBounds = getClinicMonthlyBounds(clinic.timeZone, 6);
@@ -260,9 +267,7 @@ export async function getFinanceMetrics(clinic: ClinicModel, period: FinancePeri
 
   // Evolução mensal: receita e ticket médio dos últimos meses.
   const monthlyRevenue = monthlyBounds.map(({ label, start, end }) => {
-    const monthAppointmentsInBounds = historyAppointments.filter(
-      (a) => a.startTime >= start && a.startTime < end,
-    );
+    const monthAppointmentsInBounds = historyAppointments.filter((a) => a.startTime >= start && a.startTime < end);
     const revenue = monthAppointmentsInBounds.reduce((sum, a) => sum + Number(a.totalPrice), 0);
     const ticket = monthAppointmentsInBounds.length > 0 ? roundCents(revenue / monthAppointmentsInBounds.length) : 0;
     return { month: label, revenue, ticket };
@@ -287,7 +292,8 @@ export async function getFinanceMetrics(clinic: ClinicModel, period: FinancePeri
       return dayAppointments.length > 0 ? roundCents(dayRevenue / dayAppointments.length) : 0;
     }),
     cancellations: seriesDayKeys.map((dayKey) => {
-      return (appointmentsByLocalDay.get(dayKey) ?? []).filter((a) => a.status === "CANCELED" || a.status === "NO_SHOW").length;
+      return (appointmentsByLocalDay.get(dayKey) ?? []).filter((a) => a.status === "CANCELED" || a.status === "NO_SHOW")
+        .length;
     }),
   };
 

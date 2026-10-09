@@ -53,7 +53,11 @@ export interface ReportsMetrics {
 
 const priceFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
-export interface ReportsQueryOptions { from?: Date; to?: Date; clinicIds?: string[] }
+export interface ReportsQueryOptions {
+  from?: Date;
+  to?: Date;
+  clinicIds?: string[];
+}
 
 function getReportScope(clinic: ClinicModel, options?: ReportsQueryOptions) {
   const { startOfMonth, startOfNextMonth } = getClinicDateBounds(clinic.timeZone);
@@ -65,8 +69,13 @@ function getReportScope(clinic: ClinicModel, options?: ReportsQueryOptions) {
 }
 
 function toReportAppointment(appointment: {
-  id: string; startTime: Date; status: string; totalPrice: unknown;
-  customer: { name: string }; service: { name: string }; professional: { name: string } | null;
+  id: string;
+  startTime: Date;
+  status: string;
+  totalPrice: unknown;
+  customer: { name: string };
+  service: { name: string };
+  professional: { name: string } | null;
 }): ReportAppointment {
   return {
     id: appointment.id,
@@ -79,7 +88,12 @@ function toReportAppointment(appointment: {
   };
 }
 
-export async function getReportAppointmentsPage(clinic: ClinicModel, options: ReportsQueryOptions, page: number, pageSize = 15) {
+export async function getReportAppointmentsPage(
+  clinic: ClinicModel,
+  options: ReportsQueryOptions,
+  page: number,
+  pageSize = 15,
+) {
   const { reportStart, reportEnd, clinicIds } = getReportScope(clinic, options);
   const where = { clinicId: { in: clinicIds }, startTime: { gte: reportStart, lt: reportEnd } };
   const [items, total] = await Promise.all([
@@ -138,10 +152,21 @@ export async function getReportsMetrics(clinic: ClinicModel, options?: ReportsQu
       include: { service: true },
       orderBy: { startTime: "asc" },
     }),
-    prisma.notification.groupBy({ by: ["channel"], where: { clinicId: { in: clinicIds }, kind: "CONFIRMATION", status: "SENT", sentAt: { gte: reportStart, lt: reportEnd } }, _count: { _all: true } }),
+    prisma.notification.groupBy({
+      by: ["channel"],
+      where: {
+        clinicId: { in: clinicIds },
+        kind: "CONFIRMATION",
+        status: "SENT",
+        sentAt: { gte: reportStart, lt: reportEnd },
+      },
+      _count: { _all: true },
+    }),
   ]);
 
-  const monthAppointmentsTotal = monthAppointmentsResult.filter((appointment) => appointment.status !== "CANCELED").length;
+  const monthAppointmentsTotal = monthAppointmentsResult.filter(
+    (appointment) => appointment.status !== "CANCELED",
+  ).length;
   const confirmedOrCompletedThisMonth = monthAppointmentsResult.filter((a) =>
     ["CONFIRMED", "COMPLETED"].includes(a.status),
   ).length;
@@ -159,31 +184,33 @@ export async function getReportsMetrics(clinic: ClinicModel, options?: ReportsQu
   const activeCustomersThisMonth = new Set(
     monthAppointmentsResult.filter((a) => a.status !== "CANCELED").map((a) => a.customerId),
   ).size;
-  const retentionRate = activeCustomersThisMonth ? Math.round((returningCustomers / activeCustomersThisMonth) * 100) : 0;
+  const retentionRate = activeCustomersThisMonth
+    ? Math.round((returningCustomers / activeCustomersThisMonth) * 100)
+    : 0;
   const weekdayLabels = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
   const noShowCounts = Array.from({ length: 7 }, () => 0);
   for (const appointment of monthAppointmentsResult.filter((item) => item.status === "NO_SHOW")) {
-    const short = new Intl.DateTimeFormat("en-US", { timeZone: clinic.timeZone, weekday: "short" }).format(appointment.startTime);
-    const index = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(short); if (index >= 0) noShowCounts[index] += 1;
+    const short = new Intl.DateTimeFormat("en-US", { timeZone: clinic.timeZone, weekday: "short" }).format(
+      appointment.startTime,
+    );
+    const index = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(short);
+    if (index >= 0) noShowCounts[index] += 1;
   }
   const noShowsByWeekday = weekdayLabels.map((day, index) => ({ day, count: noShowCounts[index] }));
-  const confirmationsByChannel = confirmationNotifications.map((item) => ({ channel: item.channel, sent: item._count._all }));
+  const confirmationsByChannel = confirmationNotifications.map((item) => ({
+    channel: item.channel,
+    sent: item._count._all,
+  }));
 
   const confirmationRate =
-    monthAppointmentsTotal > 0
-      ? Math.round((confirmedOrCompletedThisMonth / monthAppointmentsTotal) * 100)
-      : 0;
-  const noShowRate =
-    monthAppointmentsTotal > 0 ? Math.round((noShowsThisMonth / monthAppointmentsTotal) * 100) : 0;
-  const cancellationRate = monthAppointmentsResult.length > 0
-    ? Math.round((canceledThisMonth / monthAppointmentsResult.length) * 100)
-    : 0;
+    monthAppointmentsTotal > 0 ? Math.round((confirmedOrCompletedThisMonth / monthAppointmentsTotal) * 100) : 0;
+  const noShowRate = monthAppointmentsTotal > 0 ? Math.round((noShowsThisMonth / monthAppointmentsTotal) * 100) : 0;
+  const cancellationRate =
+    monthAppointmentsResult.length > 0 ? Math.round((canceledThisMonth / monthAppointmentsResult.length) * 100) : 0;
 
   // Dados mensais: agendamentos e receita por mês.
   const monthlyData: MonthlyReportData[] = monthlyBounds.map(({ label, start, end }) => {
-    const appointmentsInBounds = historyAppointments.filter(
-      (a) => a.startTime >= start && a.startTime < end,
-    );
+    const appointmentsInBounds = historyAppointments.filter((a) => a.startTime >= start && a.startTime < end);
     const appointments = appointmentsInBounds.length;
     const revenue = appointmentsInBounds
       .filter((a) => a.status === "COMPLETED")
@@ -197,16 +224,17 @@ export async function getReportsMetrics(clinic: ClinicModel, options?: ReportsQu
     if (appointment.status === "CANCELED") continue;
     const existing = serviceMap.get(appointment.serviceId);
     const price = Number(appointment.totalPrice);
-    if (existing) {
-      existing.count += 1;
-      if (appointment.status === "COMPLETED") existing.revenue += price;
-    } else {
+    if (!existing) {
       serviceMap.set(appointment.serviceId, {
         name: appointment.service.name,
         count: 1,
         revenue: appointment.status === "COMPLETED" ? price : 0,
       });
+      continue;
     }
+
+    existing.count += 1;
+    if (appointment.status === "COMPLETED") existing.revenue += price;
   }
   const topServices = Array.from(serviceMap.values())
     .sort((a, b) => b.count - a.count)
@@ -219,12 +247,13 @@ export async function getReportsMetrics(clinic: ClinicModel, options?: ReportsQu
     const existing = professionalMap.get(appointment.professionalId ?? "");
     if (existing) {
       existing.count += 1;
-    } else if (appointment.professional) {
-      professionalMap.set(appointment.professionalId ?? "", {
-        name: appointment.professional.name,
-        count: 1,
-      });
+      continue;
     }
+
+    professionalMap.set(appointment.professionalId ?? "", {
+      name: appointment.professional.name,
+      count: 1,
+    });
   }
   const topProfessionals = Array.from(professionalMap.values())
     .sort((a, b) => b.count - a.count)

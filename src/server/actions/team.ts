@@ -21,7 +21,11 @@ const inviteSchema = z.object({
   role: z.enum(ROLES),
   professionalId: z.uuid().optional(),
 });
-const membershipSchema = z.object({ membershipId: z.uuid(), role: z.enum(ROLES).optional(), professionalId: z.uuid().optional() });
+const membershipSchema = z.object({
+  membershipId: z.uuid(),
+  role: z.enum(ROLES).optional(),
+  professionalId: z.uuid().optional(),
+});
 const invitationSchema = z.object({ invitationId: z.uuid() });
 
 function revalidateTeam() {
@@ -37,27 +41,46 @@ async function sendInvitationEmail(email: string, invitationId: string) {
 }
 
 export async function inviteClinicMember(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
-  const parsed = inviteSchema.safeParse({ email: formData.get("email"), role: formData.get("role"), professionalId: formData.get("professionalId") || undefined });
+  const parsed = inviteSchema.safeParse({
+    email: formData.get("email"),
+    role: formData.get("role"),
+    professionalId: formData.get("professionalId") || undefined,
+  });
   if (!parsed.success) return { status: "error", message: "Revise o e-mail e o papel do convite." };
   const tenant = requireRole(await getTenantContext(), ["ADMIN"]);
   const { authUser, appUser } = await ensureCurrentAppUser();
   if (!(await allowClinicInvitation(tenant.clinic.id, authUser.id))) {
     return { status: "error", message: "Muitos convites enviados. Aguarde antes de tentar novamente." };
   }
-  if (parsed.data.role === "PROVIDER" && !parsed.data.professionalId) return { status: "error", message: "Selecione qual profissional usará este acesso." };
+  if (parsed.data.role === "PROVIDER" && !parsed.data.professionalId)
+    return { status: "error", message: "Selecione qual profissional usará este acesso." };
   const selectedProfessional = parsed.data.professionalId
-    ? await prisma.professional.findFirst({ where: { id: parsed.data.professionalId, clinicId: tenant.clinic.id, isActive: true }, select: { id: true, membershipId: true } })
+    ? await prisma.professional.findFirst({
+        where: { id: parsed.data.professionalId, clinicId: tenant.clinic.id, isActive: true },
+        select: { id: true, membershipId: true },
+      })
     : null;
-  if (parsed.data.professionalId && (!selectedProfessional || selectedProfessional.membershipId)) return { status: "error", message: "O profissional selecionado não está disponível para vínculo." };
+  if (parsed.data.professionalId && (!selectedProfessional || selectedProfessional.membershipId))
+    return { status: "error", message: "O profissional selecionado não está disponível para vínculo." };
 
   // Quem já tem conta recebe o acesso direto, sem e-mail de convite.
-  const existingUser = await prisma.user.findFirst({ where: { email: { equals: parsed.data.email, mode: "insensitive" } } });
+  const existingUser = await prisma.user.findFirst({
+    where: { email: { equals: parsed.data.email, mode: "insensitive" } },
+  });
   if (existingUser) {
-    const existingMembership = await prisma.membership.findUnique({ where: { clinicId_userId: { clinicId: tenant.clinic.id, userId: existingUser.id } } });
+    const existingMembership = await prisma.membership.findUnique({
+      where: { clinicId_userId: { clinicId: tenant.clinic.id, userId: existingUser.id } },
+    });
     if (existingMembership) return { status: "error", message: "Este usuário já faz parte do negócio." };
     await prisma.$transaction(async (transaction) => {
-      const membership = await transaction.membership.create({ data: { clinicId: tenant.clinic.id, userId: existingUser.id, role: parsed.data.role } });
-      if (selectedProfessional) await transaction.professional.update({ where: { id: selectedProfessional.id }, data: { membershipId: membership.id } });
+      const membership = await transaction.membership.create({
+        data: { clinicId: tenant.clinic.id, userId: existingUser.id, role: parsed.data.role },
+      });
+      if (selectedProfessional)
+        await transaction.professional.update({
+          where: { id: selectedProfessional.id },
+          data: { membershipId: membership.id },
+        });
     });
     revalidateTeam();
     return { status: "success", message: "Acesso adicionado à conta existente." };
@@ -68,14 +91,27 @@ export async function inviteClinicMember(_previousState: ActionResult, formData:
     data: { status: "REVOKED" },
   });
   const invitation = await prisma.clinicInvitation.create({
-    data: { clinicId: tenant.clinic.id, email: parsed.data.email, role: parsed.data.role, professionalId: selectedProfessional?.id, invitedByUserId: appUser.id, expiresAt: new Date(Date.now() + INVITATION_TTL_MS) },
+    data: {
+      clinicId: tenant.clinic.id,
+      email: parsed.data.email,
+      role: parsed.data.role,
+      professionalId: selectedProfessional?.id,
+      invitedByUserId: appUser.id,
+      expiresAt: new Date(Date.now() + INVITATION_TTL_MS),
+    },
   });
   const { data, error } = await sendInvitationEmail(parsed.data.email, invitation.id);
   if (error) {
-    const alreadyRegistered = `${error.code ?? ""} ${error.message}`.toLowerCase().match(/already|registered|exists|existente/);
+    const alreadyRegistered = `${error.code ?? ""} ${error.message}`
+      .toLowerCase()
+      .match(/already|registered|exists|existente/);
     if (alreadyRegistered) {
       revalidateTeam();
-      return { status: "success", message: "Convite registrado. Como essa pessoa já possui conta, peça para ela entrar novamente com o mesmo e-mail." };
+      return {
+        status: "success",
+        message:
+          "Convite registrado. Como essa pessoa já possui conta, peça para ela entrar novamente com o mesmo e-mail.",
+      };
     }
     await prisma.clinicInvitation.update({ where: { id: invitation.id }, data: { status: "REVOKED" } });
     return { status: "error", message: "Não foi possível enviar o convite. Tente novamente em instantes." };
@@ -86,12 +122,19 @@ export async function inviteClinicMember(_previousState: ActionResult, formData:
 }
 
 export async function updateClinicMemberRole(formData: FormData): Promise<ActionResult> {
-  const parsed = membershipSchema.safeParse({ membershipId: formData.get("membershipId"), role: formData.get("role"), professionalId: formData.get("professionalId") || undefined });
+  const parsed = membershipSchema.safeParse({
+    membershipId: formData.get("membershipId"),
+    role: formData.get("role"),
+    professionalId: formData.get("professionalId") || undefined,
+  });
   if (!parsed.success || !parsed.data.role) return { status: "error", message: "Revise o papel informado." };
   const { clinic } = requireRole(await getTenantContext(), ["ADMIN"]);
-  const membership = await prisma.membership.findFirst({ where: { id: parsed.data.membershipId, clinicId: clinic.id } });
+  const membership = await prisma.membership.findFirst({
+    where: { id: parsed.data.membershipId, clinicId: clinic.id },
+  });
   if (!membership) return { status: "error", message: "Membro não encontrado." };
-  if (parsed.data.role === "PROVIDER" && !parsed.data.professionalId) return { status: "error", message: "Selecione o profissional vinculado." };
+  if (parsed.data.role === "PROVIDER" && !parsed.data.professionalId)
+    return { status: "error", message: "Selecione o profissional vinculado." };
   let blockedLastAdmin = false;
   await prisma.$transaction(async (transaction) => {
     await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
@@ -99,12 +142,23 @@ export async function updateClinicMemberRole(formData: FormData): Promise<Action
     if (!current) return;
     if (current.role === "ADMIN" && parsed.data.role !== "ADMIN") {
       const adminCount = await transaction.membership.count({ where: { clinicId: clinic.id, role: "ADMIN" } });
-      if (adminCount <= 1) { blockedLastAdmin = true; return; }
+      if (adminCount <= 1) {
+        blockedLastAdmin = true;
+        return;
+      }
     }
     await transaction.professional.updateMany({ where: { membershipId: membership.id }, data: { membershipId: null } });
     await transaction.membership.update({ where: { id: membership.id }, data: { role: parsed.data.role } });
     if (parsed.data.role === "PROVIDER" && parsed.data.professionalId) {
-      const professional = await transaction.professional.findFirst({ where: { id: parsed.data.professionalId, clinicId: clinic.id, isActive: true, OR: [{ membershipId: null }, { membershipId: membership.id }] }, select: { id: true } });
+      const professional = await transaction.professional.findFirst({
+        where: {
+          id: parsed.data.professionalId,
+          clinicId: clinic.id,
+          isActive: true,
+          OR: [{ membershipId: null }, { membershipId: membership.id }],
+        },
+        select: { id: true },
+      });
       if (!professional) throw new Error("Profissional indisponível para vínculo.");
       await transaction.professional.update({ where: { id: professional.id }, data: { membershipId: membership.id } });
     }
@@ -118,8 +172,11 @@ export async function removeClinicMember(formData: FormData): Promise<ActionResu
   const parsed = membershipSchema.safeParse({ membershipId: formData.get("membershipId") });
   if (!parsed.success) return { status: "error", message: "Membro inválido." };
   const { clinic, membership: actorMembership } = requireRole(await getTenantContext(), ["ADMIN"]);
-  const membership = await prisma.membership.findFirst({ where: { id: parsed.data.membershipId, clinicId: clinic.id } });
-  if (!membership || membership.id === actorMembership.id) return { status: "error", message: "Você não pode remover seu próprio acesso." };
+  const membership = await prisma.membership.findFirst({
+    where: { id: parsed.data.membershipId, clinicId: clinic.id },
+  });
+  if (!membership || membership.id === actorMembership.id)
+    return { status: "error", message: "Você não pode remover seu próprio acesso." };
   let blockedLastAdmin = false;
   await prisma.$transaction(async (transaction) => {
     await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
@@ -127,7 +184,10 @@ export async function removeClinicMember(formData: FormData): Promise<ActionResu
     if (!current) return;
     if (current.role === "ADMIN") {
       const adminCount = await transaction.membership.count({ where: { clinicId: clinic.id, role: "ADMIN" } });
-      if (adminCount <= 1) { blockedLastAdmin = true; return; }
+      if (adminCount <= 1) {
+        blockedLastAdmin = true;
+        return;
+      }
     }
     await transaction.membership.delete({ where: { id: current.id } });
   });
@@ -140,12 +200,17 @@ export async function revokeClinicInvitation(formData: FormData) {
   const parsed = invitationSchema.safeParse({ invitationId: formData.get("invitationId") });
   if (!parsed.success) return;
   const { clinic } = requireRole(await getTenantContext(), ["ADMIN"]);
-  const invitation = await prisma.clinicInvitation.findFirst({ where: { id: parsed.data.invitationId, clinicId: clinic.id, status: "PENDING" }, select: { id: true, authUserId: true } });
+  const invitation = await prisma.clinicInvitation.findFirst({
+    where: { id: parsed.data.invitationId, clinicId: clinic.id, status: "PENDING" },
+    select: { id: true, authUserId: true },
+  });
   if (!invitation) return;
   await prisma.clinicInvitation.update({ where: { id: invitation.id }, data: { status: "REVOKED" } });
   // Remove a conta criada pelo convite se ela nunca foi confirmada e não há outro convite ativo.
   if (invitation.authUserId) {
-    const remaining = await prisma.clinicInvitation.count({ where: { authUserId: invitation.authUserId, status: "PENDING", expiresAt: { gt: new Date() } } });
+    const remaining = await prisma.clinicInvitation.count({
+      where: { authUserId: invitation.authUserId, status: "PENDING", expiresAt: { gt: new Date() } },
+    });
     if (remaining === 0) {
       const supabase = createAdminClient();
       const { data } = await supabase.auth.admin.getUserById(invitation.authUserId);
@@ -159,11 +224,16 @@ export async function resendClinicInvitation(formData: FormData): Promise<Action
   const parsed = invitationSchema.safeParse({ invitationId: formData.get("invitationId") });
   if (!parsed.success) return { status: "error", message: "Convite inválido." };
   const { clinic } = requireRole(await getTenantContext(), ["ADMIN"]);
-  const invitation = await prisma.clinicInvitation.findFirst({ where: { id: parsed.data.invitationId, clinicId: clinic.id, status: "PENDING" } });
+  const invitation = await prisma.clinicInvitation.findFirst({
+    where: { id: parsed.data.invitationId, clinicId: clinic.id, status: "PENDING" },
+  });
   if (!invitation) return { status: "error", message: "Convite não encontrado." };
   const { data, error } = await sendInvitationEmail(invitation.email, invitation.id);
   if (error) return { status: "error", message: "Não foi possível reenviar o convite agora." };
-  await prisma.clinicInvitation.update({ where: { id: invitation.id }, data: { authUserId: data.user.id, expiresAt: new Date(Date.now() + INVITATION_TTL_MS) } });
+  await prisma.clinicInvitation.update({
+    where: { id: invitation.id },
+    data: { authUserId: data.user.id, expiresAt: new Date(Date.now() + INVITATION_TTL_MS) },
+  });
   revalidateTeam();
   return { status: "success", message: "Convite reenviado." };
 }

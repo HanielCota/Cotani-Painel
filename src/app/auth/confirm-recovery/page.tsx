@@ -28,14 +28,31 @@ const errorMessages: Record<string, string> = {
   mismatch: "As senhas digitadas não são iguais.",
   weak_password: "Essa senha foi considerada fraca. Escolha uma senha diferente e mais forte.",
   same_password: "A nova senha precisa ser diferente da senha anterior.",
-  mfa_unavailable: "Não foi possível confirmar a verificação em duas etapas da sua conta. Tente novamente em instantes.",
+  mfa_unavailable:
+    "Não foi possível confirmar a verificação em duas etapas da sua conta. Tente novamente em instantes.",
   retry: "Não foi possível salvar a senha. Tente novamente.",
 };
 
-function Header({ icon: Icon, title, description, tone = "primary" }: { icon: typeof KeyRoundIcon; title: string; description: React.ReactNode; tone?: "primary" | "destructive" }) {
+function Header({
+  icon: Icon,
+  title,
+  description,
+  tone = "primary",
+}: {
+  icon: typeof KeyRoundIcon;
+  title: string;
+  description: React.ReactNode;
+  tone?: "primary" | "destructive";
+}) {
   return (
     <div className="mb-5 flex flex-col items-center gap-3 text-center">
-      <span className={tone === "destructive" ? "flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive" : "flex size-12 items-center justify-center rounded-full bg-primary/15 text-primary"}>
+      <span
+        className={
+          tone === "destructive"
+            ? "flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive"
+            : "flex size-12 items-center justify-center rounded-full bg-primary/15 text-primary"
+        }
+      >
         <Icon aria-hidden="true" className="size-6" />
       </span>
       <div>
@@ -59,14 +76,140 @@ function FormError({ message }: { message: string | null }) {
 function BackToSignIn() {
   return (
     <form action={signOutCurrentSession} className="mt-2">
-      <Button type="submit" variant="ghost" className="w-full">Cancelar e voltar ao login</Button>
+      <Button type="submit" variant="ghost" className="w-full">
+        Cancelar e voltar ao login
+      </Button>
     </form>
+  );
+}
+
+interface RecoveryStepProps {
+  invalid: boolean;
+  recoverySession: boolean;
+  mfa: Awaited<ReturnType<typeof getRecoveryMfaState>> | null;
+  formError: string | null;
+  email: string | null;
+}
+
+/** Conteúdo de cada etapa da redefinição: link inválido, confirmação, nova senha ou falha. */
+function RecoveryStep({ invalid, recoverySession, mfa, formError, email }: RecoveryStepProps) {
+  if (invalid) {
+    return (
+      <>
+        <Header
+          icon={ShieldAlertIcon}
+          tone="destructive"
+          title="Link inválido ou expirado"
+          description="Por segurança, cada link de redefinição funciona uma única vez e por tempo limitado."
+        />
+        <Link href="/forgot-password" className={buttonVariants({ className: "w-full" })}>
+          Solicitar um novo link
+        </Link>
+        <BackToSignIn />
+      </>
+    );
+  }
+
+  if (!recoverySession) {
+    // Etapa 1: o token do e-mail só é usado quando a pessoa confirma aqui.
+    return (
+      <>
+        <Header
+          icon={LinkIcon}
+          title="Redefinir sua senha"
+          description="Confirme que foi você quem pediu a redefinição para continuar."
+        />
+        <form action="/auth/callback" method="post" className="space-y-3">
+          <input type="hidden" name="intent" value="begin" />
+          <FormError message={formError} />
+          <Button type="submit" className="w-full">
+            Continuar
+          </Button>
+        </form>
+        <p className="mt-3 text-center text-xs text-muted-foreground">
+          Não pediu a redefinição? Ignore o e-mail; sua senha atual continua valendo.
+        </p>
+        <BackToSignIn />
+      </>
+    );
+  }
+
+  if (mfa?.status === "satisfied") {
+    // Etapa final: link confirmado (e 2FA validado, se a conta tiver).
+    return (
+      <>
+        <RecoverySteps current="password" includeMfa={mfa.enrolled} />
+        <Header
+          icon={KeyRoundIcon}
+          title="Crie uma nova senha"
+          description={
+            email ? (
+              <>
+                Para a conta <strong className="font-medium text-foreground">{email}</strong>.
+              </>
+            ) : (
+              "Escolha uma senha que você não use em outros sites."
+            )
+          }
+        />
+        <form action="/auth/callback" method="post" className="space-y-4">
+          <input type="hidden" name="intent" value="password" />
+          {email ? (
+            <input type="text" name="username" autoComplete="username" defaultValue={email} readOnly hidden />
+          ) : null}
+          <PasswordField
+            id="password"
+            name="password"
+            label="Nova senha"
+            hint="Mínimo de 8 caracteres."
+            autoComplete="new-password"
+            minLength={8}
+            maxLength={256}
+            required
+            autoFocus
+          />
+          <PasswordField
+            id="confirmPassword"
+            name="confirmPassword"
+            label="Confirme a nova senha"
+            autoComplete="new-password"
+            minLength={8}
+            maxLength={256}
+            required
+          />
+          <FormError message={formError} />
+          <Button type="submit" className="w-full">
+            Salvar nova senha
+          </Button>
+          <p className="text-center text-xs text-muted-foreground">
+            Ao salvar, todas as sessões abertas da conta são encerradas e você entra novamente com a nova senha.
+          </p>
+        </form>
+        <BackToSignIn />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Header
+        icon={ShieldAlertIcon}
+        tone="destructive"
+        title="Não foi possível continuar"
+        description="Não conseguimos confirmar a segurança da sua conta agora."
+      />
+      <FormError message={formError ?? errorMessages.mfa_unavailable} />
+      <Link href="/auth/confirm-recovery" className={buttonVariants({ className: "mt-3 w-full" })}>
+        Tentar novamente
+      </Link>
+      <BackToSignIn />
+    </>
   );
 }
 
 export default async function ConfirmRecoveryPage({ searchParams }: ConfirmRecoveryPageProps) {
   const params = await searchParams;
-  const formError = params.error ? errorMessages[params.error] ?? null : null;
+  const formError = params.error ? (errorMessages[params.error] ?? null) : null;
 
   const supabase = await createClient();
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
@@ -75,62 +218,15 @@ export default async function ConfirmRecoveryPage({ searchParams }: ConfirmRecov
   if (params.error !== "invalid" && mfa?.status === "required") redirect("/auth/recovery-mfa");
   const email = typeof claimsData?.claims?.email === "string" ? claimsData.claims.email : null;
 
-  let content: React.ReactNode;
-
-  if (params.error === "invalid") {
-    content = (
-      <>
-        <Header icon={ShieldAlertIcon} tone="destructive" title="Link inválido ou expirado" description="Por segurança, cada link de redefinição funciona uma única vez e por tempo limitado." />
-        <Link href="/forgot-password" className={buttonVariants({ className: "w-full" })}>Solicitar um novo link</Link>
-        <BackToSignIn />
-      </>
-    );
-  } else if (!recoverySession) {
-    // Etapa 1: o token do e-mail só é usado quando a pessoa confirma aqui.
-    content = (
-      <>
-        <Header icon={LinkIcon} title="Redefinir sua senha" description="Confirme que foi você quem pediu a redefinição para continuar." />
-        <form action="/auth/callback" method="post" className="space-y-3">
-          <input type="hidden" name="intent" value="begin" />
-          <FormError message={formError} />
-          <Button type="submit" className="w-full">Continuar</Button>
-        </form>
-        <p className="mt-3 text-center text-xs text-muted-foreground">Não pediu a redefinição? Ignore o e-mail; sua senha atual continua valendo.</p>
-        <BackToSignIn />
-      </>
-    );
-  } else if (mfa?.status === "satisfied") {
-    // Etapa final: link confirmado (e 2FA validado, se a conta tiver).
-    content = (
-      <>
-        <RecoverySteps current="password" includeMfa={mfa.enrolled} />
-        <Header
-          icon={KeyRoundIcon}
-          title="Crie uma nova senha"
-          description={email ? <>Para a conta <strong className="font-medium text-foreground">{email}</strong>.</> : "Escolha uma senha que você não use em outros sites."}
-        />
-        <form action="/auth/callback" method="post" className="space-y-4">
-          <input type="hidden" name="intent" value="password" />
-          {email ? <input type="text" name="username" autoComplete="username" defaultValue={email} readOnly hidden /> : null}
-          <PasswordField id="password" name="password" label="Nova senha" hint="Mínimo de 8 caracteres." autoComplete="new-password" minLength={8} maxLength={256} required autoFocus />
-          <PasswordField id="confirmPassword" name="confirmPassword" label="Confirme a nova senha" autoComplete="new-password" minLength={8} maxLength={256} required />
-          <FormError message={formError} />
-          <Button type="submit" className="w-full">Salvar nova senha</Button>
-          <p className="text-center text-xs text-muted-foreground">Ao salvar, todas as sessões abertas da conta são encerradas e você entra novamente com a nova senha.</p>
-        </form>
-        <BackToSignIn />
-      </>
-    );
-  } else {
-    content = (
-      <>
-        <Header icon={ShieldAlertIcon} tone="destructive" title="Não foi possível continuar" description="Não conseguimos confirmar a segurança da sua conta agora." />
-        <FormError message={formError ?? errorMessages.mfa_unavailable} />
-        <Link href="/auth/confirm-recovery" className={buttonVariants({ className: "mt-3 w-full" })}>Tentar novamente</Link>
-        <BackToSignIn />
-      </>
-    );
-  }
+  const content = (
+    <RecoveryStep
+      invalid={params.error === "invalid"}
+      recoverySession={recoverySession}
+      mfa={mfa}
+      formError={formError}
+      email={email}
+    />
+  );
 
   return (
     <main id="main-content" tabIndex={-1} className="flex min-h-svh items-center justify-center p-4 outline-none">

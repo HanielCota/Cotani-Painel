@@ -41,7 +41,13 @@ function recoveryErrorMessage(error: { code?: string; message: string }, mode: "
  *   Sessões de *recuperação* nunca usam esta tela: são desviadas para o fluxo
  *   protegido em `/auth/confirm-recovery`, que exige 2FA quando existir.
  */
-export function PasswordRecoveryForm({ mode, initialError = null }: { mode: "request" | "update"; initialError?: string | null }) {
+export function PasswordRecoveryForm({
+  mode,
+  initialError = null,
+}: {
+  mode: "request" | "update";
+  initialError?: string | null;
+}) {
   const [pending, setPending] = useState(false);
   const [ready, setReady] = useState(mode === "request");
   const [requestedEmail, setRequestedEmail] = useState<string | null>(null);
@@ -69,7 +75,12 @@ export function PasswordRecoveryForm({ mode, initialError = null }: { mode: "req
       if (active) setReady(Boolean(session));
     }
 
-    void supabase.auth.getSession().then(({ data, error }) => handleSession(error ? null : data.session));
+    async function loadSession() {
+      const { data, error } = await supabase.auth.getSession();
+      await handleSession(error ? null : data.session);
+    }
+
+    void loadSession();
     const { data } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
       if (event === "PASSWORD_RECOVERY") {
         window.location.replace("/auth/confirm-recovery");
@@ -102,9 +113,15 @@ export function PasswordRecoveryForm({ mode, initialError = null }: { mode: "req
     try {
       const supabase = createClient();
       const email = String(formData.get("email") ?? "").trim();
-      const error = mode === "request"
-        ? (await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}${RECOVERY_REDIRECT_PATH}`, ...(captchaToken ? { captchaToken } : {}) })).error
-        : (await supabase.auth.updateUser({ password: String(formData.get("password") ?? "") })).error;
+      const error =
+        mode === "request"
+          ? (
+              await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}${RECOVERY_REDIRECT_PATH}`,
+                ...(captchaToken ? { captchaToken } : {}),
+              })
+            ).error
+          : (await supabase.auth.updateUser({ password: String(formData.get("password") ?? "") })).error;
 
       if (error) {
         setSubmitError(recoveryErrorMessage(error, mode));
@@ -114,15 +131,18 @@ export function PasswordRecoveryForm({ mode, initialError = null }: { mode: "req
       succeeded = true;
       if (mode === "request") {
         setRequestedEmail(email);
-      } else {
-        // Primeira senha (convite/checkout): a sessão já é do próprio usuário.
-        toast.success("Senha criada. Você já pode usar o painel.");
-        window.location.replace("/dashboard");
+        return;
       }
+
+      // Primeira senha (convite/checkout): a sessão já é do próprio usuário.
+      toast.success("Senha criada. Você já pode usar o painel.");
+      window.location.replace("/dashboard");
     } catch {
-      setSubmitError(mode === "request"
-        ? "Não foi possível enviar o e-mail agora. Verifique sua conexão e tente novamente."
-        : "Não foi possível salvar a senha. Verifique sua conexão e tente novamente.");
+      setSubmitError(
+        mode === "request"
+          ? "Não foi possível enviar o e-mail agora. Verifique sua conexão e tente novamente."
+          : "Não foi possível salvar a senha. Verifique sua conexão e tente novamente.",
+      );
     } finally {
       setPending(false);
       if (!succeeded) submittingRef.current = false;
@@ -164,7 +184,9 @@ export function PasswordRecoveryForm({ mode, initialError = null }: { mode: "req
           <CheckCircle2Icon aria-hidden="true" className="text-primary" />
           <AlertTitle>Solicitação enviada</AlertTitle>
           <AlertDescription>
-            Se houver uma conta cadastrada para <strong className="font-medium text-foreground">{requestedEmail}</strong>, você receberá um link seguro em alguns instantes.
+            Se houver uma conta cadastrada para{" "}
+            <strong className="font-medium text-foreground">{requestedEmail}</strong>, você receberá um link seguro em
+            alguns instantes.
           </AlertDescription>
         </Alert>
 
@@ -175,8 +197,12 @@ export function PasswordRecoveryForm({ mode, initialError = null }: { mode: "req
         </ul>
 
         <div className="space-y-2">
-          <Button type="button" className="w-full" onClick={() => router.push("/sign-in")}>Voltar para entrar</Button>
-          <Button type="button" variant="ghost" className="w-full" onClick={resetRequest}>Enviar novamente</Button>
+          <Button type="button" className="w-full" onClick={() => router.push("/sign-in")}>
+            Voltar para entrar
+          </Button>
+          <Button type="button" variant="ghost" className="w-full" onClick={resetRequest}>
+            Enviar novamente
+          </Button>
         </div>
       </AuthCard>
     );
@@ -195,7 +221,9 @@ export function PasswordRecoveryForm({ mode, initialError = null }: { mode: "req
           <p className="mt-1 text-sm text-muted-foreground">
             {isRequest
               ? "Informe o e-mail da sua conta e enviaremos um link para criar uma nova senha."
-              : ready ? "Defina a senha que você usará para entrar no Cotani." : "Validando seu link seguro..."}
+              : ready
+                ? "Defina a senha que você usará para entrar no Cotani."
+                : "Validando seu link seguro..."}
           </p>
         </div>
       </div>
@@ -207,8 +235,25 @@ export function PasswordRecoveryForm({ mode, initialError = null }: { mode: "req
           </div>
         ) : (
           <>
-            <PasswordField id="password" name="password" label="Nova senha" hint="Mínimo de 8 caracteres." autoComplete="new-password" minLength={8} required disabled={!ready} />
-            <PasswordField id="confirmPassword" name="confirmPassword" label="Confirme a senha" autoComplete="new-password" minLength={8} required disabled={!ready} />
+            <PasswordField
+              id="password"
+              name="password"
+              label="Nova senha"
+              hint="Mínimo de 8 caracteres."
+              autoComplete="new-password"
+              minLength={8}
+              required
+              disabled={!ready}
+            />
+            <PasswordField
+              id="confirmPassword"
+              name="confirmPassword"
+              label="Confirme a senha"
+              autoComplete="new-password"
+              minLength={8}
+              required
+              disabled={!ready}
+            />
           </>
         )}
         {submitError ? (
@@ -218,11 +263,21 @@ export function PasswordRecoveryForm({ mode, initialError = null }: { mode: "req
             <AlertDescription>{submitError}</AlertDescription>
           </Alert>
         ) : null}
-        {isRequest ? <TurnstileWidget ref={captchaRef} action="authentication" onTokenChange={setCaptchaToken} /> : null}
+        {isRequest ? (
+          <TurnstileWidget ref={captchaRef} action="authentication" onTokenChange={setCaptchaToken} />
+        ) : null}
         <Button type="submit" className="w-full" disabled={pending || !ready || (captchaRequired && !captchaToken)}>
-          {pending ? (isRequest ? "Enviando..." : "Salvando...") : isRequest ? "Enviar link de redefinição" : "Salvar senha"}
+          {pending
+            ? isRequest
+              ? "Enviando..."
+              : "Salvando..."
+            : isRequest
+              ? "Enviar link de redefinição"
+              : "Salvar senha"}
         </Button>
-        <Button type="button" variant="ghost" className="w-full" onClick={() => void backToSignIn()}>Voltar para entrar</Button>
+        <Button type="button" variant="ghost" className="w-full" onClick={() => void backToSignIn()}>
+          Voltar para entrar
+        </Button>
       </form>
     </AuthCard>
   );

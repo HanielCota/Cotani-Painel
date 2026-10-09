@@ -10,7 +10,13 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { SidebarMenuButton, useSidebar } from "@/components/ui/sidebar";
 import type { NavigationSection } from "@/config/dashboard-navigation";
 import { fetchJson } from "@/lib/fetch-json";
-import { isMacPlatform, isTypingTarget, NEW_APPOINTMENT_PARAM, normalizeSearch, requestNewAppointment } from "@/lib/shortcuts";
+import {
+  isMacPlatform,
+  isTypingTarget,
+  NEW_APPOINTMENT_PARAM,
+  normalizeSearch,
+  requestNewAppointment,
+} from "@/lib/shortcuts";
 import { cn } from "@/lib/utils";
 import type { CustomersPage } from "@/types";
 
@@ -31,7 +37,13 @@ interface CommandPaletteProps {
 
 export function Kbd({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <kbd data-slot="kbd" className={cn("inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-border bg-muted px-1.5 font-sans text-[11px] font-medium text-muted-foreground", className)}>
+    <kbd
+      data-slot="kbd"
+      className={cn(
+        "inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-border bg-muted px-1.5 font-sans text-[11px] font-medium text-muted-foreground",
+        className,
+      )}
+    >
       {children}
     </kbd>
   );
@@ -72,7 +84,8 @@ export function CommandPalette({ sections, canCreateAppointment, canSearchCustom
         setOpen((current) => !current);
         return;
       }
-      if (open || event.ctrlKey || event.metaKey || event.altKey || event.repeat || isTypingTarget(event.target)) return;
+      if (open || event.ctrlKey || event.metaKey || event.altKey || event.repeat || isTypingTarget(event.target))
+        return;
       if (canCreateAppointment && event.key.toLowerCase() === "n" && !document.querySelector("[role=dialog]")) {
         event.preventDefault();
         if (!requestNewAppointment()) router.push(`/dashboard/agenda?${NEW_APPOINTMENT_PARAM}=1`);
@@ -89,7 +102,8 @@ export function CommandPalette({ sections, canCreateAppointment, canSearchCustom
 
   const customersQuery = useQuery({
     queryKey: ["customers", clinicId, "palette", debouncedQuery],
-    queryFn: () => fetchJson<CustomersPage>(`/api/customers?${new URLSearchParams({ search: debouncedQuery, pageSize: "5" })}`),
+    queryFn: () =>
+      fetchJson<CustomersPage>(`/api/customers?${new URLSearchParams({ search: debouncedQuery, pageSize: "5" })}`),
     enabled: open && canSearchCustomers && debouncedQuery.length >= 2,
     staleTime: 30_000,
   });
@@ -99,15 +113,31 @@ export function CommandPalette({ sections, canCreateAppointment, canSearchCustom
 
   const items: PaletteItem[] = [
     ...(canCreateAppointment && matches("Novo atendimento")
-      ? [{ id: "action:new-appointment", group: "Ações" as const, label: "Novo atendimento", hint: "N", icon: CalendarPlusIcon, run: newAppointment }]
+      ? [
+          {
+            id: "action:new-appointment",
+            group: "Ações" as const,
+            label: "Novo atendimento",
+            hint: "N",
+            icon: CalendarPlusIcon,
+            run: newAppointment,
+          },
+        ]
       : []),
     ...sections.flatMap((section) =>
       section.items
         .filter((item) => matches(item.title))
-        .map((item) => ({ id: `page:${item.href}`, group: "Páginas" as const, label: item.title, hint: section.title, icon: item.icon, run: () => go(item.href) })),
+        .map((item) => ({
+          id: `page:${item.href}`,
+          group: "Páginas" as const,
+          label: item.title,
+          hint: section.title,
+          icon: item.icon,
+          run: () => go(item.href),
+        })),
     ),
     // Só resultados da busca atual (durante o atraso de 200 ms, nada da anterior).
-    ...(debouncedQuery === query.trim() ? customersQuery.data?.items ?? [] : []).map((customer) => ({
+    ...(debouncedQuery === query.trim() ? (customersQuery.data?.items ?? []) : []).map((customer) => ({
       id: `customer:${customer.id}`,
       group: "Clientes" as const,
       label: customer.name,
@@ -127,16 +157,20 @@ export function CommandPalette({ sections, canCreateAppointment, canSearchCustom
   }
 
   function onInputKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-      event.preventDefault();
-      if (items.length === 0) return;
-      const next = (selected + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
-      setActiveIndex(next);
-      listRef.current?.querySelector(`[data-index="${next}"]`)?.scrollIntoView({ block: "nearest" });
-    } else if (event.key === "Enter") {
+    if (event.key === "Enter") {
       event.preventDefault();
       items[selected]?.run();
+      return;
     }
+
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+
+    event.preventDefault();
+    if (items.length === 0) return;
+
+    const next = (selected + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+    setActiveIndex(next);
+    listRef.current?.querySelector(`[data-index="${next}"]`)?.scrollIntoView({ block: "nearest" });
   }
 
   const shortcutLabel = isMac ? "⌘K" : "Ctrl K";
@@ -150,9 +184,14 @@ export function CommandPalette({ sections, canCreateAppointment, canSearchCustom
       </SidebarMenuButton>
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent showCloseButton={false} className="top-[20%] translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-xl">
+        <DialogContent
+          showCloseButton={false}
+          className="top-[20%] translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-xl"
+        >
           <DialogTitle className="sr-only">Buscar no painel</DialogTitle>
-          <DialogDescription className="sr-only">Digite para filtrar páginas, ações e clientes. Use as setas e Enter.</DialogDescription>
+          <DialogDescription className="sr-only">
+            Digite para filtrar páginas, ações e clientes. Use as setas e Enter.
+          </DialogDescription>
           <div className="flex items-center gap-2 border-b border-border/70 px-4">
             <SearchIcon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
             <input
@@ -173,7 +212,13 @@ export function CommandPalette({ sections, canCreateAppointment, canSearchCustom
             />
           </div>
 
-          <ul id="command-palette-list" ref={listRef} role="listbox" aria-label="Resultados" className="max-h-[min(24rem,60svh)] overflow-y-auto overscroll-contain p-2">
+          <ul
+            id="command-palette-list"
+            ref={listRef}
+            role="listbox"
+            aria-label="Resultados"
+            className="max-h-[min(24rem,60svh)] overflow-y-auto overscroll-contain p-2"
+          >
             {items.length === 0 ? (
               <li className="px-3 py-8 text-center text-sm text-muted-foreground">
                 {customersQuery.isFetching ? "Buscando clientes..." : "Nada encontrado."}
@@ -184,7 +229,9 @@ export function CommandPalette({ sections, canCreateAppointment, canSearchCustom
                 const startsGroup = index === 0 || items[index - 1].group !== item.group;
                 return (
                   <li key={item.id} role="presentation">
-                    {startsGroup ? <p className="px-3 pt-2 pb-1 text-xs font-medium text-muted-foreground">{item.group}</p> : null}
+                    {startsGroup ? (
+                      <p className="px-3 pt-2 pb-1 text-xs font-medium text-muted-foreground">{item.group}</p>
+                    ) : null}
                     <button
                       id={`command-${item.id}`}
                       type="button"
@@ -194,11 +241,18 @@ export function CommandPalette({ sections, canCreateAppointment, canSearchCustom
                       tabIndex={-1}
                       onMouseMove={() => setActiveIndex(index)}
                       onClick={item.run}
-                      className={cn("flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm outline-none", index === selected && "bg-accent text-accent-foreground")}
+                      className={cn(
+                        "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm outline-none",
+                        index === selected && "bg-accent text-accent-foreground",
+                      )}
                     >
                       <Icon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
                       <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                      {item.group === "Ações" && item.hint ? <Kbd>{item.hint}</Kbd> : item.hint ? <span className="shrink-0 text-xs text-muted-foreground">{item.hint}</span> : null}
+                      {item.group === "Ações" && item.hint ? (
+                        <Kbd>{item.hint}</Kbd>
+                      ) : item.hint ? (
+                        <span className="shrink-0 text-xs text-muted-foreground">{item.hint}</span>
+                      ) : null}
                     </button>
                   </li>
                 );
@@ -207,10 +261,24 @@ export function CommandPalette({ sections, canCreateAppointment, canSearchCustom
           </ul>
 
           <div className="flex items-center gap-4 border-t border-border/70 px-4 py-2 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5"><Kbd>↑</Kbd><Kbd>↓</Kbd> navegar</span>
-            <span className="flex items-center gap-1.5"><Kbd><CornerDownLeftIcon aria-hidden="true" className="size-3" /></Kbd> abrir</span>
-            <span className="flex items-center gap-1.5"><Kbd>Esc</Kbd> fechar</span>
-            {canCreateAppointment ? <span className="ml-auto hidden items-center gap-1.5 sm:flex"><Kbd>N</Kbd> novo atendimento</span> : null}
+            <span className="flex items-center gap-1.5">
+              <Kbd>↑</Kbd>
+              <Kbd>↓</Kbd> navegar
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Kbd>
+                <CornerDownLeftIcon aria-hidden="true" className="size-3" />
+              </Kbd>{" "}
+              abrir
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Kbd>Esc</Kbd> fechar
+            </span>
+            {canCreateAppointment ? (
+              <span className="ml-auto hidden items-center gap-1.5 sm:flex">
+                <Kbd>N</Kbd> novo atendimento
+              </span>
+            ) : null}
           </div>
         </DialogContent>
       </Dialog>

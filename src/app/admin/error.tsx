@@ -6,10 +6,20 @@ import { OctagonXIcon, RefreshCwIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
-export default function AdminError({ error, unstable_retry }: { error: Error & { digest?: string }; unstable_retry: () => void }) {
+export default function AdminError({
+  error,
+  unstable_retry,
+}: {
+  error: Error & { digest?: string };
+  unstable_retry: () => void;
+}) {
   useEffect(() => {
-    if (process.env.NODE_ENV === "development") console.error(error);
-    else console.error("[admin-error]", { digest: error.digest });
+    if (process.env.NODE_ENV === "development") {
+      console.error(error);
+      return;
+    }
+
+    console.error("[admin-error]", { digest: error.digest });
   }, [error]);
 
   return (

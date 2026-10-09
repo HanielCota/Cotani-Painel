@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { cronJob } from "@/server/cron-job";
 import { dispatchDueNotifications, type DispatchStats } from "@/server/services/notification-dispatcher";
+import { readJsonOrNull } from "@/lib/ignore-failure";
 
 /**
  * Dispatcher da fila de notificações, acionado pelo cron (Bearer CRON_SECRET).
@@ -12,7 +13,7 @@ export const { GET, POST } = cronJob({
   run: async () => NextResponse.json(await dispatchDueNotifications()),
   outcome: async (response) => {
     if (response.status === 401) return null;
-    const body = await response.clone().json().catch(() => null) as Partial<DispatchStats> | null;
+    const body = await readJsonOrNull<Partial<DispatchStats>>(response.clone());
     const failed = typeof body?.failed === "number" ? body.failed : 0;
     const status = response.status >= 500 ? "FAILURE" : failed > 0 ? "WARNING" : "SUCCESS";
     return {

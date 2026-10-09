@@ -50,9 +50,10 @@ function createFormData(overrides: Record<string, string | null> = {}) {
   Object.entries(overrides).forEach(([key, value]) => {
     if (value === null) {
       formData.set(key, "");
-    } else if (value !== undefined) {
-      formData.set(key, value);
+      return;
     }
+
+    if (value !== undefined) formData.set(key, value);
   });
   return formData;
 }
@@ -62,7 +63,9 @@ describe("createProfessional", () => {
     vi.clearAllMocks();
     (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
     prismaMock.professional.count.mockResolvedValue(0);
-    prismaMock.$transaction.mockImplementation(async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock));
+    prismaMock.$transaction.mockImplementation(async (callback: (tx: typeof prismaMock) => Promise<unknown>) =>
+      callback(prismaMock),
+    );
   });
 
   it("retorna erro para dados inválidos", async () => {
@@ -83,10 +86,7 @@ describe("createProfessional", () => {
   it("retorna erro quando serviço selecionado é inválido", async () => {
     prismaMock.service.findMany.mockResolvedValueOnce([]);
 
-    const result = await createProfessionalFromForm(
-      { status: "success", message: "" },
-      createFormData(),
-    );
+    const result = await createProfessionalFromForm({ status: "success", message: "" }, createFormData());
 
     expect(result.status).toBe("error");
     expect(result.message).toContain("inválidos");
@@ -96,10 +96,7 @@ describe("createProfessional", () => {
     prismaMock.service.findMany.mockResolvedValueOnce([{ id: validProfessional.serviceIds[0] }]);
     prismaMock.professional.create.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440002" });
 
-    const result = await createProfessionalFromForm(
-      { status: "success", message: "" },
-      createFormData(),
-    );
+    const result = await createProfessionalFromForm({ status: "success", message: "" }, createFormData());
 
     expect(result.status).toBe("success");
     expect(prismaMock.professional.create).toHaveBeenCalledWith({
@@ -119,10 +116,7 @@ describe("createProfessional", () => {
     const formData = createFormData();
     formData.append("serviceIds", validProfessional.serviceIds[0]);
 
-    const result = await createProfessionalFromForm(
-      { status: "success", message: "" },
-      formData,
-    );
+    const result = await createProfessionalFromForm({ status: "success", message: "" }, formData);
 
     expect(result.status).toBe("success");
     expect(prismaMock.professional.create).toHaveBeenCalledWith({
@@ -189,7 +183,9 @@ describe("toggleProfessionalActive", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
-    prismaMock.$transaction.mockImplementation(async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock));
+    prismaMock.$transaction.mockImplementation(async (callback: (tx: typeof prismaMock) => Promise<unknown>) =>
+      callback(prismaMock),
+    );
   });
 
   it("retorna erro para ID inválido", async () => {

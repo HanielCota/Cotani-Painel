@@ -117,10 +117,7 @@ async function isValidBusinessSlot(
   const localInput = formatClinicDateTimeInput(params.startTime, params.timeZone);
   const day = localInput.slice(0, 10);
   const localTime = localInput.slice(11, 16);
-  const { startOfToday: dayStart, startOfTomorrow: dayEnd } = getClinicDateBounds(
-    params.timeZone,
-    params.startTime,
-  );
+  const { startOfToday: dayStart, startOfTomorrow: dayEnd } = getClinicDateBounds(params.timeZone, params.startTime);
 
   await lockClinicDay(transaction, params.clinicId, day);
 
@@ -143,7 +140,9 @@ async function isValidBusinessSlot(
   if (!businessHour?.isOpen) return false;
 
   const professionalHour = params.professionalId
-    ? await transaction.professionalAvailability.findUnique({ where: { professionalId_dayOfWeek: { professionalId: params.professionalId, dayOfWeek: weekday } } })
+    ? await transaction.professionalAvailability.findUnique({
+        where: { professionalId_dayOfWeek: { professionalId: params.professionalId, dayOfWeek: weekday } },
+      })
     : null;
 
   // Mesma regra da grade exibida no agendamento (server/domain/working-hours.ts).
@@ -258,7 +257,6 @@ export async function rescheduleScheduledAppointment(
     });
     return { status: "error" };
   }
-
 }
 
 /**
@@ -281,14 +279,19 @@ export async function scheduleAppointment(params: ScheduleAppointmentParams): Pr
 
       const existingCustomer = params.customerId
         ? { id: params.customerId }
-        : await transaction.customer.findUnique({ where: { clinicId_phone: { clinicId: params.clinicId, phone: params.customerPhone } }, select: { id: true } });
-      const conflictConditions: Prisma.AppointmentWhereInput[] = existingCustomer ? [{ customerId: existingCustomer.id }] : [];
+        : await transaction.customer.findUnique({
+            where: { clinicId_phone: { clinicId: params.clinicId, phone: params.customerPhone } },
+            select: { id: true },
+          });
+      const conflictConditions: Prisma.AppointmentWhereInput[] = existingCustomer
+        ? [{ customerId: existingCustomer.id }]
+        : [];
 
-      if (params.professionalId) {
-        conflictConditions.push({ professionalId: params.professionalId });
-      } else {
-        conflictConditions.push({ serviceId: params.serviceId, professionalId: null });
-      }
+      conflictConditions.push(
+        params.professionalId
+          ? { professionalId: params.professionalId }
+          : { serviceId: params.serviceId, professionalId: null },
+      );
 
       const conflictingAppointment = await transaction.appointment.findFirst({
         where: {
@@ -307,10 +310,20 @@ export async function scheduleAppointment(params: ScheduleAppointmentParams): Pr
 
       stage = "customer-upsert";
       const customer = params.customerId
-        ? { id: params.customerId, name: params.customerName, phone: params.customerPhone, email: params.customerEmail ?? null }
+        ? {
+            id: params.customerId,
+            name: params.customerName,
+            phone: params.customerPhone,
+            email: params.customerEmail ?? null,
+          }
         : await transaction.customer.upsert({
             where: { clinicId_phone: { clinicId: params.clinicId, phone: params.customerPhone } },
-            create: { clinicId: params.clinicId, name: params.customerName, phone: params.customerPhone, email: params.customerEmail },
+            create: {
+              clinicId: params.clinicId,
+              name: params.customerName,
+              phone: params.customerPhone,
+              email: params.customerEmail,
+            },
             update: { name: params.customerName, ...(params.customerEmail ? { email: params.customerEmail } : {}) },
             select: { id: true, name: true, phone: true, email: true },
           });

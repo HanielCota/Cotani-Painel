@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { assertSubscriptionCheckoutReady, createSubscriptionCheckout } from "@/server/services/mercado-pago";
 import { generateClinicSlug } from "@/server/services/clinic-provisioning";
 import { landingPageUrl } from "@/lib/landing-cors";
+import { ignoreFailure } from "@/lib/ignore-failure";
 
 const LANDING_SOURCE = "LANDING";
 const ACTIVE_ATTEMPT_MS = 24 * 60 * 60_000;
@@ -38,7 +39,9 @@ export async function createLandingCheckout(input: LandingCheckoutInput) {
       select: { id: true },
     });
     if (existingMember) {
-      throw new LandingCheckoutConflictError("Este e-mail já possui uma conta. Entre no painel para contratar ou gerenciar o plano.");
+      throw new LandingCheckoutConflictError(
+        "Este e-mail já possui uma conta. Entre no painel para contratar ou gerenciar o plano.",
+      );
     }
 
     const recent = await tx.billingContract.findFirst({
@@ -54,7 +57,9 @@ export async function createLandingCheckout(input: LandingCheckoutInput) {
 
     if (recent) {
       if (recent.plan !== input.plan || recent.cycle !== input.cycle) {
-        throw new LandingCheckoutConflictError("Já existe um checkout recente para outro plano. Conclua-o ou aguarde antes de trocar.");
+        throw new LandingCheckoutConflictError(
+          "Já existe um checkout recente para outro plano. Conclua-o ou aguarde antes de trocar.",
+        );
       }
       if (recent.checkoutUrl) {
         return { contract: recent, clinicId: recent.clinic.id, resumeUrl: recent.checkoutUrl };
@@ -154,21 +159,61 @@ function isAlreadyRegisteredError(error: { code?: string; message?: string }) {
   return /already|registered|exists|existente/.test(`${error.code ?? ""} ${error.message ?? ""}`.toLowerCase());
 }
 
+/**
+ * Entrega o acesso ao comprador: conta já ativa recebe o aviso por e-mail;
+ * conta nova recebe o convite do Supabase (ou o aviso, se já existir lá).
+ */
+async function deliverAccess(
+  email: string,
+  name: string,
+  clinicId: string,
+  user: { id: string; authUserId: string | null },
+) {
+  if (user.authUserId) {
+    await sendExistingAccountEmail(email, name);
+    return;
+  }
+
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
+    data: { name, source: "landing_checkout", clinic_id: clinicId },
+    redirectTo: `${appUrl()}/update-password`,
+  });
+  if (error && !isAlreadyRegisteredError(error)) throw new Error(`Falha ao enviar convite de acesso: ${error.message}`);
+
+  if (error) {
+    await sendExistingAccountEmail(email, name);
+    return;
+  }
+
+  const authUserId = data.user?.id;
+  if (!authUserId) return;
+
+  await prisma.user.updateMany({ where: { id: user.id, authUserId: null }, data: { authUserId } });
+}
+
 export async function finalizeLandingCheckoutAccess(remoteId: string) {
   const contract = await prisma.billingContract.findUnique({
     where: { remoteId },
     include: { clinic: { select: { id: true, hasPaidOnce: true } } },
   });
-  if (!contract || contract.checkoutSource !== LANDING_SOURCE || !contract.checkoutEmail || !contract.clinic.hasPaidOnce || contract.activationSentAt) return;
+  if (
+    !contract ||
+    contract.checkoutSource !== LANDING_SOURCE ||
+    !contract.checkoutEmail ||
+    !contract.clinic.hasPaidOnce ||
+    contract.activationSentAt
+  )
+    return;
+
+  // Já validado acima; a constante mantém o tipo dentro da transação.
+  const checkoutEmail = contract.checkoutEmail;
 
   const claimed = await prisma.billingContract.updateMany({
     where: {
       id: contract.id,
       activationSentAt: null,
-      OR: [
-        { activationStartedAt: null },
-        { activationStartedAt: { lt: new Date(Date.now() - ACTIVATION_LEASE_MS) } },
-      ],
+      OR: [{ activationStartedAt: null }, { activationStartedAt: { lt: new Date(Date.now() - ACTIVATION_LEASE_MS) } }],
     },
     data: { activationStartedAt: new Date(), activationError: null },
   });
@@ -176,14 +221,17 @@ export async function finalizeLandingCheckoutAccess(remoteId: string) {
 
   try {
     const user = await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${contract.checkoutEmail!}, 0))`;
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${checkoutEmail}, 0))`;
       let appUser = await tx.user.findFirst({
-        where: { email: { equals: contract.checkoutEmail!, mode: "insensitive" } },
+        where: { email: { equals: checkoutEmail, mode: "insensitive" } },
         orderBy: { createdAt: "asc" },
       });
       if (!appUser) {
         appUser = await tx.user.create({
-          data: { email: contract.checkoutEmail!, name: contract.checkoutName || contract.checkoutEmail!.split("@")[0] },
+          data: {
+            email: checkoutEmail,
+            name: contract.checkoutName || checkoutEmail.split("@")[0],
+          },
         });
       }
       await tx.membership.upsert({
@@ -194,21 +242,7 @@ export async function finalizeLandingCheckoutAccess(remoteId: string) {
       return appUser;
     });
 
-    if (user.authUserId) {
-      await sendExistingAccountEmail(contract.checkoutEmail, contract.checkoutName || user.name);
-    } else {
-      const supabase = createAdminClient();
-      const { data, error } = await supabase.auth.admin.inviteUserByEmail(contract.checkoutEmail, {
-        data: { name: contract.checkoutName || user.name, source: "landing_checkout", clinic_id: contract.clinicId },
-        redirectTo: `${appUrl()}/update-password`,
-      });
-      if (error && !isAlreadyRegisteredError(error)) throw new Error(`Falha ao enviar convite de acesso: ${error.message}`);
-      if (error) {
-        await sendExistingAccountEmail(contract.checkoutEmail, contract.checkoutName || user.name);
-      } else if (data.user?.id) {
-        await prisma.user.updateMany({ where: { id: user.id, authUserId: null }, data: { authUserId: data.user.id } });
-      }
-    }
+    await deliverAccess(checkoutEmail, contract.checkoutName || user.name, contract.clinicId, user);
 
     await prisma.billingContract.update({
       where: { id: contract.id },
@@ -216,10 +250,12 @@ export async function finalizeLandingCheckoutAccess(remoteId: string) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    await prisma.billingContract.update({
-      where: { id: contract.id },
-      data: { activationStartedAt: null, activationError: message.slice(0, 500) },
-    }).catch(() => undefined);
+    await ignoreFailure(
+      prisma.billingContract.update({
+        where: { id: contract.id },
+        data: { activationStartedAt: null, activationError: message.slice(0, 500) },
+      }),
+    );
     throw error;
   }
 }

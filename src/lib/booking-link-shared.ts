@@ -1,3 +1,4 @@
+import { ignoreFailure } from "@/lib/ignore-failure";
 /**
  * Passo "Divulgar link de agendamento" do checklist inicial. Marcado ao copiar
  * o link em qualquer lugar do painel. A marcação vale na hora neste navegador e
@@ -30,7 +31,7 @@ export function readBookingLinkShared(): boolean {
 
 export function markBookingLinkShared() {
   // Falha de rede não impede a marcação local.
-  void markBookingLinkSharedOnServer().catch(() => undefined);
+  void ignoreFailure(markBookingLinkSharedOnServer());
   try {
     localStorage.setItem(STORAGE_KEY, "true");
   } catch {

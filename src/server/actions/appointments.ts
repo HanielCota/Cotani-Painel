@@ -33,8 +33,13 @@ const rescheduleSchema = z.object({
   startTime: z.string().trim(),
 });
 const editAppointmentSchema = z.object({
-  appointmentId: z.uuid(), customerId: z.uuid(), serviceId: z.uuid(), professionalId: z.uuid().optional(),
-  startTime: z.string().min(1), notes: z.string().trim().max(2000).optional(), totalPrice: z.coerce.number().min(0).max(100_000),
+  appointmentId: z.uuid(),
+  customerId: z.uuid(),
+  serviceId: z.uuid(),
+  professionalId: z.uuid().optional(),
+  startTime: z.string().min(1),
+  notes: z.string().trim().max(2000).optional(),
+  totalPrice: z.coerce.number().min(0).max(100_000),
 });
 
 const appointmentStatusSchema = z.enum(["CONFIRMED", "COMPLETED", "CANCELED", "NO_SHOW"]);
@@ -58,7 +63,8 @@ function revalidateScheduleViews() {
 function staffStartTimeError(startTime: Date | null): string | null {
   if (!startTime) return "Informe uma data e horário válidos.";
   if (startTime <= new Date()) return "Escolha um horário futuro para o atendimento.";
-  if (!isWithinStaffBookingHorizon(startTime)) return `Agendamentos podem ser feitos com até ${STAFF_MAX_BOOKING_HORIZON_DAYS} dias de antecedência. Confira a data.`;
+  if (!isWithinStaffBookingHorizon(startTime))
+    return `Agendamentos podem ser feitos com até ${STAFF_MAX_BOOKING_HORIZON_DAYS} dias de antecedência. Confira a data.`;
   return null;
 }
 
@@ -85,7 +91,10 @@ export async function createAppointment(input: unknown): Promise<ActionResult> {
     return { status: "error", message: "Revise os dados do agendamento." };
   }
 
-  const access = await requireClinicAction(["ADMIN", "RECEPTIONIST"], "Selecione um negócio antes de criar agendamentos.");
+  const access = await requireClinicAction(
+    ["ADMIN", "RECEPTIONIST"],
+    "Selecione um negócio antes de criar agendamentos.",
+  );
   if (!access.ok) return access.result;
   const { clinic } = access;
 
@@ -137,7 +146,10 @@ export async function createAppointment(input: unknown): Promise<ActionResult> {
   });
 
   if (result.status === "conflict") {
-    return { status: "error", message: "Já existe um atendimento nesse horário para o cliente ou serviço selecionado." };
+    return {
+      status: "error",
+      message: "Já existe um atendimento nesse horário para o cliente ou serviço selecionado.",
+    };
   }
 
   if (result.status === "error") {
@@ -148,10 +160,16 @@ export async function createAppointment(input: unknown): Promise<ActionResult> {
   return { status: "success", message: "Agendamento criado." };
 }
 
-export async function createAppointmentFromForm(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
+export async function createAppointmentFromForm(
+  _previousState: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireAuthenticatedUser();
 
-  const access = await requireClinicAction(["ADMIN", "RECEPTIONIST"], "Selecione um negócio antes de criar agendamentos.");
+  const access = await requireClinicAction(
+    ["ADMIN", "RECEPTIONIST"],
+    "Selecione um negócio antes de criar agendamentos.",
+  );
   if (!access.ok) return access.result;
   const { clinic } = access;
 
@@ -170,7 +188,10 @@ export async function createAppointmentFromForm(_previousState: ActionResult, fo
   });
 }
 
-export async function rescheduleAppointmentFromForm(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
+export async function rescheduleAppointmentFromForm(
+  _previousState: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireAuthenticatedUser();
 
   const parsed = rescheduleSchema.safeParse({
@@ -241,28 +262,75 @@ export async function rescheduleAppointmentFromForm(_previousState: ActionResult
   return { status: "success", message: "Atendimento reagendado." };
 }
 
-export async function updateAppointmentFromForm(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
+export async function updateAppointmentFromForm(
+  _previousState: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireAuthenticatedUser();
-  const parsed = editAppointmentSchema.safeParse({ appointmentId: formData.get("appointmentId"), customerId: formData.get("customerId"), serviceId: formData.get("serviceId"), professionalId: formData.get("professionalId") || undefined, startTime: formData.get("startTime"), notes: String(formData.get("notes") ?? "").trim() || undefined, totalPrice: formData.get("totalPrice") });
+  const parsed = editAppointmentSchema.safeParse({
+    appointmentId: formData.get("appointmentId"),
+    customerId: formData.get("customerId"),
+    serviceId: formData.get("serviceId"),
+    professionalId: formData.get("professionalId") || undefined,
+    startTime: formData.get("startTime"),
+    notes: String(formData.get("notes") ?? "").trim() || undefined,
+    totalPrice: formData.get("totalPrice"),
+  });
   if (!parsed.success) return { status: "error", message: "Revise os dados do atendimento." };
   const actor = await getAgendaActor();
-  if (!actor || actor.professionalId) return { status: "error", message: "Seu perfil não permite editar todos os dados." };
+  if (!actor || actor.professionalId)
+    return { status: "error", message: "Seu perfil não permite editar todos os dados." };
   const { clinic } = actor;
   if (!isSubscriptionActive(clinic)) return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
   const [appointment, customer, service, professional] = await Promise.all([
-    prisma.appointment.findFirst({ where: { id: parsed.data.appointmentId, clinicId: clinic.id, status: { in: ["PENDING", "CONFIRMED"] } }, select: { cancellationToken: true } }),
+    prisma.appointment.findFirst({
+      where: { id: parsed.data.appointmentId, clinicId: clinic.id, status: { in: ["PENDING", "CONFIRMED"] } },
+      select: { cancellationToken: true },
+    }),
     prisma.customer.findFirst({ where: { id: parsed.data.customerId, clinicId: clinic.id } }),
     prisma.service.findFirst({ where: { id: parsed.data.serviceId, clinicId: clinic.id, isActive: true } }),
-    parsed.data.professionalId ? prisma.professional.findFirst({ where: { id: parsed.data.professionalId, clinicId: clinic.id, isActive: true, services: { some: { serviceId: parsed.data.serviceId } } } }) : null,
+    parsed.data.professionalId
+      ? prisma.professional.findFirst({
+          where: {
+            id: parsed.data.professionalId,
+            clinicId: clinic.id,
+            isActive: true,
+            services: { some: { serviceId: parsed.data.serviceId } },
+          },
+        })
+      : null,
   ]);
-  if (!appointment || !customer || !service || (parsed.data.professionalId && !professional)) return { status: "error", message: "Cliente, serviço ou profissional inválido." };
+  if (!appointment || !customer || !service || (parsed.data.professionalId && !professional))
+    return { status: "error", message: "Cliente, serviço ou profissional inválido." };
   const startTime = parseClinicDateTime(parsed.data.startTime, clinic.timeZone);
   const startTimeError = staffStartTimeError(startTime);
-  if (startTimeError || !startTime) return { status: "error", message: startTimeError ?? "Escolha um horário futuro válido." };
-  const result = await rescheduleScheduledAppointment({ appointmentId: parsed.data.appointmentId, clinicId: clinic.id, clinicSlug: clinic.slug, clinicName: clinic.name, timeZone: clinic.timeZone, customerId: customer.id, customerName: customer.name, customerPhone: customer.phone, customerEmail: customer.email, notificationChannels: getNotificationChannels(clinic.subscriptionPlan), serviceId: service.id, serviceName: service.name, serviceDuration: service.duration, servicePrice: parsed.data.totalPrice, professionalId: professional?.id ?? null, startTime, notes: parsed.data.notes, cancellationToken: appointment.cancellationToken, maxAppointmentsPerDay: clinic.maxAppointmentsPerDay });
+  if (startTimeError || !startTime)
+    return { status: "error", message: startTimeError ?? "Escolha um horário futuro válido." };
+  const result = await rescheduleScheduledAppointment({
+    appointmentId: parsed.data.appointmentId,
+    clinicId: clinic.id,
+    clinicSlug: clinic.slug,
+    clinicName: clinic.name,
+    timeZone: clinic.timeZone,
+    customerId: customer.id,
+    customerName: customer.name,
+    customerPhone: customer.phone,
+    customerEmail: customer.email,
+    notificationChannels: getNotificationChannels(clinic.subscriptionPlan),
+    serviceId: service.id,
+    serviceName: service.name,
+    serviceDuration: service.duration,
+    servicePrice: parsed.data.totalPrice,
+    professionalId: professional?.id ?? null,
+    startTime,
+    notes: parsed.data.notes,
+    cancellationToken: appointment.cancellationToken,
+    maxAppointmentsPerDay: clinic.maxAppointmentsPerDay,
+  });
   if (result.status === "conflict") return { status: "error", message: DOUBLE_BOOKING_MESSAGE };
   if (result.status === "error") return { status: "error", message: "Não foi possível atualizar o atendimento." };
-  revalidateScheduleViews(); return { status: "success", message: "Atendimento atualizado." };
+  revalidateScheduleViews();
+  return { status: "success", message: "Atendimento atualizado." };
 }
 
 export async function updateAppointmentStatus(
@@ -271,9 +339,7 @@ export async function updateAppointmentStatus(
 ): Promise<ActionResult> {
   await requireAuthenticatedUser();
 
-  const parsedInput = updateAppointmentStatusSchema.safeParse(
-    typeof input === "string" ? { status: input } : input,
-  );
+  const parsedInput = updateAppointmentStatusSchema.safeParse(typeof input === "string" ? { status: input } : input);
   const parsedId = z.uuid().safeParse(appointmentId);
 
   if (!parsedInput.success || !parsedId.success) {
@@ -305,9 +371,10 @@ export async function updateAppointmentStatus(
   if (!transition.ok) {
     return {
       status: "error",
-      message: transition.reason === "not-started"
-        ? "Só é possível concluir ou registrar falta depois do horário do atendimento."
-        : "Essa mudança de status não é permitida.",
+      message:
+        transition.reason === "not-started"
+          ? "Só é possível concluir ou registrar falta depois do horário do atendimento."
+          : "Essa mudança de status não é permitida.",
     };
   }
 
@@ -333,7 +400,10 @@ export async function updateAppointmentStatus(
   });
 
   if (!updated) {
-    return { status: "error", message: "Este atendimento foi alterado por outra operação. Atualize a agenda e tente novamente." };
+    return {
+      status: "error",
+      message: "Este atendimento foi alterado por outra operação. Atualize a agenda e tente novamente.",
+    };
   }
 
   revalidateScheduleViews();

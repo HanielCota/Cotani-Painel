@@ -40,9 +40,10 @@ function createFormData(overrides: Record<string, string | null> = {}) {
   Object.entries(overrides).forEach(([key, value]) => {
     if (value === null) {
       formData.set(key, "");
-    } else if (value !== undefined) {
-      formData.set(key, value);
+      return;
     }
+
+    if (value !== undefined) formData.set(key, value);
   });
   return formData;
 }
@@ -71,10 +72,7 @@ describe("createCustomer", () => {
   it("cria cliente com sucesso", async () => {
     prismaMock.customer.create.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440003" });
 
-    const result = await createCustomerFromForm(
-      { status: "success", message: "" },
-      createFormData(),
-    );
+    const result = await createCustomerFromForm({ status: "success", message: "" }, createFormData());
 
     expect(result.status).toBe("success");
     expect(prismaMock.customer.create).toHaveBeenCalledWith({
@@ -90,10 +88,7 @@ describe("createCustomer", () => {
   it("aceita cliente sem email", async () => {
     prismaMock.customer.create.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440003" });
 
-    const result = await createCustomerFromForm(
-      { status: "success", message: "" },
-      createFormData({ email: null }),
-    );
+    const result = await createCustomerFromForm({ status: "success", message: "" }, createFormData({ email: null }));
 
     expect(result.status).toBe("success");
     expect(prismaMock.customer.create).toHaveBeenCalledWith({

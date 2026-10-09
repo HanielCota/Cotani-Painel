@@ -43,23 +43,36 @@ export function isAccentChoice(value: unknown): value is AccentChoice {
 
 /** Cor de destaque efetiva: "auto" vira a cor que combina com o tema de fundo. */
 export function resolveAccent(accent: AccentChoice, surface: Surface) {
-  return accent === "auto" ? SURFACES.find((item) => item.value === surface)!.accent : accent;
+  if (accent !== "auto") return accent;
+
+  return SURFACES.find((item) => item.value === surface)?.accent ?? DEFAULT_SURFACE;
 }
 
 /** Aplica as escolhas no <html> (atributo ausente = padrão). */
 export function applyAppearance(surface: Surface, accent: AccentChoice, root: HTMLElement = document.documentElement) {
   const resolved = resolveAccent(accent, surface);
-  if (surface === DEFAULT_SURFACE) delete root.dataset.surface;
-  else root.dataset.surface = surface;
-  if (resolved === DEFAULT_ACCENT) delete root.dataset.accent;
-  else root.dataset.accent = resolved;
+  setDataAttribute(root, "surface", surface === DEFAULT_SURFACE ? null : surface);
+  setDataAttribute(root, "accent", resolved === DEFAULT_ACCENT ? null : resolved);
+}
+
+/** `null` remove o atributo (volta ao padrão do CSS). */
+function setDataAttribute(root: HTMLElement, key: "surface" | "accent", value: string | null) {
+  if (value === null) {
+    delete root.dataset[key];
+    return;
+  }
+
+  root.dataset[key] = value;
 }
 
 export function readStoredAppearance(): { surface: Surface; accent: AccentChoice } {
   try {
     const surface = localStorage.getItem(SURFACE_STORAGE_KEY);
     const accent = localStorage.getItem(ACCENT_STORAGE_KEY);
-    return { surface: isSurface(surface) ? surface : DEFAULT_SURFACE, accent: isAccentChoice(accent) ? accent : DEFAULT_ACCENT };
+    return {
+      surface: isSurface(surface) ? surface : DEFAULT_SURFACE,
+      accent: isAccentChoice(accent) ? accent : DEFAULT_ACCENT,
+    };
   } catch {
     return { surface: DEFAULT_SURFACE, accent: DEFAULT_ACCENT };
   }

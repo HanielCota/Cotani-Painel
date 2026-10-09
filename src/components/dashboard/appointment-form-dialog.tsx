@@ -5,13 +5,7 @@ import { CalendarPlusIcon } from "lucide-react";
 
 import { AppointmentForm } from "@/components/dashboard/appointment-form";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { replaceUrlSearchParams } from "@/lib/browser-url";
 import { NEW_APPOINTMENT_EVENT, NEW_APPOINTMENT_PARAM } from "@/lib/shortcuts";
 
@@ -30,14 +24,26 @@ interface AppointmentFormDialogProps {
   defaultOpen?: boolean;
 }
 
-export function AppointmentFormDialog({ open: controlledOpen, onOpenChange, defaultOpen = false, ...props }: AppointmentFormDialogProps) {
+export function AppointmentFormDialog({
+  open: controlledOpen,
+  onOpenChange,
+  defaultOpen = false,
+  ...props
+}: AppointmentFormDialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(Boolean(props.initialCustomerId) || defaultOpen);
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : uncontrolledOpen;
-  const setOpen = useCallback((next: boolean) => {
-    if (isControlled) onOpenChange?.(next);
-    else setUncontrolledOpen(next);
-  }, [isControlled, onOpenChange]);
+  const setOpen = useCallback(
+    (next: boolean) => {
+      if (isControlled) {
+        onOpenChange?.(next);
+        return;
+      }
+
+      setUncontrolledOpen(next);
+    },
+    [isControlled, onOpenChange],
+  );
   const closeDialog = useCallback(() => setOpen(false), [setOpen]);
 
   // Atalho "N": o diálogo com botão próprio (o da página) atende o pedido.

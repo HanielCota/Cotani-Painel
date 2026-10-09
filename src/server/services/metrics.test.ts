@@ -47,9 +47,8 @@ describe("getDashboardMetrics", () => {
 
   it("calcula métricas corretamente quando há agendamentos", async () => {
     const today = new Date();
-    const { startOfToday } = await import("@/lib/timezone").then((m) =>
-      m.getClinicDateBounds(clinic.timeZone, today),
-    );
+    const { getClinicDateBounds } = await import("@/lib/timezone");
+    const { startOfToday } = getClinicDateBounds(clinic.timeZone, today);
 
     prismaMock.appointment.count.mockResolvedValueOnce(100); // totalAppointments
     prismaMock.appointment.count.mockResolvedValueOnce(5); // confirmedToday

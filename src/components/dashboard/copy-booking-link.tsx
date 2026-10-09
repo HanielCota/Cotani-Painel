@@ -30,8 +30,9 @@ export function CopyBookingLink({ url }: CopyBookingLinkProps) {
 
   async function handleCopy() {
     const copiedSuccessfully = await copyText(url);
+    // Sem acesso à área de transferência, seleciona o link para a pessoa copiar.
     if (!copiedSuccessfully) inputRef.current?.select();
-    else markBookingLinkShared();
+    if (copiedSuccessfully) markBookingLinkShared();
 
     setCopied(true);
 

@@ -27,14 +27,18 @@ export function MfaChallengeForm({ destination, recovery = false }: MfaChallenge
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    void createClient().auth.mfa.listFactors().then(({ data, error: listError }) => {
+    async function loadFactor() {
+      const { data, error: listError } = await createClient().auth.mfa.listFactors();
       const factor = data?.totp.find((item) => item.status === "verified");
       if (listError || !factor) {
         setError("Não foi possível localizar o autenticador desta conta. Atualize a página ou fale com o suporte.");
         return;
       }
+
       setFactorId(factor.id);
-    });
+    }
+
+    void loadFactor();
   }, []);
 
   async function verify(event: React.FormEvent<HTMLFormElement>) {
@@ -100,12 +104,21 @@ export function MfaChallengeForm({ destination, recovery = false }: MfaChallenge
 
         {recovery ? (
           <p className="mt-3 text-center text-xs text-muted-foreground">
-            Perdeu acesso ao autenticador? Escreva para <a className="font-medium text-primary underline-offset-4 hover:underline" href="mailto:contato@cotani.com.br">contato@cotani.com.br</a>.
+            Perdeu acesso ao autenticador? Escreva para{" "}
+            <a
+              className="font-medium text-primary underline-offset-4 hover:underline"
+              href="mailto:contato@cotani.com.br"
+            >
+              contato@cotani.com.br
+            </a>
+            .
           </p>
         ) : null}
 
         <form action={signOutCurrentSession} className="mt-2">
-          <Button type="submit" variant="ghost" className="w-full">{recovery ? "Cancelar e voltar ao login" : "Sair"}</Button>
+          <Button type="submit" variant="ghost" className="w-full">
+            {recovery ? "Cancelar e voltar ao login" : "Sair"}
+          </Button>
         </form>
       </AuthCard>
     </main>

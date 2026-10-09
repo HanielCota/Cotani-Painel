@@ -23,14 +23,21 @@ export function parseCsvLine(line: string, separator = ","): string[] {
     if (char === '"' && quoted && line[index + 1] === '"') {
       value += '"';
       index += 1;
-    } else if (char === '"') {
+      continue;
+    }
+
+    if (char === '"') {
       quoted = !quoted;
-    } else if (char === separator && !quoted) {
+      continue;
+    }
+
+    if (char === separator && !quoted) {
       values.push(value.trim());
       value = "";
-    } else {
-      value += char;
+      continue;
     }
+
+    value += char;
   }
   values.push(value.trim());
   return values;
