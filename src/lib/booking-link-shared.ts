@@ -31,7 +31,7 @@ export function readBookingLinkShared(): boolean {
 
 export function markBookingLinkShared() {
   // Falha de rede não impede a marcação local.
-  void ignoreFailure(markBookingLinkSharedOnServer());
+  void ignoreFailure(markBookingLinkSharedOnServer(), "Falha ao salvar no servidor que o link foi divulgado");
   try {
     localStorage.setItem(STORAGE_KEY, "true");
   } catch {

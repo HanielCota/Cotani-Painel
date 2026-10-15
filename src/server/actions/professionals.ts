@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import type { Prisma } from "@/generated/prisma/client";
+import { getErrorMetadata } from "@/lib/error-metadata";
+import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import { ACTIVE_APPOINTMENT_STATUSES } from "@/lib/appointment-status";
 import { findProfessionalLimitReached, professionalLimitMessage } from "@/server/services/billing-access";
@@ -116,8 +118,9 @@ export async function createProfessional(input: unknown): Promise<ActionResult> 
       await removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "professionals" });
       return { status: "error", message: "Um ou mais serviços selecionados são inválidos." };
     }
-  } catch {
-    await ignoreFailure(removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "professionals" }));
+  } catch (error) {
+    logger.error("Falha ao cadastrar profissional", { clinicId: clinic.id, ...getErrorMetadata(error) });
+    await ignoreFailure(removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "professionals" }), "Falha ao remover imagem do storage");
     return { status: "error", message: "Não foi possível cadastrar o profissional. Tente novamente." };
   }
 
@@ -200,13 +203,14 @@ export async function updateProfessional(input: unknown): Promise<ActionResult> 
         },
       });
     });
-  } catch {
-    await ignoreFailure(removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "professionals" }));
+  } catch (error) {
+    logger.error("Falha ao atualizar profissional", { clinicId: clinic.id, ...getErrorMetadata(error) });
+    await ignoreFailure(removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "professionals" }), "Falha ao remover imagem do storage");
     return { status: "error", message: "Não foi possível atualizar o profissional. Tente novamente." };
   }
 
   if (professional.imageUrl !== imageUrl) {
-    await ignoreFailure(removePublicImage({ url: professional.imageUrl, clinicId: clinic.id, kind: "professionals" }));
+    await ignoreFailure(removePublicImage({ url: professional.imageUrl, clinicId: clinic.id, kind: "professionals" }), "Falha ao remover imagem do storage");
   }
 
   revalidateProfessionalViews();
