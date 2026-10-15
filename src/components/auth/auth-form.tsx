@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { safeRedirectPath } from "@/lib/safe-redirect";
 import { createClient } from "@/lib/supabase/client";
 import { AuthCard } from "@/components/auth/auth-card";
 import { TurnstileWidget, type TurnstileWidgetHandle } from "@/components/security/turnstile-widget";
@@ -29,10 +30,6 @@ function GoogleIcon() {
   );
 }
 
-function safeRedirect(value: string | null) {
-  return value?.startsWith("/") && !value.startsWith("//") ? value : "/dashboard";
-}
-
 export function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -44,7 +41,7 @@ export function AuthForm() {
   const captchaRef = useRef<TurnstileWidgetHandle>(null);
   const captchaRequired = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim());
   const handleCaptchaToken = useCallback((token: string | null) => setCaptchaToken(token), []);
-  const redirectTo = safeRedirect(searchParams.get("redirect"));
+  const redirectTo = safeRedirectPath(searchParams.get("redirect"));
   const passwordUpdated = searchParams.get("password") === "updated";
 
   useEffect(() => {

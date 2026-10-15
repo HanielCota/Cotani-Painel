@@ -1,6 +1,7 @@
 import type { EmailOtpType, SupabaseClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { safeRedirectPath } from "@/lib/safe-redirect";
 import { getSupabaseAuthCookieNames } from "@/lib/supabase/auth-cookie-names";
 import { isRecoverySession } from "@/lib/supabase/recovery-session";
 import { getRecoveryMfaStatus } from "@/lib/supabase/recovery-mfa";
@@ -20,16 +21,6 @@ import { createClient } from "@/lib/supabase/server";
 
 const recoveryTokenCookie = "cotani_recovery_token";
 const recoveryPendingCookie = "cotani_recovery_pending";
-
-function safeNext(value: string | null, origin: string) {
-  if (!value?.startsWith("/") || value.startsWith("//") || value.includes("\\")) return "/dashboard";
-  try {
-    const target = new URL(value, origin);
-    return target.origin === origin ? `${target.pathname}${target.search}${target.hash}` : "/dashboard";
-  } catch {
-    return "/dashboard";
-  }
-}
 
 function isRecoveryDestination(next: string) {
   return next.startsWith("/auth/confirm-recovery") || next.startsWith("/update-password");
@@ -77,7 +68,7 @@ export async function GET(request: NextRequest) {
   const code = url.searchParams.get("code");
   const tokenHash = url.searchParams.get("token_hash");
   const type = url.searchParams.get("type") as EmailOtpType | null;
-  const next = safeNext(url.searchParams.get("next"), url.origin);
+  const next = safeRedirectPath(url.searchParams.get("next"));
 
   if (tokenHash && type === "recovery") {
     if (tokenHash.length > 1024) {
