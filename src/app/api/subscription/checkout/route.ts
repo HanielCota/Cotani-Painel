@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { readConfiguredAppUrl } from "@/config/app-url";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import { readRequestText, RequestBodyTooLargeError } from "@/lib/request-body";
@@ -45,10 +46,7 @@ export async function POST(request: NextRequest) {
     }
 
     const payerEmail = user.email;
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
-    const backUrl = appUrl
-      ? `${appUrl.replace(/\/$/, "")}/dashboard/assinatura`
-      : `${request.nextUrl.origin}/dashboard/assinatura`;
+    const backUrl = `${readConfiguredAppUrl() ?? request.nextUrl.origin}/dashboard/assinatura`;
 
     const checkoutAttempt = await prisma.$transaction(async (transaction) => {
       await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;

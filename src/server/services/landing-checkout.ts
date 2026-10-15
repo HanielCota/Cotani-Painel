@@ -1,6 +1,7 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
+import { requireConfiguredAppUrl } from "@/config/app-url";
 import { BillingCycle, ClinicRole, SubscriptionPlan } from "@/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -133,9 +134,6 @@ export async function createLandingCheckout(input: LandingCheckoutInput) {
   return { checkoutId: attempt.contract.id, checkoutUrl: remote.checkoutUrl, resumed: false };
 }
 
-function appUrl() {
-  return (process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://painel.cotani.com.br").replace(/\/$/, "");
-}
 
 async function sendExistingAccountEmail(email: string, name: string) {
   const apiKey = process.env.RESEND_API_KEY?.trim();
@@ -148,7 +146,7 @@ async function sendExistingAccountEmail(email: string, name: string) {
       from,
       to: [email],
       subject: "Pagamento confirmado - seu acesso à Cotani está liberado",
-      text: `Olá, ${name}. Seu pagamento foi confirmado e seu negócio já está liberado na Cotani. Entre com este mesmo e-mail em ${appUrl()}/sign-in. Se não lembrar sua senha, use a opção \"Esqueci minha senha\".`,
+      text: `Olá, ${name}. Seu pagamento foi confirmado e seu negócio já está liberado na Cotani. Entre com este mesmo e-mail em ${requireConfiguredAppUrl()}/sign-in. Se não lembrar sua senha, use a opção \"Esqueci minha senha\".`,
     }),
     signal: AbortSignal.timeout(10_000),
   });
@@ -177,7 +175,7 @@ async function deliverAccess(
   const supabase = createAdminClient();
   const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
     data: { name, source: "landing_checkout", clinic_id: clinicId },
-    redirectTo: `${appUrl()}/update-password`,
+    redirectTo: `${requireConfiguredAppUrl()}/update-password`,
   });
   if (error && !isAlreadyRegisteredError(error)) throw new Error(`Falha ao enviar convite de acesso: ${error.message}`);
 

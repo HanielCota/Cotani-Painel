@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 
+import { readConfiguredAppUrl } from "@/config/app-url";
 import type { Prisma } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { normalizeWhatsAppPhone } from "@/lib/phone";
@@ -119,7 +120,7 @@ export async function POST(request: NextRequest) {
           });
         }
         if (appointment && ["2", "reagendar", "remarcar"].includes(answer)) {
-          const baseUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "";
+          const baseUrl = readConfiguredAppUrl() ?? "";
           const now = new Date();
           await transaction.notification.create({
             data: {

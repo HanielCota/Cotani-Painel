@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
 
+import { DEVELOPMENT_APP_URL, readConfiguredAppUrl } from "@/config/app-url";
+
 export default function robots(): MetadataRoute.Robots {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() ?? "http://localhost:3000";
-  const baseUrl = appUrl.replace(/\/$/, "");
+  const baseUrl = readConfiguredAppUrl() ?? DEVELOPMENT_APP_URL;
 
   return {
     rules: [

@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import Script from "next/script";
 
 import { AppProviders } from "@/app/providers";
+import { readConfiguredAppUrl } from "@/config/app-url";
 import { APPEARANCE_BOOT_SCRIPT } from "@/lib/appearance";
 import "./globals.css";
 
@@ -19,7 +20,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const configuredAppUrl = readConfiguredAppUrl();
+
 export const metadata: Metadata = {
+  metadataBase: configuredAppUrl ? new URL(configuredAppUrl) : undefined,
   applicationName: "Cotani",
   title: {
     default: "Cotani - Agenda on-line e gestão para negócios",
@@ -40,7 +44,7 @@ export const metadata: Metadata = {
       "Plataforma de gestão para negócios com agenda on-line, clientes, relatórios e agendamento público.",
     images: [
       {
-        url: "https://painel.cotani.com.br/images/cotani-logo.png",
+        url: "/images/cotani-logo.png",
         width: 1254,
         height: 1254,
         alt: "Cotani",
@@ -52,7 +56,7 @@ export const metadata: Metadata = {
     title: "Cotani - Agenda on-line e gestão para negócios",
     description:
       "Plataforma de gestão para negócios com agenda on-line, clientes, relatórios e agendamento público.",
-    images: ["https://painel.cotani.com.br/images/cotani-logo.png"],
+    images: ["/images/cotani-logo.png"],
   },
 };
 
