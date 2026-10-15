@@ -63,7 +63,7 @@ export function BusinessHoursSettings({ businessHours, professionalId }: Busines
       <div className="overflow-hidden rounded-xl border border-border/80">
         <div className="flex flex-col divide-y">
           {[...localHours]
-            .sort((a, b) => a.dayOfWeek - b.dayOfWeek)
+            .sort((firstDay, secondDay) => firstDay.dayOfWeek - secondDay.dayOfWeek)
             .map((item) => (
               <div
                 key={item.dayOfWeek}

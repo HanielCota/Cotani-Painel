@@ -77,7 +77,7 @@ function freeSlotsOfDay(input: FreeSlotsOfDayInput): FreeSlot[] {
     for (const slot of slots) byStart.set(slot.startTime.getTime(), slot);
     if (input.limit && byStart.size >= input.limit) break;
   }
-  return [...byStart.values()].sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+  return [...byStart.values()].sort((firstSlot, secondSlot) => firstSlot.startTime.getTime() - secondSlot.startTime.getTime());
 }
 
 /**

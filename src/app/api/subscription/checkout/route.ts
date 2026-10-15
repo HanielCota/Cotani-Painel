@@ -106,13 +106,13 @@ export async function POST(request: NextRequest) {
       backUrl,
     });
 
-    await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
-      await tx.clinic.update({
+    await prisma.$transaction(async (transaction) => {
+      await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
+      await transaction.clinic.update({
         where: { id: clinic.id, mercadoPagoCheckoutKey: checkoutAttempt.contract.id },
         data: { mercadoPagoSubscriptionId, mercadoPagoCheckoutUrl: checkoutUrl, cancelAtPeriodEnd: false },
       });
-      await tx.billingContract.update({ where: { id: checkoutAttempt.contract.id },
+      await transaction.billingContract.update({ where: { id: checkoutAttempt.contract.id },
         data: { remoteId: mercadoPagoSubscriptionId, checkoutUrl, state: "pending" } });
     });
     return NextResponse.json({ checkoutUrl });

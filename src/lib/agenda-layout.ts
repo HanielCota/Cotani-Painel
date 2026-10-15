@@ -74,7 +74,7 @@ export function layoutColumn<T extends TimedItem>(items: readonly T[], timeZone:
       const end = rawEnd <= start ? gridEnd : rawEnd;
       return { item, start: Math.max(start, gridStart), end: Math.min(Math.max(end, start + MIN_HEIGHT_MINUTES), gridEnd) };
     })
-    .sort((a, b) => a.start - b.start || b.end - a.end);
+    .sort((first, second) => first.start - second.start || second.end - first.end);
 
   const positioned: PositionedItem<T>[] = [];
   let group: Array<{ entry: (typeof timed)[number]; lane: number }> = [];
