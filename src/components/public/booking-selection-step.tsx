@@ -44,46 +44,103 @@ interface BookingSelectionStepProps {
   onProfessionalSelect: (professionalId: string) => void;
 }
 
-export function BookingSelectionStep({ services, professionals, selectedServiceId, selectedProfessionalId, onServiceSelect, onProfessionalSelect }: BookingSelectionStepProps) {
+export function BookingSelectionStep({
+  services,
+  professionals,
+  selectedServiceId,
+  selectedProfessionalId,
+  onServiceSelect,
+  onProfessionalSelect,
+}: BookingSelectionStepProps) {
   const selectedService = services.find((service) => service.id === selectedServiceId);
-  const availableProfessionals = selectedService ? professionals.filter((professional) => professional.serviceIds.includes(selectedService.id)) : [];
+  const availableProfessionals = selectedService
+    ? professionals.filter((professional) => professional.serviceIds.includes(selectedService.id))
+    : [];
 
   return (
     <div className="flex flex-col gap-5 animate-fade-in-up">
-      <div className="flex items-center gap-2 text-primary"><CalendarPlusIcon className="size-5" /><h2 className="text-lg font-semibold">Escolha o serviço e o profissional</h2></div>
+      <div className="flex items-center gap-2 text-primary">
+        <CalendarPlusIcon className="size-5" />
+        <h2 className="text-lg font-semibold">Escolha o serviço e o profissional</h2>
+      </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {services.map((service) => {
           const selected = selectedServiceId === service.id;
           return (
-            <button key={service.id} type="button" aria-pressed={selected} onClick={() => onServiceSelect(service)} className={`flex min-h-[5.5rem] min-w-0 items-center gap-4 overflow-hidden rounded-xl border p-4 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.99] ${selected ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"}`}>
+            <button
+              key={service.id}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => onServiceSelect(service)}
+              className={`flex min-h-[5.5rem] min-w-0 items-center gap-4 overflow-hidden rounded-xl border p-4 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.99] ${selected ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"}`}
+            >
               {service.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element -- URL dinâmica pode vir do armazenamento configurado pela loja.
                 <img src={service.imageUrl} alt="" className="size-14 shrink-0 rounded-lg object-cover ring-1 ring-border sm:size-16" />
-              ) : <div className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground sm:size-16"><ImageIcon className="size-6" /></div>}
-              <div className="flex min-w-0 flex-col gap-1 overflow-hidden"><span className="truncate font-semibold leading-tight">{service.name}</span><span className="text-sm text-muted-foreground">{service.duration} min</span><span className="text-base font-bold text-primary">{formatCurrency(service.price)}</span></div>
+              ) : (
+                <div className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground sm:size-16">
+                  <ImageIcon className="size-6" />
+                </div>
+              )}
+              <div className="flex min-w-0 flex-col gap-1 overflow-hidden">
+                <span className="truncate font-semibold leading-tight">{service.name}</span>
+                <span className="text-sm text-muted-foreground">{service.duration} min</span>
+                <span className="text-base font-bold text-primary">{formatCurrency(service.price)}</span>
+              </div>
             </button>
           );
         })}
       </div>
       {selectedService ? (
         <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2 text-primary"><UserIcon className="size-5" /><h3 className="text-base font-semibold">Profissional para {selectedService.name}</h3></div>
+          <div className="flex items-center gap-2 text-primary">
+            <UserIcon className="size-5" />
+            <h3 className="text-base font-semibold">Profissional para {selectedService.name}</h3>
+          </div>
           {availableProfessionals.length === 0 ? (
-            <div className="rounded-xl border border-dashed bg-background/50 p-6 text-center"><UserIcon className="mx-auto size-8 text-muted-foreground" /><p className="mt-2 text-sm font-medium text-foreground">Nenhum profissional disponível</p><p className="text-sm text-muted-foreground">Não há profissionais vinculados a este serviço no momento.</p></div>
+            <div className="rounded-xl border border-dashed bg-background/50 p-6 text-center">
+              <UserIcon className="mx-auto size-8 text-muted-foreground" />
+              <p className="mt-2 text-sm font-medium text-foreground">Nenhum profissional disponível</p>
+              <p className="text-sm text-muted-foreground">Não há profissionais vinculados a este serviço no momento.</p>
+            </div>
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {availableProfessionals.length > 1 ? (
-                <button type="button" aria-pressed={selectedProfessionalId === ANY_PROFESSIONAL_ID} onClick={() => onProfessionalSelect(ANY_PROFESSIONAL_ID)} className={`flex min-h-[4.5rem] min-w-0 items-center gap-4 overflow-hidden rounded-xl border p-4 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.99] ${selectedProfessionalId === ANY_PROFESSIONAL_ID ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"}`}>
-                  <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary sm:size-14"><UsersIcon aria-hidden="true" className="size-5 sm:size-6" /></div>
-                  <div className="flex min-w-0 flex-col gap-0.5 overflow-hidden"><span className="truncate font-semibold leading-tight">Sem preferência</span><span className="text-sm text-muted-foreground">Mais horários: quem estiver livre</span></div>
+                <button
+                  type="button"
+                  aria-pressed={selectedProfessionalId === ANY_PROFESSIONAL_ID}
+                  onClick={() => onProfessionalSelect(ANY_PROFESSIONAL_ID)}
+                  className={`flex min-h-[4.5rem] min-w-0 items-center gap-4 overflow-hidden rounded-xl border p-4 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.99] ${selectedProfessionalId === ANY_PROFESSIONAL_ID ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"}`}
+                >
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary sm:size-14">
+                    <UsersIcon aria-hidden="true" className="size-5 sm:size-6" />
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-0.5 overflow-hidden">
+                    <span className="truncate font-semibold leading-tight">Sem preferência</span>
+                    <span className="text-sm text-muted-foreground">Mais horários: quem estiver livre</span>
+                  </div>
                 </button>
               ) : null}
               {availableProfessionals.map((professional) => {
                 const selected = selectedProfessionalId === professional.id;
                 return (
-                  <button key={professional.id} type="button" aria-pressed={selected} onClick={() => onProfessionalSelect(professional.id)} className={`flex min-h-[4.5rem] min-w-0 items-center gap-4 overflow-hidden rounded-xl border p-4 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.99] ${selected ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"}`}>
-                    <Avatar className="size-12 sm:size-14">{professional.imageUrl ? <AvatarImage src={professional.imageUrl} alt="" /> : null}<AvatarFallback className="bg-primary/10 text-primary"><UserIcon className="size-5 sm:size-6" /></AvatarFallback></Avatar>
-                    <div className="flex min-w-0 flex-col gap-0.5 overflow-hidden"><span className="truncate font-semibold leading-tight">{professional.name}</span><span className="text-sm text-muted-foreground">Profissional</span></div>
+                  <button
+                    key={professional.id}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => onProfessionalSelect(professional.id)}
+                    className={`flex min-h-[4.5rem] min-w-0 items-center gap-4 overflow-hidden rounded-xl border p-4 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.99] ${selected ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"}`}
+                  >
+                    <Avatar className="size-12 sm:size-14">
+                      {professional.imageUrl ? <AvatarImage src={professional.imageUrl} alt="" /> : null}
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        <UserIcon className="size-5 sm:size-6" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex min-w-0 flex-col gap-0.5 overflow-hidden">
+                      <span className="truncate font-semibold leading-tight">{professional.name}</span>
+                      <span className="text-sm text-muted-foreground">Profissional</span>
+                    </div>
                   </button>
                 );
               })}
