@@ -38,6 +38,18 @@ export interface TenantContext {
   role: ClinicRole;
 }
 
+function findAccessibleMembership(userId: string, clinicId: string | null) {
+  return prisma.membership.findFirst({
+    where: {
+      userId,
+      clinicId: clinicId ?? undefined,
+      clinic: { deletedAt: null },
+    },
+    include: { clinic: { include: { billingOwner: true } } },
+    orderBy: { createdAt: "asc" },
+  });
+}
+
 /**
  * Contexto de tenant da requisição, memoizado por request via `cache()` do React.
  * Fail-closed: a identidade vem do Supabase e a associação à loja é sempre
@@ -50,23 +62,9 @@ export const getTenantContext = cache(async (): Promise<TenantContext> => {
     getSelectedClinicId(),
   ]);
 
-  let membership = await prisma.membership.findFirst({
-    where: {
-      userId: appUser.id,
-      clinicId: selectedClinicId ?? undefined,
-      clinic: { deletedAt: null },
-    },
-    include: { clinic: { include: { billingOwner: true } } },
-    orderBy: { createdAt: "asc" },
-  });
-
-  if (!membership && selectedClinicId) {
-    membership = await prisma.membership.findFirst({
-      where: { userId: appUser.id, clinic: { deletedAt: null } },
-      include: { clinic: { include: { billingOwner: true } } },
-      orderBy: { createdAt: "asc" },
-    });
-  }
+  const selectedMembership = await findAccessibleMembership(appUser.id, selectedClinicId);
+  // Cookie apontando para um negócio sem acesso: cai no primeiro negócio da conta.
+  const membership = selectedMembership ?? (selectedClinicId ? await findAccessibleMembership(appUser.id, null) : null);
 
   if (!membership) {
     throw new TenantResolutionError("Nenhum negócio acessível foi encontrado para esta conta.");

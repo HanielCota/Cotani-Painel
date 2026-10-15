@@ -47,8 +47,7 @@ export async function deleteOwnAccount(_previousState: ActionResult, formData: F
     if (admins <= 1)
       return { status: "error", message: "Transfira a administração dos seus negócios antes de excluir a conta." };
   }
-  let blockedByAdministration = false;
-  await prisma.$transaction(async (transaction) => {
+  const blockedByAdministration = await prisma.$transaction(async (transaction) => {
     const administeredClinicIds = memberships
       .filter((item) => item.role === "ADMIN")
       .map((item) => item.clinicId)
@@ -58,10 +57,7 @@ export async function deleteOwnAccount(_previousState: ActionResult, formData: F
     }
     for (const clinicId of administeredClinicIds) {
       const admins = await transaction.membership.count({ where: { clinicId, role: "ADMIN" } });
-      if (admins <= 1) {
-        blockedByAdministration = true;
-        return;
-      }
+      if (admins <= 1) return true;
     }
     await transaction.professional.updateMany({
       where: { membership: { userId: appUser.id } },
@@ -69,6 +65,7 @@ export async function deleteOwnAccount(_previousState: ActionResult, formData: F
     });
     await transaction.membership.deleteMany({ where: { userId: appUser.id } });
     await transaction.user.delete({ where: { id: appUser.id } });
+    return false;
   });
   if (blockedByAdministration)
     return { status: "error", message: "Transfira a administração dos seus negócios antes de excluir a conta." };

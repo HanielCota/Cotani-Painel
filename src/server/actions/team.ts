@@ -135,17 +135,13 @@ export async function updateClinicMemberRole(formData: FormData): Promise<Action
   if (!membership) return { status: "error", message: "Membro não encontrado." };
   if (parsed.data.role === "PROVIDER" && !parsed.data.professionalId)
     return { status: "error", message: "Selecione o profissional vinculado." };
-  let blockedLastAdmin = false;
-  await prisma.$transaction(async (transaction) => {
+  const blockedLastAdmin = await prisma.$transaction(async (transaction) => {
     await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
     const current = await transaction.membership.findFirst({ where: { id: membership.id, clinicId: clinic.id } });
-    if (!current) return;
+    if (!current) return false;
     if (current.role === "ADMIN" && parsed.data.role !== "ADMIN") {
       const adminCount = await transaction.membership.count({ where: { clinicId: clinic.id, role: "ADMIN" } });
-      if (adminCount <= 1) {
-        blockedLastAdmin = true;
-        return;
-      }
+      if (adminCount <= 1) return true;
     }
     await transaction.professional.updateMany({ where: { membershipId: membership.id }, data: { membershipId: null } });
     await transaction.membership.update({ where: { id: membership.id }, data: { role: parsed.data.role } });
@@ -162,6 +158,7 @@ export async function updateClinicMemberRole(formData: FormData): Promise<Action
       if (!professional) throw new Error("Profissional indisponível para vínculo.");
       await transaction.professional.update({ where: { id: professional.id }, data: { membershipId: membership.id } });
     }
+    return false;
   });
   if (blockedLastAdmin) return { status: "error", message: "O negócio precisa manter pelo menos um administrador." };
   revalidateTeam();
@@ -177,19 +174,16 @@ export async function removeClinicMember(formData: FormData): Promise<ActionResu
   });
   if (!membership || membership.id === actorMembership.id)
     return { status: "error", message: "Você não pode remover seu próprio acesso." };
-  let blockedLastAdmin = false;
-  await prisma.$transaction(async (transaction) => {
+  const blockedLastAdmin = await prisma.$transaction(async (transaction) => {
     await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
     const current = await transaction.membership.findFirst({ where: { id: membership.id, clinicId: clinic.id } });
-    if (!current) return;
+    if (!current) return false;
     if (current.role === "ADMIN") {
       const adminCount = await transaction.membership.count({ where: { clinicId: clinic.id, role: "ADMIN" } });
-      if (adminCount <= 1) {
-        blockedLastAdmin = true;
-        return;
-      }
+      if (adminCount <= 1) return true;
     }
     await transaction.membership.delete({ where: { id: current.id } });
+    return false;
   });
   if (blockedLastAdmin) return { status: "error", message: "Não é possível remover o último administrador." };
   revalidateTeam();
