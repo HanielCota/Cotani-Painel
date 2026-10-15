@@ -281,3 +281,10 @@ Pendências que dependem do dono do repositório (admin) ou dos serviços:
 - Secret scanning e push protection; GitHub Advanced Security, se desejar CodeQL.
 - Dar acesso à conta `GuiSatierf` no projeto da Vercel: hoje o check "Vercel" falha nos PRs dela ("Git author must have access to the project").
 - Supabase: template de recuperação com `token_hash` (ver #3), backup/restauração e monitoramento externo (PRD-02/04 da auditoria de 04/10).
+
+## Atualização em 15/10/2026
+
+- O conteúdo do #5 (SEC-01 e SEC-02) foi incorporado ao #4 por fast-forward; o #5 fica vazio depois do merge do #4. O #30 (Dependabot, só o Next) foi fechado como superado.
+- O #3 passou a usar uma regra única de redirecionamento seguro no callback, no formulário de login e na página de 2FA, fechando o redirecionamento aberto (P-1 da auditoria de 03/10).
+- O GitHub Actions do repositório não inicia jobs desde 08/10 ("recent account payments have failed or your spending limit needs to be increased"). Enquanto a cobrança não for resolvida, nenhum PR tem CI no GitHub. Em 15/10 o CI completo foi reproduzido localmente (ambiente de CI, banco efêmero `supabase/postgres`): todos os PRs abertos, mesclados ao #4, passam em lint, tipos, testes e build; #3, #5 a #10, #28 e #29 também em migrações do zero, drift e E2E.
+- Nova pendência do dono: regularizar a cobrança do GitHub Actions.
