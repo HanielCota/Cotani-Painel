@@ -61,24 +61,33 @@ const BOOKING_RATE_LIMIT = {
   windowMs: 15 * 60_000,
 };
 
-/**
- * Agendamento público (self-service), sem sessão autenticada. O escopo do tenant é
- * resolvido pelo slug da loja e todo o restante segue o mesmo núcleo
- * transacional do agendamento interno: validação de conflito, exclusion
- * constraint do banco e outbox de notificações na mesma transação.
- */
-export async function createPublicAppointment(
-  _previousState: ActionResult,
-  formData: FormData,
-): Promise<PublicBookingResult> {
+type PublicBookingInput = z.infer<typeof publicBookingSchema>;
+
+type BookingClinic = NonNullable<Awaited<ReturnType<typeof findClinicBySlug>>>;
+
+type BookingService = NonNullable<Awaited<ReturnType<typeof findActiveService>>>;
+
+interface BookingContext {
+  clinic: BookingClinic;
+  service: BookingService;
+  input: PublicBookingInput;
+  candidates: (string | null)[];
+}
+
+type Guarded<T> = { value: T; error?: never } | { value?: never; error: PublicBookingResult };
+
+function bookingError(message: string): PublicBookingResult {
+  return { status: "error", message };
+}
+
+async function isBookingRateLimited() {
   const ip = getClientIpFromHeaders(await headers());
   const limit = await rateLimit({ key: `public-booking:${ip}`, ...BOOKING_RATE_LIMIT });
+  return !limit.success;
+}
 
-  if (!limit.success) {
-    return { status: "error", message: "Muitas tentativas de agendamento. Tente novamente em alguns minutos." };
-  }
-
-  const parsed = publicBookingSchema.safeParse({
+function parsePublicBookingForm(formData: FormData) {
+  return publicBookingSchema.safeParse({
     slug: formData.get("slug"),
     serviceId: formData.get("serviceId"),
     professionalId: formData.get("professionalId") || undefined,
@@ -89,139 +98,186 @@ export async function createPublicAppointment(
     notes: formData.get("notes") || undefined,
     rescheduleToken: formData.get("rescheduleToken") || undefined,
   });
+}
 
-  if (!parsed.success) {
-    return { status: "error", message: "Revise os dados do agendamento." };
-  }
-  const normalizedPhone = normalizeWhatsAppPhone(parsed.data.customerPhone);
-  if (!normalizedPhone) return { status: "error", message: "Informe um WhatsApp com DDD válido." };
-
-  const clinic = await prisma.clinic.findFirst({
-    where: { deletedAt: null, OR: [{ slug: parsed.data.slug }, { slugAliases: { some: { slug: parsed.data.slug } } }] },
+function findClinicBySlug(slug: string) {
+  return prisma.clinic.findFirst({
+    where: { deletedAt: null, OR: [{ slug }, { slugAliases: { some: { slug } } }] },
     include: { billingOwner: true },
   });
+}
 
-  if (!clinic) {
-    return { status: "error", message: "Negócio não encontrado." };
-  }
-
-  if (!isClinicOperational(clinic)) {
-    return { status: "error", message: "Este negócio está temporariamente indisponível." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
-
-  const service = await prisma.service.findFirst({
-    where: { id: parsed.data.serviceId, clinicId: clinic.id, isActive: true },
+function findActiveService(clinicId: string, serviceId: string) {
+  return prisma.service.findFirst({
+    where: { id: serviceId, clinicId, isActive: true },
   });
+}
 
-  if (!service || service.duration <= 0) {
-    return { status: "error", message: "Serviço indisponível para agendamento." };
-  }
+async function resolveBookableClinic(slug: string): Promise<Guarded<BookingClinic>> {
+  const clinic = await findClinicBySlug(slug);
+  if (!clinic) return { error: bookingError("Negócio não encontrado.") };
+  if (!isClinicOperational(clinic)) return { error: bookingError("Este negócio está temporariamente indisponível.") };
+  if (!isSubscriptionActive(clinic)) return { error: bookingError(SUBSCRIPTION_INACTIVE_MESSAGE) };
+  return { value: clinic };
+}
 
-  const professionalIds = await resolveBookingProfessionals(clinic.id, service.id, parsed.data.professionalId);
-  if (!professionalIds) {
-    return { status: "error", message: "Profissional indisponível para este serviço." };
-  }
+async function resolveBookableService(clinicId: string, serviceId: string): Promise<Guarded<BookingService>> {
+  const service = await findActiveService(clinicId, serviceId);
+  if (!service || service.duration <= 0) return { error: bookingError("Serviço indisponível para agendamento.") };
+  return { value: service };
+}
 
-  if (!isWithinBookingWindow(parsed.data.startTime)) {
+async function orderCandidates(clinic: BookingClinic, startTime: Date, professionalIds: string[]) {
+  if (professionalIds.length === 0) return [null];
+  return orderByDailyLoad(clinic.id, clinic.timeZone, startTime, professionalIds);
+}
+
+/** Valida loja, serviço, profissional e janela de agendamento, na mesma ordem do fluxo original. */
+async function resolveBookingContext(input: PublicBookingInput): Promise<Guarded<BookingContext>> {
+  const clinicResult = await resolveBookableClinic(input.slug);
+  if (clinicResult.error) return { error: clinicResult.error };
+  const clinic = clinicResult.value;
+
+  const serviceResult = await resolveBookableService(clinic.id, input.serviceId);
+  if (serviceResult.error) return { error: serviceResult.error };
+  const service = serviceResult.value;
+
+  const professionalIds = await resolveBookingProfessionals(clinic.id, service.id, input.professionalId);
+  if (!professionalIds) return { error: bookingError("Profissional indisponível para este serviço.") };
+
+  if (!isWithinBookingWindow(input.startTime)) {
     return {
-      status: "error",
-      message: "Escolha um horário com pelo menos 15 minutos de antecedência e no máximo 180 dias no futuro.",
+      error: bookingError(
+        "Escolha um horário com pelo menos 15 minutos de antecedência e no máximo 180 dias no futuro.",
+      ),
     };
   }
 
-  const candidates: (string | null)[] =
-    professionalIds.length > 0
-      ? await orderByDailyLoad(clinic.id, clinic.timeZone, parsed.data.startTime, professionalIds)
-      : [null];
-  const professionalNameOf = async (professionalId: string | null) =>
-    professionalId
-      ? (
-          await prisma.professional.findFirst({
-            where: { id: professionalId, clinicId: clinic.id },
-            select: { name: true },
-          })
-        )?.name
-      : undefined;
+  const candidates: (string | null)[] = await orderCandidates(clinic, input.startTime, professionalIds);
+  return { value: { clinic, service, input, candidates } };
+}
 
-  if (parsed.data.rescheduleToken) {
-    const existing = await prisma.appointment.findFirst({
-      where: {
-        cancellationToken: parsed.data.rescheduleToken,
-        clinicId: clinic.id,
-        status: { in: ["PENDING", "CONFIRMED"] },
-        startTime: { gt: new Date() },
-      },
-      include: { customer: true },
-    });
-    if (!existing) return { status: "error", message: "Este link de reagendamento não é mais válido." };
-    const { result, professionalId } = await firstAvailable(candidates, (candidate) =>
-      rescheduleScheduledAppointment({
-        appointmentId: existing.id,
-        clinicId: clinic.id,
-        clinicSlug: clinic.slug,
-        clinicName: clinic.name,
-        timeZone: clinic.timeZone,
-        customerId: existing.customerId,
-        customerName: existing.customer.name,
-        customerPhone: existing.customer.phone,
-        customerEmail: existing.customer.email,
-        notificationChannels: getNotificationChannels(clinic.subscriptionPlan),
-        serviceId: service.id,
-        serviceName: service.name,
-        serviceDuration: service.duration,
-        servicePrice: Number(service.price),
-        professionalId: candidate,
-        startTime: parsed.data.startTime,
-        notes: parsed.data.notes,
-        cancellationToken: existing.cancellationToken,
-        maxAppointmentsPerDay: clinic.maxAppointmentsPerDay,
-      }),
-    );
-    if (result.status === "conflict") return { status: "error", message: DOUBLE_BOOKING_MESSAGE };
-    if (result.status === "error") return { status: "error", message: "Não foi possível reagendar. Tente novamente." };
-    return {
-      status: "success",
-      message: "Agendamento reagendado.",
-      professionalName: await professionalNameOf(professionalId),
-    };
-  }
+async function findProfessionalName(clinicId: string, professionalId: string | null) {
+  if (!professionalId) return undefined;
 
+  const professional = await prisma.professional.findFirst({
+    where: { id: professionalId, clinicId },
+    select: { name: true },
+  });
+  return professional?.name;
+}
+
+function findReschedulableAppointment(clinicId: string, rescheduleToken: string) {
+  return prisma.appointment.findFirst({
+    where: {
+      cancellationToken: rescheduleToken,
+      clinicId,
+      status: { in: ["PENDING", "CONFIRMED"] },
+      startTime: { gt: new Date() },
+    },
+    include: { customer: true },
+  });
+}
+
+async function reschedulePublicAppointment(
+  { clinic, service, input, candidates }: BookingContext,
+  rescheduleToken: string,
+): Promise<PublicBookingResult> {
+  const existing = await findReschedulableAppointment(clinic.id, rescheduleToken);
+  if (!existing) return bookingError("Este link de reagendamento não é mais válido.");
+
+  const { result, professionalId } = await firstAvailable(candidates, (candidate) =>
+    rescheduleScheduledAppointment({
+      appointmentId: existing.id,
+      clinicId: clinic.id,
+      clinicSlug: clinic.slug,
+      clinicName: clinic.name,
+      timeZone: clinic.timeZone,
+      customerId: existing.customerId,
+      customerName: existing.customer.name,
+      customerPhone: existing.customer.phone,
+      customerEmail: existing.customer.email,
+      notificationChannels: getNotificationChannels(clinic.subscriptionPlan),
+      serviceId: service.id,
+      serviceName: service.name,
+      serviceDuration: service.duration,
+      servicePrice: Number(service.price),
+      professionalId: candidate,
+      startTime: input.startTime,
+      notes: input.notes,
+      cancellationToken: existing.cancellationToken,
+      maxAppointmentsPerDay: clinic.maxAppointmentsPerDay,
+    }),
+  );
+
+  if (result.status === "conflict") return bookingError(DOUBLE_BOOKING_MESSAGE);
+  if (result.status === "error") return bookingError("Não foi possível reagendar. Tente novamente.");
+  return {
+    status: "success",
+    message: "Agendamento reagendado.",
+    professionalName: await findProfessionalName(clinic.id, professionalId),
+  };
+}
+
+async function bookPublicAppointment(
+  { clinic, service, input, candidates }: BookingContext,
+  normalizedPhone: string,
+): Promise<PublicBookingResult> {
   const { result, professionalId } = await firstAvailable(candidates, (candidate) =>
     scheduleAppointment({
       clinicId: clinic.id,
       clinicSlug: clinic.slug,
       clinicName: clinic.name,
       timeZone: clinic.timeZone,
-      customerName: parsed.data.customerName,
+      customerName: input.customerName,
       customerPhone: normalizedPhone,
-      customerEmail: parsed.data.customerEmail,
+      customerEmail: input.customerEmail,
       notificationChannels: getNotificationChannels(clinic.subscriptionPlan),
       serviceId: service.id,
       serviceName: service.name,
       serviceDuration: service.duration,
       servicePrice: Number(service.price),
-      startTime: parsed.data.startTime,
-      notes: parsed.data.notes,
+      startTime: input.startTime,
+      notes: input.notes,
       professionalId: candidate,
       maxAppointmentsPerDay: clinic.maxAppointmentsPerDay,
     }),
   );
 
-  if (result.status === "conflict") {
-    return { status: "error", message: DOUBLE_BOOKING_MESSAGE };
-  }
-
-  if (result.status === "error") {
-    return { status: "error", message: "Não foi possível concluir o agendamento. Tente novamente." };
-  }
-
+  if (result.status === "conflict") return bookingError(DOUBLE_BOOKING_MESSAGE);
+  if (result.status === "error") return bookingError("Não foi possível concluir o agendamento. Tente novamente.");
   return {
     status: "success",
     message: "Agendamento realizado. A confirmação será enviada pelos canais disponíveis.",
-    professionalName: await professionalNameOf(professionalId),
+    professionalName: await findProfessionalName(clinic.id, professionalId),
   };
+}
+
+/**
+ * Agendamento público (self-service), sem sessão autenticada. O escopo do tenant é
+ * resolvido pelo slug da loja e todo o restante segue o mesmo núcleo
+ * transacional do agendamento interno: validação de conflito, exclusion
+ * constraint do banco e outbox de notificações na mesma transação.
+ */
+export async function createPublicAppointment(
+  _previousState: ActionResult,
+  formData: FormData,
+): Promise<PublicBookingResult> {
+  if (await isBookingRateLimited()) {
+    return bookingError("Muitas tentativas de agendamento. Tente novamente em alguns minutos.");
+  }
+
+  const parsed = parsePublicBookingForm(formData);
+  if (!parsed.success) return bookingError("Revise os dados do agendamento.");
+
+  const normalizedPhone = normalizeWhatsAppPhone(parsed.data.customerPhone);
+  if (!normalizedPhone) return bookingError("Informe um WhatsApp com DDD válido.");
+
+  const context = await resolveBookingContext(parsed.data);
+  if (context.error) return context.error;
+
+  const { rescheduleToken } = parsed.data;
+  if (rescheduleToken) return reschedulePublicAppointment(context.value, rescheduleToken);
+
+  return bookPublicAppointment(context.value, normalizedPhone);
 }
