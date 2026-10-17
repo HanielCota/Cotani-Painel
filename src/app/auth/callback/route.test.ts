@@ -47,4 +47,18 @@ describe("callback de autenticação", () => {
       "https://painel.cotani.com.br/sign-in?error=auth_callback",
     );
   });
+
+  it.each([
+    ["barra invertida", "/%5Cevil.example"],
+    ["barra e barra invertida", "/\\evil.example"],
+    ["tab", "/%09/evil.example"],
+  ])("não redireciona para outro site com %s no next", async (_caso, next) => {
+    const request = new NextRequest(
+      `https://painel.cotani.com.br/auth/callback?code=codigo-valido&next=${next}`,
+    );
+
+    const response = await GET(request);
+
+    expect(new URL(response.headers.get("location") ?? "").origin).toBe("https://painel.cotani.com.br");
+  });
 });
