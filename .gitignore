@@ -44,3 +44,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# saídas locais e inspeções temporárias
+/output/
+/tmp/
+/.tmp-*/
