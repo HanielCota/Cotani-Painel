@@ -11,6 +11,7 @@ import { requireAuthenticatedUser } from "@/server/auth";
 import { allowMediaUpload } from "@/server/services/action-rate-limit";
 import { persistPublicImage, removePublicImage } from "@/server/services/media-storage";
 import { slugify } from "@/server/services/clinic-provisioning";
+import { isSlugTakenByAnotherClinic, moveClinicSlug, SlugInUseError } from "@/server/services/clinic-slug";
 
 const settingsSchema = z.object({
   maxAppointmentsPerDay: z.coerce.number().int().min(1).optional().or(z.literal("")),
@@ -51,12 +52,8 @@ export async function saveBusinessProfile(_previousState: ActionResult, formData
   if (parsed.data.imageUrl?.startsWith("data:") && !(await allowMediaUpload(authUser.id))) {
     return { status: "error", message: "Muitos envios de imagem. Aguarde antes de tentar novamente." };
   }
-  const conflict = await prisma.clinic.findFirst({
-    where: { id: { not: clinic.id }, OR: [{ slug: parsed.data.slug }, { slugAliases: { some: { slug: parsed.data.slug } } }] },
-    select: { id: true },
-  });
-  const aliasConflict = await prisma.clinicSlugAlias.findFirst({ where: { slug: parsed.data.slug, clinicId: { not: clinic.id } }, select: { id: true } });
-  if (conflict || aliasConflict) return { status: "error", message: "Esse endereço público já está em uso." };
+  // Checagem antecipada para não enviar a imagem à toa; a definitiva roda na transação.
+  if (await isSlugTakenByAnotherClinic(prisma, clinic.id, parsed.data.slug)) return { status: "error", message: "Esse endereço público já está em uso." };
 
   let uploadedImageUrl: string | null = null;
   try {
@@ -64,10 +61,7 @@ export async function saveBusinessProfile(_previousState: ActionResult, formData
     if (parsed.data.imageUrl?.startsWith("data:")) uploadedImageUrl = imageUrl;
     await prisma.$transaction(async (transaction) => {
       await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
-      if (clinic.slug !== parsed.data.slug) {
-        await transaction.clinicSlugAlias.upsert({ where: { slug: clinic.slug }, create: { slug: clinic.slug, clinicId: clinic.id }, update: { clinicId: clinic.id } });
-        await transaction.clinicSlugAlias.deleteMany({ where: { clinicId: clinic.id, slug: parsed.data.slug } });
-      }
+      await moveClinicSlug(transaction, clinic, parsed.data.slug);
       await transaction.clinic.update({ where: { id: clinic.id }, data: {
         name: parsed.data.name, slug: parsed.data.slug, timeZone: parsed.data.timeZone,
         contactEmail: parsed.data.contactEmail || null, phone: parsed.data.phone || null,
@@ -75,9 +69,9 @@ export async function saveBusinessProfile(_previousState: ActionResult, formData
       } });
     });
     if (clinic.imageUrl !== imageUrl) await removePublicImage({ url: clinic.imageUrl, clinicId: clinic.id, kind: "clinics" }).catch(() => undefined);
-  } catch {
+  } catch (error) {
     await removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "clinics" }).catch(() => undefined);
-    return { status: "error", message: "Não foi possível salvar os dados da empresa." };
+    return { status: "error", message: error instanceof SlugInUseError ? error.message : "Não foi possível salvar os dados da empresa." };
   }
   revalidatePath("/dashboard", "layout");
   revalidatePath(`/${parsed.data.slug}`);

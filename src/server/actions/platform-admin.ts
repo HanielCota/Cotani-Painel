@@ -8,6 +8,7 @@ import { ClinicRole } from "@/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { requirePlatformAdmin } from "@/server/platform-admin";
 import { writeAdminAuditLog } from "@/server/services/admin-audit";
+import { moveClinicSlug, SlugInUseError } from "@/server/services/clinic-slug";
 
 const clinicIdSchema = z.uuid();
 const reasonSchema = z.string().trim().min(5).max(500);
@@ -77,6 +78,9 @@ export async function updateClinicAsPlatformAdmin(formData: FormData): Promise<v
   try {
     await prisma.$transaction(async (transaction) => {
       const before = await transaction.clinic.findUniqueOrThrow({ where: { id: parsed.data.clinicId } });
+      // Mesma regra da tela da loja: respeita aliases de outras lojas e mantém
+      // o endereço antigo funcionando para links já compartilhados.
+      await moveClinicSlug(transaction, before, parsed.data.slug);
       const after = await transaction.clinic.update({
         where: { id: before.id },
         data: {
@@ -95,8 +99,10 @@ export async function updateClinicAsPlatformAdmin(formData: FormData): Promise<v
         afterSnapshot: clinicSnapshot(after),
       });
     });
-  } catch {
-    redirectToClinic(parsed.data.clinicId, "error", "Não foi possível atualizar. Verifique se o slug já está em uso.");
+  } catch (error) {
+    redirectToClinic(parsed.data.clinicId, "error", error instanceof SlugInUseError
+      ? "Esse slug já é usado por outra loja (atual ou antigo)."
+      : "Não foi possível atualizar. Verifique se o slug já está em uso.");
   }
 
   revalidatePath("/admin");
