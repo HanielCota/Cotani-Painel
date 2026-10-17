@@ -5,6 +5,7 @@ import { CheckIcon, CopyIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { markBookingLinkShared } from "@/lib/booking-link-shared";
 import { copyText } from "@/lib/clipboard";
 
 interface CopyBookingLinkProps {
@@ -29,6 +30,7 @@ export function CopyBookingLink({ url }: CopyBookingLinkProps) {
 
   async function handleCopy() {
     const copiedSuccessfully = await copyText(url);
+    if (copiedSuccessfully) markBookingLinkShared();
     if (!copiedSuccessfully) inputRef.current?.select();
 
     setCopied(true);
