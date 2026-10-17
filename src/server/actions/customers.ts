@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { normalizeWhatsAppPhone } from "@/lib/phone";
+import { parseClinicDateOnly } from "@/lib/timezone";
 import { getClinicForRoles } from "@/server/tenant";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
@@ -16,7 +17,8 @@ const customerSchema = z.object({
   phone: z.string().trim().min(8).max(32),
   notes: z.string().trim().max(2000).optional(),
   tags: z.array(z.string().trim().min(1).max(40)).max(20).optional(),
-  nextReturnAt: z.coerce.date().optional(),
+  // Data sem horário (YYYY-MM-DD); convertida no fuso da loja após resolver o tenant.
+  nextReturnAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 
 const updateCustomerSchema = customerSchema.extend({
@@ -53,7 +55,7 @@ export async function createCustomer(input: unknown): Promise<ActionResult> {
         phone: normalizedPhone,
         notes: parsed.data.notes || null,
         tags: parsed.data.tags ?? [],
-        nextReturnAt: parsed.data.nextReturnAt,
+        nextReturnAt: parsed.data.nextReturnAt ? parseClinicDateOnly(parsed.data.nextReturnAt, clinic.timeZone) : null,
       },
     });
   } catch (error) {
@@ -122,7 +124,7 @@ export async function updateCustomer(input: unknown): Promise<ActionResult> {
         phone: normalizedPhone,
         notes: parsed.data.notes || null,
         tags: parsed.data.tags ?? [],
-        nextReturnAt: parsed.data.nextReturnAt ?? null,
+        nextReturnAt: parsed.data.nextReturnAt ? parseClinicDateOnly(parsed.data.nextReturnAt, clinic.timeZone) : null,
       },
     });
   } catch {

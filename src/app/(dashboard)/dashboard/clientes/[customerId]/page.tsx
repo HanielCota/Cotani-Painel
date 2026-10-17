@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { CustomerAppointmentHistory } from "@/components/dashboard/customer-appointment-history";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import prisma from "@/lib/prisma";
-import { formatDateTime } from "@/lib/formatters";
+import { formatDateOnly, formatDateTime } from "@/lib/formatters";
 import { withTenant } from "@/server/with-tenant";
 
 interface Props { params: Promise<{ customerId: string }> }
@@ -18,7 +18,7 @@ export default withTenant<Props>(async ({ clinic }, { params }) => {
   const formatCustomerDate = (date: Date) => formatDateTime(date, clinic.timeZone);
   return <div className="flex flex-col gap-6"><PageHeader title={customer.name} description="Dados e histórico completo do cliente." actions={<Button nativeButton={false} variant="outline" render={<Link href={`/dashboard/agenda?customerId=${customer.id}`} />}><CalendarPlusIcon />Novo atendimento</Button>} />
     <Button nativeButton={false} variant="ghost" className="self-start" render={<Link href="/dashboard/clientes" />}><ArrowLeftIcon />Voltar aos clientes</Button>
-    <div className="grid gap-4 lg:grid-cols-3"><Card><CardHeader><CardTitle>Contato</CardTitle></CardHeader><CardContent className="space-y-2 text-sm"><p>{customer.phone}</p><p>{customer.email ?? "Sem e-mail"}</p>{customer.tags.length ? <div className="flex flex-wrap gap-1">{customer.tags.map((tag) => <Badge key={tag} variant="outline">{tag}</Badge>)}</div> : null}<p className="text-muted-foreground">Próximo retorno: {customer.nextReturnAt ? formatCustomerDate(customer.nextReturnAt) : "não definido"}</p><p className="whitespace-pre-wrap text-muted-foreground">{customer.notes || "Sem observações."}</p></CardContent></Card>
+    <div className="grid gap-4 lg:grid-cols-3"><Card><CardHeader><CardTitle>Contato</CardTitle></CardHeader><CardContent className="space-y-2 text-sm"><p>{customer.phone}</p><p>{customer.email ?? "Sem e-mail"}</p>{customer.tags.length ? <div className="flex flex-wrap gap-1">{customer.tags.map((tag) => <Badge key={tag} variant="outline">{tag}</Badge>)}</div> : null}<p className="text-muted-foreground">Próximo retorno: {customer.nextReturnAt ? formatDateOnly(customer.nextReturnAt) : "não definido"}</p><p className="whitespace-pre-wrap text-muted-foreground">{customer.notes || "Sem observações."}</p></CardContent></Card>
     <Card className="lg:col-span-2"><CardHeader><CardTitle>Histórico de atendimentos</CardTitle></CardHeader><CardContent><CustomerAppointmentHistory appointments={customer.appointments.map((appointment) => ({ id: appointment.id, dateTime: formatCustomerDate(appointment.startTime), serviceName: appointment.service.name, professionalName: appointment.professional?.name ?? "Sem profissional", status: appointment.status }))} /></CardContent></Card></div>
   </div>;
 }, ["ADMIN", "RECEPTIONIST"]);

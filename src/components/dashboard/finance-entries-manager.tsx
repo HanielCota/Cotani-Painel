@@ -40,7 +40,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { PaginationNav } from "@/components/ui/pagination-nav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatCurrency, formatDate } from "@/lib/formatters";
+import { formatCurrency, formatDateOnly } from "@/lib/formatters";
 import type { ActionResult } from "@/types";
 
 const initial: ActionResult = { status: "success", message: "" };
@@ -306,7 +306,7 @@ export function FinanceEntriesManager({
             {entries.length ? (
               entries.map((entry) => (
                 <TableRow key={entry.id}>
-                  <TableCell>{formatDate(entry.occurredAt)}</TableCell>
+                  <TableCell>{formatDateOnly(entry.occurredAt)}</TableCell>
                   <TableCell>
                     {entry.description}
                     <span className="block text-xs text-muted-foreground">
@@ -346,7 +346,7 @@ export function FinanceEntriesManager({
                 <span className="text-xs font-medium">{statusLabel[entry.status]}</span>
               </div>
               <dl className="grid grid-cols-2 gap-2 text-sm">
-                <div><dt className="text-xs text-muted-foreground">Data</dt><dd>{formatDate(entry.occurredAt)}</dd></div>
+                <div><dt className="text-xs text-muted-foreground">Data</dt><dd>{formatDateOnly(entry.occurredAt)}</dd></div>
                 <div><dt className="text-xs text-muted-foreground">Pago / total</dt><dd>{formatCurrency(entry.paidAmount)} / {formatCurrency(entry.amount)}</dd></div>
               </dl>
               <div className="flex gap-2"><EntryDialog entry={entry} /><DeleteEntry entry={entry} /></div>

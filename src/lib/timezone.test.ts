@@ -61,3 +61,12 @@ describe("getClinicDateBounds", () => {
     expect(localStart).toMatch(/00:00:00/);
   });
 });
+
+describe("datas sem horário", () => {
+  it("grava o dia escolhido ao meio-dia da loja (mesmo dia em UTC)", async () => {
+    const { parseClinicDateOnly } = await import("./timezone");
+    expect(parseClinicDateOnly("2026-10-01", "America/Sao_Paulo")?.toISOString()).toBe("2026-10-01T15:00:00.000Z");
+    expect(parseClinicDateOnly("2026-02-30", "America/Sao_Paulo")).toBeNull();
+    expect(parseClinicDateOnly("01/10/2026", "America/Sao_Paulo")).toBeNull();
+  });
+});

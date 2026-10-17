@@ -122,3 +122,16 @@ export function getClinicMonthlyBounds(timeZone: string, months: number, now = n
 
   return result;
 }
+
+const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Converte um valor de `<input type="date">` (YYYY-MM-DD) num instante ao
+ * meio-dia do fuso da loja. Ao contrário de `new Date("YYYY-MM-DD")` (00:00
+ * UTC, ou seja, véspera em horário de Brasília), o resultado cai no mesmo dia
+ * tanto no fuso da loja quanto em UTC - por isso filtros por período e a
+ * exibição com `formatDateOnly` concordam sobre a data escolhida.
+ */
+export function parseClinicDateOnly(value: string, timeZone: string) {
+  return DATE_ONLY_PATTERN.test(value) ? parseClinicDateTime(`${value}T12:00`, timeZone) : null;
+}
