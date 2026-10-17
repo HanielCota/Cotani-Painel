@@ -50,4 +50,12 @@ describe("saveFinancialEntry", () => {
 
     expect(savedData()).toMatchObject({ status: "PAID", paidAmount: 100 });
   });
+  it("recusa o financeiro em plano que não tem o módulo", async () => {
+    vi.mocked(getClinicForRoles).mockResolvedValueOnce(clinic("ESSENTIAL") as never);
+
+    const result = await saveFinancialEntry({ status: "idle" } as never, entryForm({}));
+
+    expect(result.status).toBe("error");
+    expect(prismaMock.financialEntry.create).not.toHaveBeenCalled();
+  });
 });

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { parseClinicDateOnly } from "@/lib/timezone";
+import { getPlanEntitlements } from "@/config/subscription-plans";
 import { requireAuthenticatedUser } from "@/server/auth";
 import { getClinicForRoles } from "@/server/tenant";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
@@ -13,7 +14,7 @@ import type { ActionResult } from "@/types";
 const schema = z.object({ id: z.uuid().optional(), type: z.enum(["INCOME", "EXPENSE"]), status: z.enum(["PENDING", "PARTIAL", "PAID", "REFUNDED", "CANCELED"]), description: z.string().trim().min(2).max(160), category: z.string().trim().max(80).optional(), amount: z.coerce.number().positive().max(1_000_000), paidAmount: z.coerce.number().min(0).max(1_000_000).optional(), dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), occurredAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), notes: z.string().trim().max(1000).optional() });
 
 function values(formData: FormData) { return { id: formData.get("id") || undefined, type: formData.get("type"), status: formData.get("status"), description: formData.get("description"), category: String(formData.get("category") ?? "").trim() || undefined, amount: formData.get("amount"), paidAmount: formData.get("paidAmount") || undefined, dueDate: formData.get("dueDate") || undefined, occurredAt: formData.get("occurredAt"), notes: String(formData.get("notes") ?? "").trim() || undefined }; }
-async function context() { await requireAuthenticatedUser(); const clinic = await getClinicForRoles(["ADMIN"]); if (!clinic) return { error: "Selecione uma loja." } as const; if (!isSubscriptionActive(clinic)) return { error: SUBSCRIPTION_INACTIVE_MESSAGE } as const; return { clinic } as const; }
+async function context() { await requireAuthenticatedUser(); const clinic = await getClinicForRoles(["ADMIN"]); if (!clinic) return { error: "Selecione uma loja." } as const; if (!isSubscriptionActive(clinic)) return { error: SUBSCRIPTION_INACTIVE_MESSAGE } as const; if (!getPlanEntitlements(clinic.subscriptionPlan).finance) return { error: "O financeiro está disponível a partir do plano Profissional." } as const; return { clinic } as const; }
 
 export async function saveFinancialEntry(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
   const parsed = schema.safeParse(values(formData)); if (!parsed.success) return { status: "error", message: "Revise os dados da movimentação." };
