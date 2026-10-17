@@ -44,4 +44,10 @@ describe("saveFinancialEntry", () => {
 
     expect(dayInSaoPaulo(savedData()!.occurredAt)).toBe("2026-10-01");
   });
+
+  it("marcar Pago sem informar o valor quita o lançamento inteiro", async () => {
+    await saveFinancialEntry({ status: "idle" } as never, entryForm({ status: "PAID", amount: "100" }));
+
+    expect(savedData()).toMatchObject({ status: "PAID", paidAmount: 100 });
+  });
 });
