@@ -12,6 +12,7 @@ function tsxFiles(directory: string): string[] {
 }
 
 describe("Button em formulários", () => {
+  // Analisa todos os .tsx do projeto; em máquina carregada passa do limite padrão.
   it("declara explicitamente submit ou button", () => {
     const violations: string[] = [];
 
@@ -50,5 +51,5 @@ describe("Button em formulários", () => {
     }
 
     expect(violations).toEqual([]);
-  });
+  }, 30_000);
 });

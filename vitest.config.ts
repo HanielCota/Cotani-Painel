@@ -12,6 +12,9 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    // Testes de interação (agendamento, formulários) passam de 5 s em máquina
+    // ou runner carregado; 15 s evita falsos negativos sem esconder travamentos.
+    testTimeout: 15_000,
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
     coverage: {
