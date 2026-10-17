@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   createContract: vi.fn(),
   updateContract: vi.fn(),
   createRemote: vi.fn(),
+  assertReady: vi.fn(),
 }));
 const tx = {
   $executeRaw: mocks.lock,
@@ -26,7 +27,7 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 vi.mock("./mercado-pago", () => ({
-  getPlanConfig: () => ({ price: 49.99 }),
+  assertSubscriptionCheckoutReady: mocks.assertReady,
   createSubscriptionCheckout: mocks.createRemote,
 }));
 
@@ -45,6 +46,7 @@ describe("ponte de checkout da landing", () => {
     vi.resetAllMocks();
     mocks.findUser.mockResolvedValue(null);
     mocks.findContract.mockResolvedValue(null);
+    mocks.assertReady.mockReturnValue({ price: 49.99 });
     mocks.createContract.mockImplementation(({ data }: { data: { id: string; clinicId: string } }) => ({ ...data, clinic: { id: data.clinicId } }));
     mocks.createRemote.mockResolvedValue({ checkoutUrl: "https://mercadopago.com/checkout", mercadoPagoSubscriptionId: "remote-1" });
   });
@@ -74,6 +76,14 @@ describe("ponte de checkout da landing", () => {
   it("manda contas existentes gerenciarem o plano dentro do painel", async () => {
     mocks.findUser.mockResolvedValue({ id: "user-1" });
     await expect(createLandingCheckout(input)).rejects.toBeInstanceOf(LandingCheckoutConflictError);
+    expect(mocks.createRemote).not.toHaveBeenCalled();
+  });
+
+  it("não grava loja ou contrato quando a configuração local do checkout é inválida", async () => {
+    mocks.assertReady.mockImplementation(() => { throw new Error("LANDING_PAGE_URL inválida"); });
+    await expect(createLandingCheckout(input)).rejects.toThrow("LANDING_PAGE_URL inválida");
+    expect(mocks.createClinic).not.toHaveBeenCalled();
+    expect(mocks.createContract).not.toHaveBeenCalled();
     expect(mocks.createRemote).not.toHaveBeenCalled();
   });
 });
