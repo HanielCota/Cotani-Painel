@@ -23,8 +23,17 @@ describe("isDoubleBookingError", () => {
 });
 
 describe("scheduleAppointment", () => {
+  // Trava do dia devolve `locked`; serviço e profissional, `isActive` (ativos por padrão).
+  let inactive: "Service" | "Professional" | null = null;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    inactive = null;
+    prismaMock.$queryRaw.mockImplementation(async (sql: TemplateStringsArray) => {
+      const query = Array.from(sql).join("");
+      if (query.includes("FOR SHARE")) return [{ isActive: !query.includes(`"${inactive}"`) }];
+      return [{ locked: false }];
+    });
   });
 
   const baseParams = {
@@ -97,6 +106,22 @@ describe("scheduleAppointment", () => {
     const result = await scheduleAppointment(baseParams);
 
     expect(result.status).toBe("conflict");
+  });
+
+  it.each(["Service", "Professional"] as const)("recusa quando %s foi desativado durante a reserva", async (table) => {
+    inactive = table;
+    prismaMock.$transaction.mockImplementationOnce(async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock));
+    // Horário válido em tudo o mais: só a desativação pode recusar.
+    prismaMock.appointment.findFirst.mockResolvedValue(null);
+    prismaMock.businessHour.findUnique.mockResolvedValueOnce({ isOpen: true, openTime: "08:00", closeTime: "18:00", breakStart: null, breakEnd: null });
+    prismaMock.professionalAvailability.findUnique.mockResolvedValueOnce(null);
+    prismaMock.appointment.create.mockResolvedValueOnce({ id: "app-1", cancellationToken: "token-1" });
+    prismaMock.notification.createMany.mockResolvedValueOnce({ count: 1 });
+
+    const result = await scheduleAppointment({ ...baseParams, professionalId: "550e8400-e29b-41d4-a716-446655440099" });
+
+    expect(result.status).toBe("conflict");
+    expect(prismaMock.appointment.create).not.toHaveBeenCalled();
   });
 
   it("retorna error para falhas inesperadas", async () => {

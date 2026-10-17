@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { getPlanEntitlements } from "@/config/subscription-plans";
+import { ACTIVE_APPOINTMENT_STATUSES } from "@/lib/appointment-status";
 import { getClinicForRoles } from "@/server/tenant";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
@@ -249,25 +250,17 @@ export async function toggleProfessionalActive(professionalId: string): Promise<
 
   const nextIsActive = !professional.isActive;
 
-  if (!nextIsActive) {
-    const pendingAppointments = await prisma.appointment.count({
-      where: {
-        professionalId: professional.id,
-        status: { in: ["PENDING", "CONFIRMED"] },
-        startTime: { gte: new Date() },
-      },
-    });
-
-    if (pendingAppointments > 0) {
-      return {
-        status: "error",
-        message: "Este profissional possui agendamentos futuros pendentes ou confirmados. Cancele ou reagende-os antes de desativar.",
-      };
-    }
-  }
-
   const outcome = await prisma.$transaction(async (transaction) => {
     await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
+    if (!nextIsActive) {
+      // FOR UPDATE espera agendamentos em andamento (que seguram a linha com
+      // FOR SHARE) terminarem, então a contagem abaixo já os enxerga.
+      await transaction.$queryRaw`SELECT id FROM "Professional" WHERE id = ${professional.id} FOR UPDATE`;
+      const pendingAppointments = await transaction.appointment.count({
+        where: { professionalId: professional.id, status: { in: [...ACTIVE_APPOINTMENT_STATUSES] }, startTime: { gte: new Date() } },
+      });
+      if (pendingAppointments > 0) return "has-appointments" as const;
+    }
     if (nextIsActive) {
       const current = await transaction.clinic.findUniqueOrThrow({ where: { id: clinic.id } });
       if (!isSubscriptionActive(current)) throw new Error(SUBSCRIPTION_INACTIVE_MESSAGE);
@@ -286,6 +279,12 @@ export async function toggleProfessionalActive(professionalId: string): Promise<
   if (outcome === "limit") {
     const max = getPlanEntitlements(clinic.subscriptionPlan).maxProfessionals!;
     return { status: "error", message: `Seu plano permite até ${max} ${max === 1 ? "profissional ativo" : "profissionais ativos"}. Faça upgrade para reativar este profissional.` };
+  }
+  if (outcome === "has-appointments") {
+    return {
+      status: "error",
+      message: "Este profissional possui agendamentos futuros pendentes ou confirmados. Cancele ou reagende-os antes de desativar.",
+    };
   }
 
   revalidateProfessionalViews();
