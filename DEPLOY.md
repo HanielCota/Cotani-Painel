@@ -122,3 +122,22 @@ Confirme também:
 12. Validar páginas `/admin` somente com UUID autorizado.
 
 Se qualquer item falhar, corrija antes de divulgar a URL ou aceitar pagamentos de clientes.
+
+## 8. Monitoramento
+
+`GET /api/health` responde `200 {"status":"ok"}` quando a aplicação e o banco
+estão de pé e `503 {"status":"degraded"}` quando o banco não responde em 3 s.
+É público, não usa cache e não expõe detalhes (o erro vai para os logs).
+
+Configure um monitor externo, fora da Vercel e do Supabase (assim ele avisa
+mesmo quando os dois caem):
+
+1. Crie um monitor HTTP para `https://painel.cotani.com.br/api/health`
+   (UptimeRobot e Better Stack têm planos gratuitos), com intervalo de 5 min.
+2. Condição de alerta: status diferente de 200 em 2 checagens seguidas.
+3. Envie o alerta para o responsável pela operação (e-mail e celular).
+4. Teste o alerta uma vez: aponte o monitor para uma URL inexistente e
+   confirme que a notificação chega.
+
+Jobs e webhooks continuam visíveis em `/admin`; o health check cobre a
+indisponibilidade geral do painel e do banco.
