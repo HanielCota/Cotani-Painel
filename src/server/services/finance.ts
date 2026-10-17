@@ -76,7 +76,7 @@ function shiftDateKey(dateKey: string, days: number) {
   return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
 }
 
-export function financePeriodBounds(period: FinancePeriod, timeZone: string, now = new Date()) {
+function rawFinancePeriodBounds(period: FinancePeriod, timeZone: string, now: Date) {
   const { startOfToday, startOfTomorrow, startOfMonth, startOfNextMonth, startOfPreviousMonth } = getClinicDateBounds(timeZone, now);
   const todayKey = formatClinicDateKey(now, timeZone);
   const year = Number(todayKey.slice(0, 4));
@@ -108,6 +108,18 @@ export function financePeriodBounds(period: FinancePeriod, timeZone: string, now
   }
 
   return { start: startOfMonth, end: startOfNextMonth, previousStart: startOfPreviousMonth };
+}
+
+/**
+ * Limites do período e do período anterior equivalente. `previousEnd` corta o
+ * período anterior no mesmo tempo decorrido do atual ("este mês até hoje" vs
+ * "mês passado até o mesmo dia"), evitando comparar parcial com completo.
+ */
+export function financePeriodBounds(period: FinancePeriod, timeZone: string, now = new Date()) {
+  const bounds = rawFinancePeriodBounds(period, timeZone, now);
+  const elapsed = Math.max(0, Math.min(now.getTime(), bounds.end.getTime()) - bounds.start.getTime());
+  const previousEnd = new Date(Math.min(bounds.previousStart.getTime() + elapsed, bounds.start.getTime()));
+  return { ...bounds, previousEnd };
 }
 
 export async function getFinanceAppointmentsPage(
@@ -188,7 +200,7 @@ export async function getFinanceMetrics(clinic: ClinicModel, period: FinancePeri
     prisma.appointment.findMany({
       where: {
         clinicId: clinic.id,
-        startTime: { gte: periodBounds.previousStart, lt: periodBounds.start },
+        startTime: { gte: periodBounds.previousStart, lt: periodBounds.previousEnd },
         status: "COMPLETED",
       },
       select: { totalPrice: true },

@@ -161,6 +161,9 @@ describe("getFinanceMetrics", () => {
 
     expect(selectedDurationInDays).toBeGreaterThanOrEqual(6.9);
     expect(selectedDurationInDays).toBeLessThanOrEqual(7.1);
-    expect(previousWhere.lt).toEqual(selectedWhere.gte);
+    // O período anterior é cortado no mesmo tempo decorrido do atual (parcial vs parcial).
+    const elapsed = Math.min(Date.now(), selectedWhere.lt.getTime()) - selectedWhere.gte.getTime();
+    expect(previousWhere.lt.getTime()).toBeLessThanOrEqual(selectedWhere.gte.getTime());
+    expect(Math.abs(previousWhere.lt.getTime() - previousWhere.gte.getTime() - elapsed)).toBeLessThan(5_000);
   });
 });
