@@ -194,6 +194,11 @@ export async function updateMembershipRoleAsPlatformAdmin(formData: FormData): P
         const adminCount = await transaction.membership.count({ where: { clinicId: membership.clinicId, role: "ADMIN" } });
         if (adminCount <= 1) throw new Error("LAST_ADMIN");
       }
+      // Mesmo contrato do fluxo da loja: quem deixa de ser PROVIDER perde o
+      // vínculo com o profissional (a agenda filtrada por ele não se aplica mais).
+      if (membership.role === "PROVIDER" && parsed.data.role !== "PROVIDER") {
+        await transaction.professional.updateMany({ where: { membershipId: membership.id }, data: { membershipId: null } });
+      }
       await transaction.membership.update({ where: { id: membership.id }, data: { role: parsed.data.role } });
       await writeAdminAuditLog(transaction, actor, {
         action: "MEMBERSHIP_ROLE_UPDATED",

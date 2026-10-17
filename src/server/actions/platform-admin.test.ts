@@ -19,9 +19,10 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
-const { updateClinicAsPlatformAdmin } = await import("@/server/actions/platform-admin");
+const { updateClinicAsPlatformAdmin, updateMembershipRoleAsPlatformAdmin } = await import("@/server/actions/platform-admin");
 
 const CLINIC_ID = "550e8400-e29b-41d4-a716-446655440020";
+const MEMBERSHIP_ID = "550e8400-e29b-41d4-a716-446655440021";
 
 function clinic(slug: string) {
   return {
@@ -70,5 +71,27 @@ describe("troca de slug pelo admin da plataforma", () => {
       where: { slug: "loja-antiga" },
       create: { slug: "loja-antiga", clinicId: CLINIC_ID },
     }));
+  });
+});
+
+describe("papel alterado pelo admin da plataforma", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    prismaMock.$transaction.mockImplementation(async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock));
+  });
+
+  it("desvincula o profissional de quem deixa de ser PROVIDER", async () => {
+    prismaMock.membership.findFirst.mockResolvedValueOnce({
+      id: MEMBERSHIP_ID, clinicId: CLINIC_ID, role: "PROVIDER", user: { authUserId: "user-1" }, clinic: clinic("loja"),
+    });
+    const data = new FormData();
+    data.set("clinicId", CLINIC_ID);
+    data.set("membershipId", MEMBERSHIP_ID);
+    data.set("role", "RECEPTIONIST");
+    data.set("reason", "Mudou de função na loja");
+
+    await redirectOf(updateMembershipRoleAsPlatformAdmin(data));
+
+    expect(prismaMock.professional.updateMany).toHaveBeenCalledWith({ where: { membershipId: MEMBERSHIP_ID }, data: { membershipId: null } });
   });
 });
