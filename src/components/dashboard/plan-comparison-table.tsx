@@ -2,7 +2,7 @@ import { CheckIcon, MinusIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { SUBSCRIPTION_PLANS, type PlanEntitlements } from "@/config/subscription-plans";
+import { SUBSCRIPTION_PLANS, type PlanEntitlements, type ProductPlan } from "@/config/subscription-plans";
 import type { SubscriptionPlan } from "@/generated/prisma/enums";
 import { formatCurrency } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
@@ -31,20 +31,59 @@ const ROWS: readonly ComparisonRow[] = [
 
 const PLAN_ORDER: readonly SubscriptionPlan[] = ["ESSENTIAL", "PROFESSIONAL", "ENTERPRISE"];
 
-function Cell({ value }: { value: boolean | string }) {
+function Cell({ value, align = "center" }: { value: boolean | string; align?: "center" | "end" }) {
+  const position = align === "center" ? "mx-auto" : "ml-auto";
   if (typeof value === "string") return <span className="font-medium">{value}</span>;
   return value
-    ? <CheckIcon aria-label="Incluído" className="mx-auto size-4 text-primary" />
-    : <MinusIcon aria-label="Não incluído" className="mx-auto size-4 text-muted-foreground/60" />;
+    ? <CheckIcon aria-label="Incluído" className={cn(position, "size-4 text-primary")} />
+    : <MinusIcon aria-label="Não incluído" className={cn(position, "size-4 text-muted-foreground/60")} />;
 }
 
-/** Comparação lado a lado dos planos, com a coluna do plano atual destacada. */
-export function PlanComparisonTable({ currentPlan }: { currentPlan: SubscriptionPlan | null }) {
-  const plans = PLAN_ORDER.map((id) => SUBSCRIPTION_PLANS[id]);
+/** Plano sem contratação pelo painel (Empresa) não mostra preço de tabela. */
+function priceLabel(plan: ProductPlan) {
+  if (!plan.selfServiceCheckout) return "Fale com a equipe";
+  return `${formatCurrency(plan.monthlyPrice)}/mês`;
+}
+
+function PlanSummary({ plan, isCurrent }: { plan: ProductPlan; isCurrent: boolean }) {
+  return (
+    <>
+      <span className="text-sm font-semibold text-foreground">{plan.name}</span>
+      <span className="text-xs font-normal text-muted-foreground tabular-nums">{priceLabel(plan)}</span>
+      {isCurrent ? <Badge variant="secondary">Seu plano</Badge> : null}
+    </>
+  );
+}
+
+/** Celular: um cartão por plano, empilhados, sem rolagem lateral. */
+function PlanCards({ plans, currentPlan }: { plans: ProductPlan[]; currentPlan: SubscriptionPlan | null }) {
+  return (
+    <ul aria-label="Planos" className="flex flex-col gap-3 sm:hidden">
+      {plans.map((plan) => (
+        <li key={plan.id} className={cn("rounded-xl border p-4", plan.id === currentPlan && "border-primary/40 bg-primary/5")}>
+          <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <PlanSummary plan={plan} isCurrent={plan.id === currentPlan} />
+          </div>
+          <dl className="flex flex-col divide-y text-sm">
+            {ROWS.map((row) => (
+              <div key={row.label} className="flex items-center justify-between gap-4 py-2">
+                <dt className="text-muted-foreground">{row.label}</dt>
+                <dd className="text-right"><Cell value={row.value(plan.entitlements)} align="end" /></dd>
+              </div>
+            ))}
+          </dl>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** A partir de sm: comparação lado a lado, com a coluna do plano atual destacada. */
+function PlanTable({ plans, currentPlan }: { plans: ProductPlan[]; currentPlan: SubscriptionPlan | null }) {
   const highlight = (id: SubscriptionPlan) => id === currentPlan && "bg-primary/5";
 
   return (
-    <div className="overflow-x-auto rounded-xl border">
+    <div className="hidden overflow-x-auto rounded-xl border sm:block">
       <Table className="min-w-[36rem]">
         <TableHeader>
           <TableRow className="hover:bg-transparent">
@@ -52,9 +91,7 @@ export function PlanComparisonTable({ currentPlan }: { currentPlan: Subscription
             {plans.map((plan) => (
               <TableHead key={plan.id} className={cn("h-auto py-3 text-center align-top", highlight(plan.id))}>
                 <div className="flex flex-col items-center gap-1">
-                  <span className="text-sm font-semibold text-foreground">{plan.name}</span>
-                  <span className="text-xs font-normal text-muted-foreground tabular-nums">{formatCurrency(plan.monthlyPrice)}/mês</span>
-                  {plan.id === currentPlan ? <Badge variant="secondary">Seu plano</Badge> : null}
+                  <PlanSummary plan={plan} isCurrent={plan.id === currentPlan} />
                 </div>
               </TableHead>
             ))}
@@ -74,5 +111,17 @@ export function PlanComparisonTable({ currentPlan }: { currentPlan: Subscription
         </TableBody>
       </Table>
     </div>
+  );
+}
+
+/** Comparação dos planos: cartões empilhados no celular, tabela a partir de sm. */
+export function PlanComparisonTable({ currentPlan }: { currentPlan: SubscriptionPlan | null }) {
+  const plans = PLAN_ORDER.map((id) => SUBSCRIPTION_PLANS[id]);
+
+  return (
+    <>
+      <PlanCards plans={plans} currentPlan={currentPlan} />
+      <PlanTable plans={plans} currentPlan={currentPlan} />
+    </>
   );
 }
