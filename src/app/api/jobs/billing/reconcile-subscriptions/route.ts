@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { matchesBearerSecret } from "@/lib/secure-compare";
 import { reconcileMercadoPagoSubscriptions } from "@/server/services/subscription-reconciliation";
+import { getHttpOperationOutcome, monitorOperation } from "@/server/services/operational-monitoring";
 
 async function dispatch(request: NextRequest) {
   const secret = z.string().min(1).safeParse(process.env.CRON_SECRET);
@@ -12,6 +13,12 @@ async function dispatch(request: NextRequest) {
   return NextResponse.json(result, { status: result.failed > 0 ? 503 : 200 });
 }
 
-export const GET = dispatch;
-export const POST = dispatch;
+const trackedDispatch = (request: NextRequest) => monitorOperation(
+  { category: "JOB", operation: "subscription-reconciliation" },
+  () => dispatch(request),
+  getHttpOperationOutcome,
+);
+
+export const GET = trackedDispatch;
+export const POST = trackedDispatch;
 export const maxDuration = 60;

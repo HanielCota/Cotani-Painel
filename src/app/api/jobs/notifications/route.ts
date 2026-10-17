@@ -7,6 +7,7 @@ import type { NotificationModel } from "@/generated/prisma/models/Notification";
 import { getMessageSender } from "@/server/services/messaging/message-sender";
 import { isSubscriptionActive } from "@/server/subscription";
 import { getPlanEntitlements } from "@/config/subscription-plans";
+import { monitorOperation } from "@/server/services/operational-monitoring";
 
 /**
  * Dispatcher da fila de notificações (docs/ARCHITECTURE.md, seção 5.3).
@@ -170,10 +171,27 @@ async function dispatch(request: NextRequest) {
   return NextResponse.json(stats);
 }
 
-export async function GET(request: NextRequest) {
-  return dispatch(request);
-}
+const trackedDispatch = (request: NextRequest) => monitorOperation(
+  { category: "JOB", operation: "notification-dispatch" },
+  () => dispatch(request),
+  async (response) => {
+    if (response.status === 401) return null;
+    const body = await response.clone().json().catch(() => null) as Partial<DispatchStats> | null;
+    const failed = typeof body?.failed === "number" ? body.failed : 0;
+    const status = response.status >= 500 ? "FAILURE" : failed > 0 ? "WARNING" : "SUCCESS";
+    return {
+      status,
+      summary: {
+        httpStatus: response.status,
+        claimed: body?.claimed ?? 0,
+        sent: body?.sent ?? 0,
+        retried: body?.retried ?? 0,
+        failed,
+      },
+      ...(status === "FAILURE" ? { error: `A tarefa retornou HTTP ${response.status}.` } : {}),
+    };
+  },
+);
 
-export async function POST(request: NextRequest) {
-  return dispatch(request);
-}
+export async function GET(request: NextRequest) { return trackedDispatch(request); }
+export async function POST(request: NextRequest) { return trackedDispatch(request); }
