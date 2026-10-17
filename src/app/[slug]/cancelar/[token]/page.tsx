@@ -65,7 +65,7 @@ export default async function CancelPage({ params }: CancelPageProps) {
         <p className="text-sm text-muted-foreground">{clinic.name}</p>
       </div>
 
-      <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+      <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-card">
         <dl className="flex flex-col gap-3 text-sm">
           <div className="flex items-center justify-between gap-4">
             <dt className="flex items-center gap-2 text-muted-foreground">
