@@ -185,7 +185,7 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
                   {appointment.status !== "CANCELED" && appointment.status !== "NO_SHOW" && appointment.status !== "COMPLETED" ? (
                     canSchedule ? <EditAppointmentDialog appointment={appointment} customers={customers} services={services} currentStartTime={formatClinicDateTimeInput(startTime, timeZone)} minStartTime={minStartTime} /> : <RescheduleAppointmentDialog appointmentId={appointment.id} currentStartTime={formatClinicDateTimeInput(startTime, timeZone)} minStartTime={minStartTime} />
                   ) : null}
-                  <AppointmentActions appointmentId={appointment.id} status={appointment.status} />
+                  <AppointmentActions appointmentId={appointment.id} status={appointment.status} startTime={appointment.startTime} />
                 </div>
               </div>
             );
