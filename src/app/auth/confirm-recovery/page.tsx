@@ -64,6 +64,83 @@ function BackToSignIn() {
   );
 }
 
+function InvalidLinkStep() {
+  return (
+    <>
+      <Header icon={ShieldAlertIcon} tone="destructive" title="Link inválido ou expirado" description="Por segurança, cada link de redefinição funciona uma única vez e por tempo limitado." />
+      <Link href="/forgot-password" className={buttonVariants({ className: "w-full" })}>Solicitar um novo link</Link>
+      <BackToSignIn />
+    </>
+  );
+}
+
+// Etapa 1: o token do e-mail só é usado quando a pessoa confirma aqui.
+function ConfirmLinkStep({ formError }: { formError: string | null }) {
+  return (
+    <>
+      <Header icon={LinkIcon} title="Redefinir sua senha" description="Confirme que foi você quem pediu a redefinição para continuar." />
+      <form action="/auth/callback" method="post" className="space-y-3">
+        <input type="hidden" name="intent" value="begin" />
+        <FormError message={formError} />
+        <Button type="submit" className="w-full">Continuar</Button>
+      </form>
+      <p className="mt-3 text-center text-xs text-muted-foreground">Não pediu a redefinição? Ignore o e-mail; sua senha atual continua valendo.</p>
+      <BackToSignIn />
+    </>
+  );
+}
+
+// Etapa final: link confirmado (e 2FA validado, se a conta tiver).
+function NewPasswordStep({ formError, email, includeMfa }: { formError: string | null; email: string | null; includeMfa: boolean }) {
+  return (
+    <>
+      <RecoverySteps current="password" includeMfa={includeMfa} />
+      <Header
+        icon={KeyRoundIcon}
+        title="Crie uma nova senha"
+        description={email ? <>Para a conta <strong className="font-medium text-foreground">{email}</strong>.</> : "Escolha uma senha que você não use em outros sites."}
+      />
+      <form action="/auth/callback" method="post" className="space-y-4">
+        <input type="hidden" name="intent" value="password" />
+        {email ? <input type="text" name="username" autoComplete="username" defaultValue={email} readOnly hidden /> : null}
+        <PasswordField id="password" name="password" label="Nova senha" hint="Mínimo de 8 caracteres." autoComplete="new-password" minLength={8} maxLength={256} required autoFocus />
+        <PasswordField id="confirmPassword" name="confirmPassword" label="Confirme a nova senha" autoComplete="new-password" minLength={8} maxLength={256} required />
+        <FormError message={formError} />
+        <Button type="submit" className="w-full">Salvar nova senha</Button>
+        <p className="text-center text-xs text-muted-foreground">Ao salvar, todas as sessões abertas da conta são encerradas e você entra novamente com a nova senha.</p>
+      </form>
+      <BackToSignIn />
+    </>
+  );
+}
+
+function MfaUnavailableStep({ formError }: { formError: string | null }) {
+  return (
+    <>
+      <Header icon={ShieldAlertIcon} tone="destructive" title="Não foi possível continuar" description="Não conseguimos confirmar a segurança da sua conta agora." />
+      <FormError message={formError ?? errorMessages.mfa_unavailable} />
+      <Link href="/auth/confirm-recovery" className={buttonVariants({ className: "mt-3 w-full" })}>Tentar novamente</Link>
+      <BackToSignIn />
+    </>
+  );
+}
+
+type RecoveryContentProps = {
+  error: string | undefined;
+  formError: string | null;
+  recoverySession: boolean;
+  mfa: Awaited<ReturnType<typeof getRecoveryMfaState>> | null;
+  email: string | null;
+};
+
+function RecoveryContent({ error, formError, recoverySession, mfa, email }: RecoveryContentProps) {
+  if (error === "invalid") return <InvalidLinkStep />;
+  if (!recoverySession) return <ConfirmLinkStep formError={formError} />;
+  if (mfa?.status === "satisfied") return <NewPasswordStep formError={formError} email={email} includeMfa={mfa.enrolled} />;
+
+  return <MfaUnavailableStep formError={formError} />;
+}
+
 export default async function ConfirmRecoveryPage({ searchParams }: ConfirmRecoveryPageProps) {
   const params = await searchParams;
   const formError = params.error ? errorMessages[params.error] ?? null : null;
@@ -75,66 +152,11 @@ export default async function ConfirmRecoveryPage({ searchParams }: ConfirmRecov
   if (params.error !== "invalid" && mfa?.status === "required") redirect("/auth/recovery-mfa");
   const email = typeof claimsData?.claims?.email === "string" ? claimsData.claims.email : null;
 
-  let content: React.ReactNode;
-
-  if (params.error === "invalid") {
-    content = (
-      <>
-        <Header icon={ShieldAlertIcon} tone="destructive" title="Link inválido ou expirado" description="Por segurança, cada link de redefinição funciona uma única vez e por tempo limitado." />
-        <Link href="/forgot-password" className={buttonVariants({ className: "w-full" })}>Solicitar um novo link</Link>
-        <BackToSignIn />
-      </>
-    );
-  } else if (!recoverySession) {
-    // Etapa 1: o token do e-mail só é usado quando a pessoa confirma aqui.
-    content = (
-      <>
-        <Header icon={LinkIcon} title="Redefinir sua senha" description="Confirme que foi você quem pediu a redefinição para continuar." />
-        <form action="/auth/callback" method="post" className="space-y-3">
-          <input type="hidden" name="intent" value="begin" />
-          <FormError message={formError} />
-          <Button type="submit" className="w-full">Continuar</Button>
-        </form>
-        <p className="mt-3 text-center text-xs text-muted-foreground">Não pediu a redefinição? Ignore o e-mail; sua senha atual continua valendo.</p>
-        <BackToSignIn />
-      </>
-    );
-  } else if (mfa?.status === "satisfied") {
-    // Etapa final: link confirmado (e 2FA validado, se a conta tiver).
-    content = (
-      <>
-        <RecoverySteps current="password" includeMfa={mfa.enrolled} />
-        <Header
-          icon={KeyRoundIcon}
-          title="Crie uma nova senha"
-          description={email ? <>Para a conta <strong className="font-medium text-foreground">{email}</strong>.</> : "Escolha uma senha que você não use em outros sites."}
-        />
-        <form action="/auth/callback" method="post" className="space-y-4">
-          <input type="hidden" name="intent" value="password" />
-          {email ? <input type="text" name="username" autoComplete="username" defaultValue={email} readOnly hidden /> : null}
-          <PasswordField id="password" name="password" label="Nova senha" hint="Mínimo de 8 caracteres." autoComplete="new-password" minLength={8} maxLength={256} required autoFocus />
-          <PasswordField id="confirmPassword" name="confirmPassword" label="Confirme a nova senha" autoComplete="new-password" minLength={8} maxLength={256} required />
-          <FormError message={formError} />
-          <Button type="submit" className="w-full">Salvar nova senha</Button>
-          <p className="text-center text-xs text-muted-foreground">Ao salvar, todas as sessões abertas da conta são encerradas e você entra novamente com a nova senha.</p>
-        </form>
-        <BackToSignIn />
-      </>
-    );
-  } else {
-    content = (
-      <>
-        <Header icon={ShieldAlertIcon} tone="destructive" title="Não foi possível continuar" description="Não conseguimos confirmar a segurança da sua conta agora." />
-        <FormError message={formError ?? errorMessages.mfa_unavailable} />
-        <Link href="/auth/confirm-recovery" className={buttonVariants({ className: "mt-3 w-full" })}>Tentar novamente</Link>
-        <BackToSignIn />
-      </>
-    );
-  }
-
   return (
     <main id="main-content" tabIndex={-1} className="flex min-h-svh items-center justify-center bg-background p-4 outline-none">
-      <AuthCard>{content}</AuthCard>
+      <AuthCard>
+        <RecoveryContent error={params.error} formError={formError} recoverySession={recoverySession} mfa={mfa} email={email} />
+      </AuthCard>
     </main>
   );
 }
