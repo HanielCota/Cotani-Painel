@@ -1,0 +1,16 @@
+# Revisão obrigatória do responsável quando a proteção da `main` exigir
+# aprovação de code owners (Settings → Rules).
+
+* @HanielCota
+
+# Áreas com dinheiro, dados de clientes, autenticação e infraestrutura.
+/prisma/                  @HanielCota
+/src/server/              @HanielCota
+/src/app/api/             @HanielCota
+/src/app/auth/            @HanielCota
+/src/lib/supabase/        @HanielCota
+/src/proxy.ts             @HanielCota
+/next.config.ts           @HanielCota
+/vercel.json              @HanielCota
+/pnpm-workspace.yaml      @HanielCota
+/.github/                 @HanielCota
