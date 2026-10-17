@@ -54,6 +54,9 @@ function revalidateScheduleViews() {
 async function getAgendaActor() {
   const tenant = await getTenantContext();
   if (!["ADMIN", "RECEPTIONIST", "PROVIDER"].includes(tenant.role)) return null;
+  // Loja suspensa/arquivada pela plataforma fica somente leitura, como nas
+  // demais ações que passam por `getClinicForRoles`.
+  if (tenant.clinic.operationalStatus !== "ACTIVE" || tenant.clinic.deletedAt !== null) return null;
   if (tenant.role !== "PROVIDER") return { ...tenant, professionalId: null as string | null };
   const professional = await prisma.professional.findFirst({
     where: { clinicId: tenant.clinic.id, membershipId: tenant.membership.id, isActive: true },

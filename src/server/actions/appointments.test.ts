@@ -28,6 +28,8 @@ const activeClinic = {
   timeZone: "America/Sao_Paulo",
   subscriptionStatus: "ACTIVE",
   subscriptionExpiresAt: new Date("2099-01-01T00:00:00.000Z"),
+  operationalStatus: "ACTIVE",
+  deletedAt: null,
 };
 
 describe("updateAppointmentStatus", () => {
@@ -48,6 +50,19 @@ describe("updateAppointmentStatus", () => {
     const result = await updateAppointmentStatus("invalid", { status: "CONFIRMED" });
 
     expect(result.status).toBe("error");
+  });
+
+  it("bloqueia ações da agenda em loja suspensa pela plataforma", async () => {
+    (getTenantContext as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      clinicId: "clinic-1",
+      role: "ADMIN",
+      clinic: { ...activeClinic, operationalStatus: "SUSPENDED" },
+    });
+
+    const result = await updateAppointmentStatus("550e8400-e29b-41d4-a716-446655440002", { status: "CONFIRMED" });
+
+    expect(result.status).toBe("error");
+    expect(prismaMock.appointment.findFirst).not.toHaveBeenCalled();
   });
 
   it("retorna erro para transição de status inválida", async () => {
