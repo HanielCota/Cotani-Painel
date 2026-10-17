@@ -11,9 +11,9 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#08745a",
     icons: [
       {
-        src: "/icon.svg",
-        sizes: "any",
-        type: "image/svg+xml",
+        src: "/images/cotani-favicon.png",
+        sizes: "256x256",
+        type: "image/png",
       },
     ],
   };
