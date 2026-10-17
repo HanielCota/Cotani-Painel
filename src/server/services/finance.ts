@@ -71,6 +71,11 @@ const statusColors: Record<string, string> = {
   NO_SHOW: "var(--chart-3)",
 };
 
+/** Ticket médio em centavos: arredondar para reais inteiros distorcia R$ 49,99 → R$ 50,00. */
+function roundCents(value: number) {
+  return Math.round(value * 100) / 100;
+}
+
 function shiftDateKey(dateKey: string, days: number) {
   const [year, month, day] = dateKey.split("-").map(Number);
   return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
@@ -266,7 +271,7 @@ export async function getFinanceMetrics(clinic: ClinicModel, period: FinancePeri
       (a) => a.startTime >= start && a.startTime < end,
     );
     const revenue = monthAppointmentsInBounds.reduce((sum, a) => sum + Number(a.totalPrice), 0);
-    const ticket = monthAppointmentsInBounds.length > 0 ? Math.round(revenue / monthAppointmentsInBounds.length) : 0;
+    const ticket = monthAppointmentsInBounds.length > 0 ? roundCents(revenue / monthAppointmentsInBounds.length) : 0;
     return { month: label, revenue, ticket };
   });
 
@@ -286,7 +291,7 @@ export async function getFinanceMetrics(clinic: ClinicModel, period: FinancePeri
     ticket: seriesDayKeys.map((dayKey) => {
       const dayAppointments = (appointmentsByLocalDay.get(dayKey) ?? []).filter((a) => a.status === "COMPLETED");
       const dayRevenue = dayAppointments.reduce((sum, a) => sum + Number(a.totalPrice), 0);
-      return dayAppointments.length > 0 ? Math.round(dayRevenue / dayAppointments.length) : 0;
+      return dayAppointments.length > 0 ? roundCents(dayRevenue / dayAppointments.length) : 0;
     }),
     cancellations: seriesDayKeys.map((dayKey) => {
       return (appointmentsByLocalDay.get(dayKey) ?? []).filter((a) => a.status === "CANCELED" || a.status === "NO_SHOW").length;
