@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
-import { ArrowLeftIcon, ArrowRightIcon, CalendarPlusIcon } from "lucide-react";
+import { ArrowLeftIcon, ArrowRightIcon, CalendarPlusIcon, CheckIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { ANY_PROFESSIONAL_ID } from "@/config/booking";
@@ -30,6 +30,9 @@ interface BookingStepsProps {
   initialServiceId?: string;
   initialProfessionalId?: string;
 }
+
+/** O que a reserva garante ao cliente; só fatos que valem para todo negócio. */
+const BOOKING_GUARANTEES = ["Sem criar conta", "Só horários livres", "Confirmação na hora"];
 
 export function BookingSteps({ slug, clinicName, services, professionals, minDate, rescheduleToken, initialServiceId = "", initialProfessionalId = "" }: BookingStepsProps) {
   const router = useRouter();
@@ -135,6 +138,13 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
       <CardHeader className="gap-2">
         <CardTitle className="text-lg sm:text-xl">{rescheduleToken ? "Reagendar atendimento" : "Novo agendamento"}</CardTitle>
         <CardDescription>{rescheduleToken ? "Escolha o novo horário. O anterior será liberado somente após a confirmação." : `Complete as etapas para reservar seu horário em ${clinicName}.`}</CardDescription>
+        {rescheduleToken ? null : (
+          <ul aria-label="Garantias da reserva" className="flex flex-wrap gap-x-4 gap-y-1 pt-1 text-xs text-muted-foreground">
+            {BOOKING_GUARANTEES.map((item) => (
+              <li key={item} className="flex items-center gap-1.5"><CheckIcon aria-hidden="true" className="size-3.5 text-primary" />{item}</li>
+            ))}
+          </ul>
+        )}
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
         <BookingStepIndicator current={step} />

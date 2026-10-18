@@ -95,6 +95,15 @@ describe("BookingSteps", () => {
     });
   });
 
+  it("mostra as garantias da reserva (e não no reagendamento)", () => {
+    const { unmount } = setup();
+    expect(screen.getByRole("list", { name: "Garantias da reserva" })).toHaveTextContent("Sem criar conta");
+    unmount();
+
+    render(<BookingSteps slug="loja-teste" clinicName="Loja Teste" services={services} professionals={professionals} minDate="2026-07-21" rescheduleToken="tok" />);
+    expect(screen.queryByRole("list", { name: "Garantias da reserva" })).not.toBeInTheDocument();
+  });
+
   it("renderiza o indicador de progresso com três etapas", () => {
     setup();
 
