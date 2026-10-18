@@ -133,4 +133,18 @@ describe("recuperação de senha", () => {
     const response = await GET(new NextRequest(`${origin}/auth/callback?code=valid&next=${encodeURIComponent("//evil.example")}`));
     expect(response.headers.get("location")).toBe(`${origin}/dashboard`);
   });
+
+  it.each([
+    ["barra invertida", "/%5Cevil.example"],
+    ["barra e barra invertida", "/\\evil.example"],
+    ["tab", "/%09/evil.example"],
+  ])("não redireciona para outro site com %s no next", async (_caso, next) => {
+    const request = new NextRequest(
+      `https://painel.cotani.com.br/auth/callback?code=codigo-valido&next=${next}`,
+    );
+
+    const response = await GET(request);
+
+    expect(new URL(response.headers.get("location") ?? "").origin).toBe("https://painel.cotani.com.br");
+  });
 });
