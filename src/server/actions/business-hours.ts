@@ -20,17 +20,24 @@ const businessHourItemSchema = z.object({
   breakEnd: timeSchema.optional().or(z.literal("")),
 });
 
-const businessHoursSchema = z.array(businessHourItemSchema).length(7).superRefine((items, context) => {
-  const days = new Set(items.map((item) => item.dayOfWeek));
-  if (days.size !== 7 || [...days].some((day) => day < 0 || day > 6)) {
-    context.addIssue({ code: "custom", message: "Informe cada dia da semana exatamente uma vez." });
-  }
-  items.forEach((item, index) => {
-    if (Boolean(item.breakStart) !== Boolean(item.breakEnd)) {
-      context.addIssue({ code: "custom", path: [index, "breakStart"], message: "Informe o início e o fim do intervalo." });
+const businessHoursSchema = z
+  .array(businessHourItemSchema)
+  .length(7)
+  .superRefine((items, context) => {
+    const days = new Set(items.map((item) => item.dayOfWeek));
+    if (days.size !== 7 || [...days].some((day) => day < 0 || day > 6)) {
+      context.addIssue({ code: "custom", message: "Informe cada dia da semana exatamente uma vez." });
     }
+    items.forEach((item, index) => {
+      if (Boolean(item.breakStart) !== Boolean(item.breakEnd)) {
+        context.addIssue({
+          code: "custom",
+          path: [index, "breakStart"],
+          message: "Informe o início e o fim do intervalo.",
+        });
+      }
+    });
   });
-});
 
 export async function saveBusinessHours(input: unknown): Promise<ActionResult> {
   await requireAuthenticatedUser();
@@ -89,7 +96,10 @@ function firstScheduleError(items: ReadonlyArray<z.infer<typeof businessHourItem
   return null;
 }
 
-export async function saveBusinessHoursFromForm(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
+export async function saveBusinessHoursFromForm(
+  _previousState: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   const items = [];
 
   for (let dayOfWeek = 0; dayOfWeek <= 6; dayOfWeek += 1) {
@@ -106,7 +116,10 @@ export async function saveBusinessHoursFromForm(_previousState: ActionResult, fo
   return saveBusinessHours(items);
 }
 
-export async function saveProfessionalAvailabilityFromForm(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
+export async function saveProfessionalAvailabilityFromForm(
+  _previousState: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireAuthenticatedUser();
   const professionalId = z.uuid().safeParse(formData.get("professionalId"));
   const items = Array.from({ length: 7 }, (_, dayOfWeek) => ({
@@ -122,15 +135,38 @@ export async function saveProfessionalAvailabilityFromForm(_previousState: Actio
   const access = await requireClinicAction(["ADMIN"]);
   if (!access.ok) return access.result;
   const { clinic } = access;
-  const professional = await prisma.professional.findFirst({ where: { id: professionalId.data, clinicId: clinic.id, isActive: true }, select: { id: true } });
+  const professional = await prisma.professional.findFirst({
+    where: { id: professionalId.data, clinicId: clinic.id, isActive: true },
+    select: { id: true },
+  });
   if (!professional) return { status: "error", message: "Profissional não encontrado." };
   const scheduleError = firstScheduleError(parsed.data);
   if (scheduleError) return { status: "error", message: scheduleError };
-  await prisma.$transaction(parsed.data.map((item) => prisma.professionalAvailability.upsert({
-    where: { professionalId_dayOfWeek: { professionalId: professional.id, dayOfWeek: item.dayOfWeek } },
-    update: { clinicId: clinic.id, isOpen: item.isOpen, openTime: item.openTime, closeTime: item.closeTime, breakStart: item.breakStart || null, breakEnd: item.breakEnd || null },
-    create: { clinicId: clinic.id, professionalId: professional.id, dayOfWeek: item.dayOfWeek, isOpen: item.isOpen, openTime: item.openTime, closeTime: item.closeTime, breakStart: item.breakStart || null, breakEnd: item.breakEnd || null },
-  })));
+  await prisma.$transaction(
+    parsed.data.map((item) =>
+      prisma.professionalAvailability.upsert({
+        where: { professionalId_dayOfWeek: { professionalId: professional.id, dayOfWeek: item.dayOfWeek } },
+        update: {
+          clinicId: clinic.id,
+          isOpen: item.isOpen,
+          openTime: item.openTime,
+          closeTime: item.closeTime,
+          breakStart: item.breakStart || null,
+          breakEnd: item.breakEnd || null,
+        },
+        create: {
+          clinicId: clinic.id,
+          professionalId: professional.id,
+          dayOfWeek: item.dayOfWeek,
+          isOpen: item.isOpen,
+          openTime: item.openTime,
+          closeTime: item.closeTime,
+          breakStart: item.breakStart || null,
+          breakEnd: item.breakEnd || null,
+        },
+      }),
+    ),
+  );
   revalidatePath("/dashboard/negocio/horarios");
   return { status: "success", message: "Horários do profissional salvos." };
 }

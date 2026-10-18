@@ -19,13 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchJson } from "@/lib/fetch-json";
 import { updateAppointmentFromForm } from "@/server/actions/appointments";
@@ -41,13 +35,7 @@ interface Props {
   minStartTime: string;
 }
 
-export function EditAppointmentDialog({
-  appointment,
-  customers,
-  services,
-  currentStartTime,
-  minStartTime,
-}: Props) {
+export function EditAppointmentDialog({ appointment, customers, services, currentStartTime, minStartTime }: Props) {
   const [open, setOpen] = useState(false);
   const [serviceId, setServiceId] = useState(appointment.serviceId ?? "");
   const [state, action, pending] = useActionState(updateAppointmentFromForm, initial);
@@ -60,9 +48,7 @@ export function EditAppointmentDialog({
     queryKey: ["professionals", clinicId],
     queryFn: () => fetchJson<ProfessionalListItem[]>("/api/professionals"),
   });
-  const available = professionals.filter(
-    (item) => item.isActive && item.serviceIds.includes(serviceId),
-  );
+  const available = professionals.filter((item) => item.isActive && item.serviceIds.includes(serviceId));
 
   useEffect(() => {
     if (!state.message) return;
@@ -101,34 +87,88 @@ export function EditAppointmentDialog({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor={fieldId("service")}>Serviço</Label>
-            <Select name="serviceId" value={serviceId} onValueChange={(value) => setServiceId(value == null ? "" : String(value))} items={services.map((item) => ({ value: item.id, label: item.name }))}>
-              <SelectTrigger id={fieldId("service")} className="overflow-hidden"><SelectValue className="min-w-0 flex-1 truncate text-left" /></SelectTrigger>
-              <SelectContent>{services.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent>
+            <Select
+              name="serviceId"
+              value={serviceId}
+              onValueChange={(value) => setServiceId(value == null ? "" : String(value))}
+              items={services.map((item) => ({ value: item.id, label: item.name }))}
+            >
+              <SelectTrigger id={fieldId("service")} className="overflow-hidden">
+                <SelectValue className="min-w-0 flex-1 truncate text-left" />
+              </SelectTrigger>
+              <SelectContent>
+                {services.map((item) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    {item.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor={fieldId("professional")}>Profissional</Label>
-            <Select name="professionalId" defaultValue={appointment.professionalId ?? null} items={[{ value: null, label: "Sem profissional específico" }, ...available.map((item) => ({ value: item.id, label: item.name }))]}>
-              <SelectTrigger id={fieldId("professional")} className="overflow-hidden"><SelectValue className="min-w-0 flex-1 truncate text-left" /></SelectTrigger>
-              <SelectContent><SelectItem value={null}>Sem profissional específico</SelectItem>{available.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent>
+            <Select
+              name="professionalId"
+              defaultValue={appointment.professionalId ?? null}
+              items={[
+                { value: null, label: "Sem profissional específico" },
+                ...available.map((item) => ({ value: item.id, label: item.name })),
+              ]}
+            >
+              <SelectTrigger id={fieldId("professional")} className="overflow-hidden">
+                <SelectValue className="min-w-0 flex-1 truncate text-left" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={null}>Sem profissional específico</SelectItem>
+                {available.map((item) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    {item.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor={fieldId("startTime")}>Data e horário</Label>
-            <Input id={fieldId("startTime")} name="startTime" type="datetime-local" defaultValue={currentStartTime} min={minStartTime} required />
+            <Input
+              id={fieldId("startTime")}
+              name="startTime"
+              type="datetime-local"
+              defaultValue={currentStartTime}
+              min={minStartTime}
+              required
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor={fieldId("totalPrice")}>Valor final</Label>
-            <Input id={fieldId("totalPrice")} name="totalPrice" type="number" min="0" step="0.01" defaultValue={appointment.totalPrice ?? 0} required />
+            <Input
+              id={fieldId("totalPrice")}
+              name="totalPrice"
+              type="number"
+              min="0"
+              step="0.01"
+              defaultValue={appointment.totalPrice ?? 0}
+              required
+            />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor={fieldId("notes")}>Observações</Label>
-            <Textarea id={fieldId("notes")} name="notes" defaultValue={appointment.notes ?? ""} maxLength={2000} className="min-h-24" />
+            <Textarea
+              id={fieldId("notes")}
+              name="notes"
+              defaultValue={appointment.notes ?? ""}
+              maxLength={2000}
+              className="min-h-24"
+            />
           </div>
         </form>
         <DialogFooter className="mt-1">
-          <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">Fechar sem salvar</Button>
-          <Button type="submit" form={formId} disabled={pending} className="w-full sm:w-auto">{pending ? "Salvando..." : "Salvar alterações"}</Button>
+          <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">
+            Fechar sem salvar
+          </Button>
+          <Button type="submit" form={formId} disabled={pending} className="w-full sm:w-auto">
+            {pending ? "Salvando..." : "Salvar alterações"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

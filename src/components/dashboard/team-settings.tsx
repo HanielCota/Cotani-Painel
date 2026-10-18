@@ -2,17 +2,12 @@
 
 import { useActionState, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { toastResult } from "@/lib/toast-result";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   inviteClinicMember,
   removeClinicMember,
@@ -24,7 +19,16 @@ import { PaginationControls } from "@/components/ui/pagination-controls";
 import { usePagination } from "@/hooks/use-pagination";
 import { clinicRoleLabels } from "@/lib/display-labels";
 import { formatDate } from "@/lib/formatters";
-import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface TeamMember {
   id: string;
@@ -47,21 +51,14 @@ interface ProfessionalOption {
   available: boolean;
 }
 
-function MemberRow({
-  member,
-  professionals,
-}: {
-  member: TeamMember;
-  professionals: ProfessionalOption[];
-}) {
+function MemberRow({ member, professionals }: { member: TeamMember; professionals: ProfessionalOption[] }) {
   const [role, setRole] = useState(member.role);
   const [removing, setRemoving] = useState(false);
   const [pending, start] = useTransition();
   function save(formData: FormData) {
     start(async () => {
       const result = await updateClinicMemberRole(formData);
-      if (result.status === "success") toast.success(result.message);
-      else toast.error(result.message);
+      toastResult(result);
     });
   }
   function remove() {
@@ -69,10 +66,8 @@ function MemberRow({
     form.set("membershipId", member.id);
     start(async () => {
       const result = await removeClinicMember(form);
-      if (result.status === "success") {
-        toast.success(result.message);
-        setRemoving(false);
-      } else toast.error(result.message);
+      toastResult(result);
+      if (result.status === "success") setRemoving(false);
     });
   }
   return (
@@ -82,9 +77,7 @@ function MemberRow({
           {member.name}
           {member.isCurrent ? " (você)" : ""}
         </p>
-        <p className="truncate text-sm text-muted-foreground">
-          {member.email ?? "Sem e-mail"}
-        </p>
+        <p className="truncate text-sm text-muted-foreground">{member.email ?? "Sem e-mail"}</p>
       </div>
       <form action={save} className="flex flex-col gap-2 sm:flex-row">
         <input type="hidden" name="membershipId" value={member.id} />
@@ -92,9 +85,7 @@ function MemberRow({
           name="role"
           value={role}
           items={clinicRoleLabels}
-          onValueChange={(value) =>
-            value != null && setRole(String(value) as TeamMember["role"])
-          }
+          onValueChange={(value) => value != null && setRole(String(value) as TeamMember["role"])}
           aria-label={`Papel de ${member.name}`}
         >
           <SelectTrigger>
@@ -113,9 +104,7 @@ function MemberRow({
             name="professionalId"
             defaultValue={member.professionalId ?? null}
             items={professionals
-              .filter(
-                (item) => item.available || item.id === member.professionalId,
-              )
+              .filter((item) => item.available || item.id === member.professionalId)
               .map((item) => ({ value: item.id, label: item.name }))}
             aria-label={`Profissional vinculado a ${member.name}`}
           >
@@ -124,9 +113,7 @@ function MemberRow({
             </SelectTrigger>
             <SelectContent>
               {professionals
-                .filter(
-                  (item) => item.available || item.id === member.professionalId,
-                )
+                .filter((item) => item.available || item.id === member.professionalId)
                 .map((item) => (
                   <SelectItem key={item.id} value={item.id}>
                     {item.name}
@@ -141,27 +128,17 @@ function MemberRow({
       </form>
       {!member.isCurrent ? (
         <AlertDialog open={removing} onOpenChange={setRemoving}>
-          <AlertDialogTrigger
-            render={<Button type="button" variant="ghost" size="sm" />}
-          >
-            Remover
-          </AlertDialogTrigger>
+          <AlertDialogTrigger render={<Button type="button" variant="ghost" size="sm" />}>Remover</AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Remover acesso?</AlertDialogTitle>
               <AlertDialogDescription>
-                {member.name} perderá o acesso a este negócio. O histórico será
-                preservado.
+                {member.name} perderá o acesso a este negócio. O histórico será preservado.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={remove}
-                disabled={pending}
-              >
+              <Button type="button" variant="destructive" onClick={remove} disabled={pending}>
                 Remover acesso
               </Button>
             </AlertDialogFooter>
@@ -182,8 +159,12 @@ function InvitationRow({ invite }: { invite: PendingInvitation }) {
         status?: string;
         message?: string;
       } | void;
-      if (result?.status === "error") toast.error(result.message);
-      else toast.success(result?.message ?? success);
+      if (result?.status === "error") {
+        toast.error(result.message);
+        return;
+      }
+
+      toast.success(result?.message ?? success);
     });
   }
   return (
@@ -191,8 +172,7 @@ function InvitationRow({ invite }: { invite: PendingInvitation }) {
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{invite.email}</p>
         <p className="text-xs text-muted-foreground">
-          {clinicRoleLabels[invite.role]} · expira em{" "}
-          {formatDate(invite.expiresAt)}
+          {clinicRoleLabels[invite.role]} · expira em {formatDate(invite.expiresAt)}
         </p>
       </div>
       <Button
@@ -241,13 +221,7 @@ export function TeamSettings({
       >
         <div className="space-y-1.5">
           <Label htmlFor="invite-email">E-mail</Label>
-          <Input
-            id="invite-email"
-            name="email"
-            type="email"
-            required
-            placeholder="pessoa@exemplo.com"
-          />
+          <Input id="invite-email" name="email" type="email" required placeholder="pessoa@exemplo.com" />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="invite-role">Papel</Label>
@@ -255,10 +229,7 @@ export function TeamSettings({
             name="role"
             value={inviteRole}
             items={clinicRoleLabels}
-            onValueChange={(value) =>
-              value != null &&
-              setInviteRole(String(value) as TeamMember["role"])
-            }
+            onValueChange={(value) => value != null && setInviteRole(String(value) as TeamMember["role"])}
           >
             <SelectTrigger id="invite-role">
               <SelectValue />
@@ -303,10 +274,7 @@ export function TeamSettings({
           {pending ? "Enviando..." : "Convidar"}
         </Button>
         {result.message ? (
-          <Alert
-            variant={result.status === "error" ? "destructive" : "default"}
-            className="lg:col-span-4"
-          >
+          <Alert variant={result.status === "error" ? "destructive" : "default"} className="lg:col-span-4">
             <AlertDescription>{result.message}</AlertDescription>
           </Alert>
         ) : null}
@@ -314,11 +282,7 @@ export function TeamSettings({
       <div>
         <div className="divide-y overflow-hidden rounded-xl border border-border/80">
           {memberPagination.pageItems.map((member) => (
-            <MemberRow
-              key={member.id}
-              member={member}
-              professionals={professionals}
-            />
+            <MemberRow key={member.id} member={member} professionals={professionals} />
           ))}
         </div>
         <PaginationControls

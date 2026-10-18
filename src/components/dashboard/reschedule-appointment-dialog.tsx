@@ -8,11 +8,21 @@ import { toast } from "sonner";
 import { rescheduleAppointmentFromForm } from "@/server/actions/appointments";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import type { ActionResult } from "@/types";
+import { refreshQueries } from "@/lib/refresh-queries";
 
 const initialState: ActionResult = { status: "success", message: "" };
 
@@ -22,7 +32,11 @@ interface RescheduleAppointmentDialogProps {
   minStartTime: string;
 }
 
-export function RescheduleAppointmentDialog({ appointmentId, currentStartTime, minStartTime }: RescheduleAppointmentDialogProps) {
+export function RescheduleAppointmentDialog({
+  appointmentId,
+  currentStartTime,
+  minStartTime,
+}: RescheduleAppointmentDialogProps) {
   const [state, formAction, isPending] = useActionState(rescheduleAppointmentFromForm, initialState);
   const queryClient = useQueryClient();
   const inputId = `reschedule-${appointmentId}`;
@@ -37,9 +51,11 @@ export function RescheduleAppointmentDialog({ appointmentId, currentStartTime, m
       return;
     }
 
-    void queryClient.invalidateQueries({ queryKey: ["appointments"] }).catch(() => {
-      toast.error("O atendimento foi reagendado, mas a lista não pôde ser atualizada.");
-    });
+    void refreshQueries(
+      queryClient,
+      ["appointments"],
+      "O atendimento foi reagendado, mas a lista não pôde ser atualizada.",
+    );
   }, [state, queryClient]);
 
   return (
@@ -58,12 +74,22 @@ export function RescheduleAppointmentDialog({ appointmentId, currentStartTime, m
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor={inputId}>Nova data e horário</FieldLabel>
-              <Input id={inputId} name="startTime" type="datetime-local" min={minStartTime} defaultValue={currentStartTime} required disabled={isPending} />
+              <Input
+                id={inputId}
+                name="startTime"
+                type="datetime-local"
+                min={minStartTime}
+                defaultValue={currentStartTime}
+                required
+                disabled={isPending}
+              />
             </Field>
           </FieldGroup>
           {state.message ? (
             <Alert variant={state.status === "error" ? "destructive" : "default"} className="mt-4">
-              <AlertTitle>{state.status === "error" ? "Não foi possível reagendar" : "Atendimento reagendado"}</AlertTitle>
+              <AlertTitle>
+                {state.status === "error" ? "Não foi possível reagendar" : "Atendimento reagendado"}
+              </AlertTitle>
               <AlertDescription>{state.message}</AlertDescription>
             </Alert>
           ) : null}

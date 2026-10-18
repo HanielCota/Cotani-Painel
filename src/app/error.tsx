@@ -16,28 +16,29 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
     if (process.env.NODE_ENV === "development") {
       console.error("[global-error]", { message: error.message, digest: error.digest, stack: error.stack });
-    } else {
-      console.error("[global-error]", { digest: error.digest });
+      return;
     }
+
+    console.error("[global-error]", { digest: error.digest });
   }, [error]);
 
   return (
-    <main id="main-content" tabIndex={-1} className="mx-auto flex min-h-screen w-full max-w-2xl items-center justify-center p-6 outline-none">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="mx-auto flex min-h-screen w-full max-w-2xl items-center justify-center p-6 outline-none"
+    >
       <Card className="w-full">
         <CardHeader className="text-center">
           <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
             <OctagonXIcon aria-hidden="true" className="size-6" />
           </div>
           <CardTitle className="text-xl">Algo deu errado</CardTitle>
-          <CardDescription>
-            Ocorreu um erro inesperado. Tente novamente ou volte para a página inicial.
-          </CardDescription>
+          <CardDescription>Ocorreu um erro inesperado. Tente novamente ou volte para a página inicial.</CardDescription>
         </CardHeader>
         <CardContent>
           {process.env.NODE_ENV === "development" ? (
-            <pre className="overflow-x-auto rounded-lg bg-muted p-4 text-xs text-muted-foreground">
-              {error.message}
-            </pre>
+            <pre className="overflow-x-auto rounded-lg bg-muted p-4 text-xs text-muted-foreground">{error.message}</pre>
           ) : null}
         </CardContent>
         <CardFooter className="flex flex-col gap-2 sm:flex-row">

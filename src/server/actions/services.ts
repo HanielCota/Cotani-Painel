@@ -10,6 +10,7 @@ import type { ActionResult } from "@/types";
 import { requireAuthenticatedUser } from "@/server/auth";
 import { persistPublicImage, removePublicImage } from "@/server/services/media-storage";
 import { allowMediaUpload } from "@/server/services/action-rate-limit";
+import { ignoreFailure } from "@/lib/ignore-failure";
 
 const MAX_IMAGE_SIZE_CHARS = 2_000_000;
 
@@ -22,8 +23,7 @@ const imageValueSchema = z
   })
   .refine(
     (value) =>
-      value === null ||
-      value instanceof File || value.startsWith("data:image/") || value.startsWith("https://"),
+      value === null || value instanceof File || value.startsWith("data:image/") || value.startsWith("https://"),
     { message: "A imagem deve ser um arquivo de imagem válido ou uma URL." },
   );
 
@@ -87,7 +87,7 @@ export async function createService(input: unknown): Promise<ActionResult> {
       },
     });
   } catch {
-    await removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "services" }).catch(() => undefined);
+    await ignoreFailure(removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "services" }));
     return { status: "error", message: "Não foi possível cadastrar este serviço. Tente novamente." };
   }
 
@@ -134,7 +134,12 @@ export async function updateService(input: unknown): Promise<ActionResult> {
   let uploadedImageUrl: string | null = null;
 
   try {
-    imageUrl = await persistPublicImage({ clinicId: clinic.id, kind: "services", value: parsed.data.imageUrl, currentUrl: service.imageUrl });
+    imageUrl = await persistPublicImage({
+      clinicId: clinic.id,
+      kind: "services",
+      value: parsed.data.imageUrl,
+      currentUrl: service.imageUrl,
+    });
     if (isNewImageUpload(parsed.data.imageUrl)) uploadedImageUrl = imageUrl;
     await prisma.service.update({
       where: { id: service.id },
@@ -146,12 +151,12 @@ export async function updateService(input: unknown): Promise<ActionResult> {
       },
     });
   } catch {
-    await removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "services" }).catch(() => undefined);
+    await ignoreFailure(removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "services" }));
     return { status: "error", message: "Não foi possível atualizar este serviço. Tente novamente." };
   }
 
   if (service.imageUrl !== imageUrl) {
-    await removePublicImage({ url: service.imageUrl, clinicId: clinic.id, kind: "services" }).catch(() => undefined);
+    await ignoreFailure(removePublicImage({ url: service.imageUrl, clinicId: clinic.id, kind: "services" }));
   }
 
   revalidateServiceViews();
@@ -213,7 +218,8 @@ export async function toggleServiceActive(serviceId: string): Promise<ActionResu
   if (outcome === "has-appointments") {
     return {
       status: "error",
-      message: "Este serviço possui agendamentos futuros pendentes ou confirmados. Cancele ou reagende-os antes de desativar.",
+      message:
+        "Este serviço possui agendamentos futuros pendentes ou confirmados. Cancele ou reagende-os antes de desativar.",
     };
   }
 

@@ -46,9 +46,10 @@ function createFormData(overrides: Record<string, string | null> = {}) {
   Object.entries(overrides).forEach(([key, value]) => {
     if (value === null) {
       formData.set(key, "");
-    } else if (value !== undefined) {
-      formData.set(key, value);
+      return;
     }
+
+    if (value !== undefined) formData.set(key, value);
   });
   return formData;
 }
@@ -95,10 +96,7 @@ describe("createService", () => {
     prismaMock.service.create.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440001" });
     const imageUrl = "data:image/png;base64,abc123";
 
-    const result = await createServiceFromForm(
-      { status: "success", message: "" },
-      createFormData({ imageUrl }),
-    );
+    const result = await createServiceFromForm({ status: "success", message: "" }, createFormData({ imageUrl }));
 
     expect(result.status).toBe("success");
   });
@@ -154,7 +152,9 @@ describe("toggleServiceActive", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
-    prismaMock.$transaction.mockImplementation(async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock));
+    prismaMock.$transaction.mockImplementation(async (callback: (tx: typeof prismaMock) => Promise<unknown>) =>
+      callback(prismaMock),
+    );
   });
 
   it("retorna erro para ID inválido", async () => {

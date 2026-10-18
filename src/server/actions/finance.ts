@@ -51,7 +51,8 @@ async function getFinanceClinic() {
   if (!clinic) return { ok: false, message: "Selecione um negócio." } as const;
   if (!isSubscriptionActive(clinic)) return { ok: false, message: SUBSCRIPTION_INACTIVE_MESSAGE } as const;
   // A página já esconde o módulo, mas a action pode ser chamada diretamente.
-  if (!getPlanEntitlements(clinic.subscriptionPlan).finance) return { ok: false, message: "O financeiro está disponível a partir do plano Profissional." } as const;
+  if (!getPlanEntitlements(clinic.subscriptionPlan).finance)
+    return { ok: false, message: "O financeiro está disponível a partir do plano Profissional." } as const;
   return { ok: true, clinic } as const;
 }
 
@@ -87,9 +88,9 @@ export async function saveFinancialEntry(_previousState: ActionResult, formData:
       data,
     });
     if (!updated.count) return { status: "error", message: "Movimentação não encontrada." };
-  } else {
-    await prisma.financialEntry.create({ data: { ...data, clinicId: clinic.id } });
   }
+
+  if (!parsed.data.id) await prisma.financialEntry.create({ data: { ...data, clinicId: clinic.id } });
 
   revalidatePath("/dashboard/financeiro");
   return { status: "success", message: parsed.data.id ? "Movimentação atualizada." : "Movimentação criada." };
@@ -102,7 +103,9 @@ export async function deleteFinancialEntry(_previousState: ActionResult, formDat
   const access = await getFinanceClinic();
   if (!access.ok) return { status: "error", message: access.message };
 
-  const result = await prisma.financialEntry.deleteMany({ where: { id: id.data, clinicId: access.clinic.id, appointmentId: null } });
+  const result = await prisma.financialEntry.deleteMany({
+    where: { id: id.data, clinicId: access.clinic.id, appointmentId: null },
+  });
   if (!result.count) return { status: "error", message: "Movimentação não encontrada." };
 
   revalidatePath("/dashboard/financeiro");

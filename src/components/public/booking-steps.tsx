@@ -34,7 +34,16 @@ interface BookingStepsProps {
 /** O que a reserva garante ao cliente; só fatos que valem para todo negócio. */
 const BOOKING_GUARANTEES = ["Sem criar conta", "Só horários livres", "Confirmação na hora"];
 
-export function BookingSteps({ slug, clinicName, services, professionals, minDate, rescheduleToken, initialServiceId = "", initialProfessionalId = "" }: BookingStepsProps) {
+export function BookingSteps({
+  slug,
+  clinicName,
+  services,
+  professionals,
+  minDate,
+  rescheduleToken,
+  initialServiceId = "",
+  initialProfessionalId = "",
+}: BookingStepsProps) {
   const router = useRouter();
   const cardRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState<BookingStep>("service-professional");
@@ -52,18 +61,25 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
   useEffect(() => {
     if (previousStep.current === step) return;
     previousStep.current = step;
-    const reduceMotion = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduceMotion =
+      typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     cardRef.current?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
   }, [step]);
 
   const selectedService = services.find((service) => service.id === serviceId);
   const anyProfessional = professionalId === ANY_PROFESSIONAL_ID;
   const selectedProfessional = professionals.find((professional) => professional.id === professionalId);
-  const availableProfessionals = selectedService ? professionals.filter((professional) => professional.serviceIds.includes(selectedService.id)) : [];
+  const availableProfessionals = selectedService
+    ? professionals.filter((professional) => professional.serviceIds.includes(selectedService.id))
+    : [];
   const hasProfessionals = availableProfessionals.length > 0;
   const canProceedFromService = Boolean(serviceId && (!hasProfessionals || professionalId));
   // Explica por que "Continuar" está desabilitado (no mobile o botão fica fixo no rodapé).
-  const serviceStepHint = !serviceId ? "Escolha um serviço para continuar." : !canProceedFromService ? "Escolha um profissional para continuar." : null;
+  const serviceStepHint = !serviceId
+    ? "Escolha um serviço para continuar."
+    : !canProceedFromService
+      ? "Escolha um profissional para continuar."
+      : null;
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ["public-availability", slug, serviceId, professionalId, date],
@@ -117,7 +133,10 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
         return;
       }
       try {
-        sessionStorage.setItem(getCustomerStorageKey(slug), JSON.stringify({ name: String(formData.get("customerName")) }));
+        sessionStorage.setItem(
+          getCustomerStorageKey(slug),
+          JSON.stringify({ name: String(formData.get("customerName")) }),
+        );
       } catch {
         // O navegador pode bloquear o armazenamento da sessão.
       }
@@ -136,12 +155,24 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
   return (
     <Card ref={cardRef} className="scroll-mt-4 overflow-clip">
       <CardHeader className="gap-2">
-        <CardTitle className="text-lg sm:text-xl">{rescheduleToken ? "Reagendar atendimento" : "Novo agendamento"}</CardTitle>
-        <CardDescription>{rescheduleToken ? "Escolha o novo horário. O anterior será liberado somente após a confirmação." : `Complete as etapas para reservar seu horário em ${clinicName}.`}</CardDescription>
+        <CardTitle className="text-lg sm:text-xl">
+          {rescheduleToken ? "Reagendar atendimento" : "Novo agendamento"}
+        </CardTitle>
+        <CardDescription>
+          {rescheduleToken
+            ? "Escolha o novo horário. O anterior será liberado somente após a confirmação."
+            : `Complete as etapas para reservar seu horário em ${clinicName}.`}
+        </CardDescription>
         {rescheduleToken ? null : (
-          <ul aria-label="Garantias da reserva" className="flex flex-wrap gap-x-4 gap-y-1 pt-1 text-xs text-muted-foreground">
+          <ul
+            aria-label="Garantias da reserva"
+            className="flex flex-wrap gap-x-4 gap-y-1 pt-1 text-xs text-muted-foreground"
+          >
             {BOOKING_GUARANTEES.map((item) => (
-              <li key={item} className="flex items-center gap-1.5"><CheckIcon aria-hidden="true" className="size-3.5 text-primary" />{item}</li>
+              <li key={item} className="flex items-center gap-1.5">
+                <CheckIcon aria-hidden="true" className="size-3.5 text-primary" />
+                {item}
+              </li>
             ))}
           </ul>
         )}
@@ -150,20 +181,103 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
         <BookingStepIndicator current={step} />
         <form id="public-booking" onSubmit={handleSubmit}>
           <ErrorBoundary>
-            {step === "service-professional" ? <BookingSelectionStep services={services} professionals={professionals} selectedServiceId={serviceId} selectedProfessionalId={professionalId} onServiceSelect={handleServiceSelect} onProfessionalSelect={setProfessionalId} /> : null}
-            {step === "datetime" ? <BookingDateTimeStep minDate={minDate} selectedDate={date} selectedSlot={slot} slots={data?.slots ?? []} isFetching={isFetching} availableDates={new Set(availableDatesData?.dates ?? [])} isLoadingAvailableDates={isLoadingAvailableDates} onDateChange={(nextDate) => { setDate(nextDate); setSlot(null); }} onSlotChange={setSlot} onMonthChange={setCalendarMonth} /> : null}
-            {step === "customer" ? <BookingCustomerStep isPending={isPending} slug={slug} clinicName={clinicName} service={selectedService} professional={selectedProfessional} anyProfessional={anyProfessional} date={date} slot={slot} /> : null}
+            {step === "service-professional" ? (
+              <BookingSelectionStep
+                services={services}
+                professionals={professionals}
+                selectedServiceId={serviceId}
+                selectedProfessionalId={professionalId}
+                onServiceSelect={handleServiceSelect}
+                onProfessionalSelect={setProfessionalId}
+              />
+            ) : null}
+            {step === "datetime" ? (
+              <BookingDateTimeStep
+                minDate={minDate}
+                selectedDate={date}
+                selectedSlot={slot}
+                slots={data?.slots ?? []}
+                isFetching={isFetching}
+                availableDates={new Set(availableDatesData?.dates ?? [])}
+                isLoadingAvailableDates={isLoadingAvailableDates}
+                onDateChange={(nextDate) => {
+                  setDate(nextDate);
+                  setSlot(null);
+                }}
+                onSlotChange={setSlot}
+                onMonthChange={setCalendarMonth}
+              />
+            ) : null}
+            {step === "customer" ? (
+              <BookingCustomerStep
+                isPending={isPending}
+                slug={slug}
+                clinicName={clinicName}
+                service={selectedService}
+                professional={selectedProfessional}
+                anyProfessional={anyProfessional}
+                date={date}
+                slot={slot}
+              />
+            ) : null}
           </ErrorBoundary>
-          {result?.status === "error" ? <Alert variant="destructive" className="mt-5"><AlertTitle>Não foi possível agendar</AlertTitle><AlertDescription>{result.message}</AlertDescription></Alert> : null}
+          {result?.status === "error" ? (
+            <Alert variant="destructive" className="mt-5">
+              <AlertTitle>Não foi possível agendar</AlertTitle>
+              <AlertDescription>{result.message}</AlertDescription>
+            </Alert>
+          ) : null}
         </form>
       </CardContent>
       <CardFooter className="sticky bottom-0 z-10 flex flex-col-reverse gap-3 border-t border-border/70 bg-card/95 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/85 sm:static sm:flex-row sm:justify-between sm:border-0 sm:bg-card sm:pt-2 sm:backdrop-blur-none">
-        {step === "service-professional" && serviceStepHint ? <p className="text-center text-xs text-muted-foreground sm:hidden">{serviceStepHint}</p> : null}
-        {step === "datetime" && !slot ? <p className="text-center text-xs text-muted-foreground sm:hidden">Escolha um dia e um horário.</p> : null}
-        {step !== "service-professional" ? <Button type="button" variant="outline" onClick={() => setStep(step === "customer" ? "datetime" : "service-professional")} disabled={isPending} className="h-12 w-full sm:w-auto"><ArrowLeftIcon data-icon="inline-start" />Voltar</Button> : <div className="hidden sm:block" />}
-        {step === "service-professional" ? <Button type="button" disabled={!canProceedFromService} onClick={() => setStep("datetime")} className="h-12 w-full sm:w-auto">Continuar<ArrowRightIcon data-icon="inline-end" /></Button> : null}
-        {step === "datetime" ? <Button type="button" disabled={!slot} onClick={() => setStep("customer")} className="h-12 w-full sm:w-auto">Continuar<ArrowRightIcon data-icon="inline-end" /></Button> : null}
-        {step === "customer" ? <Button type="submit" form="public-booking" disabled={isPending || services.length === 0} className="h-12 w-full sm:w-auto">{isPending ? <Spinner data-icon="inline-start" /> : <CalendarPlusIcon data-icon="inline-start" />}{isPending ? "Salvando..." : rescheduleToken ? "Confirmar novo horário" : "Confirmar agendamento"}</Button> : null}
+        {step === "service-professional" && serviceStepHint ? (
+          <p className="text-center text-xs text-muted-foreground sm:hidden">{serviceStepHint}</p>
+        ) : null}
+        {step === "datetime" && !slot ? (
+          <p className="text-center text-xs text-muted-foreground sm:hidden">Escolha um dia e um horário.</p>
+        ) : null}
+        {step !== "service-professional" ? (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setStep(step === "customer" ? "datetime" : "service-professional")}
+            disabled={isPending}
+            className="h-12 w-full sm:w-auto"
+          >
+            <ArrowLeftIcon data-icon="inline-start" />
+            Voltar
+          </Button>
+        ) : (
+          <div className="hidden sm:block" />
+        )}
+        {step === "service-professional" ? (
+          <Button
+            type="button"
+            disabled={!canProceedFromService}
+            onClick={() => setStep("datetime")}
+            className="h-12 w-full sm:w-auto"
+          >
+            Continuar
+            <ArrowRightIcon data-icon="inline-end" />
+          </Button>
+        ) : null}
+        {step === "datetime" ? (
+          <Button type="button" disabled={!slot} onClick={() => setStep("customer")} className="h-12 w-full sm:w-auto">
+            Continuar
+            <ArrowRightIcon data-icon="inline-end" />
+          </Button>
+        ) : null}
+        {step === "customer" ? (
+          <Button
+            type="submit"
+            form="public-booking"
+            disabled={isPending || services.length === 0}
+            className="h-12 w-full sm:w-auto"
+          >
+            {isPending ? <Spinner data-icon="inline-start" /> : <CalendarPlusIcon data-icon="inline-start" />}
+            {isPending ? "Salvando..." : rescheduleToken ? "Confirmar novo horário" : "Confirmar agendamento"}
+          </Button>
+        ) : null}
       </CardFooter>
     </Card>
   );

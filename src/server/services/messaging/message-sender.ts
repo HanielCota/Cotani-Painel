@@ -2,6 +2,7 @@ import "server-only";
 
 import type { NotificationChannel, NotificationKind } from "@/generated/prisma/enums";
 import { normalizeWhatsAppPhone } from "@/lib/phone";
+import { readJsonOrNull } from "@/lib/ignore-failure";
 
 /**
  * Mensagem de saída normalizada, independente de canal ou provedor.
@@ -59,7 +60,7 @@ class ResendEmailSender implements MessageSender {
       REMINDER_2H: "Seu atendimento começa em 2 horas · Cotani",
     };
     const subject = message.notificationKind
-      ? subjects[message.notificationKind] ?? "Atualização do seu agendamento · Cotani"
+      ? (subjects[message.notificationKind] ?? "Atualização do seu agendamento · Cotani")
       : "Atualização do seu agendamento · Cotani";
 
     const response = await fetch("https://api.resend.com/emails", {
@@ -72,7 +73,7 @@ class ResendEmailSender implements MessageSender {
       body: JSON.stringify({ from, to: [message.recipient], subject, text: message.content }),
       signal: AbortSignal.timeout(10_000),
     });
-    const payload = await response.json().catch(() => null) as { id?: string; message?: string } | null;
+    const payload = await readJsonOrNull<{ id?: string; message?: string }>(response);
     return response.ok
       ? { ok: true, providerRef: payload?.id }
       : { ok: false, error: payload?.message ?? `Resend HTTP ${response.status}` };
@@ -89,16 +90,19 @@ class TwilioSmsSender implements MessageSender {
     if (!recipient) return { ok: false, error: "Telefone inválido para SMS." };
 
     const body = new URLSearchParams({ To: `+${recipient}`, From: from, Body: message.content });
-    const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${encodeURIComponent(accountSid)}/Messages.json`, {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString("base64")}`,
-        "Content-Type": "application/x-www-form-urlencoded",
+    const response = await fetch(
+      `https://api.twilio.com/2010-04-01/Accounts/${encodeURIComponent(accountSid)}/Messages.json`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString("base64")}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body,
+        signal: AbortSignal.timeout(10_000),
       },
-      body,
-      signal: AbortSignal.timeout(10_000),
-    });
-    const payload = await response.json().catch(() => null) as { sid?: string; message?: string } | null;
+    );
+    const payload = await readJsonOrNull<{ sid?: string; message?: string }>(response);
     return response.ok
       ? { ok: true, providerRef: payload?.sid }
       : { ok: false, error: payload?.message ?? `Twilio HTTP ${response.status}` };
@@ -133,10 +137,12 @@ class MetaWhatsAppSender implements MessageSender {
           template: {
             name: templateName,
             language: { code: templateLanguage },
-            components: [{
-              type: "body",
-              parameters: [{ type: "text", text: message.content }],
-            }],
+            components: [
+              {
+                type: "body",
+                parameters: [{ type: "text", text: message.content }],
+              },
+            ],
           },
         }
       : {
@@ -161,9 +167,7 @@ class MetaWhatsAppSender implements MessageSender {
       },
     );
 
-    const payload = (await response.json().catch(() => null)) as
-      | { messages?: Array<{ id?: string }>; error?: { message?: string } }
-      | null;
+    const payload = await readJsonOrNull<{ messages?: Array<{ id?: string }>; error?: { message?: string } }>(response);
 
     if (!response.ok) {
       return { ok: false, error: payload?.error?.message ?? `Meta API HTTP ${response.status}` };

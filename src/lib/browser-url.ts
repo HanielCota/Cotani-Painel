@@ -7,8 +7,12 @@ export function replaceUrlSearchParams(values: Record<string, string | null | un
   if (typeof window === "undefined") return;
   const url = new URL(window.location.href);
   for (const [name, value] of Object.entries(values)) {
-    if (!value) url.searchParams.delete(name);
-    else url.searchParams.set(name, value);
+    if (!value) {
+      url.searchParams.delete(name);
+      continue;
+    }
+
+    url.searchParams.set(name, value);
   }
   window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
 }

@@ -28,7 +28,9 @@ describe("seletor pesquisável de clientes", () => {
     await user.click(screen.getByRole("option", { name: "Helena Martins" }));
 
     expect(input).toHaveValue("Helena Martins");
-    expect(new FormData(container.querySelector("form")!).get("customerId")).toBe(customers[1].id);
+    const form = container.querySelector("form");
+    if (!form) throw new Error("formulário não encontrado");
+    expect(new FormData(form).get("customerId")).toBe(customers[1].id);
   });
 
   it("preserva o cliente inicial pelo identificador", () => {

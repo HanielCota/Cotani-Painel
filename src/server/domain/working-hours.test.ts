@@ -19,8 +19,21 @@ describe("resolveWorkingWindow", () => {
   });
 
   it("faz a interseção com o horário do profissional e soma os intervalos", () => {
-    const professional = { isOpen: true, openTime: "10:00", closeTime: "20:00", breakStart: "15:00", breakEnd: "15:30" };
-    expect(resolveWorkingWindow(business, professional)).toEqual({ open: 600, close: 1080, breaks: [[720, 780], [900, 930]] });
+    const professional = {
+      isOpen: true,
+      openTime: "10:00",
+      closeTime: "20:00",
+      breakStart: "15:00",
+      breakEnd: "15:30",
+    };
+    expect(resolveWorkingWindow(business, professional)).toEqual({
+      open: 600,
+      close: 1080,
+      breaks: [
+        [720, 780],
+        [900, 930],
+      ],
+    });
   });
 
   it("fecha o dia quando o negócio ou o profissional não atendem, ou a interseção é vazia", () => {
@@ -31,8 +44,15 @@ describe("resolveWorkingWindow", () => {
   });
 });
 
+/** Janela de expediente que o teste exige existir. */
+function requireWindow(day: Parameters<typeof resolveWorkingWindow>[0]) {
+  const window = resolveWorkingWindow(day);
+  if (!window) throw new Error("expediente esperado");
+  return window;
+}
+
 describe("grade de horários", () => {
-  const window = resolveWorkingWindow(business)!;
+  const window = requireWindow(business);
 
   it("aceita só horários alinhados, dentro do expediente e fora do intervalo", () => {
     expect(slotFitsWindow(window, minutesFromTime("09:00"), 60)).toBe(true);
@@ -44,7 +64,22 @@ describe("grade de horários", () => {
 
   it("gera os inícios possíveis respeitando duração e intervalo", () => {
     const starts = candidateSlotStarts(window, 60).map(formatTimeLabel);
-    expect(starts).toEqual(["09:00", "09:30", "10:00", "10:30", "11:00", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00"]);
+    expect(starts).toEqual([
+      "09:00",
+      "09:30",
+      "10:00",
+      "10:30",
+      "11:00",
+      "13:00",
+      "13:30",
+      "14:00",
+      "14:30",
+      "15:00",
+      "15:30",
+      "16:00",
+      "16:30",
+      "17:00",
+    ]);
   });
 
   it("remove horários ocupados e respeita o filtro de reserva", () => {
@@ -52,7 +87,7 @@ describe("grade de horários", () => {
     const slots = findFreeSlots({
       dateKey: "2026-10-20",
       timeZone: "America/Sao_Paulo",
-      window: resolveWorkingWindow({ isOpen: true, openTime: "09:00", closeTime: "11:00" })!,
+      window: requireWindow({ isOpen: true, openTime: "09:00", closeTime: "11:00" }),
       durationMinutes: 30,
       busy,
       isBookable: (start) => start.toISOString() !== "2026-10-20T13:30:00.000Z", // 10:30 bloqueado
@@ -61,7 +96,14 @@ describe("grade de horários", () => {
   });
 
   it("para no limite pedido", () => {
-    const slots = findFreeSlots({ dateKey: "2026-10-20", timeZone: "America/Sao_Paulo", window, durationMinutes: 30, busy: [], limit: 1 });
+    const slots = findFreeSlots({
+      dateKey: "2026-10-20",
+      timeZone: "America/Sao_Paulo",
+      window,
+      durationMinutes: 30,
+      busy: [],
+      limit: 1,
+    });
     expect(slots).toHaveLength(1);
   });
 });
@@ -79,7 +121,11 @@ describe("validateDaySchedule", () => {
     expect(validateDaySchedule({ dayOfWeek: 1, ...business })).toBeNull();
     expect(validateDaySchedule({ dayOfWeek: 1, ...business, isOpen: false, openTime: "20:00" })).toBeNull();
     expect(validateDaySchedule({ dayOfWeek: 1, ...business, openTime: "18:00" })).toContain("Segunda");
-    expect(validateDaySchedule({ dayOfWeek: 2, ...business, breakStart: "13:00", breakEnd: "12:00" })).toContain("início do intervalo");
-    expect(validateDaySchedule({ dayOfWeek: 3, ...business, breakStart: "08:00", breakEnd: "09:30" })).toContain("dentro do expediente");
+    expect(validateDaySchedule({ dayOfWeek: 2, ...business, breakStart: "13:00", breakEnd: "12:00" })).toContain(
+      "início do intervalo",
+    );
+    expect(validateDaySchedule({ dayOfWeek: 3, ...business, breakStart: "08:00", breakEnd: "09:30" })).toContain(
+      "dentro do expediente",
+    );
   });
 });

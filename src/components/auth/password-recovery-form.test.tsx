@@ -30,6 +30,13 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
+/** Formulário que contém o botão; falha o teste se não houver. */
+function formOf(element: HTMLElement) {
+  const form = element.closest("form");
+  if (!form) throw new Error("formulário não encontrado");
+  return form;
+}
+
 describe("PasswordRecoveryForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -43,7 +50,7 @@ describe("PasswordRecoveryForm", () => {
     render(<PasswordRecoveryForm mode="request" />);
 
     fireEvent.change(screen.getByLabelText("E-mail"), { target: { value: "teste@cotani.com.br" } });
-    fireEvent.submit(screen.getByRole("button", { name: "Enviar link de redefinição" }).closest("form")!);
+    fireEvent.submit(formOf(screen.getByRole("button", { name: "Enviar link de redefinição" })));
 
     expect(await screen.findByRole("heading", { name: "Verifique seu e-mail" })).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("teste@cotani.com.br");
@@ -58,7 +65,7 @@ describe("PasswordRecoveryForm", () => {
     render(<PasswordRecoveryForm mode="request" />);
 
     fireEvent.change(screen.getByLabelText("E-mail"), { target: { value: "teste@cotani.com.br" } });
-    fireEvent.submit(screen.getByRole("button", { name: "Enviar link de redefinição" }).closest("form")!);
+    fireEvent.submit(formOf(screen.getByRole("button", { name: "Enviar link de redefinição" })));
     await screen.findByRole("heading", { name: "Verifique seu e-mail" });
 
     fireEvent.click(screen.getByRole("button", { name: "Enviar novamente" }));
@@ -67,19 +74,21 @@ describe("PasswordRecoveryForm", () => {
   });
 
   it("envia apenas uma solicitação mesmo com submissões repetidas", async () => {
-    let resolveRequest!: (value: { error: null }) => void;
-    resetPasswordForEmail.mockReturnValue(new Promise((resolve) => {
-      resolveRequest = resolve;
-    }));
+    let resolveRequest: ((value: { error: null }) => void) | undefined;
+    resetPasswordForEmail.mockReturnValue(
+      new Promise((resolve) => {
+        resolveRequest = resolve;
+      }),
+    );
     render(<PasswordRecoveryForm mode="request" />);
 
     fireEvent.change(screen.getByLabelText("E-mail"), { target: { value: "teste@cotani.com.br" } });
-    const form = screen.getByRole("button", { name: "Enviar link de redefinição" }).closest("form")!;
+    const form = formOf(screen.getByRole("button", { name: "Enviar link de redefinição" }));
     fireEvent.submit(form);
     fireEvent.submit(form);
 
     expect(resetPasswordForEmail).toHaveBeenCalledTimes(1);
-    resolveRequest({ error: null });
+    resolveRequest?.({ error: null });
     expect(await screen.findByRole("heading", { name: "Verifique seu e-mail" })).toBeInTheDocument();
   });
 
@@ -94,7 +103,7 @@ describe("PasswordRecoveryForm", () => {
     await waitFor(() => expect(password).toBeEnabled());
     fireEvent.change(password, { target: { value: "senha123" } });
     fireEvent.change(confirmation, { target: { value: "senha123" } });
-    fireEvent.submit(screen.getByRole("button", { name: "Salvar senha" }).closest("form")!);
+    fireEvent.submit(formOf(screen.getByRole("button", { name: "Salvar senha" })));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Use uma senha com pelo menos 8 caracteres.");
   });
@@ -105,8 +114,10 @@ describe("PasswordRecoveryForm - destino do link", () => {
     resetPasswordForEmail.mockResolvedValue({ error: null });
     render(<PasswordRecoveryForm mode="request" />);
     fireEvent.change(screen.getByLabelText("E-mail"), { target: { value: "ana@example.com" } });
-    fireEvent.submit(screen.getByRole("button", { name: "Enviar link de redefinição" }).closest("form")!);
+    fireEvent.submit(formOf(screen.getByRole("button", { name: "Enviar link de redefinição" })));
     await waitFor(() => expect(resetPasswordForEmail).toHaveBeenCalled());
-    expect(resetPasswordForEmail.mock.calls[0][1].redirectTo).toMatch(/\/auth\/callback\?next=\/auth\/confirm-recovery$/);
+    expect(resetPasswordForEmail.mock.calls[0][1].redirectTo).toMatch(
+      /\/auth\/callback\?next=\/auth\/confirm-recovery$/,
+    );
   });
 });

@@ -28,14 +28,31 @@ const errorMessages: Record<string, string> = {
   mismatch: "As senhas digitadas não são iguais.",
   weak_password: "Essa senha foi considerada fraca. Escolha uma senha diferente e mais forte.",
   same_password: "A nova senha precisa ser diferente da senha anterior.",
-  mfa_unavailable: "Não foi possível confirmar a verificação em duas etapas da sua conta. Tente novamente em instantes.",
+  mfa_unavailable:
+    "Não foi possível confirmar a verificação em duas etapas da sua conta. Tente novamente em instantes.",
   retry: "Não foi possível salvar a senha. Tente novamente.",
 };
 
-function Header({ icon: Icon, title, description, tone = "primary" }: { icon: typeof KeyRoundIcon; title: string; description: React.ReactNode; tone?: "primary" | "destructive" }) {
+function Header({
+  icon: Icon,
+  title,
+  description,
+  tone = "primary",
+}: {
+  icon: typeof KeyRoundIcon;
+  title: string;
+  description: React.ReactNode;
+  tone?: "primary" | "destructive";
+}) {
   return (
     <div className="mb-5 flex flex-col items-center gap-3 text-center">
-      <span className={tone === "destructive" ? "flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive" : "flex size-12 items-center justify-center rounded-full bg-primary/15 text-primary"}>
+      <span
+        className={
+          tone === "destructive"
+            ? "flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive"
+            : "flex size-12 items-center justify-center rounded-full bg-primary/15 text-primary"
+        }
+      >
         <Icon aria-hidden="true" className="size-6" />
       </span>
       <div>
@@ -59,7 +76,9 @@ function FormError({ message }: { message: string | null }) {
 function BackToSignIn() {
   return (
     <form action={signOutCurrentSession} className="mt-2">
-      <Button type="submit" variant="ghost" className="w-full">Cancelar e voltar ao login</Button>
+      <Button type="submit" variant="ghost" className="w-full">
+        Cancelar e voltar ao login
+      </Button>
     </form>
   );
 }
@@ -143,7 +162,7 @@ function RecoveryContent({ error, formError, recoverySession, mfa, email }: Reco
 
 export default async function ConfirmRecoveryPage({ searchParams }: ConfirmRecoveryPageProps) {
   const params = await searchParams;
-  const formError = params.error ? errorMessages[params.error] ?? null : null;
+  const formError = params.error ? (errorMessages[params.error] ?? null) : null;
 
   const supabase = await createClient();
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();

@@ -130,7 +130,14 @@ export function ServiceFormDialog({ service }: ServiceFormDialogProps) {
               </Field>
             </FieldGroup>
 
-            <ImageUploadField key={`${service?.id ?? "new"}-${open}`} id={isEditing ? `edit-service-image-${service?.id}` : "service-image"} label="Imagem" initialUrl={service?.imageUrl} alt="Prévia do serviço" disabled={isPending} />
+            <ImageUploadField
+              key={`${service?.id ?? "new"}-${open}`}
+              id={isEditing ? `edit-service-image-${service?.id}` : "service-image"}
+              label="Imagem"
+              initialUrl={service?.imageUrl}
+              alt="Prévia do serviço"
+              disabled={isPending}
+            />
           </FieldGroup>
           {result?.message ? (
             <Alert variant={result.status === "error" ? "destructive" : "default"} className="mt-4">

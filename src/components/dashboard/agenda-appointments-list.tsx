@@ -46,21 +46,31 @@ interface AgendaAppointmentsListProps {
   services?: Array<{ id: string; name: string; duration: number }>;
 }
 
-export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, customers = [], services = [] }: AgendaAppointmentsListProps) {
+export function AgendaAppointmentsList({
+  timeZone,
+  minStartTime,
+  canSchedule,
+  customers = [],
+  services = [],
+}: AgendaAppointmentsListProps) {
   const [page, setPageState] = useState(() => Math.max(1, Number.parseInt(readUrlSearchParam("pagina", "1"), 10) || 1));
   const [statusFilter, setStatusFilter] = useState<AppointmentStatus | "ALL">(() => {
     const value = readUrlSearchParam("status", "ALL");
-    return filters.some((item) => item.status === value) ? value as AppointmentStatus | "ALL" : "ALL";
+    return filters.some((item) => item.status === value) ? (value as AppointmentStatus | "ALL") : "ALL";
   });
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>(() => {
     const value = readUrlSearchParam("periodo", "ALL");
-    return periodFilters.some((item) => item.value === value) ? value as PeriodFilter : "ALL";
+    return periodFilters.some((item) => item.value === value) ? (value as PeriodFilter) : "ALL";
   });
   function setPage(nextPage: number) {
     setPageState(nextPage);
     replaceUrlSearchParams({ pagina: nextPage > 1 ? String(nextPage) : null });
   }
-  const { data, isPending, isError, isFetching, refetch } = useAppointments({ page, status: statusFilter, period: periodFilter });
+  const { data, isPending, isError, isFetching, refetch } = useAppointments({
+    page,
+    status: statusFilter,
+    period: periodFilter,
+  });
   const appointments = data?.items ?? [];
   const pageCount = Math.max(1, Math.ceil((data?.total ?? 0) / (data?.pageSize ?? 15)));
 
@@ -80,7 +90,9 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
         <AlertTitle>Não foi possível carregar os atendimentos</AlertTitle>
         <AlertDescription className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <span>Verifique sua conexão. Nenhuma alteração foi realizada.</span>
-          <Button type="button" size="sm" variant="outline" onClick={() => void refetch()}>Tentar novamente</Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => void refetch()}>
+            Tentar novamente
+          </Button>
         </AlertDescription>
       </Alert>
     );
@@ -93,7 +105,9 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
           <EmptyMascot />
           <EmptyTitle>Nenhum atendimento futuro</EmptyTitle>
           <EmptyDescription>
-            {canSchedule ? "Use o formulário acima para registrar o primeiro horário." : "Cadastre os itens necessários acima para começar."}
+            {canSchedule
+              ? "Use o formulário acima para registrar o primeiro horário."
+              : "Cadastre os itens necessários acima para começar."}
           </EmptyDescription>
         </EmptyHeader>
       </Empty>
@@ -181,17 +195,43 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
                   <Badge variant={appointmentStatusBadgeVariant(appointment.status)}>
                     {appointmentStatusLabel(appointment.status)}
                   </Badge>
-                  {appointment.status !== "CANCELED" && appointment.status !== "NO_SHOW" && appointment.status !== "COMPLETED" ? (
-                    canSchedule ? <EditAppointmentDialog appointment={appointment} customers={customers} services={services} currentStartTime={formatClinicDateTimeInput(startTime, timeZone)} minStartTime={minStartTime} /> : <RescheduleAppointmentDialog appointmentId={appointment.id} currentStartTime={formatClinicDateTimeInput(startTime, timeZone)} minStartTime={minStartTime} />
+                  {appointment.status !== "CANCELED" &&
+                  appointment.status !== "NO_SHOW" &&
+                  appointment.status !== "COMPLETED" ? (
+                    canSchedule ? (
+                      <EditAppointmentDialog
+                        appointment={appointment}
+                        customers={customers}
+                        services={services}
+                        currentStartTime={formatClinicDateTimeInput(startTime, timeZone)}
+                        minStartTime={minStartTime}
+                      />
+                    ) : (
+                      <RescheduleAppointmentDialog
+                        appointmentId={appointment.id}
+                        currentStartTime={formatClinicDateTimeInput(startTime, timeZone)}
+                        minStartTime={minStartTime}
+                      />
+                    )
                   ) : null}
-                  <AppointmentActions appointmentId={appointment.id} status={appointment.status} startTime={appointment.startTime} />
+                  <AppointmentActions
+                    appointmentId={appointment.id}
+                    status={appointment.status}
+                    startTime={appointment.startTime}
+                  />
                 </div>
               </div>
             );
           })}
         </div>
       )}
-      <PaginationControls page={data?.page ?? page} pageCount={pageCount} totalItems={data?.total ?? 0} onPageChange={setPage} itemLabelPlural="atendimentos" />
+      <PaginationControls
+        page={data?.page ?? page}
+        pageCount={pageCount}
+        totalItems={data?.total ?? 0}
+        onPageChange={setPage}
+        itemLabelPlural="atendimentos"
+      />
     </div>
   );
 }

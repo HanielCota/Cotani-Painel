@@ -13,19 +13,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchJson } from "@/lib/fetch-json";
 import { cn } from "@/lib/utils";
 import type { ActionResult, ProfessionalListItem } from "@/types";
+import { refreshQueries } from "@/lib/refresh-queries";
 
 const initialState: ActionResult = { status: "success", message: "" };
 
@@ -41,7 +36,15 @@ interface AppointmentFormProps {
   initialStartTime?: string;
 }
 
-export function AppointmentForm({ customers, services, minStartTime, className, onSuccess, initialCustomerId = "", initialStartTime }: AppointmentFormProps) {
+export function AppointmentForm({
+  customers,
+  services,
+  minStartTime,
+  className,
+  onSuccess,
+  initialCustomerId = "",
+  initialStartTime,
+}: AppointmentFormProps) {
   const clinicId = useActiveClinicId();
   const [state, formAction, isPending] = useActionState(createAppointmentFromForm, initialState);
   const [serviceId, setServiceId] = useState("");
@@ -63,9 +66,7 @@ export function AppointmentForm({ customers, services, minStartTime, className, 
       return;
     }
 
-    void queryClient.invalidateQueries({ queryKey: ["appointments"] }).catch(() => {
-      toast.error("O atendimento foi salvo, mas a lista não pôde ser atualizada.");
-    });
+    void refreshQueries(queryClient, ["appointments"], "O atendimento foi salvo, mas a lista não pôde ser atualizada.");
     toast.success(state.message);
     onSuccess?.();
   }, [state, queryClient, onSuccess]);
@@ -161,7 +162,15 @@ export function AppointmentForm({ customers, services, minStartTime, className, 
             </Field>
             <Field>
               <FieldLabel htmlFor="startTime">Data e horário</FieldLabel>
-              <Input id="startTime" name="startTime" type="datetime-local" min={minStartTime} defaultValue={initialStartTime} required disabled={isPending} />
+              <Input
+                id="startTime"
+                name="startTime"
+                type="datetime-local"
+                min={minStartTime}
+                defaultValue={initialStartTime}
+                required
+                disabled={isPending}
+              />
               <FieldDescription>Escolha um horário futuro.</FieldDescription>
             </Field>
             <Field className="md:col-span-2">

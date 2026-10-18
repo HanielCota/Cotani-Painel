@@ -41,7 +41,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const clinic = await prisma.clinic.findFirst({
     where: { deletedAt: null, OR: [{ slug }, { slugAliases: { some: { slug } } }] },
-    select: { id: true, timeZone: true, maxAppointmentsPerDay: true, subscriptionStatus: true, subscriptionExpiresAt: true, trialEndsAt: true, operationalStatus: true, subscriptionPlan: true, billingOwnerId: true, billingOwner: true },
+    select: {
+      id: true,
+      timeZone: true,
+      maxAppointmentsPerDay: true,
+      subscriptionStatus: true,
+      subscriptionExpiresAt: true,
+      trialEndsAt: true,
+      operationalStatus: true,
+      subscriptionPlan: true,
+      billingOwnerId: true,
+      billingOwner: true,
+    },
   });
 
   if (!clinic) {
@@ -61,7 +72,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ message: "Serviço indisponível." }, { status: 404 });
   }
 
-  const professionalIds = await resolveBookingProfessionals(clinic.id, parsed.data.serviceId, parsed.data.professionalId);
+  const professionalIds = await resolveBookingProfessionals(
+    clinic.id,
+    parsed.data.serviceId,
+    parsed.data.professionalId,
+  );
   if (!professionalIds) {
     return NextResponse.json({ message: "Profissional indisponível para este serviço." }, { status: 404 });
   }
