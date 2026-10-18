@@ -1,3 +1,4 @@
+import Image from "next/image"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
@@ -55,6 +56,15 @@ function EmptyMedia({
   )
 }
 
+/** A raposa da Cotani, para estados vazios (não para erros). */
+function EmptyMascot({ className }: { className?: string }) {
+  return (
+    <div data-slot="empty-icon" className={cn("mb-1 flex shrink-0 items-center justify-center", className)}>
+      <Image src="/images/cotani-favicon.png" alt="" width={128} height={128} className="size-16 select-none" draggable={false} />
+    </div>
+  )
+}
+
 function EmptyTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -100,5 +110,6 @@ export {
   EmptyTitle,
   EmptyDescription,
   EmptyContent,
+  EmptyMascot,
   EmptyMedia,
 }

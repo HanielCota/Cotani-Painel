@@ -1,10 +1,9 @@
 "use client";
 
-import { CalendarX2Icon } from "lucide-react";
 
 import { appointmentStatusBadgeVariant, appointmentStatusLabel } from "@/lib/display-labels";
 import { Badge } from "@/components/ui/badge";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMascot, EmptyTitle } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTodayAppointments } from "@/hooks/use-today-appointments";
 
@@ -42,7 +41,7 @@ export function TodayAgendaList({ timeZone }: TodayAgendaListProps) {
     return (
       <Empty className="min-h-40 border border-dashed border-border/80 bg-background/50">
         <EmptyHeader>
-          <EmptyMedia variant="icon"><CalendarX2Icon /></EmptyMedia>
+          <EmptyMascot />
           <EmptyTitle>Nenhum atendimento hoje</EmptyTitle>
           <EmptyDescription>Os atendimentos confirmados e pendentes do dia aparecerão aqui.</EmptyDescription>
         </EmptyHeader>

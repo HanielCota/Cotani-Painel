@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Clock3Icon } from "lucide-react";
 
 import { AppointmentActions } from "@/components/dashboard/appointment-actions";
 import { RescheduleAppointmentDialog } from "@/components/dashboard/reschedule-appointment-dialog";
@@ -9,7 +8,7 @@ import { EditAppointmentDialog } from "@/components/dashboard/edit-appointment-d
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMascot, EmptyTitle } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useAppointments } from "@/hooks/use-appointments";
@@ -91,7 +90,7 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
     return (
       <Empty className="min-h-48 border border-dashed border-border/80 bg-background/50">
         <EmptyHeader>
-          <EmptyMedia variant="icon"><Clock3Icon /></EmptyMedia>
+          <EmptyMascot />
           <EmptyTitle>Nenhum atendimento futuro</EmptyTitle>
           <EmptyDescription>
             {canSchedule ? "Use o formulário acima para registrar o primeiro horário." : "Cadastre os itens necessários acima para começar."}
@@ -143,7 +142,7 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
       {appointments.length === 0 ? (
         <Empty className="min-h-32 border border-dashed border-border/80 bg-background/50">
           <EmptyHeader>
-            <EmptyMedia variant="icon"><Clock3Icon /></EmptyMedia>
+            <EmptyMascot />
             <EmptyTitle>Nenhum atendimento neste filtro</EmptyTitle>
             <EmptyDescription>Tente selecionar outro status para visualizar os atendimentos.</EmptyDescription>
           </EmptyHeader>
