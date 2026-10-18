@@ -18,6 +18,8 @@ interface OnboardingChecklistProps {
   hasProfessionals: boolean;
   hasAppointments: boolean;
   isSubscriptionActive: boolean;
+  /** O link já foi copiado neste negócio, em qualquer aparelho. */
+  linkSharedOnServer?: boolean;
 }
 
 
@@ -28,10 +30,11 @@ export function OnboardingChecklist({
   hasProfessionals,
   hasAppointments,
   isSubscriptionActive,
+  linkSharedOnServer = false,
 }: OnboardingChecklistProps) {
   const linkCopied = useSyncExternalStore(subscribeBookingLinkShared, readBookingLinkShared, () => false);
   // Quem já recebe agendamentos já divulgou o link, mesmo sem copiá-lo por aqui.
-  const linkShared = linkCopied || hasAppointments;
+  const linkShared = linkSharedOnServer || linkCopied || hasAppointments;
 
   const steps = [
     {

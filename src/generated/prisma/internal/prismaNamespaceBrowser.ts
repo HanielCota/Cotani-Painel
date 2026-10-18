@@ -116,6 +116,7 @@ export const ClinicScalarFieldEnum = {
   billingReconciledAt: 'billingReconciledAt',
   cancelAtPeriodEnd: 'cancelAtPeriodEnd',
   maxAppointmentsPerDay: 'maxAppointmentsPerDay',
+  bookingLinkSharedAt: 'bookingLinkSharedAt',
   operationalStatus: 'operationalStatus',
   suspensionReason: 'suspensionReason',
   suspendedAt: 'suspendedAt',

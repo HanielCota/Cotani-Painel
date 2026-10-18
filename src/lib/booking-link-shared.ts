@@ -1,7 +1,10 @@
 /**
  * Passo "Divulgar link de agendamento" do checklist inicial. Marcado ao copiar
- * o link em qualquer lugar do painel; fica no navegador (sem coluna no banco).
+ * o link em qualquer lugar do painel. A marcação vale na hora neste navegador e
+ * fica salva no negócio (Clinic.bookingLinkSharedAt) para os outros aparelhos.
  */
+import { markBookingLinkSharedOnServer } from "@/server/actions/onboarding";
+
 const STORAGE_KEY = "cotani:onboarding:link-shared";
 const listeners = new Set<() => void>();
 
@@ -26,6 +29,8 @@ export function readBookingLinkShared(): boolean {
 }
 
 export function markBookingLinkShared() {
+  // Falha de rede não impede a marcação local.
+  void markBookingLinkSharedOnServer().catch(() => undefined);
   try {
     localStorage.setItem(STORAGE_KEY, "true");
   } catch {

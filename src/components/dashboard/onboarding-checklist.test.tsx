@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist";
 import { render } from "@/test/utils";
 
+vi.mock("@/server/actions/onboarding", () => ({ markBookingLinkSharedOnServer: vi.fn(async () => ({ status: "success", message: "" })) }));
+
 const storage = new Map<string, string>();
 
 Object.defineProperty(window, "localStorage", {
@@ -81,6 +83,22 @@ describe("OnboardingChecklist", () => {
     );
 
     await waitFor(() => expect(screen.queryByTestId("onboarding-progress")).not.toBeInTheDocument());
+  });
+
+  it("link já copiado em outro aparelho (salvo no negócio) conta como divulgado", () => {
+    render(
+      <OnboardingChecklist
+        bookingUrl="https://localhost:3000/loja-teste"
+        hasServices={true}
+        hasBusinessHours={true}
+        hasProfessionals={true}
+        hasAppointments={false}
+        isSubscriptionActive={true}
+        linkSharedOnServer
+      />
+    );
+
+    expect(screen.getByTestId("onboarding-progress")).toHaveTextContent("5de 6 concluídos");
   });
 
   it("com agendamentos recebidos, o link conta como divulgado e o checklist some", () => {

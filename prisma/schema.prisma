@@ -124,6 +124,8 @@ model Clinic {
   billingReconciledAt          DateTime?
   cancelAtPeriodEnd             Boolean                 @default(false)
   maxAppointmentsPerDay        Int?
+  /// Primeira vez que o link de agendamento foi copiado no painel (passo "Divulgar link" do checklist).
+  bookingLinkSharedAt          DateTime?
   operationalStatus            ClinicOperationalStatus @default(ACTIVE)
   suspensionReason             String?
   suspendedAt                  DateTime?

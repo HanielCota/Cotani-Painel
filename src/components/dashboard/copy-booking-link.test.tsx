@@ -4,6 +4,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CopyBookingLink } from "@/components/dashboard/copy-booking-link";
 import { readBookingLinkShared } from "@/lib/booking-link-shared";
 import { render } from "@/test/utils";
+import { markBookingLinkSharedOnServer } from "@/server/actions/onboarding";
+
+vi.mock("@/server/actions/onboarding", () => ({ markBookingLinkSharedOnServer: vi.fn(async () => ({ status: "success", message: "" })) }));
 
 describe("CopyBookingLink", () => {
   beforeEach(() => {
@@ -17,5 +20,6 @@ describe("CopyBookingLink", () => {
     fireEvent.click(screen.getByRole("button", { name: /copiar link de agendamento/i }));
 
     await waitFor(() => expect(readBookingLinkShared()).toBe(true));
+    expect(markBookingLinkSharedOnServer).toHaveBeenCalled();
   });
 });

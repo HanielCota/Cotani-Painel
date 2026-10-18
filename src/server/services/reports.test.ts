@@ -6,6 +6,7 @@ import type { ClinicModel } from "@/generated/prisma/models/Clinic";
 
 const clinic: ClinicModel = {
   billingReconciledAt: null,
+  bookingLinkSharedAt: null,
   id: "clinic-1",
   legacyExternalId: "org_1",
   billingOwnerId: null,
