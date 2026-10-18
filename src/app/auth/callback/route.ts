@@ -22,6 +22,22 @@ import { createClient } from "@/lib/supabase/server";
 const recoveryTokenCookie = "cotani_recovery_token";
 const recoveryPendingCookie = "cotani_recovery_pending";
 
+const emailOtpTypes: ReadonlySet<EmailOtpType> = new Set<EmailOtpType>([
+  "signup",
+  "invite",
+  "magiclink",
+  "recovery",
+  "email_change",
+  "email",
+]);
+
+function parseEmailOtpType(value: string | null): EmailOtpType | null {
+  if (!value) return null;
+  const candidate = value as EmailOtpType;
+  if (!emailOtpTypes.has(candidate)) return null;
+  return candidate;
+}
+
 function isRecoveryDestination(next: string) {
   return next.startsWith("/auth/confirm-recovery") || next.startsWith("/update-password");
 }
@@ -67,7 +83,7 @@ export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const tokenHash = url.searchParams.get("token_hash");
-  const type = url.searchParams.get("type") as EmailOtpType | null;
+  const type = parseEmailOtpType(url.searchParams.get("type"));
   const next = safeRedirectPath(url.searchParams.get("next"));
 
   if (tokenHash && type === "recovery") {
