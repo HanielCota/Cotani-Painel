@@ -64,7 +64,7 @@ export function StatCard({ title, value, description, icon: Icon, tone = "primar
           ) : null}
         </div>
         <div className="flex flex-wrap items-baseline gap-2">
-          <p className="text-2xl font-semibold tracking-tight tabular-nums text-foreground">{value}</p>
+          <p className="text-[1.75rem] leading-none font-semibold tracking-[-0.04em] tabular-nums text-foreground">{value}</p>
           {trend ? <TrendBadge trend={trend} /> : null}
         </div>
         {description ? <p className="-mt-1 text-xs leading-5 text-muted-foreground">{description}</p> : null}
