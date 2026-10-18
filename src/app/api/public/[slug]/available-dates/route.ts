@@ -5,12 +5,13 @@ import { getClientIp } from "@/lib/get-client-ip";
 import prisma from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
 import { getAvailableDatesInMonth } from "@/server/services/availability";
+import { bookingProfessionalSchema, resolveBookingProfessionals } from "@/server/services/booking-professionals";
 import { isSubscriptionActive } from "@/server/subscription";
 
 const querySchema = z.object({
   serviceId: z.uuid(),
   yearMonth: z.string().regex(/^\d{4}-\d{2}$/),
-  professionalId: z.uuid().optional(),
+  professionalId: bookingProfessionalSchema.optional(),
 });
 
 const RATE_LIMIT = {
@@ -60,20 +61,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ message: "Serviço indisponível." }, { status: 404 });
   }
 
-  if (parsed.data.professionalId) {
-    const professional = await prisma.professional.findFirst({
-      where: {
-        id: parsed.data.professionalId,
-        clinicId: clinic.id,
-        isActive: true,
-        services: { some: { serviceId: parsed.data.serviceId } },
-      },
-      select: { id: true },
-    });
-
-    if (!professional) {
-      return NextResponse.json({ message: "Profissional indisponível para este serviço." }, { status: 404 });
-    }
+  const professionalIds = await resolveBookingProfessionals(clinic.id, parsed.data.serviceId, parsed.data.professionalId);
+  if (!professionalIds) {
+    return NextResponse.json({ message: "Profissional indisponível para este serviço." }, { status: 404 });
   }
 
   const dates = await getAvailableDatesInMonth({
@@ -81,7 +71,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     timeZone: clinic.timeZone,
     serviceDuration: service.duration,
     yearMonth: parsed.data.yearMonth,
-    professionalId: parsed.data.professionalId,
+    professionalIds,
     maxAppointmentsPerDay: clinic.maxAppointmentsPerDay,
   });
 

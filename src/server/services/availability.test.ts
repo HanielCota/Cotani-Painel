@@ -166,13 +166,14 @@ describe("getAvailableSlots", () => {
       updatedAt: new Date(),
     });
     prismaMock.appointment.findMany.mockResolvedValueOnce([]);
+    prismaMock.professionalAvailability.findMany.mockResolvedValueOnce([]);
 
     await getAvailableSlots({
       clinicId,
       timeZone,
       serviceDuration: 30,
       date: "2026-07-20",
-      professionalId: "prof-1",
+      professionalIds: ["prof-1"],
     });
 
     const query = prismaMock.appointment.findMany.mock.calls[0][0] as {
@@ -181,6 +182,48 @@ describe("getAvailableSlots", () => {
     // A consulta traz todos para também aplicar o limite diário da clínica;
     // o bloqueio de slots é filtrado pelo profissional no serviço.
     expect(query.select.professionalId).toBe(true);
+  });
+
+  it("sem preferência: une os horários livres dos profissionais candidatos", async () => {
+    vi.setSystemTime(new Date("2026-07-20T06:00:00.000Z"));
+    const at = (time: string) => new Date(`2026-07-20T${time}:00-03:00`);
+
+    prismaMock.businessHour.findUnique.mockResolvedValueOnce({
+      id: "bh-1", clinicId, dayOfWeek: 1, isOpen: true, openTime: "09:00", closeTime: "12:00",
+      breakStart: null, breakEnd: null, createdAt: new Date(), updatedAt: new Date(),
+    });
+    // prof-1 ocupado das 09:00 às 10:30; prof-2 das 10:30 às 12:00; prof-3 não trabalha segunda.
+    prismaMock.appointment.findMany.mockResolvedValueOnce([
+      { startTime: at("09:00"), endTime: at("10:30"), professionalId: "prof-1" },
+      { startTime: at("10:30"), endTime: at("12:00"), professionalId: "prof-2" },
+    ]);
+    prismaMock.professionalAvailability.findMany.mockResolvedValueOnce([
+      { professionalId: "prof-3", dayOfWeek: 1, isOpen: false, openTime: "09:00", closeTime: "12:00", breakStart: null, breakEnd: null },
+    ]);
+
+    const result = await getAvailableSlots({ clinicId, timeZone, serviceDuration: 30, date: "2026-07-20", professionalIds: ["prof-1", "prof-2", "prof-3"] });
+
+    // Cada horário aparece uma vez, em ordem, cobrindo a manhã inteira.
+    expect(result?.map((slot) => slot.label)).toEqual(["09:00", "09:30", "10:00", "10:30", "11:00", "11:30"]);
+  });
+
+  it("sem preferência: horário ocupado por todos os candidatos some", async () => {
+    vi.setSystemTime(new Date("2026-07-20T06:00:00.000Z"));
+    const at = (time: string) => new Date(`2026-07-20T${time}:00-03:00`);
+
+    prismaMock.businessHour.findUnique.mockResolvedValueOnce({
+      id: "bh-1", clinicId, dayOfWeek: 1, isOpen: true, openTime: "09:00", closeTime: "11:00",
+      breakStart: null, breakEnd: null, createdAt: new Date(), updatedAt: new Date(),
+    });
+    prismaMock.appointment.findMany.mockResolvedValueOnce([
+      { startTime: at("09:00"), endTime: at("10:00"), professionalId: "prof-1" },
+      { startTime: at("09:00"), endTime: at("10:00"), professionalId: "prof-2" },
+    ]);
+    prismaMock.professionalAvailability.findMany.mockResolvedValueOnce([]);
+
+    const result = await getAvailableSlots({ clinicId, timeZone, serviceDuration: 30, date: "2026-07-20", professionalIds: ["prof-1", "prof-2"] });
+
+    expect(result?.map((slot) => slot.label)).toEqual(["10:00", "10:30"]);
   });
 
   it("retorna lista vazia quando o limite diário foi atingido", async () => {

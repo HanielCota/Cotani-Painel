@@ -25,11 +25,13 @@ interface BookingCustomerStepProps {
   clinicName: string;
   service: BookingService | undefined;
   professional: BookingProfessional | undefined;
+  /** Cliente escolheu "sem preferência": o profissional é definido ao confirmar. */
+  anyProfessional?: boolean;
   date: string;
   slot: AvailabilitySlot | null;
 }
 
-export function BookingCustomerStep({ isPending, slug, clinicName, service, professional, date, slot }: BookingCustomerStepProps) {
+export function BookingCustomerStep({ isPending, slug, clinicName, service, professional, anyProfessional = false, date, slot }: BookingCustomerStepProps) {
   const [customerName, setCustomerName] = useState(() => readSavedCustomer(slug).name ?? "");
   const [phone, setPhone] = useState("");
   const [phoneError, setPhoneError] = useState(false);
@@ -44,7 +46,7 @@ export function BookingCustomerStep({ isPending, slug, clinicName, service, prof
         <dl className="flex flex-col gap-2">
           <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Local</dt><dd className="font-medium">{clinicName}</dd></div>
           {service ? <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Serviço</dt><dd className="font-medium">{service.name}</dd></div> : null}
-          {professional ? <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Profissional</dt><dd className="font-medium">{professional.name}</dd></div> : null}
+          {professional || anyProfessional ? <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Profissional</dt><dd className="font-medium">{professional?.name ?? "Sem preferência"}</dd></div> : null}
           {formattedDate ? <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Data</dt><dd className="font-medium">{formattedDate}</dd></div> : null}
           {slot ? <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Horário</dt><dd className="font-medium">{slot.label}</dd></div> : null}
           {service ? <div className="flex justify-between gap-4 border-t pt-2"><dt className="text-muted-foreground">Valor estimado</dt><dd className="font-bold text-primary">{formatCurrency(service.price)}</dd></div> : null}

@@ -317,4 +317,56 @@ describe("BookingSteps", () => {
       expect(screen.getByText("Apenas 2 horários disponíveis para este dia.")).toBeInTheDocument();
     });
   });
+
+  describe("sem preferência de profissional", () => {
+    const team = [
+      { id: "prof-1", name: "Carlos", imageUrl: null, serviceIds: ["svc-1"] },
+      { id: "prof-3", name: "Bia", imageUrl: null, serviceIds: ["svc-1"] },
+      { id: "prof-2", name: "Ana", imageUrl: null, serviceIds: ["svc-2"] },
+    ];
+
+    function setupTeam() {
+      return render(<BookingSteps slug="loja-teste" clinicName="Loja Teste" services={services} professionals={team} minDate="2026-07-21" />);
+    }
+
+    it("só aparece quando o serviço tem mais de um profissional", async () => {
+      setupTeam();
+
+      await userEvent.click(screen.getByText("Serviço B"));
+      expect(screen.queryByText("Sem preferência")).not.toBeInTheDocument();
+
+      await userEvent.click(screen.getByText("Serviço A"));
+      expect(screen.getByText("Sem preferência")).toBeInTheDocument();
+    });
+
+    it("envia professionalId=any e mostra no sucesso quem vai atender", async () => {
+      vi.mocked(createPublicAppointment).mockResolvedValueOnce({ status: "success", message: "ok", professionalName: "Bia" });
+      vi.mocked(useQuery).mockReturnValue({
+        data: { slots: [{ startTime: "2026-07-21T10:00:00", label: "10:00" }], dates: ["2026-07-21"] },
+        isFetching: false,
+        refetch: mockRefetch,
+      } as never);
+
+      setupTeam();
+
+      await userEvent.click(screen.getByText("Serviço A"));
+      await userEvent.click(screen.getByText("Sem preferência"));
+      await userEvent.click(screen.getByRole("button", { name: /continuar/i }));
+      await userEvent.type(screen.getByTestId("calendar-mock"), "2026-07-21");
+      await waitFor(() => expect(screen.getByText("10:00")).toBeInTheDocument());
+      await userEvent.click(screen.getByText("10:00"));
+      await userEvent.click(screen.getByRole("button", { name: /continuar/i }));
+
+      expect(screen.getByText("Sem preferência")).toBeInTheDocument(); // resumo
+
+      await userEvent.type(screen.getByLabelText(/nome completo/i), "João Silva");
+      await userEvent.type(screen.getByLabelText(/whatsapp/i), "11999999999");
+      await userEvent.click(screen.getByRole("button", { name: /confirmar agendamento/i }));
+
+      await waitFor(() => expect(createPublicAppointment).toHaveBeenCalled());
+      const formData = vi.mocked(createPublicAppointment).mock.calls[0][1];
+      expect(formData.get("professionalId")).toBe("any");
+      expect(mockPush).toHaveBeenCalledWith(expect.stringContaining("professional=Bia"));
+    });
+  });
 });
