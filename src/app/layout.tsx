@@ -3,8 +3,10 @@ import { Analytics } from "@vercel/analytics/react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { connection } from "next/server";
 import { headers } from "next/headers";
+import Script from "next/script";
 
 import { AppProviders } from "@/app/providers";
+import { APPEARANCE_BOOT_SCRIPT } from "@/lib/appearance";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -64,6 +66,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   return (
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <body suppressHydrationWarning>
+        {/* Tema de fundo e cor de destaque do usuário; beforeInteractive vai para o <head>, antes da pintura. */}
+        <Script id="cotani-appearance" strategy="beforeInteractive" nonce={nonce}>{APPEARANCE_BOOT_SCRIPT}</Script>
         <a
           href="#main-content"
           className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-lg transition-transform focus:translate-y-0 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
