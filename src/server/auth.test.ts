@@ -3,15 +3,21 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { prismaMock } from "@/test/mocks/prisma";
 
 const getUser = vi.fn();
+const getClaims = vi.fn();
+
+vi.mock("next/headers", () => ({
+  cookies: vi.fn(async () => ({ get: vi.fn(() => undefined) })),
+}));
 
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: vi.fn(async () => ({ auth: { getUser } })),
+  createClient: vi.fn(async () => ({ auth: { getUser, getClaims } })),
 }));
 
 describe("ensureCurrentAppUser", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
+    getClaims.mockResolvedValue({ data: { claims: { sub: "user-1", amr: [{ method: "password" }] } }, error: null });
   });
 
   it("usa upsert para tornar a criação inicial idempotente", async () => {
@@ -69,5 +75,13 @@ describe("ensureCurrentAppUser", () => {
     await expect(ensureCurrentAppUser()).resolves.toEqual({ authUser, appUser });
     expect(prismaMock.user.update).not.toHaveBeenCalled();
     expect(prismaMock.$transaction).not.toHaveBeenCalled();
+  });
+
+  it("não trata uma sessão de recuperação como login do painel", async () => {
+    getClaims.mockResolvedValue({ data: { claims: { sub: "user-1", amr: [{ method: "recovery" }] } }, error: null });
+    const { getAuthenticatedUser } = await import("@/server/auth");
+
+    await expect(getAuthenticatedUser()).resolves.toBeNull();
+    expect(getUser).not.toHaveBeenCalled();
   });
 });

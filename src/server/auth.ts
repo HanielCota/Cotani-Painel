@@ -1,9 +1,11 @@
 import "server-only";
 
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
 import { cache } from "react";
 
 import prisma from "@/lib/prisma";
+import { isRecoverySession } from "@/lib/supabase/recovery-session";
 import { createClient } from "@/lib/supabase/server";
 
 export class AuthenticationRequiredError extends Error {
@@ -21,7 +23,10 @@ function getUserName(user: SupabaseUser): string {
 }
 
 export const getAuthenticatedUser = cache(async (): Promise<SupabaseUser | null> => {
+  if ((await cookies()).get("cotani_recovery_pending")?.value === "1") return null;
   const supabase = await createClient();
+  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
+  if (claimsError || !claimsData?.claims || isRecoverySession(claimsData.claims)) return null;
   const { data, error } = await supabase.auth.getUser();
   return error ? null : data.user;
 });
