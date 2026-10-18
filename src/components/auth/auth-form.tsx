@@ -5,10 +5,14 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
+import { CheckCircle2Icon } from "lucide-react";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { safeRedirectPath } from "@/lib/safe-redirect";
 import { createClient } from "@/lib/supabase/client";
 import { AuthCard } from "@/components/auth/auth-card";
 import { TurnstileWidget, type TurnstileWidgetHandle } from "@/components/security/turnstile-widget";
@@ -26,10 +30,6 @@ function GoogleIcon() {
   );
 }
 
-function safeRedirect(value: string | null) {
-  return value?.startsWith("/") && !value.startsWith("//") ? value : "/dashboard";
-}
-
 export function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -41,7 +41,8 @@ export function AuthForm() {
   const captchaRef = useRef<TurnstileWidgetHandle>(null);
   const captchaRequired = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim());
   const handleCaptchaToken = useCallback((token: string | null) => setCaptchaToken(token), []);
-  const redirectTo = safeRedirect(searchParams.get("redirect"));
+  const redirectTo = safeRedirectPath(searchParams.get("redirect"));
+  const passwordUpdated = searchParams.get("password") === "updated";
 
   useEffect(() => {
     if (searchParams.get("error") === "auth_callback") toast.error("O link de acesso é inválido ou expirou. Solicite um novo e tente novamente.");
@@ -109,6 +110,13 @@ export function AuthForm() {
 
   return (
     <AuthCard>
+      {passwordUpdated && mode === "sign-in" ? (
+        <Alert role="status" className="mb-5 border-success/30 bg-success/5">
+          <CheckCircle2Icon aria-hidden="true" className="text-success" />
+          <AlertTitle>Senha atualizada</AlertTitle>
+          <AlertDescription>Por segurança, encerramos as sessões abertas. Entre com a nova senha.</AlertDescription>
+        </Alert>
+      ) : null}
       <Tabs value={mode} onValueChange={(value) => setMode(value as Mode)} className="mb-5 gap-0">
         <TabsList aria-label="Tipo de acesso" className="grid h-12 w-full grid-cols-2 rounded-lg">
           <TabsTrigger value="sign-in" className="min-h-10">Entrar</TabsTrigger>

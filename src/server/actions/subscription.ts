@@ -15,10 +15,14 @@ import {
   updateMercadoPagoSubscriptionAmount,
 } from "@/server/services/mercado-pago";
 import { isSubscriptionActive } from "@/server/subscription";
+import { ignoreFailure } from "@/lib/ignore-failure";
 
 async function resolveBillingClinic(tenant: TenantContext) {
   if (!tenant.clinic.billingOwnerId) return tenant.clinic;
-  const membership = await prisma.membership.findUnique({ where: { clinicId_userId: { clinicId: tenant.clinic.billingOwnerId, userId: tenant.membership.userId } }, select: { role: true } });
+  const membership = await prisma.membership.findUnique({
+    where: { clinicId_userId: { clinicId: tenant.clinic.billingOwnerId, userId: tenant.membership.userId } },
+    select: { role: true },
+  });
   if (membership?.role !== "ADMIN") return null;
   return prisma.clinic.findUnique({ where: { id: tenant.clinic.billingOwnerId } });
 }
@@ -28,7 +32,7 @@ export async function cancelSubscription(): Promise<ActionResult> {
     const tenant = requireRole(await getTenantContext(), ["ADMIN"]);
 
     if (!tenant) {
-      return { status: "error", message: "Nenhuma loja encontrada para este usuário." };
+      return { status: "error", message: "Nenhum negócio encontrado para este usuário." };
     }
 
     const { clinic, membership: actorMembership } = tenant;
@@ -46,7 +50,10 @@ export async function cancelSubscription(): Promise<ActionResult> {
       });
 
       if (ownerMembership?.role !== "ADMIN") {
-        return { status: "error", message: "Somente um administrador da unidade principal pode cancelar esta assinatura." };
+        return {
+          status: "error",
+          message: "Somente um administrador da unidade principal pode cancelar esta assinatura.",
+        };
       }
 
       billingClinic = await prisma.clinic.findUnique({ where: { id: clinic.billingOwnerId } });
@@ -54,7 +61,11 @@ export async function cancelSubscription(): Promise<ActionResult> {
 
     if (!billingClinic) return { status: "error", message: "A unidade principal da assinatura não foi encontrada." };
 
-    if (billingClinic.subscriptionStatus !== SubscriptionStatus.TRIALING && billingClinic.subscriptionStatus !== SubscriptionStatus.ACTIVE && billingClinic.subscriptionStatus !== SubscriptionStatus.PAST_DUE) {
+    if (
+      billingClinic.subscriptionStatus !== SubscriptionStatus.TRIALING &&
+      billingClinic.subscriptionStatus !== SubscriptionStatus.ACTIVE &&
+      billingClinic.subscriptionStatus !== SubscriptionStatus.PAST_DUE
+    ) {
       return { status: "error", message: "Não há assinatura ativa para cancelar." };
     }
 
@@ -66,7 +77,8 @@ export async function cancelSubscription(): Promise<ActionResult> {
       return { status: "success", message: "Período grátis encerrado." };
     }
 
-    if (!billingClinic.mercadoPagoSubscriptionId) return { status: "error", message: "A assinatura não possui vínculo com o Mercado Pago. Fale com o suporte." };
+    if (!billingClinic.mercadoPagoSubscriptionId)
+      return { status: "error", message: "A assinatura não possui vínculo com o Mercado Pago. Fale com o suporte." };
     await cancelMercadoPagoSubscription(billingClinic.mercadoPagoSubscriptionId);
 
     const ownerId = billingClinic.id;
@@ -75,14 +87,21 @@ export async function cancelSubscription(): Promise<ActionResult> {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${ownerId}, 0))`;
       const current = await tx.clinic.findUniqueOrThrow({ where: { id: ownerId } });
       if (current.mercadoPagoSubscriptionId !== canceledRemoteId) return;
-      const cancellationData = current.subscriptionStatus === SubscriptionStatus.ACTIVE && isSubscriptionActive(current)
-        ? { cancelAtPeriodEnd: true }
-        : { subscriptionStatus: SubscriptionStatus.CANCELED, cancelAtPeriodEnd: false };
+      const cancellationData =
+        current.subscriptionStatus === SubscriptionStatus.ACTIVE && isSubscriptionActive(current)
+          ? { cancelAtPeriodEnd: true }
+          : { subscriptionStatus: SubscriptionStatus.CANCELED, cancelAtPeriodEnd: false };
       await tx.clinic.update({ where: { id: ownerId }, data: cancellationData });
       await tx.clinic.updateMany({ where: { billingOwnerId: ownerId }, data: cancellationData });
     });
 
-    return { status: "success", message: billingClinic.subscriptionStatus === SubscriptionStatus.ACTIVE ? "Renovação cancelada. Seu acesso permanece até o fim do período pago." : "Assinatura cancelada com sucesso." };
+    return {
+      status: "success",
+      message:
+        billingClinic.subscriptionStatus === SubscriptionStatus.ACTIVE
+          ? "Renovação cancelada. Seu acesso permanece até o fim do período pago."
+          : "Assinatura cancelada com sucesso.",
+    };
   } catch (error) {
     logger.error("Erro ao cancelar assinatura", {
       error: error instanceof Error ? error.message : String(error),
@@ -110,33 +129,56 @@ export async function reactivateSubscription(): Promise<ActionResult> {
   }
 }
 
-export async function schedulePlanChange(
-  _previousState: ActionResult,
-  formData: FormData,
-): Promise<ActionResult> {
+export async function schedulePlanChange(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
   try {
     const tenant = requireRole(await getTenantContext(), ["ADMIN"]);
     const clinic = await resolveBillingClinic(tenant);
     const plan = formData.get("plan");
-    if (!clinic || !Object.values(SubscriptionPlan).includes(plan as SubscriptionPlan)) return { status: "error", message: "Plano inválido." };
+    if (!clinic || !Object.values(SubscriptionPlan).includes(plan as SubscriptionPlan))
+      return { status: "error", message: "Plano inválido." };
     const target = plan as SubscriptionPlan;
-    if (target === SubscriptionPlan.ENTERPRISE || !getProductPlan(target).selfServiceCheckout) return { status: "error", message: "O plano Empresa é contratado com a equipe Cotani." };
-    if (!clinic.subscriptionCycle || !clinic.subscriptionPlan || !clinic.mercadoPagoSubscriptionId || !isSubscriptionActive(clinic)) return { status: "error", message: "É necessária uma assinatura paga ativa para programar a troca." };
-    if (target === clinic.subscriptionPlan && !clinic.pendingSubscriptionPlan) return { status: "error", message: "Este já é o seu plano atual." };
+    if (target === SubscriptionPlan.ENTERPRISE || !getProductPlan(target).selfServiceCheckout)
+      return { status: "error", message: "O plano Empresa é contratado com a equipe Cotani." };
+    if (
+      !clinic.subscriptionCycle ||
+      !clinic.subscriptionPlan ||
+      !clinic.mercadoPagoSubscriptionId ||
+      !isSubscriptionActive(clinic)
+    )
+      return { status: "error", message: "É necessária uma assinatura paga ativa para programar a troca." };
+    if (target === clinic.subscriptionPlan && !clinic.pendingSubscriptionPlan)
+      return { status: "error", message: "Este já é o seu plano atual." };
 
     await prisma.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
       await assertPlanFits(tx, clinic.id, target);
     });
     const amount = getPlanPrice(target, clinic.subscriptionCycle);
-    await updateMercadoPagoSubscriptionAmount(clinic.mercadoPagoSubscriptionId, amount, `Cotani - ${getProductPlan(target).name}`);
+    await updateMercadoPagoSubscriptionAmount(
+      clinic.mercadoPagoSubscriptionId,
+      amount,
+      `Cotani - ${getProductPlan(target).name}`,
+    );
     try {
-      await prisma.clinic.update({ where: { id: clinic.id }, data: { pendingSubscriptionPlan: target, pendingSubscriptionCycle: clinic.subscriptionCycle } });
+      await prisma.clinic.update({
+        where: { id: clinic.id },
+        data: { pendingSubscriptionPlan: target, pendingSubscriptionCycle: clinic.subscriptionCycle },
+      });
     } catch (error) {
-      await updateMercadoPagoSubscriptionAmount(clinic.mercadoPagoSubscriptionId, getPlanPrice(clinic.subscriptionPlan, clinic.subscriptionCycle), `Cotani - ${getProductPlan(clinic.subscriptionPlan).name}`).catch(() => undefined);
+      // Desfaz o valor no Mercado Pago; se a reversão falhar, o erro original é o que importa.
+      await ignoreFailure(
+        updateMercadoPagoSubscriptionAmount(
+          clinic.mercadoPagoSubscriptionId,
+          getPlanPrice(clinic.subscriptionPlan, clinic.subscriptionCycle),
+          `Cotani - ${getProductPlan(clinic.subscriptionPlan).name}`,
+        ),
+      );
       throw error;
     }
-    return { status: "success", message: `Troca para ${getProductPlan(target).name} programada para a próxima cobrança.` };
+    return {
+      status: "success",
+      message: `Troca para ${getProductPlan(target).name} programada para a próxima cobrança.`,
+    };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Não foi possível programar a troca.";
     logger.error("Erro ao programar troca de plano", { error: message });
@@ -148,14 +190,34 @@ export async function cancelScheduledPlanChange(): Promise<ActionResult> {
   try {
     const tenant = requireRole(await getTenantContext(), ["ADMIN"]);
     const clinic = await resolveBillingClinic(tenant);
-    if (!clinic?.pendingSubscriptionPlan || !clinic.subscriptionPlan || !clinic.subscriptionCycle || !clinic.mercadoPagoSubscriptionId) return { status: "error", message: "Não há troca de plano programada." };
+    if (
+      !clinic?.pendingSubscriptionPlan ||
+      !clinic.subscriptionPlan ||
+      !clinic.subscriptionCycle ||
+      !clinic.mercadoPagoSubscriptionId
+    )
+      return { status: "error", message: "Não há troca de plano programada." };
     const amount = getPlanPrice(clinic.subscriptionPlan, clinic.subscriptionCycle);
-    await updateMercadoPagoSubscriptionAmount(clinic.mercadoPagoSubscriptionId, amount, `Cotani - ${getProductPlan(clinic.subscriptionPlan).name}`);
+    await updateMercadoPagoSubscriptionAmount(
+      clinic.mercadoPagoSubscriptionId,
+      amount,
+      `Cotani - ${getProductPlan(clinic.subscriptionPlan).name}`,
+    );
     try {
-      await prisma.clinic.update({ where: { id: clinic.id }, data: { pendingSubscriptionPlan: null, pendingSubscriptionCycle: null } });
+      await prisma.clinic.update({
+        where: { id: clinic.id },
+        data: { pendingSubscriptionPlan: null, pendingSubscriptionCycle: null },
+      });
     } catch (error) {
+      // Desfaz o valor no Mercado Pago; se a reversão falhar, o erro original é o que importa.
       const pendingAmount = getPlanPrice(clinic.pendingSubscriptionPlan, clinic.subscriptionCycle);
-      await updateMercadoPagoSubscriptionAmount(clinic.mercadoPagoSubscriptionId, pendingAmount, `Cotani - ${getProductPlan(clinic.pendingSubscriptionPlan).name}`).catch(() => undefined);
+      await ignoreFailure(
+        updateMercadoPagoSubscriptionAmount(
+          clinic.mercadoPagoSubscriptionId,
+          pendingAmount,
+          `Cotani - ${getProductPlan(clinic.pendingSubscriptionPlan).name}`,
+        ),
+      );
       throw error;
     }
     return { status: "success", message: "Troca de plano cancelada." };
@@ -171,24 +233,53 @@ export async function requestSubscriptionRefund(): Promise<ActionResult> {
     const clinic = await resolveBillingClinic(tenant);
     if (!clinic) return { status: "error", message: "Assinatura não encontrada." };
     const payment = await prisma.paymentHistory.findFirst({
-      where: { clinicId: clinic.id, status: "approved", mercadoPagoPaymentId: { not: null }, paidAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60_000) } },
+      where: {
+        clinicId: clinic.id,
+        status: "approved",
+        mercadoPagoPaymentId: { not: null },
+        paidAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60_000) },
+      },
       orderBy: { paidAt: "desc" },
     });
-    if (!payment?.mercadoPagoPaymentId) return { status: "error", message: "Não há pagamento elegível para a garantia de 7 dias." };
+    if (!payment?.mercadoPagoPaymentId)
+      return { status: "error", message: "Não há pagamento elegível para a garantia de 7 dias." };
     await refundMercadoPagoPayment(payment.mercadoPagoPaymentId, payment.id);
     if (clinic.mercadoPagoSubscriptionId) await cancelMercadoPagoSubscription(clinic.mercadoPagoSubscriptionId);
     await prisma.$transaction(async (tx) => {
       await tx.paymentHistory.update({ where: { id: payment.id }, data: { status: "refunded" } });
-      const coverage = await tx.paymentHistory.findFirst({ where: { clinicId: clinic.id, id: { not: payment.id }, status: "approved", paidAt: { lte: new Date() }, periodEndsAt: { gt: new Date() } }, orderBy: [{ paidAt: "desc" }, { periodEndsAt: "desc" }] });
-      const data = coverage?.plan && coverage.billingCycle && coverage.periodEndsAt
-        ? { subscriptionStatus: SubscriptionStatus.ACTIVE, subscriptionPlan: coverage.plan, subscriptionCycle: coverage.billingCycle, subscriptionExpiresAt: coverage.periodEndsAt, cancelAtPeriodEnd: true }
-        : { subscriptionStatus: SubscriptionStatus.INACTIVE, subscriptionExpiresAt: new Date(), cancelAtPeriodEnd: false };
+      const coverage = await tx.paymentHistory.findFirst({
+        where: {
+          clinicId: clinic.id,
+          id: { not: payment.id },
+          status: "approved",
+          paidAt: { lte: new Date() },
+          periodEndsAt: { gt: new Date() },
+        },
+        orderBy: [{ paidAt: "desc" }, { periodEndsAt: "desc" }],
+      });
+      const data =
+        coverage?.plan && coverage.billingCycle && coverage.periodEndsAt
+          ? {
+              subscriptionStatus: SubscriptionStatus.ACTIVE,
+              subscriptionPlan: coverage.plan,
+              subscriptionCycle: coverage.billingCycle,
+              subscriptionExpiresAt: coverage.periodEndsAt,
+              cancelAtPeriodEnd: true,
+            }
+          : {
+              subscriptionStatus: SubscriptionStatus.INACTIVE,
+              subscriptionExpiresAt: new Date(),
+              cancelAtPeriodEnd: false,
+            };
       await tx.clinic.update({ where: { id: clinic.id }, data });
       await tx.clinic.updateMany({ where: { billingOwnerId: clinic.id }, data });
     });
     return { status: "success", message: "Reembolso solicitado ao Mercado Pago e acesso encerrado." };
   } catch (error) {
     logger.error("Erro ao solicitar reembolso", { error: error instanceof Error ? error.message : String(error) });
-    return { status: "error", message: "O reembolso não pôde ser concluído. Verifique a elegibilidade ou tente novamente." };
+    return {
+      status: "error",
+      message: "O reembolso não pôde ser concluído. Verifique a elegibilidade ou tente novamente.",
+    };
   }
 }

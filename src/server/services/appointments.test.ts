@@ -6,6 +6,7 @@ import type { ClinicModel } from "@/generated/prisma/models/Clinic";
 
 const clinic: ClinicModel = {
   billingReconciledAt: null,
+  bookingLinkSharedAt: null,
   id: "clinic-1",
   legacyExternalId: "org_1",
   billingOwnerId: null,
@@ -85,9 +86,8 @@ describe("getTodayAppointments", () => {
   });
 
   it("retorna agendamentos do dia atual no fuso da clínica", async () => {
-    const { startOfToday } = await import("@/lib/timezone").then((m) =>
-      m.getClinicDateBounds(clinic.timeZone),
-    );
+    const { getClinicDateBounds } = await import("@/lib/timezone");
+    const { startOfToday } = getClinicDateBounds(clinic.timeZone);
 
     prismaMock.appointment.findMany.mockResolvedValueOnce([
       {

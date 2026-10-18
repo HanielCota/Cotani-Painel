@@ -3,14 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import type { Prisma } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
-import { getPlanEntitlements } from "@/config/subscription-plans";
-import { getClinicForRoles } from "@/server/tenant";
+import { ACTIVE_APPOINTMENT_STATUSES } from "@/lib/appointment-status";
+import { findProfessionalLimitReached, professionalLimitMessage } from "@/server/services/billing-access";
+import { requireClinicAction } from "@/server/clinic-action";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
 import { requireAuthenticatedUser } from "@/server/auth";
 import { persistPublicImage, removePublicImage } from "@/server/services/media-storage";
 import { allowMediaUpload } from "@/server/services/action-rate-limit";
+import { ignoreFailure } from "@/lib/ignore-failure";
 
 const MAX_IMAGE_SIZE_CHARS = 2_000_000;
 
@@ -23,8 +26,7 @@ const imageValueSchema = z
   })
   .refine(
     (value) =>
-      value === null ||
-      value instanceof File || value.startsWith("data:image/") || value.startsWith("https://"),
+      value === null || value instanceof File || value.startsWith("data:image/") || value.startsWith("https://"),
     { message: "A imagem deve ser um arquivo de imagem válido ou uma URL." },
   );
 
@@ -68,15 +70,9 @@ export async function createProfessional(input: unknown): Promise<ActionResult> 
     return { status: "error", message: "Revise os dados do profissional." };
   }
 
-  const clinic = await getClinicForRoles(["ADMIN"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de cadastrar profissionais." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN"], "Selecione um negócio antes de cadastrar profissionais.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   if (isNewImageUpload(parsed.data.imageUrl) && !(await allowMediaUpload(authUser.id))) {
     return { status: "error", message: "Muitos envios de imagem. Aguarde antes de tentar novamente." };
@@ -85,36 +81,43 @@ export async function createProfessional(input: unknown): Promise<ActionResult> 
   let uploadedImageUrl: string | null = null;
 
   try {
-    const imageUrl = await persistPublicImage({ clinicId: clinic.id, kind: "professionals", value: parsed.data.imageUrl });
+    const imageUrl = await persistPublicImage({
+      clinicId: clinic.id,
+      kind: "professionals",
+      value: parsed.data.imageUrl,
+    });
     if (isNewImageUpload(parsed.data.imageUrl)) uploadedImageUrl = imageUrl;
     const outcome = await prisma.$transaction(async (transaction) => {
       await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
       const current = await transaction.clinic.findUniqueOrThrow({ where: { id: clinic.id } });
       if (!isSubscriptionActive(current)) throw new Error(SUBSCRIPTION_INACTIVE_MESSAGE);
-      const maxProfessionals = Math.min(
-        getPlanEntitlements(current.subscriptionPlan).maxProfessionals ?? Infinity,
-        current.pendingSubscriptionPlan ? getPlanEntitlements(current.pendingSubscriptionPlan).maxProfessionals ?? Infinity : Infinity,
-      );
-      if (maxProfessionals !== null) {
-        const activeProfessionals = await transaction.professional.count({ where: { clinicId: clinic.id, isActive: true } });
-        if (activeProfessionals >= maxProfessionals) return "limit" as const;
-      }
-      const services = await transaction.service.findMany({ where: { id: { in: parsed.data.serviceIds }, clinicId: clinic.id, isActive: true }, select: { id: true } });
-      if (services.length !== parsed.data.serviceIds.length) return "services" as const;
-      await transaction.professional.create({ data: { clinicId: clinic.id, name: parsed.data.name, imageUrl, services: { create: parsed.data.serviceIds.map((serviceId) => ({ serviceId })) } } });
-      return "created" as const;
+      const limit = await findProfessionalLimitReached(transaction, current);
+      if (limit !== null) return { kind: "limit", limit } as const;
+      const services = await transaction.service.findMany({
+        where: { id: { in: parsed.data.serviceIds }, clinicId: clinic.id, isActive: true },
+        select: { id: true },
+      });
+      if (services.length !== parsed.data.serviceIds.length) return { kind: "services" } as const;
+      await transaction.professional.create({
+        data: {
+          clinicId: clinic.id,
+          name: parsed.data.name,
+          imageUrl,
+          services: { create: parsed.data.serviceIds.map((serviceId) => ({ serviceId })) },
+        },
+      });
+      return { kind: "created" } as const;
     });
-    if (outcome === "limit") {
+    if (outcome.kind === "limit") {
       await removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "professionals" });
-      const max = getPlanEntitlements(clinic.subscriptionPlan).maxProfessionals!;
-      return { status: "error", message: `Seu plano permite até ${max} ${max === 1 ? "profissional" : "profissionais"}. Faça upgrade para adicionar mais.` };
+      return { status: "error", message: professionalLimitMessage(outcome.limit, "add") };
     }
-    if (outcome === "services") {
+    if (outcome.kind === "services") {
       await removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "professionals" });
       return { status: "error", message: "Um ou mais serviços selecionados são inválidos." };
     }
   } catch {
-    await removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "professionals" }).catch(() => undefined);
+    await ignoreFailure(removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "professionals" }));
     return { status: "error", message: "Não foi possível cadastrar o profissional. Tente novamente." };
   }
 
@@ -122,7 +125,10 @@ export async function createProfessional(input: unknown): Promise<ActionResult> 
   return { status: "success", message: "Profissional cadastrado." };
 }
 
-export async function createProfessionalFromForm(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
+export async function createProfessionalFromForm(
+  _previousState: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   const serviceIds = formData.getAll("serviceIds").map(String).filter(Boolean);
 
   return createProfessional({
@@ -141,15 +147,9 @@ export async function updateProfessional(input: unknown): Promise<ActionResult> 
     return { status: "error", message: "Revise os dados do profissional." };
   }
 
-  const clinic = await getClinicForRoles(["ADMIN"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de atualizar profissionais." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN"], "Selecione um negócio antes de atualizar profissionais.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   if (isNewImageUpload(parsed.data.imageUrl) && !(await allowMediaUpload(authUser.id))) {
     return { status: "error", message: "Muitos envios de imagem. Aguarde antes de tentar novamente." };
@@ -177,7 +177,12 @@ export async function updateProfessional(input: unknown): Promise<ActionResult> 
   let uploadedImageUrl: string | null = null;
 
   try {
-    imageUrl = await persistPublicImage({ clinicId: clinic.id, kind: "professionals", value: parsed.data.imageUrl, currentUrl: professional.imageUrl });
+    imageUrl = await persistPublicImage({
+      clinicId: clinic.id,
+      kind: "professionals",
+      value: parsed.data.imageUrl,
+      currentUrl: professional.imageUrl,
+    });
     if (isNewImageUpload(parsed.data.imageUrl)) uploadedImageUrl = imageUrl;
     await prisma.$transaction(async (transaction) => {
       await transaction.professionalService.deleteMany({
@@ -196,19 +201,22 @@ export async function updateProfessional(input: unknown): Promise<ActionResult> 
       });
     });
   } catch {
-    await removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "professionals" }).catch(() => undefined);
+    await ignoreFailure(removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "professionals" }));
     return { status: "error", message: "Não foi possível atualizar o profissional. Tente novamente." };
   }
 
   if (professional.imageUrl !== imageUrl) {
-    await removePublicImage({ url: professional.imageUrl, clinicId: clinic.id, kind: "professionals" }).catch(() => undefined);
+    await ignoreFailure(removePublicImage({ url: professional.imageUrl, clinicId: clinic.id, kind: "professionals" }));
   }
 
   revalidateProfessionalViews();
   return { status: "success", message: "Profissional atualizado." };
 }
 
-export async function updateProfessionalFromForm(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
+export async function updateProfessionalFromForm(
+  _previousState: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   const serviceIds = formData.getAll("serviceIds").map(String).filter(Boolean);
 
   return updateProfessional({
@@ -217,6 +225,30 @@ export async function updateProfessionalFromForm(_previousState: ActionResult, f
     imageUrl: getImageValue(formData),
     serviceIds,
   });
+}
+
+/** Reativar exige assinatura ativa e vaga no limite de profissionais do plano. */
+async function findActivationBlocker(transaction: Prisma.TransactionClient, clinicId: string) {
+  const current = await transaction.clinic.findUniqueOrThrow({ where: { id: clinicId } });
+  if (!isSubscriptionActive(current)) throw new Error(SUBSCRIPTION_INACTIVE_MESSAGE);
+
+  const limit = await findProfessionalLimitReached(transaction, current);
+  if (limit === null) return null;
+
+  return { kind: "limit", limit } as const;
+}
+
+/** Desativar é bloqueado enquanto houver atendimentos futuros pendentes ou confirmados. */
+async function findDeactivationBlocker(transaction: Prisma.TransactionClient, professionalId: string) {
+  // FOR UPDATE espera agendamentos em andamento (que seguram a linha com
+  // FOR SHARE) terminarem, então a contagem abaixo já os enxerga.
+  await transaction.$queryRaw`SELECT id FROM "Professional" WHERE id = ${professionalId} FOR UPDATE`;
+  const pendingAppointments = await transaction.appointment.count({
+    where: { professionalId, status: { in: [...ACTIVE_APPOINTMENT_STATUSES] }, startTime: { gte: new Date() } },
+  });
+  if (pendingAppointments === 0) return null;
+
+  return { kind: "has-appointments" } as const;
 }
 
 export async function toggleProfessionalActive(professionalId: string): Promise<ActionResult> {
@@ -228,15 +260,9 @@ export async function toggleProfessionalActive(professionalId: string): Promise<
     return { status: "error", message: "Não foi possível alterar este profissional." };
   }
 
-  const clinic = await getClinicForRoles(["ADMIN"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de alterar profissionais." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN"], "Selecione um negócio antes de alterar profissionais.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   const professional = await prisma.professional.findFirst({
     where: { id: parsedId.data, clinicId: clinic.id },
@@ -249,43 +275,25 @@ export async function toggleProfessionalActive(professionalId: string): Promise<
 
   const nextIsActive = !professional.isActive;
 
-  if (!nextIsActive) {
-    const pendingAppointments = await prisma.appointment.count({
-      where: {
-        professionalId: professional.id,
-        status: { in: ["PENDING", "CONFIRMED"] },
-        startTime: { gte: new Date() },
-      },
-    });
-
-    if (pendingAppointments > 0) {
-      return {
-        status: "error",
-        message: "Este profissional possui agendamentos futuros pendentes ou confirmados. Cancele ou reagende-os antes de desativar.",
-      };
-    }
-  }
-
   const outcome = await prisma.$transaction(async (transaction) => {
     await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
-    if (nextIsActive) {
-      const current = await transaction.clinic.findUniqueOrThrow({ where: { id: clinic.id } });
-      if (!isSubscriptionActive(current)) throw new Error(SUBSCRIPTION_INACTIVE_MESSAGE);
-      const maxProfessionals = Math.min(
-        getPlanEntitlements(current.subscriptionPlan).maxProfessionals ?? Infinity,
-        current.pendingSubscriptionPlan ? getPlanEntitlements(current.pendingSubscriptionPlan).maxProfessionals ?? Infinity : Infinity,
-      );
-      if (maxProfessionals !== null) {
-        const activeProfessionals = await transaction.professional.count({ where: { clinicId: clinic.id, isActive: true } });
-        if (activeProfessionals >= maxProfessionals) return "limit" as const;
-      }
-    }
+    const blocker = nextIsActive
+      ? await findActivationBlocker(transaction, clinic.id)
+      : await findDeactivationBlocker(transaction, professional.id);
+    if (blocker) return blocker;
+
     await transaction.professional.update({ where: { id: professional.id }, data: { isActive: nextIsActive } });
-    return "updated" as const;
+    return { kind: "updated" } as const;
   });
-  if (outcome === "limit") {
-    const max = getPlanEntitlements(clinic.subscriptionPlan).maxProfessionals!;
-    return { status: "error", message: `Seu plano permite até ${max} ${max === 1 ? "profissional ativo" : "profissionais ativos"}. Faça upgrade para reativar este profissional.` };
+  if (outcome.kind === "limit") {
+    return { status: "error", message: professionalLimitMessage(outcome.limit, "reactivate") };
+  }
+  if (outcome.kind === "has-appointments") {
+    return {
+      status: "error",
+      message:
+        "Este profissional possui agendamentos futuros pendentes ou confirmados. Cancele ou reagende-os antes de desativar.",
+    };
   }
 
   revalidateProfessionalViews();

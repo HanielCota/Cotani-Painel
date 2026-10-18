@@ -33,6 +33,10 @@ const buttonVariants = cva(
         "icon-lg": "size-10",
       },
     },
+    compoundVariants: [
+      // Ação principal em pílula; as demais variantes mantêm o raio padrão.
+      { variant: "default", class: "rounded-full" },
+    ],
     defaultVariants: {
       variant: "default",
       size: "default",

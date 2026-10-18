@@ -8,7 +8,16 @@ import { toast } from "sonner";
 import { deleteCustomer } from "@/server/actions/customers";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Spinner } from "@/components/ui/spinner";
 import type { ActionResult } from "@/types";
 
@@ -45,7 +54,12 @@ export function DeleteCustomerDialog({ customerId, customerName }: DeleteCustome
         Remover
       </AlertDialogTrigger>
       <AlertDialogContent>
-        <AlertDialogHeader><AlertDialogTitle>Remover cliente</AlertDialogTitle><AlertDialogDescription>Esta ação não pode ser desfeita. Clientes com atendimentos não podem ser removidos.</AlertDialogDescription></AlertDialogHeader>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Remover cliente</AlertDialogTitle>
+          <AlertDialogDescription>
+            Esta ação não pode ser desfeita. Clientes com atendimentos não podem ser removidos.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
         <p className="text-sm text-muted-foreground">
           Confirma a remoção de <strong className="font-medium text-foreground">{customerName}</strong>?
         </p>

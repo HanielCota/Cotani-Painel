@@ -8,6 +8,7 @@ import { ClinicRole } from "@/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { requirePlatformAdmin } from "@/server/platform-admin";
 import { writeAdminAuditLog } from "@/server/services/admin-audit";
+import { moveClinicSlug, SlugInUseError } from "@/server/services/clinic-slug";
 
 const clinicIdSchema = z.uuid();
 const reasonSchema = z.string().trim().min(5).max(500);
@@ -72,11 +73,14 @@ export async function updateClinicAsPlatformAdmin(formData: FormData): Promise<v
     timeZone: formData.get("timeZone"),
     maxAppointmentsPerDay: formData.get("maxAppointmentsPerDay"),
   });
-  if (!parsed.success) redirectToClinic(String(formData.get("clinicId") ?? ""), "error", "Revise os dados da loja.");
+  if (!parsed.success) redirectToClinic(String(formData.get("clinicId") ?? ""), "error", "Revise os dados do negócio.");
 
   try {
     await prisma.$transaction(async (transaction) => {
       const before = await transaction.clinic.findUniqueOrThrow({ where: { id: parsed.data.clinicId } });
+      // Mesma regra da tela da loja: respeita aliases de outras lojas e mantém
+      // o endereço antigo funcionando para links já compartilhados.
+      await moveClinicSlug(transaction, before, parsed.data.slug);
       const after = await transaction.clinic.update({
         where: { id: before.id },
         data: {
@@ -95,14 +99,16 @@ export async function updateClinicAsPlatformAdmin(formData: FormData): Promise<v
         afterSnapshot: clinicSnapshot(after),
       });
     });
-  } catch {
-    redirectToClinic(parsed.data.clinicId, "error", "Não foi possível atualizar. Verifique se o slug já está em uso.");
+  } catch (error) {
+    redirectToClinic(parsed.data.clinicId, "error", error instanceof SlugInUseError
+      ? "Esse slug já é usado por outro negócio (atual ou antigo)."
+      : "Não foi possível atualizar. Verifique se o slug já está em uso.");
   }
 
   revalidatePath("/admin");
   revalidatePath(`/admin/lojas/${parsed.data.clinicId}`);
   revalidatePath(`/${parsed.data.slug}`);
-  redirectToClinic(parsed.data.clinicId, "success", "Loja atualizada com sucesso.");
+  redirectToClinic(parsed.data.clinicId, "success", "Negócio atualizado com sucesso.");
 }
 
 async function changeClinicLifecycle(
@@ -144,7 +150,7 @@ async function changeClinicLifecycle(
   revalidatePath("/admin");
   revalidatePath(`/admin/lojas/${parsed.data.clinicId}`);
   redirectToClinic(parsed.data.clinicId, "success", {
-    suspend: "Loja suspensa.", activate: "Loja reativada.", delete: "Loja excluída de forma reversível.", restore: "Loja restaurada.",
+    suspend: "Negócio suspenso.", activate: "Negócio reativado.", delete: "Negócio excluído de forma reversível.", restore: "Negócio restaurado.",
   }[operation]);
 }
 
@@ -178,7 +184,7 @@ export async function updateMembershipRoleAsPlatformAdmin(formData: FormData): P
   if (!membership) redirectToClinic(parsed.data.clinicId, "error", "Vínculo não encontrado.");
   if (membership.role === "ADMIN" && parsed.data.role !== "ADMIN") {
     const admins = await prisma.membership.count({ where: { clinicId: membership.clinicId, role: "ADMIN" } });
-    if (admins <= 1) redirectToClinic(parsed.data.clinicId, "error", "A loja precisa manter pelo menos um administrador.");
+    if (admins <= 1) redirectToClinic(parsed.data.clinicId, "error", "O negócio precisa manter pelo menos um administrador.");
   }
 
   try {
@@ -187,6 +193,11 @@ export async function updateMembershipRoleAsPlatformAdmin(formData: FormData): P
       if (membership.role === "ADMIN" && parsed.data.role !== "ADMIN") {
         const adminCount = await transaction.membership.count({ where: { clinicId: membership.clinicId, role: "ADMIN" } });
         if (adminCount <= 1) throw new Error("LAST_ADMIN");
+      }
+      // Mesmo contrato do fluxo da loja: quem deixa de ser PROVIDER perde o
+      // vínculo com o profissional (a agenda filtrada por ele não se aplica mais).
+      if (membership.role === "PROVIDER" && parsed.data.role !== "PROVIDER") {
+        await transaction.professional.updateMany({ where: { membershipId: membership.id }, data: { membershipId: null } });
       }
       await transaction.membership.update({ where: { id: membership.id }, data: { role: parsed.data.role } });
       await writeAdminAuditLog(transaction, actor, {
@@ -201,7 +212,7 @@ export async function updateMembershipRoleAsPlatformAdmin(formData: FormData): P
     });
   } catch (error) {
     redirectToClinic(parsed.data.clinicId, "error", error instanceof Error && error.message === "LAST_ADMIN"
-      ? "A loja precisa manter pelo menos um administrador."
+      ? "O negócio precisa manter pelo menos um administrador."
       : "Não foi possível alterar o papel do usuário.");
   }
 

@@ -61,7 +61,7 @@ describe("createPublicAppointment", () => {
     const result = await createPublicAppointment({ status: "success", message: "" }, createFormData());
 
     expect(result.status).toBe("error");
-    expect(result.message).toContain("Loja não encontrada");
+    expect(result.message).toContain("Negócio não encontrado");
   });
 
   it("retorna erro quando assinatura não está ativa", async () => {
@@ -129,5 +129,66 @@ describe("createPublicAppointment", () => {
     const result = await createPublicAppointment({ status: "success", message: "" }, createFormData());
 
     expect(result.status).toBe("success");
+  });
+
+  describe("sem preferência de profissional", () => {
+    const serviceId = "550e8400-e29b-41d4-a716-446655440001";
+
+    function arrangeClinic() {
+      vi.setSystemTime(new Date("2026-07-19T10:00:00.000Z"));
+      prismaMock.clinic.findFirst.mockResolvedValueOnce({
+        id: "clinic-1", slug: "loja-teste", name: "Loja", timeZone: "America/Sao_Paulo",
+        subscriptionStatus: "ACTIVE", subscriptionExpiresAt: new Date("2099-01-01T00:00:00.000Z"), operationalStatus: "ACTIVE", deletedAt: null,
+      });
+      prismaMock.service.findFirst.mockResolvedValueOnce({ id: serviceId, name: "Serviço A", duration: 30, price: 50 });
+      // Candidatos em ordem alfabética; Bia já tem 2 atendimentos no dia, Caio nenhum.
+      prismaMock.professional.findMany.mockResolvedValueOnce([{ id: "prof-bia" }, { id: "prof-caio" }]);
+      prismaMock.appointment.findMany.mockResolvedValueOnce([{ professionalId: "prof-bia" }, { professionalId: "prof-bia" }]);
+    }
+
+    it("tenta primeiro o profissional menos ocupado e informa quem vai atender", async () => {
+      arrangeClinic();
+      prismaMock.professional.findFirst.mockResolvedValueOnce({ name: "Caio" });
+      vi.mocked(scheduleAppointment).mockResolvedValueOnce({ status: "success", appointmentId: "app-1", cancellationToken: "t" });
+
+      const result = await createPublicAppointment({ status: "success", message: "" }, createFormData({ professionalId: "any" }));
+
+      expect(result).toMatchObject({ status: "success", professionalName: "Caio" });
+      expect(vi.mocked(scheduleAppointment)).toHaveBeenCalledTimes(1);
+      expect(vi.mocked(scheduleAppointment).mock.calls[0][0].professionalId).toBe("prof-caio");
+    });
+
+    it("em conflito, passa para o próximo candidato", async () => {
+      arrangeClinic();
+      prismaMock.professional.findFirst.mockResolvedValueOnce({ name: "Bia" });
+      vi.mocked(scheduleAppointment)
+        .mockResolvedValueOnce({ status: "conflict" })
+        .mockResolvedValueOnce({ status: "success", appointmentId: "app-1", cancellationToken: "t" });
+
+      const result = await createPublicAppointment({ status: "success", message: "" }, createFormData({ professionalId: "any" }));
+
+      expect(result).toMatchObject({ status: "success", professionalName: "Bia" });
+      expect(vi.mocked(scheduleAppointment).mock.calls.map(([params]) => params.professionalId)).toEqual(["prof-caio", "prof-bia"]);
+    });
+
+    it("sem nenhum candidato livre, devolve horário indisponível", async () => {
+      arrangeClinic();
+      vi.mocked(scheduleAppointment).mockResolvedValue({ status: "conflict" });
+
+      const result = await createPublicAppointment({ status: "success", message: "" }, createFormData({ professionalId: "any" }));
+
+      expect(result).toEqual({ status: "error", message: "Horário indisponível. Por favor, escolha outro." });
+      expect(vi.mocked(scheduleAppointment)).toHaveBeenCalledTimes(2);
+    });
+
+    it("erro inesperado interrompe as tentativas", async () => {
+      arrangeClinic();
+      vi.mocked(scheduleAppointment).mockResolvedValueOnce({ status: "error" });
+
+      const result = await createPublicAppointment({ status: "success", message: "" }, createFormData({ professionalId: "any" }));
+
+      expect(result.status).toBe("error");
+      expect(vi.mocked(scheduleAppointment)).toHaveBeenCalledTimes(1);
+    });
   });
 });

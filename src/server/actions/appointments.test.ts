@@ -1,10 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { prismaMock } from "@/test/mocks/prisma";
-import {
-  createAppointmentFromForm,
-  updateAppointmentStatus,
-} from "@/server/actions/appointments";
+import { createAppointmentFromForm, updateAppointmentStatus } from "@/server/actions/appointments";
 
 vi.mock("@/server/auth", () => ({ requireAuthenticatedUser: vi.fn().mockResolvedValue({ id: "user-1" }) }));
 
@@ -28,6 +25,8 @@ const activeClinic = {
   timeZone: "America/Sao_Paulo",
   subscriptionStatus: "ACTIVE",
   subscriptionExpiresAt: new Date("2099-01-01T00:00:00.000Z"),
+  operationalStatus: "ACTIVE",
+  deletedAt: null,
 };
 
 describe("updateAppointmentStatus", () => {
@@ -38,7 +37,9 @@ describe("updateAppointmentStatus", () => {
       role: "ADMIN",
       clinic: activeClinic,
     });
-    prismaMock.$transaction.mockImplementation(async (callback: (tx: typeof prismaMock) => Promise<unknown>) => callback(prismaMock));
+    prismaMock.$transaction.mockImplementation(async (callback: (tx: typeof prismaMock) => Promise<unknown>) =>
+      callback(prismaMock),
+    );
     prismaMock.appointment.updateMany.mockResolvedValue({ count: 1 });
   });
 
@@ -50,9 +51,37 @@ describe("updateAppointmentStatus", () => {
     expect(result.status).toBe("error");
   });
 
+  it("não permite concluir atendimento que ainda não começou", async () => {
+    prismaMock.appointment.findFirst.mockResolvedValueOnce({
+      id: "550e8400-e29b-41d4-a716-446655440002",
+      status: "CONFIRMED",
+      startTime: new Date(Date.now() + 86_400_000),
+    });
+    const result = await updateAppointmentStatus("550e8400-e29b-41d4-a716-446655440002", {
+      status: "COMPLETED",
+      paymentMethod: "PIX",
+    });
+    expect(result.status).toBe("error");
+    expect(result.message).toContain("depois do horário");
+    expect(prismaMock.appointment.updateMany).not.toHaveBeenCalled();
+  });
+  it("bloqueia ações da agenda em loja suspensa pela plataforma", async () => {
+    (getTenantContext as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      clinicId: "clinic-1",
+      role: "ADMIN",
+      clinic: { ...activeClinic, operationalStatus: "SUSPENDED" },
+    });
+    const result = await updateAppointmentStatus("550e8400-e29b-41d4-a716-446655440002", { status: "CONFIRMED" });
+    expect(result.status).toBe("error");
+    expect(prismaMock.appointment.findFirst).not.toHaveBeenCalled();
+  });
   it("retorna erro para transição de status inválida", async () => {
     (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValueOnce(activeClinic);
-    prismaMock.appointment.findFirst.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440002", status: "PENDING" });
+    prismaMock.appointment.findFirst.mockResolvedValueOnce({
+      id: "550e8400-e29b-41d4-a716-446655440002",
+      status: "PENDING",
+      startTime: new Date("2026-01-01T12:00:00Z"),
+    });
 
     const result = await updateAppointmentStatus("550e8400-e29b-41d4-a716-446655440002", { status: "COMPLETED" });
 
@@ -62,7 +91,11 @@ describe("updateAppointmentStatus", () => {
 
   it("atualiza status de PENDING para CONFIRMED", async () => {
     (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValueOnce(activeClinic);
-    prismaMock.appointment.findFirst.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440002", status: "PENDING" });
+    prismaMock.appointment.findFirst.mockResolvedValueOnce({
+      id: "550e8400-e29b-41d4-a716-446655440002",
+      status: "PENDING",
+      startTime: new Date("2026-01-01T12:00:00Z"),
+    });
 
     const result = await updateAppointmentStatus("550e8400-e29b-41d4-a716-446655440002", { status: "CONFIRMED" });
 
@@ -75,7 +108,11 @@ describe("updateAppointmentStatus", () => {
 
   it("exige método de pagamento ao concluir", async () => {
     (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValueOnce(activeClinic);
-    prismaMock.appointment.findFirst.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440002", status: "CONFIRMED" });
+    prismaMock.appointment.findFirst.mockResolvedValueOnce({
+      id: "550e8400-e29b-41d4-a716-446655440002",
+      status: "CONFIRMED",
+      startTime: new Date("2026-01-01T12:00:00Z"),
+    });
 
     const result = await updateAppointmentStatus("550e8400-e29b-41d4-a716-446655440002", { status: "COMPLETED" });
 
@@ -85,7 +122,11 @@ describe("updateAppointmentStatus", () => {
 
   it("atualiza status para COMPLETED com método de pagamento", async () => {
     (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValueOnce(activeClinic);
-    prismaMock.appointment.findFirst.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440002", status: "CONFIRMED" });
+    prismaMock.appointment.findFirst.mockResolvedValueOnce({
+      id: "550e8400-e29b-41d4-a716-446655440002",
+      status: "CONFIRMED",
+      startTime: new Date("2026-01-01T12:00:00Z"),
+    });
 
     const result = await updateAppointmentStatus("550e8400-e29b-41d4-a716-446655440002", {
       status: "COMPLETED",
@@ -100,7 +141,11 @@ describe("updateAppointmentStatus", () => {
   });
 
   it("rejeita uma atualização concorrente do mesmo atendimento", async () => {
-    prismaMock.appointment.findFirst.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440002", status: "PENDING" });
+    prismaMock.appointment.findFirst.mockResolvedValueOnce({
+      id: "550e8400-e29b-41d4-a716-446655440002",
+      status: "PENDING",
+      startTime: new Date("2026-01-01T12:00:00Z"),
+    });
     prismaMock.appointment.updateMany.mockResolvedValueOnce({ count: 0 });
 
     const result = await updateAppointmentStatus("550e8400-e29b-41d4-a716-446655440002", { status: "CONFIRMED" });

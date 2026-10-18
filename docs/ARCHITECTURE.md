@@ -78,7 +78,7 @@ O catálogo interno define capacidades dos planos; o navegador não decide preç
 - Profissional: até 3 profissionais; financeiro e relatórios.
 - Empresa: capacidades avançadas e contratação comercial.
 
-Checkout automático existe para Essencial e Profissional, mensal e anual. O servidor mapeia a combinação permitida ao respectivo `preapproval_plan` do Mercado Pago. O webhook valida assinatura, registra `WebhookEvent` para idempotência e atualiza status/pagamentos.
+Checkout automático existe para Essencial e Profissional, mensal e anual. O servidor valida o plano e o preço, e cria uma assinatura hospedada do Mercado Pago sem vincular a compra a um `preapproval_plan` remoto. O webhook valida assinatura, registra `WebhookEvent` para idempotência e atualiza status/pagamentos.
 
 Estados de assinatura incluem `TRIALING`, `ACTIVE`, `PAST_DUE`, `CANCELED` e `INACTIVE`. A seleção pendente é persistida antes de sair para o checkout, permitindo reconciliar o retorno/webhook sem confiar em dados do cliente.
 
@@ -88,7 +88,7 @@ Estados de assinatura incluem `TRIALING`, `ACTIVE`, `PAST_DUE`, `CANCELED` e `IN
 
 - E-mail operacional: Resend.
 - WhatsApp: manual por padrão (`wa.me`); Meta Cloud API opcional.
-- SMS: Twilio, reservado ao plano Empresa.
+- SMS: integração Twilio presente no código, mas desabilitada nos direitos de todos os planos; não é um recurso disponível na oferta atual.
 - E-mails de autenticação: SMTP configurado no Supabase Auth.
 
 Webhooks têm validação própria e não dependem de sessão de usuário. Payloads externos são tratados como dados não confiáveis e a aplicação reconsulta/valida o estado necessário antes de alterar cobrança.

@@ -6,7 +6,7 @@ import { BanIcon, CheckIcon, CircleOffIcon, EllipsisVerticalIcon, UserRoundXIcon
 
 import { updateAppointmentStatus } from "@/server/actions/appointments";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -30,50 +30,37 @@ import {
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  getAllowedAppointmentTransitions,
+  isTerminalAppointmentStatus,
+  paymentMethodLabels,
+  type AppointmentStatusValue,
+  type NextAppointmentStatus,
+  type PaymentMethodValue,
+} from "@/lib/appointment-status";
 import type { ActionResult } from "@/types";
-
-type AppointmentStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELED" | "NO_SHOW";
-type PaymentMethod = "PIX" | "CREDIT_CARD" | "DEBIT_CARD" | "CASH" | "OTHER";
 
 interface AppointmentActionsProps {
   appointmentId: string;
-  status: AppointmentStatus;
+  status: AppointmentStatusValue;
+  /** Início do atendimento; concluir/registrar falta só aparecem depois dele. */
+  startTime?: string;
 }
 
-type NextAppointmentStatus = Exclude<AppointmentStatus, "PENDING">;
-
 interface ActionOption {
-  status: NextAppointmentStatus;
   label: string;
   icon: typeof CheckIcon;
   destructive?: boolean;
 }
 
-const actionsByStatus: Record<
-  Exclude<AppointmentStatus, "COMPLETED" | "CANCELED" | "NO_SHOW">,
-  ActionOption[]
-> = {
-  PENDING: [
-    { status: "CONFIRMED", label: "Confirmar", icon: CheckIcon },
-    { status: "CANCELED", label: "Cancelar", icon: BanIcon, destructive: true },
-    { status: "NO_SHOW", label: "Não compareceu", icon: UserRoundXIcon, destructive: true },
-  ],
-  CONFIRMED: [
-    { status: "COMPLETED", label: "Concluir", icon: CheckIcon },
-    { status: "CANCELED", label: "Cancelar", icon: BanIcon, destructive: true },
-    { status: "NO_SHOW", label: "Não compareceu", icon: UserRoundXIcon, destructive: true },
-  ],
+const actionOptions: Record<NextAppointmentStatus, ActionOption> = {
+  CONFIRMED: { label: "Confirmar", icon: CheckIcon },
+  COMPLETED: { label: "Concluir", icon: CheckIcon },
+  CANCELED: { label: "Cancelar", icon: BanIcon, destructive: true },
+  NO_SHOW: { label: "Não compareceu", icon: UserRoundXIcon, destructive: true },
 };
 
-const paymentMethodLabels: Record<PaymentMethod, string> = {
-  PIX: "Pix",
-  CREDIT_CARD: "Cartão de crédito",
-  DEBIT_CARD: "Cartão de débito",
-  CASH: "Dinheiro",
-  OTHER: "Outro",
-};
-
-const actionConfirmations: Partial<Record<AppointmentStatus, { title: string; description: string; confirmLabel: string }>> = {
+const actionConfirmations: Partial<Record<NextAppointmentStatus, { title: string; description: string; confirmLabel: string }>> = {
   CANCELED: {
     title: "Cancelar atendimento?",
     description: "O atendimento será cancelado e o horário ficará disponível novamente.",
@@ -86,20 +73,21 @@ const actionConfirmations: Partial<Record<AppointmentStatus, { title: string; de
   },
 };
 
-export function AppointmentActions({ appointmentId, status }: AppointmentActionsProps) {
+export function AppointmentActions({ appointmentId, status, startTime }: AppointmentActionsProps) {
   const [result, setResult] = useState<ActionResult | null>(null);
   const [isPending, startTransition] = useTransition();
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodValue | "">("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [confirmationStatus, setConfirmationStatus] = useState<NextAppointmentStatus | null>(null);
   const queryClient = useQueryClient();
 
-  if (status === "COMPLETED" || status === "CANCELED" || status === "NO_SHOW") {
+  if (isTerminalAppointmentStatus(status)) {
     return null;
   }
 
-  const actions = actionsByStatus[status];
+  // Sem `startTime` (ex.: listas antigas) exibe todas; o servidor valida de qualquer forma.
+  const actions = getAllowedAppointmentTransitions(status, startTime ?? new Date(0));
   const confirmation = confirmationStatus ? actionConfirmations[confirmationStatus] : null;
 
   function handleStatusChange(nextStatus: NextAppointmentStatus) {
@@ -161,19 +149,20 @@ export function AppointmentActions({ appointmentId, status }: AppointmentActions
         <DropdownMenuTrigger
           type="button"
           disabled={isPending}
-          className="group/button inline-flex h-7 shrink-0 items-center justify-center gap-1 rounded-[min(var(--radius-md),12px)] border border-border bg-background px-2.5 text-[0.8rem] font-medium whitespace-nowrap text-foreground outline-none select-none transition-all hover:bg-muted hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:border-input dark:bg-input/30 dark:hover:bg-input/50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-')]:size-3.5"
+          className={buttonVariants({ variant: "outline", size: "sm" })}
         >
           Ações
           {isPending ? <Spinner className="ml-1 size-3.5" /> : <EllipsisVerticalIcon className="ml-1 size-3.5" />}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-40">
-          {actions.map((action) => {
+          {actions.map((nextStatus) => {
+            const action = actionOptions[nextStatus];
             const Icon = action.icon;
 
             return (
               <DropdownMenuItem
-                key={action.status}
-                onClick={() => handleStatusChange(action.status)}
+                key={nextStatus}
+                onClick={() => handleStatusChange(nextStatus)}
                 className={action.destructive ? "whitespace-nowrap text-destructive focus:text-destructive" : "whitespace-nowrap"}
                 disabled={isPending}
               >
@@ -235,12 +224,12 @@ export function AppointmentActions({ appointmentId, status }: AppointmentActions
             <DialogDescription>Informe como o cliente pagou para finalizar o atendimento.</DialogDescription>
           </DialogHeader>
 
-          <Select value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)} items={paymentMethodLabels}>
+          <Select value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethodValue)} items={paymentMethodLabels}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione o método de pagamento" />
             </SelectTrigger>
             <SelectContent>
-              {(Object.keys(paymentMethodLabels) as PaymentMethod[]).map((method) => (
+              {(Object.keys(paymentMethodLabels) as PaymentMethodValue[]).map((method) => (
                 <SelectItem key={method} value={method}>
                   {paymentMethodLabels[method]}
                 </SelectItem>

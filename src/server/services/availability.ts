@@ -1,17 +1,14 @@
 import "server-only";
 
 import prisma from "@/lib/prisma";
-import { formatClinicDateTimeInput, getClinicDateBounds, parseClinicDateTime } from "@/lib/timezone";
+import { getClinicDateBounds, parseClinicDateTime } from "@/lib/timezone";
 import { isWithinBookingWindow } from "@/config/booking";
-
-// Resolução mínima da grade de horários. Os slots são gerados a cada 30 minutos
-// dentro do expediente configurado, desde que caibam a duração do serviço.
-const SLOT_STEP_MINUTES = 30;
+import { findFreeSlots, getClinicWeekday, resolveWorkingWindow, type BusyInterval, type DaySchedule, type FreeSlot } from "@/server/domain/working-hours";
 
 export interface AvailabilitySlot {
   /** Instante de início do slot em ISO 8601 (UTC). */
   startTime: string;
-  /** Rótulo no formato HH:mm, na hora local da loja. */
+  /** Rótulo no formato HH:mm, na hora local do negócio. */
   label: string;
 }
 
@@ -20,55 +17,73 @@ export interface GetAvailableSlotsParams {
   timeZone: string;
   /** Duração do serviço em minutos. */
   serviceDuration: number;
-  /** Data no formato YYYY-MM-DD, interpretada no fuso da loja. */
+  /** Data no formato YYYY-MM-DD, interpretada no fuso do negócio. */
   date: string;
-  /** Profissional responsável pelos slots. Quando omitido, calcula contra todos os agendamentos da loja (modo legado). */
-  professionalId?: string;
-  /** Limite diário de atendimentos da loja. Quando omitido, não aplica limite. */
+  /**
+   * Profissionais candidatos. Um só: a agenda dele. Vários ("sem preferência"):
+   * a união dos horários livres de cada um. Vazio/omitido: calcula contra todos
+   * os agendamentos do negócio (modo legado, sem profissional).
+   */
+  professionalIds?: readonly string[];
+  /** Limite diário de atendimentos do negócio. Quando omitido, não aplica limite. */
   maxAppointmentsPerDay?: number | null;
 }
 
-function minutesFromTime(time: string): number {
-  const [hours, minutes] = time.split(":").map(Number);
-  return hours * 60 + minutes;
+interface DayAppointment extends BusyInterval {
+  professionalId: string | null;
 }
 
-function formatTimeLabel(minutes: number): string {
-  const hour = String(Math.floor(minutes / 60)).padStart(2, "0");
-  const minute = String(minutes % 60).padStart(2, "0");
-  return `${hour}:${minute}`;
+function reachedDailyLimit(appointmentsOfDay: number, maxAppointmentsPerDay: number | null | undefined) {
+  return typeof maxAppointmentsPerDay === "number" && maxAppointmentsPerDay > 0 && appointmentsOfDay >= maxAppointmentsPerDay;
 }
 
-const weekdayShortToNumber: Record<string, number> = {
-  Sun: 0,
-  Mon: 1,
-  Tue: 2,
-  Wed: 3,
-  Thu: 4,
-  Fri: 5,
-  Sat: 6,
-};
+/** Ocupado para o profissional pedido; sem profissional, qualquer atendimento do negócio ocupa (modo legado). */
+function busyFor(appointments: readonly DayAppointment[], professionalId: string | null) {
+  return professionalId ? appointments.filter((appointment) => appointment.professionalId === professionalId) : appointments;
+}
 
-function getClinicDayOfWeek(dateString: string, timeZone: string): number {
-  const dayStart = parseClinicDateTime(`${dateString}T00:00`, timeZone);
+interface FreeSlotsOfDayInput {
+  dateKey: string;
+  timeZone: string;
+  durationMinutes: number;
+  businessHour: DaySchedule | null | undefined;
+  /** Expediente individual do dia, por profissional. */
+  professionalHours: ReadonlyMap<string, DaySchedule>;
+  professionalIds: readonly string[];
+  appointments: readonly DayAppointment[];
+  now: Date;
+  limit?: number;
+}
 
-  if (!dayStart) {
-    return new Date().getDay();
+/**
+ * Horários livres do dia para ao menos um dos candidatos, sem repetição e em
+ * ordem. Sem candidatos, usa o modo legado (agenda única do negócio).
+ */
+function freeSlotsOfDay(input: FreeSlotsOfDayInput): FreeSlot[] {
+  const candidates: (string | null)[] = input.professionalIds.length > 0 ? [...input.professionalIds] : [null];
+  const byStart = new Map<number, FreeSlot>();
+  for (const professionalId of candidates) {
+    const window = resolveWorkingWindow(input.businessHour, professionalId ? input.professionalHours.get(professionalId) : null);
+    if (!window) continue;
+    const slots = findFreeSlots({
+      dateKey: input.dateKey,
+      timeZone: input.timeZone,
+      window,
+      durationMinutes: input.durationMinutes,
+      busy: busyFor(input.appointments, professionalId),
+      isBookable: (startTime) => isWithinBookingWindow(startTime, input.now),
+      limit: input.limit,
+    });
+    for (const slot of slots) byStart.set(slot.startTime.getTime(), slot);
+    if (input.limit && byStart.size >= input.limit) break;
   }
-
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    weekday: "short",
-  }).formatToParts(dayStart);
-
-  const weekdayPart = parts.find((part) => part.type === "weekday")?.value;
-
-  return weekdayShortToNumber[weekdayPart ?? ""] ?? 0;
+  return [...byStart.values()].sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 }
 
 /**
  * Motor de disponibilidade: calcula os slots livres de um dia subtraindo os
- * atendimentos já marcados da grade de candidatos do expediente configurado.
+ * atendimentos já marcados da grade do expediente (regras em
+ * `server/domain/working-hours.ts`).
  *
  * Retorna `null` quando a data é inválida. A decisão de exibir ou não um slot
  * é derivada (ocupação + passado), nunca persistida - a verdade continua
@@ -77,19 +92,17 @@ function getClinicDayOfWeek(dateString: string, timeZone: string): number {
  */
 export async function getAvailableSlots(params: GetAvailableSlotsParams): Promise<AvailabilitySlot[] | null> {
   const dayStart = parseClinicDateTime(`${params.date}T00:00`, params.timeZone);
-
-  if (!dayStart) {
-    return null;
-  }
+  const dayOfWeek = getClinicWeekday(params.date, params.timeZone);
+  if (!dayStart || dayOfWeek === null) return null;
 
   const { startOfTomorrow: dayEnd } = getClinicDateBounds(params.timeZone, dayStart);
-  const dayOfWeek = getClinicDayOfWeek(params.date, params.timeZone);
 
-  const [businessHour, professionalHour, appointments] = await Promise.all([
+  const professionalIds = params.professionalIds ?? [];
+  const [businessHour, professionalHours, appointments] = await Promise.all([
     prisma.businessHour.findUnique({
       where: { clinicId_dayOfWeek: { clinicId: params.clinicId, dayOfWeek } },
     }),
-    params.professionalId ? prisma.professionalAvailability.findUnique({ where: { professionalId_dayOfWeek: { professionalId: params.professionalId, dayOfWeek } } }) : null,
+    professionalIds.length > 0 ? prisma.professionalAvailability.findMany({ where: { clinicId: params.clinicId, professionalId: { in: [...professionalIds] }, dayOfWeek } }) : [],
     prisma.appointment.findMany({
       where: {
         clinicId: params.clinicId,
@@ -101,61 +114,18 @@ export async function getAvailableSlots(params: GetAvailableSlotsParams): Promis
     }),
   ]);
 
-  const effectiveHour = professionalHour ?? businessHour;
-  if (!effectiveHour || !effectiveHour.isOpen || !businessHour?.isOpen) {
-    return [];
-  }
+  if (reachedDailyLimit(appointments.length, params.maxAppointmentsPerDay)) return [];
 
-  const appointmentCount = appointments.length;
-  const hasReachedDailyLimit =
-    typeof params.maxAppointmentsPerDay === "number" && params.maxAppointmentsPerDay > 0 && appointmentCount >= params.maxAppointmentsPerDay;
-
-  if (hasReachedDailyLimit) {
-    return [];
-  }
-
-  const now = new Date();
-  const openMinutes = Math.max(minutesFromTime(businessHour.openTime), minutesFromTime(effectiveHour.openTime));
-  const closeMinutes = Math.min(minutesFromTime(businessHour.closeTime), minutesFromTime(effectiveHour.closeTime));
-  const breaks = [
-    businessHour.breakStart && businessHour.breakEnd ? [minutesFromTime(businessHour.breakStart), minutesFromTime(businessHour.breakEnd)] : null,
-    professionalHour?.breakStart && professionalHour.breakEnd ? [minutesFromTime(professionalHour.breakStart), minutesFromTime(professionalHour.breakEnd)] : null,
-  ].filter((value): value is [number, number] => value !== null);
-  const slots: AvailabilitySlot[] = [];
-
-  for (
-    let minutes = openMinutes;
-    minutes + params.serviceDuration <= closeMinutes;
-    minutes += SLOT_STEP_MINUTES
-  ) {
-    const slotEndMinutes = minutes + params.serviceDuration;
-
-    // O slot não pode cruzar o intervalo de almoço.
-    if (breaks.some(([breakStart, breakEnd]) => minutes < breakEnd && slotEndMinutes > breakStart)) continue;
-
-    const label = formatTimeLabel(minutes);
-    const startTime = parseClinicDateTime(`${params.date}T${label}`, params.timeZone);
-
-    if (!startTime || !isWithinBookingWindow(startTime, now)) {
-      continue;
-    }
-
-    const endTime = new Date(startTime.getTime() + params.serviceDuration * 60_000);
-    const overlaps = appointments.some(
-      (appointment) =>
-        (!params.professionalId || appointment.professionalId === params.professionalId) &&
-        startTime < appointment.endTime &&
-        endTime > appointment.startTime,
-    );
-
-    if (overlaps) {
-      continue;
-    }
-
-    slots.push({ startTime: startTime.toISOString(), label });
-  }
-
-  return slots;
+  return freeSlotsOfDay({
+    dateKey: params.date,
+    timeZone: params.timeZone,
+    durationMinutes: params.serviceDuration,
+    businessHour,
+    professionalHours: new Map(professionalHours.map((hour) => [hour.professionalId, hour])),
+    professionalIds,
+    appointments,
+    now: new Date(),
+  }).map((slot) => ({ startTime: slot.startTime.toISOString(), label: slot.label }));
 }
 
 export interface GetAvailableDatesParams {
@@ -163,8 +133,9 @@ export interface GetAvailableDatesParams {
   timeZone: string;
   serviceDuration: number;
   yearMonth: string; // YYYY-MM
-  professionalId?: string;
-  /** Limite diário de atendimentos da loja. Quando omitido, não aplica limite. */
+  /** Mesma semântica de `GetAvailableSlotsParams.professionalIds`. */
+  professionalIds?: readonly string[];
+  /** Limite diário de atendimentos do negócio. Quando omitido, não aplica limite. */
   maxAppointmentsPerDay?: number | null;
 }
 
@@ -175,35 +146,24 @@ export interface GetAvailableDatesParams {
  */
 export async function getAvailableDatesInMonth(params: GetAvailableDatesParams): Promise<string[]> {
   const match = /^(\d{4})-(\d{2})$/.exec(params.yearMonth);
-
-  if (!match) {
-    return [];
-  }
+  if (!match) return [];
 
   const year = Number(match[1]);
   const month = Number(match[2]);
-
-  if (month < 1 || month > 12) {
-    return [];
-  }
+  if (month < 1 || month > 12) return [];
 
   const monthStart = parseClinicDateTime(`${params.yearMonth}-01T00:00`, params.timeZone);
+  const nextMonthKey = month === 12 ? `${year + 1}-01` : `${year}-${String(month + 1).padStart(2, "0")}`;
+  const monthEnd = parseClinicDateTime(`${nextMonthKey}-01T00:00`, params.timeZone);
+  if (!monthStart || !monthEnd) return [];
 
-  if (!monthStart) {
-    return [];
-  }
-
-  const nextMonthString = month === 12 ? `${year + 1}-01` : `${year}-${String(month + 1).padStart(2, "0")}`;
-  const monthEnd = parseClinicDateTime(`${nextMonthString}-01T00:00`, params.timeZone);
-
-  if (!monthEnd) {
-    return [];
-  }
-
-  const daysInMonth = Math.round((monthEnd.getTime() - monthStart.getTime()) / (24 * 60 * 60 * 1000));
+  // Dias de calendário (não somas de 24 h): em fusos com horário de verão um
+  // dia pode ter 23 ou 25 horas, e somar 24 h pulava ou repetia datas.
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const professionalIds = params.professionalIds ?? [];
   const [businessHours, professionalHours, appointments] = await Promise.all([
     prisma.businessHour.findMany({ where: { clinicId: params.clinicId } }),
-    params.professionalId ? prisma.professionalAvailability.findMany({ where: { clinicId: params.clinicId, professionalId: params.professionalId } }) : [],
+    professionalIds.length > 0 ? prisma.professionalAvailability.findMany({ where: { clinicId: params.clinicId, professionalId: { in: [...professionalIds] } } }) : [],
     prisma.appointment.findMany({
       where: {
         clinicId: params.clinicId,
@@ -216,67 +176,32 @@ export async function getAvailableDatesInMonth(params: GetAvailableDatesParams):
   ]);
 
   const businessHoursByDay = new Map(businessHours.map((hour) => [hour.dayOfWeek, hour]));
-  const professionalHoursByDay = new Map(professionalHours.map((hour) => [hour.dayOfWeek, hour]));
+  const dateKey = (day: number) => `${params.yearMonth}-${String(day).padStart(2, "0")}`;
   const availableDates: string[] = [];
   const now = new Date();
 
-  for (let dayOffset = 0; dayOffset < daysInMonth; dayOffset += 1) {
-    const dayDate = new Date(monthStart.getTime() + dayOffset * 24 * 60 * 60 * 1000);
-    const dayString = formatClinicDateTimeInput(dayDate, params.timeZone).slice(0, 10);
-    const dayOfWeek = getClinicDayOfWeek(dayString, params.timeZone);
-    const businessHour = businessHoursByDay.get(dayOfWeek);
-    const professionalHour = professionalHoursByDay.get(dayOfWeek);
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const key = dateKey(day);
+    const dayStart = parseClinicDateTime(`${key}T00:00`, params.timeZone);
+    const dayEnd = day < daysInMonth ? parseClinicDateTime(`${dateKey(day + 1)}T00:00`, params.timeZone) : monthEnd;
+    const dayOfWeek = getClinicWeekday(key, params.timeZone);
+    if (!dayStart || !dayEnd || dayOfWeek === null) continue;
 
-    if (!businessHour || !businessHour.isOpen || (professionalHour && !professionalHour.isOpen)) {
-      continue;
-    }
+    const appointmentsOfDay = appointments.filter((appointment) => appointment.startTime < dayEnd && appointment.endTime > dayStart);
+    if (reachedDailyLimit(appointmentsOfDay.length, params.maxAppointmentsPerDay)) continue;
 
-    const openMinutes = Math.max(minutesFromTime(businessHour.openTime), professionalHour ? minutesFromTime(professionalHour.openTime) : 0);
-    const closeMinutes = Math.min(minutesFromTime(businessHour.closeTime), professionalHour ? minutesFromTime(professionalHour.closeTime) : 24 * 60);
-    const breaks = [
-      businessHour.breakStart && businessHour.breakEnd ? [minutesFromTime(businessHour.breakStart), minutesFromTime(businessHour.breakEnd)] : null,
-      professionalHour?.breakStart && professionalHour.breakEnd ? [minutesFromTime(professionalHour.breakStart), minutesFromTime(professionalHour.breakEnd)] : null,
-    ].filter((value): value is [number, number] => value !== null);
-    const allDayAppointments = appointments.filter(
-      (appointment) => appointment.startTime < new Date(dayDate.getTime() + 24 * 60 * 60 * 1000) && appointment.endTime > dayDate,
-    );
-    const dayAppointments = params.professionalId
-      ? allDayAppointments.filter((appointment) => appointment.professionalId === params.professionalId)
-      : allDayAppointments;
-
-    const hasReachedDailyLimit =
-      typeof params.maxAppointmentsPerDay === "number" && params.maxAppointmentsPerDay > 0 && allDayAppointments.length >= params.maxAppointmentsPerDay;
-
-    if (hasReachedDailyLimit) {
-      continue;
-    }
-
-    for (
-      let minutes = openMinutes;
-      minutes + params.serviceDuration <= closeMinutes;
-      minutes += SLOT_STEP_MINUTES
-    ) {
-      const slotEndMinutes = minutes + params.serviceDuration;
-
-      if (breaks.some(([breakStart, breakEnd]) => minutes < breakEnd && slotEndMinutes > breakStart)) continue;
-
-      const label = formatTimeLabel(minutes);
-      const startTime = parseClinicDateTime(`${dayString}T${label}`, params.timeZone);
-
-      if (!startTime || !isWithinBookingWindow(startTime, now)) {
-        continue;
-      }
-
-      const endTime = new Date(startTime.getTime() + params.serviceDuration * 60_000);
-      const overlaps = dayAppointments.some(
-        (appointment) => startTime < appointment.endTime && endTime > appointment.startTime,
-      );
-
-      if (!overlaps) {
-        availableDates.push(dayString);
-        break;
-      }
-    }
+    const [firstFree] = freeSlotsOfDay({
+      dateKey: key,
+      timeZone: params.timeZone,
+      durationMinutes: params.serviceDuration,
+      businessHour: businessHoursByDay.get(dayOfWeek),
+      professionalHours: new Map(professionalHours.filter((hour) => hour.dayOfWeek === dayOfWeek).map((hour) => [hour.professionalId, hour])),
+      professionalIds,
+      appointments: appointmentsOfDay,
+      now,
+      limit: 1,
+    });
+    if (firstFree) availableDates.push(key);
   }
 
   return availableDates;

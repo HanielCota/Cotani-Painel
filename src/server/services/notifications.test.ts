@@ -25,6 +25,20 @@ describe("enqueueAppointmentNotifications", () => {
     cancellationToken: "token-1",
   };
 
+  it("editar sem mudar o horário não falha com a confirmação já enviada", async () => {
+    vi.setSystemTime(new Date("2026-07-19T14:00:00.000Z"));
+    // Como no banco: idempotencyKey é única e só skipDuplicates evita o P2002.
+    const sentKeys = new Set(["app-1:CONFIRMATION:WHATSAPP:2026-07-20T14:00:00.000Z"]);
+    prismaMock.notification.createMany.mockImplementationOnce(async ({ data, skipDuplicates }: { data: Array<{ idempotencyKey: string }>; skipDuplicates?: boolean }) => {
+      if (!skipDuplicates && data.some((item) => sentKeys.has(item.idempotencyKey))) throw Object.assign(new Error("Unique constraint failed"), { code: "P2002" });
+      return { count: data.length };
+    });
+
+    await expect(
+      enqueueAppointmentNotifications(prismaMock as unknown as Parameters<typeof enqueueAppointmentNotifications>[0], baseParams),
+    ).resolves.toBeUndefined();
+  });
+
   it("cria notificação de confirmação imediata", async () => {
     vi.setSystemTime(new Date("2026-07-19T14:00:00.000Z"));
 

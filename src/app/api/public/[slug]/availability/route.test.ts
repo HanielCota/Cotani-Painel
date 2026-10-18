@@ -26,11 +26,27 @@ const prisma = prismaModule as unknown as {
 describe("/api/public/[slug]/availability", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    prisma.rateLimit.upsert.mockResolvedValue({ count: 1, id: "rl-1", key: "key", windowStart: new Date(), resetAt: new Date(), createdAt: new Date(), updatedAt: new Date() });
+    prisma.rateLimit.upsert.mockResolvedValue({
+      count: 1,
+      id: "rl-1",
+      key: "key",
+      windowStart: new Date(),
+      resetAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
   });
 
   it("retorna 429 quando rate limit é excedido", async () => {
-    prisma.rateLimit.upsert.mockResolvedValueOnce({ count: 61, id: "rl-1", key: "key", windowStart: new Date(), resetAt: new Date(), createdAt: new Date(), updatedAt: new Date() });
+    prisma.rateLimit.upsert.mockResolvedValueOnce({
+      count: 61,
+      id: "rl-1",
+      key: "key",
+      windowStart: new Date(),
+      resetAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
     const request = new NextRequest(
       "http://localhost/api/public/loja/availability?serviceId=550e8400-e29b-41d4-a716-446655440001&date=2026-07-23",
@@ -43,7 +59,15 @@ describe("/api/public/[slug]/availability", () => {
   });
 
   it("retorna slots quando parâmetros são válidos", async () => {
-    prisma.clinic.findFirst.mockResolvedValueOnce({ id: "clinic-1", timeZone: "America/Sao_Paulo", maxAppointmentsPerDay: null, subscriptionStatus: "ACTIVE", subscriptionExpiresAt: new Date("2099-01-01T00:00:00.000Z"), operationalStatus: "ACTIVE", deletedAt: null });
+    prisma.clinic.findFirst.mockResolvedValueOnce({
+      id: "clinic-1",
+      timeZone: "America/Sao_Paulo",
+      maxAppointmentsPerDay: null,
+      subscriptionStatus: "ACTIVE",
+      subscriptionExpiresAt: new Date("2099-01-01T00:00:00.000Z"),
+      operationalStatus: "ACTIVE",
+      deletedAt: null,
+    });
     prisma.service.findFirst.mockResolvedValueOnce({ duration: 30 });
     (getAvailableSlots as ReturnType<typeof vi.fn>).mockResolvedValueOnce(["10:00", "10:30"]);
 

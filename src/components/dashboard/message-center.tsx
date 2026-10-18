@@ -27,11 +27,11 @@ import { readUrlSearchParam, replaceUrlSearchParams } from "@/lib/browser-url";
 const initial: ActionResult = { status: "success", message: "" };
 const templates = {
   reminder:
-    "Olá! Este é um lembrete do seu atendimento. Se precisar reagendar, fale conosco.",
+    "Olá, este é um lembrete do seu atendimento. Se precisar reagendar, fale conosco.",
   confirmation:
-    "Olá! Seu atendimento está reservado. Por favor, confirme sua presença.",
+    "Olá, seu atendimento está reservado. Por favor, confirme sua presença.",
   return:
-    "Olá! Está chegando o momento sugerido para o seu retorno. Quer reservar um novo horário?",
+    "Olá, está chegando o momento sugerido para o seu retorno. Quer reservar um novo horário?",
 };
 type Message = {
   id: string;
@@ -103,7 +103,7 @@ export function MessageCenter({
         <div className="md:col-span-2">
           <h2 className="font-semibold">Novo lembrete</h2>
           <p className="text-xs text-muted-foreground">
-            Horários exibidos no horário local da loja. Modelos podem ser
+            Horários exibidos no horário local do negócio. Modelos podem ser
             ajustados antes do envio.
           </p>
         </div>

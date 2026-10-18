@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { Building2Icon } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ import {
   EmptyContent,
   EmptyDescription,
   EmptyHeader,
-  EmptyMedia,
+  EmptyMascot,
   EmptyTitle,
 } from "@/components/ui/empty";
 
@@ -23,12 +22,10 @@ export function EmptyClinicState() {
   return (
     <Empty className="min-h-[60vh] border">
       <EmptyHeader>
-        <EmptyMedia variant="icon">
-          <Building2Icon />
-        </EmptyMedia>
-        <EmptyTitle>Crie sua primeira loja</EmptyTitle>
+        <EmptyMascot />
+        <EmptyTitle>Cadastre seu negócio</EmptyTitle>
         <EmptyDescription className="max-w-md">
-          Configure sua loja para iniciar os 7 dias grátis e publicar sua agenda online.
+          Configure seu negócio para iniciar os 7 dias grátis e publicar sua agenda online.
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent className="flex max-w-md flex-col gap-4">
@@ -39,8 +36,8 @@ export function EmptyClinicState() {
         ) : null}
 
         <form action={action} className="w-full space-y-3 text-left">
-          <div className="space-y-1.5"><Label htmlFor="clinic-name">Nome da loja</Label><Input id="clinic-name" name="name" minLength={2} maxLength={120} required placeholder="Ex.: Espaço Central" /></div>
-          <Button type="submit" className="w-full" disabled={pending}>{pending ? "Criando..." : "Criar loja"}</Button>
+          <div className="space-y-1.5"><Label htmlFor="clinic-name">Nome do negócio</Label><Input id="clinic-name" name="name" minLength={2} maxLength={120} required placeholder="Ex.: Espaço Central" /></div>
+          <Button type="submit" className="w-full" disabled={pending}>{pending ? "Criando..." : "Cadastrar negócio"}</Button>
         </form>
       </EmptyContent>
     </Empty>

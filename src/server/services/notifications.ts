@@ -51,13 +51,13 @@ function buildContent(
 
   switch (kind) {
     case "CONFIRMATION":
-      return `Olá ${params.customerName}! Seu atendimento de ${params.serviceName} na ${params.clinicName} está agendado para ${when}.${replyInstructions} Para cancelar, acesse: ${buildCancellationUrl(params)}`;
+      return `Olá, ${params.customerName}. Seu atendimento de ${params.serviceName} na ${params.clinicName} está agendado para ${when}.${replyInstructions} Para cancelar, acesse: ${buildCancellationUrl(params)}`;
     case "REMINDER_24H":
-      return `Olá ${params.customerName}! Lembrete: amanhã às ${when.slice(-5)} você tem ${params.serviceName} na ${params.clinicName}.${replyInstructions}`;
+      return `Olá, ${params.customerName}. Lembrete: amanhã às ${when.slice(-5)} você tem ${params.serviceName} na ${params.clinicName}.${replyInstructions}`;
     case "REMINDER_2H":
-      return `Olá ${params.customerName}! Lembrete: em 2 horas, às ${when.slice(-5)}, você tem ${params.serviceName} na ${params.clinicName}.${replyInstructions}`;
+      return `Olá, ${params.customerName}. Lembrete: em 2 horas, às ${when.slice(-5)}, você tem ${params.serviceName} na ${params.clinicName}.${replyInstructions}`;
     case "RESCHEDULE_RESPONSE":
-      return `Olá ${params.customerName}! Recebemos sua solicitação de reagendamento para ${params.serviceName} na ${params.clinicName}.`;
+      return `Olá, ${params.customerName}. Recebemos sua solicitação de reagendamento para ${params.serviceName} na ${params.clinicName}.`;
   }
 }
 
@@ -119,11 +119,16 @@ export async function enqueueAppointmentNotifications(
     }] : [];
   });
 
+  // `skipDuplicates`: ao editar um atendimento sem mudar o horário (ou voltar
+  // ao horário original), a confirmação/lembrete com a mesma chave já pode ter
+  // sido enviada (SENT/FAILED) ou estar travada pelo dispatcher. Não reenviar
+  // é o comportamento correto e evita P2002 derrubar a transação inteira.
   await transaction.notification.createMany({
     data: [
       ...confirmations,
       ...buildReminderInputs(params, now),
     ],
+    skipDuplicates: true,
   });
 }
 

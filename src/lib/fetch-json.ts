@@ -1,3 +1,4 @@
+import { readJsonOrNull } from "@/lib/ignore-failure";
 /**
  * Wrapper de fetch para as APIs privadas do painel.
  *
@@ -22,9 +23,10 @@ export async function fetchJson<T>(input: RequestInfo | URL, init?: RequestInit)
   }
 
   if (!response.ok) {
-    const body = contentType.includes("application/json") && typeof response.json === "function"
-      ? await response.json().catch(() => null) as { message?: string } | null
-      : null;
+    const body =
+      contentType.includes("application/json") && typeof response.json === "function"
+        ? await readJsonOrNull<{ message?: string }>(response)
+        : null;
     throw new Error(body?.message ?? `Falha na requisição (${response.status}).`);
   }
 

@@ -5,8 +5,9 @@ import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { normalizeWhatsAppPhone } from "@/lib/phone";
-import { getClinicForRoles } from "@/server/tenant";
-import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
+import { parseClinicDateOnly } from "@/lib/timezone";
+import { parseCustomerCsv } from "@/server/services/customer-import";
+import { requireClinicAction } from "@/server/clinic-action";
 import type { ActionResult } from "@/types";
 import { requireAuthenticatedUser } from "@/server/auth";
 
@@ -16,7 +17,8 @@ const customerSchema = z.object({
   phone: z.string().trim().min(8).max(32),
   notes: z.string().trim().max(2000).optional(),
   tags: z.array(z.string().trim().min(1).max(40)).max(20).optional(),
-  nextReturnAt: z.coerce.date().optional(),
+  // Data sem horário (YYYY-MM-DD); convertida no fuso da loja após resolver o tenant.
+  nextReturnAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 
 const updateCustomerSchema = customerSchema.extend({
@@ -34,15 +36,9 @@ export async function createCustomer(input: unknown): Promise<ActionResult> {
   const normalizedPhone = normalizeWhatsAppPhone(parsed.data.phone);
   if (!normalizedPhone) return { status: "error", message: "Informe um telefone com DDD válido." };
 
-  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de cadastrar clientes." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN", "RECEPTIONIST"], "Selecione um negócio antes de cadastrar clientes.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   try {
     await prisma.customer.create({
@@ -53,7 +49,7 @@ export async function createCustomer(input: unknown): Promise<ActionResult> {
         phone: normalizedPhone,
         notes: parsed.data.notes || null,
         tags: parsed.data.tags ?? [],
-        nextReturnAt: parsed.data.nextReturnAt,
+        nextReturnAt: parsed.data.nextReturnAt ? parseClinicDateOnly(parsed.data.nextReturnAt, clinic.timeZone) : null,
       },
     });
   } catch (error) {
@@ -94,15 +90,9 @@ export async function updateCustomer(input: unknown): Promise<ActionResult> {
   const normalizedPhone = normalizeWhatsAppPhone(parsed.data.phone);
   if (!normalizedPhone) return { status: "error", message: "Informe um telefone com DDD válido." };
 
-  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de atualizar clientes." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN", "RECEPTIONIST"], "Selecione um negócio antes de atualizar clientes.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   const customer = await prisma.customer.findFirst({
     where: { id: parsed.data.customerId, clinicId: clinic.id },
@@ -122,7 +112,7 @@ export async function updateCustomer(input: unknown): Promise<ActionResult> {
         phone: normalizedPhone,
         notes: parsed.data.notes || null,
         tags: parsed.data.tags ?? [],
-        nextReturnAt: parsed.data.nextReturnAt ?? null,
+        nextReturnAt: parsed.data.nextReturnAt ? parseClinicDateOnly(parsed.data.nextReturnAt, clinic.timeZone) : null,
       },
     });
   } catch {
@@ -147,38 +137,36 @@ export async function updateCustomerFromForm(_previousState: ActionResult, formD
   });
 }
 
-function parseCsvLine(line: string): string[] {
-  const values: string[] = []; let value = ""; let quoted = false;
-  for (let index = 0; index < line.length; index += 1) {
-    const char = line[index];
-    if (char === '"' && line[index + 1] === '"' && quoted) { value += '"'; index += 1; }
-    else if (char === '"') quoted = !quoted;
-    else if (char === "," && !quoted) { values.push(value.trim()); value = ""; }
-    else value += char;
-  }
-  values.push(value.trim()); return values;
-}
-
 export async function importCustomersFromCsv(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
   await requireAuthenticatedUser();
-  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
-  if (!clinic || !isSubscriptionActive(clinic)) return { status: "error", message: clinic ? SUBSCRIPTION_INACTIVE_MESSAGE : "Selecione uma loja." };
+  const access = await requireClinicAction(["ADMIN", "RECEPTIONIST"]);
+  if (!access.ok) return access.result;
+  const { clinic } = access;
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0 || file.size > 1024 * 1024) return { status: "error", message: "Selecione um CSV de até 1 MB." };
-  const lines = (await file.text()).replace(/^\uFEFF/, "").split(/\r?\n/).filter(Boolean);
-  if (lines.length < 2 || lines.length > 5001) return { status: "error", message: "O arquivo deve ter cabeçalho e até 5.000 clientes." };
-  const headers = parseCsvLine(lines[0]).map((header) => header.toLowerCase());
-  const nameIndex = headers.indexOf("nome"); const phoneIndex = headers.indexOf("telefone"); const emailIndex = headers.indexOf("email");
-  if (nameIndex < 0 || phoneIndex < 0) return { status: "error", message: "Use as colunas nome, telefone e email." };
-  let imported = 0; let ignored = 0;
-  for (const line of lines.slice(1)) {
-    const values = parseCsvLine(line); const name = values[nameIndex]?.trim(); const phone = normalizeWhatsAppPhone(values[phoneIndex] ?? ""); const email = values[emailIndex]?.trim().toLowerCase() || null;
-    if (!name || name.length < 2 || !phone || (email && !z.email().safeParse(email).success)) { ignored += 1; continue; }
-    await prisma.customer.upsert({ where: { clinicId_phone: { clinicId: clinic.id, phone } }, create: { clinicId: clinic.id, name: name.slice(0, 120), phone, email }, update: { name: name.slice(0, 120), email } });
-    imported += 1;
+
+  const parsed = parseCustomerCsv(await file.text());
+  if (!parsed.ok) return { status: "error", message: parsed.message };
+
+  try {
+    // Tudo ou nada: uma falha no meio não deixa a base meio importada.
+    await prisma.$transaction(async (transaction) => {
+      for (const row of parsed.rows) {
+        await transaction.customer.upsert({
+          where: { clinicId_phone: { clinicId: clinic.id, phone: row.phone } },
+          create: { clinicId: clinic.id, name: row.name, phone: row.phone, email: row.email },
+          // E-mail vazio na planilha não apaga o e-mail já cadastrado.
+          update: { name: row.name, ...(row.email ? { email: row.email } : {}) },
+        });
+      }
+    }, { timeout: 60_000 });
+  } catch {
+    return { status: "error", message: "Não foi possível importar a planilha. Nenhum cliente foi alterado." };
   }
+
   revalidatePath("/dashboard/clientes");
-  return { status: "success", message: `${imported} cliente(s) importado(s)${ignored ? `; ${ignored} linha(s) ignorada(s)` : ""}.` };
+  const { ignored } = parsed;
+  return { status: "success", message: `${parsed.rows.length} cliente(s) importado(s)${ignored ? `; ${ignored} linha(s) ignorada(s)` : ""}.` };
 }
 
 export async function deleteCustomer(customerId: string): Promise<ActionResult> {
@@ -190,15 +178,9 @@ export async function deleteCustomer(customerId: string): Promise<ActionResult> 
     return { status: "error", message: "Não foi possível remover este cliente." };
   }
 
-  const clinic = await getClinicForRoles(["ADMIN"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de remover clientes." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN"], "Selecione um negócio antes de remover clientes.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   const customer = await prisma.customer.findFirst({
     where: { id: parsedId.data, clinicId: clinic.id },

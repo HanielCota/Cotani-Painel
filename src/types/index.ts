@@ -2,6 +2,9 @@ export type ActionResult =
   | { status: "success"; message: string }
   | { status: "error"; message: string };
 
+/** Estado inicial neutro para `useActionState` (mensagem vazia não gera toast). */
+export const INITIAL_ACTION_RESULT: ActionResult = { status: "success", message: "" };
+
 export interface AgendaAppointment {
   id: string;
   customerId?: string;
@@ -15,6 +18,17 @@ export interface AgendaAppointment {
   status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELED" | "NO_SHOW";
   notes?: string | null;
   totalPrice?: number;
+}
+
+/** Agenda em grade (dia/semana): atendimentos do intervalo + dados da grade. */
+export interface AgendaRange {
+  /** Primeiro dia (YYYY-MM-DD, fuso do negócio). */
+  from: string;
+  days: number;
+  timeZone: string;
+  items: AgendaAppointment[];
+  professionals: Array<{ id: string; name: string }>;
+  hours: Array<{ dayOfWeek: number; isOpen: boolean; openTime: string; closeTime: string }>;
 }
 
 export interface AppointmentsPage {

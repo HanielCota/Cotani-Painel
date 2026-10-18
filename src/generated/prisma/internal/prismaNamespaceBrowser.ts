@@ -69,6 +69,7 @@ export const ModelName = {
   FinancialEntry: 'FinancialEntry',
   Notification: 'Notification',
   WebhookEvent: 'WebhookEvent',
+  OperationalEvent: 'OperationalEvent',
   RateLimit: 'RateLimit'
 } as const
 
@@ -115,6 +116,7 @@ export const ClinicScalarFieldEnum = {
   billingReconciledAt: 'billingReconciledAt',
   cancelAtPeriodEnd: 'cancelAtPeriodEnd',
   maxAppointmentsPerDay: 'maxAppointmentsPerDay',
+  bookingLinkSharedAt: 'bookingLinkSharedAt',
   operationalStatus: 'operationalStatus',
   suspensionReason: 'suspensionReason',
   suspendedAt: 'suspendedAt',
@@ -408,6 +410,23 @@ export const WebhookEventScalarFieldEnum = {
 } as const
 
 export type WebhookEventScalarFieldEnum = (typeof WebhookEventScalarFieldEnum)[keyof typeof WebhookEventScalarFieldEnum]
+
+
+export const OperationalEventScalarFieldEnum = {
+  id: 'id',
+  category: 'category',
+  operation: 'operation',
+  status: 'status',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  durationMs: 'durationMs',
+  summary: 'summary',
+  error: 'error',
+  externalEventId: 'externalEventId',
+  createdAt: 'createdAt'
+} as const
+
+export type OperationalEventScalarFieldEnum = (typeof OperationalEventScalarFieldEnum)[keyof typeof OperationalEventScalarFieldEnum]
 
 
 export const RateLimitScalarFieldEnum = {

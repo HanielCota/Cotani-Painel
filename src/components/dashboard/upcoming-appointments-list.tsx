@@ -1,10 +1,9 @@
 "use client";
 
-import { CalendarX2Icon } from "lucide-react";
 
 import { appointmentStatusBadgeVariant, appointmentStatusLabel } from "@/lib/display-labels";
 import { Badge } from "@/components/ui/badge";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMascot, EmptyTitle } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUpcomingAppointments } from "@/hooks/use-upcoming-appointments";
 
@@ -43,7 +42,7 @@ export function UpcomingAppointmentsList({ timeZone, limit = 10 }: UpcomingAppoi
     return (
       <Empty className="min-h-40 border border-dashed border-border/80 bg-background/50">
         <EmptyHeader>
-          <EmptyMedia variant="icon"><CalendarX2Icon /></EmptyMedia>
+          <EmptyMascot />
           <EmptyTitle>Sem agendamentos próximos</EmptyTitle>
           <EmptyDescription>Os próximos atendimentos confirmados e pendentes aparecerão aqui.</EmptyDescription>
         </EmptyHeader>
@@ -69,7 +68,7 @@ export function UpcomingAppointmentsList({ timeZone, limit = 10 }: UpcomingAppoi
             <div className="flex min-w-0 items-center gap-3">
               <div className="flex size-8 shrink-0 flex-col items-center justify-center rounded-md border bg-muted text-xs font-medium">
                 <span>{startTime.toLocaleDateString("pt-BR", { day: "2-digit", timeZone })}</span>
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   {startTime.toLocaleDateString("pt-BR", { month: "short", timeZone })}
                 </span>
               </div>

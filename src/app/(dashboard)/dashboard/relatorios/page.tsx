@@ -12,8 +12,8 @@ import { getPlanEntitlements } from "@/config/subscription-plans";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getReportAppointmentsPage, getReportsMetrics } from "@/server/services/reports";
-import { parseClinicDateTime } from "@/lib/timezone";
-import prisma from "@/lib/prisma";
+import { getAuthorizedReportClinicIds } from "@/server/services/report-scope";
+import { parseClinicDateRange } from "@/lib/timezone";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { withTenant } from "@/server/with-tenant";
@@ -22,17 +22,15 @@ import { isSubscriptionActive } from "@/server/subscription";
 export const metadata: Metadata = { title: "Relatórios" };
 
 interface ReportsPageProps { searchParams: Promise<{ from?: string; to?: string; page?: string }> }
-export default withTenant<ReportsPageProps>(async ({ clinic }, { searchParams }) => {
+export default withTenant<ReportsPageProps>(async (context, { searchParams }) => {
+  const { clinic } = context;
   const entitlements = getPlanEntitlements(clinic.subscriptionPlan);
   if (!isSubscriptionActive(clinic) || !entitlements.monthlyReports) {
     return <PlanUpgradeRequired feature="Relatórios mensais" />;
   }
   const query = await searchParams;
-  const from = query.from ? parseClinicDateTime(`${query.from}T00:00`, clinic.timeZone) ?? undefined : undefined;
-  const toStart = query.to ? parseClinicDateTime(`${query.to}T00:00`, clinic.timeZone) : null;
-  const to = toStart ? new Date(toStart.getTime() + 24 * 60 * 60_000) : undefined;
-  const ownerId = clinic.billingOwnerId ?? clinic.id;
-  const unitIds = entitlements.multipleLocations ? (await prisma.clinic.findMany({ where: { OR: [{ id: ownerId }, { billingOwnerId: ownerId }], deletedAt: null }, select: { id: true } })).map((item) => item.id) : [clinic.id];
+  const { from, to } = parseClinicDateRange(query.from, query.to, clinic.timeZone);
+  const unitIds = await getAuthorizedReportClinicIds(context);
   const page = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1);
   const reportOptions = { from, to, clinicIds: unitIds };
   const [metrics, appointmentsPage] = await Promise.all([
@@ -52,7 +50,7 @@ export default withTenant<ReportsPageProps>(async ({ clinic }, { searchParams })
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Relatórios"
-        description={`Transforme a rotina da ${clinic.name} em decisões claras.`}
+        description={`Atendimentos, faturamento e clientes da ${clinic.name} no período.`}
         actions={entitlements.advancedReports ? (
           <Button
             type="button"
@@ -84,7 +82,7 @@ export default withTenant<ReportsPageProps>(async ({ clinic }, { searchParams })
 
       <section className="grid gap-4 md:grid-cols-3"><Card><CardHeader><CardTitle>Retenção</CardTitle><CardDescription>Clientes com dois ou mais atendimentos no período.</CardDescription></CardHeader><CardContent className="text-3xl font-semibold">{metrics.retentionRate}%</CardContent></Card><Card><CardHeader><CardTitle>Faltas por dia</CardTitle></CardHeader><CardContent className="space-y-1 text-sm">{metrics.noShowsByWeekday.map((item) => <div key={item.day} className="flex justify-between"><span>{item.day}</span><strong>{item.count}</strong></div>)}</CardContent></Card><Card><CardHeader><CardTitle>Confirmações enviadas</CardTitle></CardHeader><CardContent className="space-y-1 text-sm">{metrics.confirmationsByChannel.length ? metrics.confirmationsByChannel.map((item) => <div key={item.channel} className="flex justify-between"><span>{item.channel}</span><strong>{item.sent}</strong></div>) : <p className="text-muted-foreground">Nenhuma no período.</p>}</CardContent></Card></section>
 
-      <Card className="border-primary/20 bg-primary/5"><CardHeader><CardTitle>Insight automático</CardTitle><CardDescription>Leitura objetiva dos indicadores do período.</CardDescription></CardHeader><CardContent><p className="text-sm">{insight}</p></CardContent></Card>
+      <Card className="border-primary/20 bg-primary/5"><CardHeader><CardTitle>Insight automático</CardTitle><CardDescription>Gerado a partir das faltas e da retenção do período.</CardDescription></CardHeader><CardContent><p className="text-sm">{insight}</p></CardContent></Card>
 
       <section className="flex flex-col gap-4">
         <h2 className="text-base font-semibold text-foreground">Análise do período</h2>
@@ -107,7 +105,7 @@ export default withTenant<ReportsPageProps>(async ({ clinic }, { searchParams })
       <Card>
         <CardHeader>
           <CardTitle>Como os indicadores são calculados</CardTitle>
-          <CardDescription>As taxas consideram o período selecionado e o horário local da sua empresa.</CardDescription>
+          <CardDescription>As taxas consideram o período selecionado e o horário local do seu negócio.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-2 text-sm text-muted-foreground">
           <p>

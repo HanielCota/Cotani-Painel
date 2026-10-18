@@ -63,9 +63,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Corpo inválido." }, { status: 400 });
   }
 
-  const messages = payload.entry?.flatMap((entry) =>
-    entry.changes?.flatMap((change) => change.value?.messages ?? []) ?? [],
-  ) ?? [];
+  const messages =
+    payload.entry?.flatMap((entry) => entry.changes?.flatMap((change) => change.value?.messages ?? []) ?? []) ?? [];
 
   for (const message of messages) {
     const eventId = message.id?.trim();
@@ -83,9 +82,15 @@ export async function POST(request: NextRequest) {
       channel: "WHATSAPP" as const,
       recipient: phone,
       status: "SENT" as const,
-      appointment: { status: "PENDING" as const, startTime: { gte: new Date() }, clinic: { deletedAt: null, operationalStatus: "ACTIVE" as const } },
+      appointment: {
+        status: "PENDING" as const,
+        startTime: { gte: new Date() },
+        clinic: { deletedAt: null, operationalStatus: "ACTIVE" as const },
+      },
     };
-    const includeAppointment = { appointment: { include: { clinic: { select: { id: true, name: true, slug: true } } } } } as const;
+    const includeAppointment = {
+      appointment: { include: { clinic: { select: { id: true, name: true, slug: true } } } },
+    } as const;
     const replyToProviderRef = message.context?.id?.trim();
     const exactOutbound = replyToProviderRef
       ? await prisma.notification.findFirst({
@@ -102,13 +107,16 @@ export async function POST(request: NextRequest) {
           take: 10,
         });
     const appointmentIds = new Set(recentOutbounds.map((notification) => notification.appointmentId));
-    const appointment = appointmentIds.size === 1 ? recentOutbounds[0]?.appointment ?? null : null;
+    const appointment = appointmentIds.size === 1 ? (recentOutbounds[0]?.appointment ?? null) : null;
     const ambiguous = !exactOutbound && appointmentIds.size > 1;
 
     try {
       await prisma.$transaction(async (transaction) => {
         if (appointment && ["1", "confirmar", "confirmado", "sim"].includes(answer)) {
-          await transaction.appointment.updateMany({ where: { id: appointment.id, status: "PENDING" }, data: { status: "CONFIRMED" } });
+          await transaction.appointment.updateMany({
+            where: { id: appointment.id, status: "PENDING" },
+            data: { status: "CONFIRMED" },
+          });
         }
         if (appointment && ["2", "reagendar", "remarcar"].includes(answer)) {
           const baseUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "";
@@ -127,9 +135,20 @@ export async function POST(request: NextRequest) {
             },
           });
         }
-        await transaction.webhookEvent.create({ data: { provider: "meta-whatsapp", eventId, type: ambiguous ? "message.received.ambiguous" : "message.received", payloadSnapshot: message as unknown as Prisma.InputJsonValue } });
+        await transaction.webhookEvent.create({
+          data: {
+            provider: "meta-whatsapp",
+            eventId,
+            type: ambiguous ? "message.received.ambiguous" : "message.received",
+            payloadSnapshot: message as unknown as Prisma.InputJsonValue,
+          },
+        });
       });
-      if (ambiguous) logger.warn("Resposta do WhatsApp ignorada por associação ambígua", { eventId, candidateAppointments: appointmentIds.size });
+      if (ambiguous)
+        logger.warn("Resposta do WhatsApp ignorada por associação ambígua", {
+          eventId,
+          candidateAppointments: appointmentIds.size,
+        });
     } catch (error) {
       if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") continue;
       throw error;

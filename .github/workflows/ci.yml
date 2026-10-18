@@ -5,43 +5,147 @@ on:
   push:
     branches: [main]
 
+# O token só lê o repositório; nenhum job precisa escrever.
+permissions:
+  contents: read
+
+# Um push novo no mesmo PR/branch cancela a execução anterior.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# Valores fictícios: nenhum job acessa Supabase, Mercado Pago, Resend ou
+# Twilio reais. O banco dos jobs `database` e `e2e` é um container efêmero.
+env:
+  NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci
+  SUPABASE_SECRET_KEY: sb_secret_ci
+  SUPABASE_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+  SUPABASE_DIRECT_URL: postgresql://postgres:postgres@localhost:5432/postgres
+  PLATFORM_ADMIN_USER_IDS: 550e8400-e29b-41d4-a716-446655440000
+  CRON_SECRET: ci-secret
+  NEXT_PUBLIC_APP_URL: https://painel.example.com
+  VERCEL_ENV: production
+  DATABASE_POOL_MAX: 3
+  MERCADO_PAGO_ACCESS_TOKEN: TEST-ci
+  MERCADO_PAGO_ESSENTIAL_MONTHLY_PLAN_ID: essential-monthly-ci
+  MERCADO_PAGO_ESSENTIAL_ANNUAL_PLAN_ID: essential-annual-ci
+  MERCADO_PAGO_PROFESSIONAL_MONTHLY_PLAN_ID: professional-monthly-ci
+  MERCADO_PAGO_PROFESSIONAL_ANNUAL_PLAN_ID: professional-annual-ci
+  MERCADO_PAGO_WEBHOOK_SECRET: mercado-pago-ci-secret
+  RESEND_API_KEY: re_ci
+  EMAIL_FROM: Cotani <agendamentos@example.com>
+  TWILIO_ACCOUNT_SID: ACci
+  TWILIO_AUTH_TOKEN: twilio-ci-secret
+  TWILIO_SMS_FROM: "+5511999999999"
+
 jobs:
   validate:
+    name: Lint, types, tests and build
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci
-      SUPABASE_SECRET_KEY: sb_secret_ci
-      SUPABASE_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cotani
-      SUPABASE_DIRECT_URL: postgresql://postgres:postgres@localhost:5432/cotani
-      PLATFORM_ADMIN_USER_IDS: 550e8400-e29b-41d4-a716-446655440000
-      CRON_SECRET: ci-secret
-      NEXT_PUBLIC_APP_URL: https://painel.example.com
-      VERCEL_ENV: production
-      DATABASE_POOL_MAX: 3
-      MERCADO_PAGO_ACCESS_TOKEN: TEST-ci
-      MERCADO_PAGO_ESSENTIAL_MONTHLY_PLAN_ID: essential-monthly-ci
-      MERCADO_PAGO_ESSENTIAL_ANNUAL_PLAN_ID: essential-annual-ci
-      MERCADO_PAGO_PROFESSIONAL_MONTHLY_PLAN_ID: professional-monthly-ci
-      MERCADO_PAGO_PROFESSIONAL_ANNUAL_PLAN_ID: professional-annual-ci
-      MERCADO_PAGO_WEBHOOK_SECRET: mercado-pago-ci-secret
-      RESEND_API_KEY: re_ci
-      EMAIL_FROM: Cotani <agendamentos@example.com>
-      TWILIO_ACCOUNT_SID: ACci
-      TWILIO_AUTH_TOKEN: twilio-ci-secret
-      TWILIO_SMS_FROM: "+5511999999999"
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          version: 11.22.0
-          run_install: false
-      - uses: actions/setup-node@v4
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0 (usa a versão do packageManager)
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 24
+          node-version-file: package.json
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma validate
       - run: pnpm check
       - run: pnpm build
+
+  audit:
+    name: Production dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: package.json
+      # Bloqueia avisos altos/críticos no que vai para produção. As
+      # devDependencies ficam a cargo do Dependabot (não chegam ao runtime).
+      - run: pnpm audit --prod --audit-level high
+
+  database:
+    name: Migrations and schema drift
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        # Mesma imagem do banco do Supabase: traz auth, roles, pg_cron, pg_net e vault.
+        image: supabase/postgres:17.11.0.002@sha256:0450166354dc9c1d25f0322ac8b580774d4fb0184d2b087f6e4fe9499c66cf53
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -h localhost"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: package.json
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Bootstrap Supabase service schemas
+        run: psql "postgresql://supabase_admin:postgres@localhost:5432/postgres" -v ON_ERROR_STOP=1 -q -f scripts/ci/supabase-bootstrap.sql
+      - name: Apply all migrations to an empty database
+        run: pnpm exec prisma migrate deploy
+      - name: Verify Prisma schema matches migrations
+        run: |
+          # A FK User -> auth.users é específica do Supabase e fica fora do
+          # modelo Prisma; sem removê-la a introspecção recusa o schema `auth`.
+          psql "postgresql://supabase_admin:postgres@localhost:5432/postgres" -q -c 'ALTER TABLE public."User" DROP CONSTRAINT IF EXISTS "User_authUserId_fkey";'
+          pnpm exec prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
+
+  e2e:
+    name: E2E public routes
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: supabase/postgres:17.11.0.002@sha256:0450166354dc9c1d25f0322ac8b580774d4fb0184d2b087f6e4fe9499c66cf53
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -h localhost"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: package.json
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: psql "postgresql://supabase_admin:postgres@localhost:5432/postgres" -v ON_ERROR_STOP=1 -q -f scripts/ci/supabase-bootstrap.sql
+      - run: pnpm exec prisma migrate deploy
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

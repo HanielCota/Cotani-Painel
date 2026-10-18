@@ -29,7 +29,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
       <AdminPageHeader title="Auditoria" description="Histórico imutável das ações administrativas sensíveis." />
       <Card className="overflow-hidden"><CardContent className="px-0">
         <Table>
-          <TableHeader className="bg-muted/40"><TableRow><TableHead className="pl-6">Data</TableHead><TableHead>Ação</TableHead><TableHead>Loja / alvo</TableHead><TableHead>Motivo</TableHead><TableHead className="pr-6">Responsável</TableHead></TableRow></TableHeader>
+          <TableHeader className="bg-muted/40"><TableRow><TableHead className="pl-6">Data</TableHead><TableHead>Ação</TableHead><TableHead>Negócio / alvo</TableHead><TableHead>Motivo</TableHead><TableHead className="pr-6">Responsável</TableHead></TableRow></TableHeader>
           <TableBody>
             {events.map((event) => (
               <TableRow key={event.id}>

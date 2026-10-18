@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { CalendarCheckIcon, CheckIcon, ClockIcon, LinkIcon, SettingsIcon, TagIcon, TriangleAlertIcon, UsersIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { copyText } from "@/lib/clipboard";
+import { markBookingLinkShared, readBookingLinkShared, subscribeBookingLinkShared } from "@/lib/booking-link-shared";
 
 interface OnboardingChecklistProps {
   bookingUrl: string;
@@ -17,38 +18,10 @@ interface OnboardingChecklistProps {
   hasProfessionals: boolean;
   hasAppointments: boolean;
   isSubscriptionActive: boolean;
+  /** O link já foi copiado neste negócio, em qualquer aparelho. */
+  linkSharedOnServer?: boolean;
 }
 
-const LINK_STEP_STORAGE_KEY = "cotani:onboarding:link-shared";
-
-function readLinkStepDone(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return localStorage.getItem(LINK_STEP_STORAGE_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
-
-function useLinkStepDone() {
-  const [done, setDone] = useState(false);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => setDone(readLinkStepDone()), 0);
-    return () => window.clearTimeout(timeoutId);
-  }, []);
-
-  function markDone() {
-    try {
-      localStorage.setItem(LINK_STEP_STORAGE_KEY, "true");
-    } catch {
-      // ignore
-    }
-    setDone(true);
-  }
-
-  return { done, markDone };
-}
 
 export function OnboardingChecklist({
   bookingUrl,
@@ -57,8 +30,11 @@ export function OnboardingChecklist({
   hasProfessionals,
   hasAppointments,
   isSubscriptionActive,
+  linkSharedOnServer = false,
 }: OnboardingChecklistProps) {
-  const { done: linkShared, markDone } = useLinkStepDone();
+  const linkCopied = useSyncExternalStore(subscribeBookingLinkShared, readBookingLinkShared, () => false);
+  // Quem já recebe agendamentos já divulgou o link, mesmo sem copiá-lo por aqui.
+  const linkShared = linkSharedOnServer || linkCopied || hasAppointments;
 
   const steps = [
     {
@@ -88,7 +64,7 @@ export function OnboardingChecklist({
     {
       id: "professionals",
       label: "Cadastrar profissionais",
-      description: "Defina quem realizará os serviços da loja.",
+      description: "Defina quem realizará os serviços do negócio.",
       done: hasProfessionals,
       href: "/dashboard/negocio/profissionais",
       icon: UsersIcon,
@@ -172,7 +148,7 @@ export function OnboardingChecklist({
                         toast.error("Não foi possível copiar o link. Abra a página pública e copie o endereço do navegador.");
                         return;
                       }
-                      markDone();
+                      markBookingLinkShared();
                       toast.success("Link de agendamento copiado.");
                     }}
                   >

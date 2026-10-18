@@ -33,17 +33,17 @@ const paymentStatusLabels: Record<string, string> = {
 };
 
 const adminActionLabels: Record<string, string> = {
-  CLINIC_UPDATED: "Loja atualizada",
-  CLINIC_SUSPENDED: "Loja suspensa",
-  CLINIC_ACTIVATED: "Loja reativada",
-  CLINIC_SOFT_DELETED: "Loja excluída",
-  CLINIC_RESTORED: "Loja restaurada",
+  CLINIC_UPDATED: "Negócio atualizado",
+  CLINIC_SUSPENDED: "Negócio suspenso",
+  CLINIC_ACTIVATED: "Negócio reativado",
+  CLINIC_SOFT_DELETED: "Negócio excluído",
+  CLINIC_RESTORED: "Negócio restaurado",
   MEMBERSHIP_ROLE_UPDATED: "Papel do membro alterado",
   MEMBERSHIP_REMOVED: "Membro removido",
 };
 
 const adminTargetLabels: Record<string, string> = {
-  Clinic: "Loja",
+  Clinic: "Negócio",
   Membership: "Vínculo de membro",
 };
 
@@ -103,4 +103,37 @@ export function adminActionLabel(action: string): string {
 
 export function adminTargetLabel(target: string): string {
   return adminTargetLabels[target] ?? "Registro";
+}
+
+export const financialEntryStatusLabels = {
+  PENDING: "Pendente",
+  PARTIAL: "Parcial",
+  PAID: "Pago",
+  REFUNDED: "Estornado",
+  CANCELED: "Cancelado",
+} as const;
+
+const financialEntryStatusBadgeVariants = {
+  PENDING: "warning",
+  PARTIAL: "info",
+  PAID: "success",
+  REFUNDED: "secondary",
+  CANCELED: "outline",
+} as const;
+
+export const financialEntryTypeLabels = {
+  INCOME: "Receita",
+  EXPENSE: "Despesa",
+} as const;
+
+export function financialEntryStatusLabel(status: string): string {
+  return financialEntryStatusLabels[status as keyof typeof financialEntryStatusLabels] ?? "Status não reconhecido";
+}
+
+export function financialEntryStatusBadgeVariant(status: string) {
+  return financialEntryStatusBadgeVariants[status as keyof typeof financialEntryStatusBadgeVariants] ?? "secondary";
+}
+
+export function financialEntryTypeLabel(type: string): string {
+  return financialEntryTypeLabels[type as keyof typeof financialEntryTypeLabels] ?? "Movimentação";
 }

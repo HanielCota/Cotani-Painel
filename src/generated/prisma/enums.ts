@@ -124,6 +124,23 @@ export const NotificationStatus = {
 export type NotificationStatus = (typeof NotificationStatus)[keyof typeof NotificationStatus]
 
 
+export const OperationalCategory = {
+  JOB: 'JOB',
+  WEBHOOK: 'WEBHOOK'
+} as const
+
+export type OperationalCategory = (typeof OperationalCategory)[keyof typeof OperationalCategory]
+
+
+export const OperationalStatus = {
+  SUCCESS: 'SUCCESS',
+  WARNING: 'WARNING',
+  FAILURE: 'FAILURE'
+} as const
+
+export type OperationalStatus = (typeof OperationalStatus)[keyof typeof OperationalStatus]
+
+
 export const InvitationStatus = {
   PENDING: 'PENDING',
   ACCEPTED: 'ACCEPTED',

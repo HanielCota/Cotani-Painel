@@ -26,7 +26,7 @@ export function PaymentRequiredState({ clinicName, plans }: PaymentRequiredState
         <EmptyTitle>Assinatura necessária</EmptyTitle>
         <EmptyDescription className="max-w-md">
           {clinicName
-            ? `A loja ${clinicName} ainda não tem um pagamento confirmado. Contrate um plano para liberar o painel.`
+            ? `O negócio ${clinicName} ainda não tem um pagamento confirmado. Contrate um plano para liberar o painel.`
             : "Esta conta ainda não tem um pagamento confirmado. Contrate um plano para liberar o painel."}
         </EmptyDescription>
       </EmptyHeader>
@@ -35,7 +35,7 @@ export function PaymentRequiredState({ clinicName, plans }: PaymentRequiredState
           <SubscriptionOptionsDialog plans={plans} />
         ) : (
           <p className="text-center text-sm text-muted-foreground">
-            Peça a um administrador da empresa para contratar ou renovar o plano.
+            Peça a um administrador do negócio para contratar ou renovar o plano.
           </p>
         )}
       </EmptyContent>

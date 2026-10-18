@@ -4,8 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
-import { getClinicForRoles } from "@/server/tenant";
-import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
+import { requireClinicAction } from "@/server/clinic-action";
 import type { ActionResult } from "@/types";
 import { requireAuthenticatedUser } from "@/server/auth";
 
@@ -18,15 +17,9 @@ export async function markWhatsAppNotificationAsSent(notificationId: string): Pr
     return { status: "error", message: "Notificação inválida." };
   }
 
-  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de continuar." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN", "RECEPTIONIST"], "Selecione um negócio antes de continuar.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   const notification = await prisma.notification.findFirst({
     where: {

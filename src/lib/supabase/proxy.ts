@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { getPublicSupabaseConfig } from "@/lib/supabase/config";
+import { isRecoverySession } from "@/lib/supabase/recovery-session";
 
 export async function updateSupabaseSession(request: NextRequest, requestHeaders = request.headers) {
   let response = NextResponse.next({ request: { headers: requestHeaders } });
@@ -23,7 +24,8 @@ export async function updateSupabaseSession(request: NextRequest, requestHeaders
   const isAuthenticated = !error && Boolean(data?.claims?.sub);
   const pathname = request.nextUrl.pathname;
   const isPrivate = pathname.startsWith("/dashboard") || pathname.startsWith("/admin");
-  const isAuthPage = pathname === "/sign-in" || pathname === "/forgot-password";
+  const recoveryPending = request.cookies.get("cotani_recovery_pending")?.value === "1";
+  const recoveryBlocked = recoveryPending || (isAuthenticated && isRecoverySession(data?.claims));
 
   function redirectWithSession(url: URL) {
     const redirectResponse = NextResponse.redirect(url);
@@ -33,19 +35,20 @@ export async function updateSupabaseSession(request: NextRequest, requestHeaders
     return redirectResponse;
   }
 
+  if (recoveryBlocked && (pathname === "/" || isPrivate || pathname === "/mfa")) {
+    return redirectWithSession(new URL("/auth/confirm-recovery", request.url));
+  }
+
+  if (recoveryBlocked && pathname.startsWith("/api/") && !pathname.startsWith("/api/public/") && !pathname.startsWith("/api/webhooks/")) {
+    return new NextResponse(null, { status: 403, headers: { "Cache-Control": "private, no-store" } });
+  }
+
   if (isPrivate && !isAuthenticated) {
     const signInUrl = request.nextUrl.clone();
     signInUrl.pathname = "/sign-in";
     signInUrl.search = "";
     signInUrl.searchParams.set("redirect", `${pathname}${request.nextUrl.search}`);
     return redirectWithSession(signInUrl);
-  }
-
-  if (isAuthPage && isAuthenticated) {
-    const dashboardUrl = request.nextUrl.clone();
-    dashboardUrl.pathname = "/dashboard";
-    dashboardUrl.search = "";
-    return redirectWithSession(dashboardUrl);
   }
 
   if (pathname.startsWith("/api/")) {

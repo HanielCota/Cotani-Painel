@@ -73,7 +73,7 @@ describe("AccountSecuritySettings", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Atualizar senha" }));
 
-    await waitFor(() => expect(toastError).toHaveBeenCalledWith("A senha atual está incorreta."));
+    expect(await screen.findByRole("alert")).toHaveTextContent("A senha atual está incorreta.");
     expect(updateUser).not.toHaveBeenCalled();
   });
 

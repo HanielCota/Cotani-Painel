@@ -5,6 +5,7 @@ import { CheckIcon, CopyIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { markBookingLinkShared } from "@/lib/booking-link-shared";
 import { copyText } from "@/lib/clipboard";
 
 interface CopyBookingLinkProps {
@@ -29,7 +30,9 @@ export function CopyBookingLink({ url }: CopyBookingLinkProps) {
 
   async function handleCopy() {
     const copiedSuccessfully = await copyText(url);
+    // Sem acesso à área de transferência, seleciona o link para a pessoa copiar.
     if (!copiedSuccessfully) inputRef.current?.select();
+    if (copiedSuccessfully) markBookingLinkShared();
 
     setCopied(true);
 
@@ -53,7 +56,7 @@ export function CopyBookingLink({ url }: CopyBookingLinkProps) {
       />
       <Button type="button" variant="outline" onClick={handleCopy} aria-label="Copiar link de agendamento">
         {copied ? <CheckIcon data-icon="inline-start" /> : <CopyIcon data-icon="inline-start" />}
-        {copied ? "Copiado!" : "Copiar link"}
+        {copied ? "Copiado" : "Copiar link"}
       </Button>
     </div>
   );

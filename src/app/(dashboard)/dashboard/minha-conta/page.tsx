@@ -13,7 +13,7 @@ import prisma from "@/lib/prisma";
 import { withTenant } from "@/server/with-tenant";
 import { clinicRoleLabel } from "@/lib/display-labels";
 
-export const metadata: Metadata = { title: "Minha conta" };
+export const metadata: Metadata = { title: "Configurações" };
 
 export default withTenant(async ({ membership, role }) => {
   const user = await prisma.user.findUniqueOrThrow({
@@ -23,7 +23,7 @@ export default withTenant(async ({ membership, role }) => {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Minha conta" description="Gerencie sua identidade, segurança e preferências pessoais." />
+      <PageHeader title="Configurações" description="Sua conta, segurança e aparência do painel." />
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
         <div className="flex min-w-0 flex-col gap-4">
@@ -51,7 +51,7 @@ export default withTenant(async ({ membership, role }) => {
           <Card>
             <CardHeader>
               <CardTitle><PaletteIcon className="text-primary" />Aparência</CardTitle>
-              <CardDescription>Escolha como o painel será exibido nesta conta.</CardDescription>
+              <CardDescription>Modo claro/escuro, tema de fundo e cor de destaque. Vale para este navegador.</CardDescription>
             </CardHeader>
             <CardContent><AccountThemeSettings /></CardContent>
           </Card>
@@ -73,7 +73,7 @@ export default withTenant(async ({ membership, role }) => {
       <Card className="border-destructive/35 bg-destructive/[0.025]">
         <CardHeader>
           <CardTitle className="text-destructive">Excluir conta</CardTitle>
-          <CardDescription>Remove seu acesso definitivamente. Os dados das empresas precisam permanecer sob outro administrador.</CardDescription>
+          <CardDescription>Remove seu acesso definitivamente. Os dados dos negócios precisam permanecer sob outro administrador.</CardDescription>
         </CardHeader>
         <CardContent><DeleteAccountForm /></CardContent>
       </Card>

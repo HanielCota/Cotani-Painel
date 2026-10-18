@@ -61,3 +61,27 @@ describe("getClinicDateBounds", () => {
     expect(localStart).toMatch(/00:00:00/);
   });
 });
+
+describe("datas sem horário", () => {
+  it("grava o dia escolhido ao meio-dia da loja (mesmo dia em UTC)", async () => {
+    const { parseClinicDateOnly } = await import("./timezone");
+    expect(parseClinicDateOnly("2026-10-01", "America/Sao_Paulo")?.toISOString()).toBe("2026-10-01T15:00:00.000Z");
+    expect(parseClinicDateOnly("2026-02-30", "America/Sao_Paulo")).toBeNull();
+    expect(parseClinicDateOnly("01/10/2026", "America/Sao_Paulo")).toBeNull();
+  });
+
+  it("converte filtro de/até em intervalo [de, até+1) no fuso da loja", async () => {
+    const { parseClinicDateRange } = await import("./timezone");
+    const range = parseClinicDateRange("2026-10-01", "2026-10-31", "America/Sao_Paulo");
+    expect(range.from?.toISOString()).toBe("2026-10-01T03:00:00.000Z");
+    expect(range.to?.toISOString()).toBe("2026-11-01T03:00:00.000Z");
+    expect(parseClinicDateRange(null, "lixo", "America/Sao_Paulo")).toEqual({ from: undefined, to: undefined });
+  });
+});
+
+describe("report date range validation", () => {
+  it.each(["2026-99-99", "2026-02-30", "2026-00-01", "0000-00-00"])("ignores nonexistent date %s without rolling it forward or throwing", async (value) => {
+    const { parseClinicDateRange } = await import("./timezone");
+    expect(parseClinicDateRange(value, value, "America/Sao_Paulo")).toEqual({ from: undefined, to: undefined });
+  });
+});

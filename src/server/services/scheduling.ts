@@ -7,6 +7,8 @@ import type { NotificationChannel } from "@/generated/prisma/enums";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import { formatClinicDateTimeInput, getClinicDateBounds } from "@/lib/timezone";
+import { isWithinStaffBookingHorizon } from "@/config/booking";
+import { getClinicWeekday, minutesFromTime, resolveWorkingWindow, slotFitsWindow } from "@/server/domain/working-hours";
 import { enqueueAppointmentNotifications, replaceAppointmentReminders } from "@/server/services/notifications";
 
 export const DOUBLE_BOOKING_MESSAGE = "Horário indisponível. Por favor, escolha outro.";
@@ -56,13 +58,6 @@ export type ScheduleAppointmentResult =
   | { status: "conflict" }
   | { status: "error" };
 
-const SLOT_STEP_MINUTES = 30;
-
-function minutesFromTime(time: string): number {
-  const [hours, minutes] = time.split(":").map(Number);
-  return hours * 60 + minutes;
-}
-
 /**
  * Serializa alterações da agenda da mesma loja/dia. A trava evita que
  * duas transações ultrapassem juntas o limite diário ou passem pelo mesmo
@@ -74,6 +69,29 @@ async function lockClinicDay(transaction: Prisma.TransactionClient, clinicId: st
   await transaction.$queryRaw<{ locked: boolean }[]>`
     SELECT pg_advisory_xact_lock(hashtext(${`${clinicId}:${day}`})) IS NULL AS locked
   `;
+}
+
+/**
+ * Confere, dentro da transação, que serviço e profissional continuam ativos e
+ * segura as linhas com `FOR SHARE` até o commit. A desativação usa
+ * `FOR UPDATE` nas mesmas linhas: ou ela espera este agendamento terminar (e
+ * o vê ao contar os futuros), ou este agendamento a vê como inativa e recusa.
+ */
+async function lockActiveResources(transaction: Prisma.TransactionClient, params: ScheduleAppointmentParams) {
+  const services = await transaction.$queryRaw<{ isActive: boolean }[]>`
+    SELECT "isActive" FROM "Service"
+    WHERE id = ${params.serviceId} AND "clinicId" = ${params.clinicId}
+    FOR SHARE
+  `;
+  if (!services[0]?.isActive) return false;
+  if (!params.professionalId) return true;
+
+  const professionals = await transaction.$queryRaw<{ isActive: boolean }[]>`
+    SELECT "isActive" FROM "Professional"
+    WHERE id = ${params.professionalId} AND "clinicId" = ${params.clinicId}
+    FOR SHARE
+  `;
+  return Boolean(professionals[0]?.isActive);
 }
 
 function getErrorMetadata(error: unknown) {
@@ -99,59 +117,38 @@ async function isValidBusinessSlot(
   const localInput = formatClinicDateTimeInput(params.startTime, params.timeZone);
   const day = localInput.slice(0, 10);
   const localTime = localInput.slice(11, 16);
-  const { startOfToday: dayStart, startOfTomorrow: dayEnd } = getClinicDateBounds(
-    params.timeZone,
-    params.startTime,
-  );
+  const { startOfToday: dayStart, startOfTomorrow: dayEnd } = getClinicDateBounds(params.timeZone, params.startTime);
 
   await lockClinicDay(transaction, params.clinicId, day);
 
-  if (params.startTime <= new Date() || endTime > dayEnd) {
+  // Futuro, dentro do mesmo dia e com no máximo 1 ano de antecedência (o
+  // limite de 15 min / 180 dias da reserva pública é aplicado na própria action).
+  if (params.startTime <= new Date() || endTime > dayEnd || !isWithinStaffBookingHorizon(params.startTime)) {
     return false;
   }
 
-  const weekdayLabel = new Intl.DateTimeFormat("en-US", {
-    timeZone: params.timeZone,
-    weekday: "short",
-  }).format(params.startTime);
-  const weekday = ({ Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 } as const)[
-    weekdayLabel as "Sun" | "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat"
-  ];
+  if (!(await lockActiveResources(transaction, params))) {
+    return false;
+  }
+
+  const weekday = getClinicWeekday(day, params.timeZone);
+  if (weekday === null) return false;
 
   const businessHour = await transaction.businessHour.findUnique({
     where: { clinicId_dayOfWeek: { clinicId: params.clinicId, dayOfWeek: weekday } },
   });
-
   if (!businessHour?.isOpen) return false;
 
   const professionalHour = params.professionalId
-    ? await transaction.professionalAvailability.findUnique({ where: { professionalId_dayOfWeek: { professionalId: params.professionalId, dayOfWeek: weekday } } })
+    ? await transaction.professionalAvailability.findUnique({
+        where: { professionalId_dayOfWeek: { professionalId: params.professionalId, dayOfWeek: weekday } },
+      })
     : null;
-  if (professionalHour && !professionalHour.isOpen) return false;
 
-  const startMinutes = minutesFromTime(localTime);
-  const endMinutes = startMinutes + params.serviceDuration;
-  const openMinutes = Math.max(minutesFromTime(businessHour.openTime), professionalHour ? minutesFromTime(professionalHour.openTime) : 0);
-  const closeMinutes = Math.min(minutesFromTime(businessHour.closeTime), professionalHour ? minutesFromTime(professionalHour.closeTime) : 24 * 60);
-
-  if (
-    startMinutes < openMinutes ||
-    endMinutes > closeMinutes ||
-    (startMinutes - openMinutes) % SLOT_STEP_MINUTES !== 0
-  ) {
+  // Mesma regra da grade exibida no agendamento (server/domain/working-hours.ts).
+  const window = resolveWorkingWindow(businessHour, professionalHour);
+  if (!window || !slotFitsWindow(window, minutesFromTime(localTime), params.serviceDuration)) {
     return false;
-  }
-
-  if (businessHour.breakStart && businessHour.breakEnd) {
-    const breakStart = minutesFromTime(businessHour.breakStart);
-    const breakEnd = minutesFromTime(businessHour.breakEnd);
-    if (startMinutes < breakEnd && endMinutes > breakStart) return false;
-  }
-
-  if (professionalHour?.breakStart && professionalHour.breakEnd) {
-    const breakStart = minutesFromTime(professionalHour.breakStart);
-    const breakEnd = minutesFromTime(professionalHour.breakEnd);
-    if (startMinutes < breakEnd && endMinutes > breakStart) return false;
   }
 
   if (params.maxAppointmentsPerDay && params.maxAppointmentsPerDay > 0) {
@@ -260,7 +257,6 @@ export async function rescheduleScheduledAppointment(
     });
     return { status: "error" };
   }
-
 }
 
 /**
@@ -283,14 +279,19 @@ export async function scheduleAppointment(params: ScheduleAppointmentParams): Pr
 
       const existingCustomer = params.customerId
         ? { id: params.customerId }
-        : await transaction.customer.findUnique({ where: { clinicId_phone: { clinicId: params.clinicId, phone: params.customerPhone } }, select: { id: true } });
-      const conflictConditions: Prisma.AppointmentWhereInput[] = existingCustomer ? [{ customerId: existingCustomer.id }] : [];
+        : await transaction.customer.findUnique({
+            where: { clinicId_phone: { clinicId: params.clinicId, phone: params.customerPhone } },
+            select: { id: true },
+          });
+      const conflictConditions: Prisma.AppointmentWhereInput[] = existingCustomer
+        ? [{ customerId: existingCustomer.id }]
+        : [];
 
-      if (params.professionalId) {
-        conflictConditions.push({ professionalId: params.professionalId });
-      } else {
-        conflictConditions.push({ serviceId: params.serviceId, professionalId: null });
-      }
+      conflictConditions.push(
+        params.professionalId
+          ? { professionalId: params.professionalId }
+          : { serviceId: params.serviceId, professionalId: null },
+      );
 
       const conflictingAppointment = await transaction.appointment.findFirst({
         where: {
@@ -309,10 +310,20 @@ export async function scheduleAppointment(params: ScheduleAppointmentParams): Pr
 
       stage = "customer-upsert";
       const customer = params.customerId
-        ? { id: params.customerId, name: params.customerName, phone: params.customerPhone, email: params.customerEmail ?? null }
+        ? {
+            id: params.customerId,
+            name: params.customerName,
+            phone: params.customerPhone,
+            email: params.customerEmail ?? null,
+          }
         : await transaction.customer.upsert({
             where: { clinicId_phone: { clinicId: params.clinicId, phone: params.customerPhone } },
-            create: { clinicId: params.clinicId, name: params.customerName, phone: params.customerPhone, email: params.customerEmail },
+            create: {
+              clinicId: params.clinicId,
+              name: params.customerName,
+              phone: params.customerPhone,
+              email: params.customerEmail,
+            },
             update: { name: params.customerName, ...(params.customerEmail ? { email: params.customerEmail } : {}) },
             select: { id: true, name: true, phone: true, email: true },
           });

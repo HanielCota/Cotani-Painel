@@ -29,7 +29,7 @@ describe("FinanceKpiCards", () => {
     expect(screen.getByText("Ticket médio")).toBeInTheDocument();
     expect(screen.getByText(/R\$\s*437,50/)).toBeInTheDocument();
 
-    expect(screen.getByText("Cancelamentos")).toBeInTheDocument();
+    expect(screen.getByText("Cancelamentos e faltas")).toBeInTheDocument();
     expect(screen.getByText("4")).toBeInTheDocument();
   });
 
@@ -48,7 +48,7 @@ describe("FinanceKpiCards", () => {
       />,
     );
 
-    expect(screen.getByText("+100%")).toBeInTheDocument();
+    expect(screen.getByText("+100% vs. anterior")).toBeInTheDocument();
   });
 
   it("não exibe variação quando não há receita no mês anterior", () => {

@@ -46,9 +46,10 @@ function createFormData(overrides: Record<string, string | null> = {}) {
   Object.entries(overrides).forEach(([key, value]) => {
     if (value === null) {
       formData.set(key, "");
-    } else if (value !== undefined) {
-      formData.set(key, value);
+      return;
     }
+
+    if (value !== undefined) formData.set(key, value);
   });
   return formData;
 }
@@ -71,7 +72,7 @@ describe("createService", () => {
     const result = await createService(validService);
 
     expect(result.status).toBe("error");
-    expect(result.message).toContain("Selecione uma loja");
+    expect(result.message).toContain("Selecione um negócio");
   });
 
   it("cria serviço com sucesso", async () => {
@@ -95,10 +96,7 @@ describe("createService", () => {
     prismaMock.service.create.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440001" });
     const imageUrl = "data:image/png;base64,abc123";
 
-    const result = await createServiceFromForm(
-      { status: "success", message: "" },
-      createFormData({ imageUrl }),
-    );
+    const result = await createServiceFromForm({ status: "success", message: "" }, createFormData({ imageUrl }));
 
     expect(result.status).toBe("success");
   });
@@ -154,7 +152,23 @@ describe("toggleServiceActive", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
+    prismaMock.$transaction.mockImplementation(async (callback: (tx: typeof prismaMock) => Promise<unknown>) =>
+      callback(prismaMock),
+    );
   });
+
+  it("conta os agendamentos futuros só depois de travar a linha (FOR UPDATE)", async () => {
+    prismaMock.service.findFirst.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440001", isActive: true });
+    prismaMock.$queryRaw.mockResolvedValueOnce([]);
+    prismaMock.appointment.count.mockResolvedValueOnce(0);
+
+    await toggleServiceActive("550e8400-e29b-41d4-a716-446655440001");
+
+    // Sem a trava, um agendamento em andamento passava despercebido pela contagem.
+    expect(prismaMock.$queryRaw).toHaveBeenCalled();
+    expect(prismaMock.$queryRaw.mock.invocationCallOrder[0]).toBeLessThan(prismaMock.appointment.count.mock.invocationCallOrder[0]);
+  });
+
 
   it("retorna erro para ID inválido", async () => {
     const result = await toggleServiceActive("invalid");

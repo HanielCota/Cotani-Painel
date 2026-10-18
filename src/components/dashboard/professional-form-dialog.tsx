@@ -50,14 +50,14 @@ export function ProfessionalFormDialog({ professional }: ProfessionalFormDialogP
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
 
+    setResult(null);
     if (nextOpen) {
       setSelectedServiceIds(professional?.serviceIds ?? []);
-      setResult(null);
-    } else {
-      formRef.current?.reset();
-      setSelectedServiceIds([]);
-      setResult(null);
+      return;
     }
+
+    formRef.current?.reset();
+    setSelectedServiceIds([]);
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -101,9 +101,15 @@ export function ProfessionalFormDialog({ professional }: ProfessionalFormDialogP
           />
         }
       >
-        {isEditing ? <PencilIcon aria-hidden="true" className="size-4" /> : <><PlusIcon aria-hidden="true" className="size-4" /> Novo profissional</>}
+        {isEditing ? (
+          <PencilIcon aria-hidden="true" className="size-4" />
+        ) : (
+          <>
+            <PlusIcon aria-hidden="true" className="size-4" /> Novo profissional
+          </>
+        )}
       </DialogTrigger>
-      <DialogContent className="w-[95vw] sm:max-w-[600px] overflow-x-hidden overflow-y-auto max-h-[90vh]">
+      <DialogContent className="w-[95vw] sm:max-w-[600px] overflow-x-hidden overflow-y-auto max-h-[90svh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserIcon aria-hidden="true" />
@@ -134,7 +140,15 @@ export function ProfessionalFormDialog({ professional }: ProfessionalFormDialogP
               />
             </Field>
 
-            <ImageUploadField key={`${professional?.id ?? "new"}-${open}`} id={`professional-photo-${professional?.id ?? "new"}`} label="Foto (opcional)" initialUrl={professional?.imageUrl} alt="Prévia do profissional" shape="circle" disabled={isPending} />
+            <ImageUploadField
+              key={`${professional?.id ?? "new"}-${open}`}
+              id={`professional-photo-${professional?.id ?? "new"}`}
+              label="Foto (opcional)"
+              initialUrl={professional?.imageUrl}
+              alt="Prévia do profissional"
+              shape="circle"
+              disabled={isPending}
+            />
 
             <FieldSet>
               <FieldLegend variant="label">Serviços atendidos</FieldLegend>
@@ -164,7 +178,9 @@ export function ProfessionalFormDialog({ professional }: ProfessionalFormDialogP
                           disabled={isPending || !service.isActive}
                         />
                         <div className="flex min-w-0 flex-col">
-                          <span className={`text-sm font-medium ${!service.isActive ? "text-muted-foreground line-through" : ""}`}>
+                          <span
+                            className={`text-sm font-medium ${!service.isActive ? "text-muted-foreground line-through" : ""}`}
+                          >
                             {service.name}
                           </span>
                           <span className="text-xs text-muted-foreground">{service.duration} min</span>

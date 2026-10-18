@@ -6,6 +6,7 @@ import type { ClinicModel } from "@/generated/prisma/models/Clinic";
 
 const clinic: ClinicModel = {
   billingReconciledAt: null,
+  bookingLinkSharedAt: null,
   id: "clinic-1",
   legacyExternalId: "org_1",
   billingOwnerId: null,
@@ -51,7 +52,9 @@ function createAppointment(overrides: {
   professionalName?: string | null;
 }) {
   const serviceId = overrides.serviceId ?? `svc-${overrides.serviceName ?? "Serviço A"}`;
-  const professionalId = overrides.professionalName ? (overrides.professionalId ?? `prof-${overrides.professionalName}`) : null;
+  const professionalId = overrides.professionalName
+    ? (overrides.professionalId ?? `prof-${overrides.professionalName}`)
+    : null;
 
   return {
     id: overrides.id ?? "app-1",
@@ -79,18 +82,41 @@ describe("getReportsMetrics", () => {
   });
 
   it("retorna contagens gerais e taxas do mês", async () => {
-    const { startOfMonth } = await import("@/lib/timezone").then((m) =>
-      m.getClinicDateBounds(clinic.timeZone),
-    );
+    const { getClinicDateBounds } = await import("@/lib/timezone");
+    const { startOfMonth } = getClinicDateBounds(clinic.timeZone);
 
     prismaMock.appointment.count.mockResolvedValueOnce(10);
     prismaMock.customer.count.mockResolvedValueOnce(5);
     prismaMock.service.count.mockResolvedValueOnce(3);
     prismaMock.appointment.findMany.mockResolvedValueOnce([
-      createAppointment({ id: "app-1", status: "CONFIRMED", price: 50, startTime: new Date(startOfMonth.getTime() + 60 * 60_000), serviceName: "Serviço A" }),
-      createAppointment({ id: "app-2", status: "COMPLETED", price: 70, startTime: new Date(startOfMonth.getTime() + 2 * 60 * 60_000), serviceName: "Serviço B" }),
-      createAppointment({ id: "app-3", status: "NO_SHOW", price: 40, startTime: new Date(startOfMonth.getTime() + 3 * 60 * 60_000), serviceName: "Serviço A" }),
-      createAppointment({ id: "app-4", status: "CANCELED", price: 30, startTime: new Date(startOfMonth.getTime() + 4 * 60 * 60_000), serviceName: "Serviço B" }),
+      createAppointment({
+        id: "app-1",
+        status: "CONFIRMED",
+        price: 50,
+        startTime: new Date(startOfMonth.getTime() + 60 * 60_000),
+        serviceName: "Serviço A",
+      }),
+      createAppointment({
+        id: "app-2",
+        status: "COMPLETED",
+        price: 70,
+        startTime: new Date(startOfMonth.getTime() + 2 * 60 * 60_000),
+        serviceName: "Serviço B",
+      }),
+      createAppointment({
+        id: "app-3",
+        status: "NO_SHOW",
+        price: 40,
+        startTime: new Date(startOfMonth.getTime() + 3 * 60 * 60_000),
+        serviceName: "Serviço A",
+      }),
+      createAppointment({
+        id: "app-4",
+        status: "CANCELED",
+        price: 30,
+        startTime: new Date(startOfMonth.getTime() + 4 * 60 * 60_000),
+        serviceName: "Serviço B",
+      }),
     ]);
     prismaMock.appointment.findMany.mockResolvedValueOnce([]);
 
@@ -109,17 +135,34 @@ describe("getReportsMetrics", () => {
   });
 
   it("retorna ranking de profissionais do mês", async () => {
-    const { startOfMonth } = await import("@/lib/timezone").then((m) =>
-      m.getClinicDateBounds(clinic.timeZone),
-    );
+    const { getClinicDateBounds } = await import("@/lib/timezone");
+    const { startOfMonth } = getClinicDateBounds(clinic.timeZone);
 
     prismaMock.appointment.count.mockResolvedValueOnce(0);
     prismaMock.customer.count.mockResolvedValueOnce(0);
     prismaMock.service.count.mockResolvedValueOnce(0);
     prismaMock.appointment.findMany.mockResolvedValueOnce([
-      createAppointment({ id: "app-1", status: "CONFIRMED", price: 50, startTime: new Date(startOfMonth.getTime() + 60 * 60_000), professionalName: "João" }),
-      createAppointment({ id: "app-2", status: "CONFIRMED", price: 70, startTime: new Date(startOfMonth.getTime() + 2 * 60 * 60_000), professionalName: "João" }),
-      createAppointment({ id: "app-3", status: "CONFIRMED", price: 40, startTime: new Date(startOfMonth.getTime() + 3 * 60 * 60_000), professionalName: "Pedro" }),
+      createAppointment({
+        id: "app-1",
+        status: "CONFIRMED",
+        price: 50,
+        startTime: new Date(startOfMonth.getTime() + 60 * 60_000),
+        professionalName: "João",
+      }),
+      createAppointment({
+        id: "app-2",
+        status: "CONFIRMED",
+        price: 70,
+        startTime: new Date(startOfMonth.getTime() + 2 * 60 * 60_000),
+        professionalName: "João",
+      }),
+      createAppointment({
+        id: "app-3",
+        status: "CONFIRMED",
+        price: 40,
+        startTime: new Date(startOfMonth.getTime() + 3 * 60 * 60_000),
+        professionalName: "Pedro",
+      }),
     ]);
     prismaMock.appointment.findMany.mockResolvedValueOnce([]);
 

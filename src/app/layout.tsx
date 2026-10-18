@@ -3,9 +3,10 @@ import { Analytics } from "@vercel/analytics/react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { connection } from "next/server";
 import { headers } from "next/headers";
+import Script from "next/script";
 
 import { AppProviders } from "@/app/providers";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { APPEARANCE_BOOT_SCRIPT } from "@/lib/appearance";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -21,11 +22,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   applicationName: "Cotani",
   title: {
-    default: "Cotani - Gestão inteligente para lojas",
+    default: "Cotani - Agenda on-line e gestão para negócios",
     template: "%s | Cotani",
   },
   description:
-    "Plataforma de gestão para lojas com agenda on-line, clientes, relatórios e agendamento público.",
+    "Plataforma de gestão para negócios com agenda on-line, clientes, relatórios e agendamento público.",
   icons: {
     icon: [{ url: "/images/cotani-favicon.png", type: "image/png" }],
     apple: "/images/cotani-favicon.png",
@@ -34,9 +35,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "pt_BR",
     siteName: "Cotani",
-    title: "Cotani - Gestão inteligente para lojas",
+    title: "Cotani - Agenda on-line e gestão para negócios",
     description:
-      "Plataforma de gestão para lojas com agenda on-line, clientes, relatórios e agendamento público.",
+      "Plataforma de gestão para negócios com agenda on-line, clientes, relatórios e agendamento público.",
     images: [
       {
         url: "https://painel.cotani.com.br/images/cotani-logo.png",
@@ -48,9 +49,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Cotani - Gestão inteligente para lojas",
+    title: "Cotani - Agenda on-line e gestão para negócios",
     description:
-      "Plataforma de gestão para lojas com agenda on-line, clientes, relatórios e agendamento público.",
+      "Plataforma de gestão para negócios com agenda on-line, clientes, relatórios e agendamento público.",
     images: ["https://painel.cotani.com.br/images/cotani-logo.png"],
   },
 };
@@ -65,6 +66,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   return (
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <body suppressHydrationWarning>
+        {/* Tema de fundo e cor de destaque do usuário; beforeInteractive vai para o <head>, antes da pintura. */}
+        <Script id="cotani-appearance" strategy="beforeInteractive" nonce={nonce}>{APPEARANCE_BOOT_SCRIPT}</Script>
         <a
           href="#main-content"
           className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-lg transition-transform focus:translate-y-0 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
@@ -73,7 +76,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         </a>
         <AppProviders nonce={nonce}>
           {children}
-          <ThemeToggle />
         </AppProviders>
         {analyticsEnabled ? <Analytics /> : null}
       </body>

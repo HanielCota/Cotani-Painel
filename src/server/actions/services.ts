@@ -4,12 +4,13 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
-import { getClinicForRoles } from "@/server/tenant";
-import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
+import { ACTIVE_APPOINTMENT_STATUSES } from "@/lib/appointment-status";
+import { requireClinicAction } from "@/server/clinic-action";
 import type { ActionResult } from "@/types";
 import { requireAuthenticatedUser } from "@/server/auth";
 import { persistPublicImage, removePublicImage } from "@/server/services/media-storage";
 import { allowMediaUpload } from "@/server/services/action-rate-limit";
+import { ignoreFailure } from "@/lib/ignore-failure";
 
 const MAX_IMAGE_SIZE_CHARS = 2_000_000;
 
@@ -22,8 +23,7 @@ const imageValueSchema = z
   })
   .refine(
     (value) =>
-      value === null ||
-      value instanceof File || value.startsWith("data:image/") || value.startsWith("https://"),
+      value === null || value instanceof File || value.startsWith("data:image/") || value.startsWith("https://"),
     { message: "A imagem deve ser um arquivo de imagem válido ou uma URL." },
   );
 
@@ -64,15 +64,9 @@ export async function createService(input: unknown): Promise<ActionResult> {
     return { status: "error", message: "Revise os dados do serviço." };
   }
 
-  const clinic = await getClinicForRoles(["ADMIN"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de cadastrar serviços." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN"], "Selecione um negócio antes de cadastrar serviços.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   if (isNewImageUpload(parsed.data.imageUrl) && !(await allowMediaUpload(authUser.id))) {
     return { status: "error", message: "Muitos envios de imagem. Aguarde antes de tentar novamente." };
@@ -93,7 +87,7 @@ export async function createService(input: unknown): Promise<ActionResult> {
       },
     });
   } catch {
-    await removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "services" }).catch(() => undefined);
+    await ignoreFailure(removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "services" }));
     return { status: "error", message: "Não foi possível cadastrar este serviço. Tente novamente." };
   }
 
@@ -119,15 +113,9 @@ export async function updateService(input: unknown): Promise<ActionResult> {
     return { status: "error", message: "Revise os dados do serviço." };
   }
 
-  const clinic = await getClinicForRoles(["ADMIN"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de atualizar serviços." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN"], "Selecione um negócio antes de atualizar serviços.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   if (isNewImageUpload(parsed.data.imageUrl) && !(await allowMediaUpload(authUser.id))) {
     return { status: "error", message: "Muitos envios de imagem. Aguarde antes de tentar novamente." };
@@ -146,7 +134,12 @@ export async function updateService(input: unknown): Promise<ActionResult> {
   let uploadedImageUrl: string | null = null;
 
   try {
-    imageUrl = await persistPublicImage({ clinicId: clinic.id, kind: "services", value: parsed.data.imageUrl, currentUrl: service.imageUrl });
+    imageUrl = await persistPublicImage({
+      clinicId: clinic.id,
+      kind: "services",
+      value: parsed.data.imageUrl,
+      currentUrl: service.imageUrl,
+    });
     if (isNewImageUpload(parsed.data.imageUrl)) uploadedImageUrl = imageUrl;
     await prisma.service.update({
       where: { id: service.id },
@@ -158,12 +151,12 @@ export async function updateService(input: unknown): Promise<ActionResult> {
       },
     });
   } catch {
-    await removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "services" }).catch(() => undefined);
+    await ignoreFailure(removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "services" }));
     return { status: "error", message: "Não foi possível atualizar este serviço. Tente novamente." };
   }
 
   if (service.imageUrl !== imageUrl) {
-    await removePublicImage({ url: service.imageUrl, clinicId: clinic.id, kind: "services" }).catch(() => undefined);
+    await ignoreFailure(removePublicImage({ url: service.imageUrl, clinicId: clinic.id, kind: "services" }));
   }
 
   revalidateServiceViews();
@@ -189,15 +182,9 @@ export async function toggleServiceActive(serviceId: string): Promise<ActionResu
     return { status: "error", message: "Não foi possível alterar este serviço." };
   }
 
-  const clinic = await getClinicForRoles(["ADMIN"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de alterar serviços." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN"], "Selecione um negócio antes de alterar serviços.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   const service = await prisma.service.findFirst({
     where: { id: parsedId.data, clinicId: clinic.id },
@@ -210,27 +197,31 @@ export async function toggleServiceActive(serviceId: string): Promise<ActionResu
 
   const nextIsActive = !service.isActive;
 
-  if (!nextIsActive) {
-    const pendingAppointments = await prisma.appointment.count({
-      where: {
-        serviceId: service.id,
-        status: { in: ["PENDING", "CONFIRMED"] },
-        startTime: { gte: new Date() },
-      },
-    });
-
-    if (pendingAppointments > 0) {
-      return {
-        status: "error",
-        message: "Este serviço possui agendamentos futuros pendentes ou confirmados. Cancele ou reagende-os antes de desativar.",
-      };
+  const outcome = await prisma.$transaction(async (transaction) => {
+    if (!nextIsActive) {
+      // FOR UPDATE espera agendamentos em andamento (que seguram a linha com
+      // FOR SHARE) terminarem, então a contagem abaixo já os enxerga.
+      await transaction.$queryRaw`SELECT id FROM "Service" WHERE id = ${service.id} FOR UPDATE`;
+      const pendingAppointments = await transaction.appointment.count({
+        where: {
+          serviceId: service.id,
+          status: { in: [...ACTIVE_APPOINTMENT_STATUSES] },
+          startTime: { gte: new Date() },
+        },
+      });
+      if (pendingAppointments > 0) return "has-appointments" as const;
     }
-  }
-
-  await prisma.service.update({
-    where: { id: service.id },
-    data: { isActive: nextIsActive },
+    await transaction.service.update({ where: { id: service.id }, data: { isActive: nextIsActive } });
+    return "updated" as const;
   });
+
+  if (outcome === "has-appointments") {
+    return {
+      status: "error",
+      message:
+        "Este serviço possui agendamentos futuros pendentes ou confirmados. Cancele ou reagende-os antes de desativar.",
+    };
+  }
 
   revalidateServiceViews();
   return { status: "success", message: nextIsActive ? "Serviço reativado." : "Serviço desativado." };

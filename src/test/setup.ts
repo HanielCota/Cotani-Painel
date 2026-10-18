@@ -16,6 +16,10 @@ process.env.SUPABASE_DATABASE_URL =
 process.env.NEXT_PUBLIC_APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ?? "https://localhost:3000";
 
+// Token fictício fixo: os testes do Mercado Pago não podem depender de um
+// token no ambiente nem usar o token real carregado do .env.local.
+process.env.MERCADO_PAGO_ACCESS_TOKEN = "TEST-vitest";
+
 // O unstable_cache do Next.js depende de infraestrutura interna do servidor.
 // Em testes unitários, fazemos cache ser transparente.
 vi.mock("next/cache", () => ({

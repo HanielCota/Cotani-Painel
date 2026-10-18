@@ -61,6 +61,7 @@ export type ClinicMinAggregateOutputType = {
   billingReconciledAt: Date | null
   cancelAtPeriodEnd: boolean | null
   maxAppointmentsPerDay: number | null
+  bookingLinkSharedAt: Date | null
   operationalStatus: $Enums.ClinicOperationalStatus | null
   suspensionReason: string | null
   suspendedAt: Date | null
@@ -96,6 +97,7 @@ export type ClinicMaxAggregateOutputType = {
   billingReconciledAt: Date | null
   cancelAtPeriodEnd: boolean | null
   maxAppointmentsPerDay: number | null
+  bookingLinkSharedAt: Date | null
   operationalStatus: $Enums.ClinicOperationalStatus | null
   suspensionReason: string | null
   suspendedAt: Date | null
@@ -131,6 +133,7 @@ export type ClinicCountAggregateOutputType = {
   billingReconciledAt: number
   cancelAtPeriodEnd: number
   maxAppointmentsPerDay: number
+  bookingLinkSharedAt: number
   operationalStatus: number
   suspensionReason: number
   suspendedAt: number
@@ -176,6 +179,7 @@ export type ClinicMinAggregateInputType = {
   billingReconciledAt?: true
   cancelAtPeriodEnd?: true
   maxAppointmentsPerDay?: true
+  bookingLinkSharedAt?: true
   operationalStatus?: true
   suspensionReason?: true
   suspendedAt?: true
@@ -211,6 +215,7 @@ export type ClinicMaxAggregateInputType = {
   billingReconciledAt?: true
   cancelAtPeriodEnd?: true
   maxAppointmentsPerDay?: true
+  bookingLinkSharedAt?: true
   operationalStatus?: true
   suspensionReason?: true
   suspendedAt?: true
@@ -246,6 +251,7 @@ export type ClinicCountAggregateInputType = {
   billingReconciledAt?: true
   cancelAtPeriodEnd?: true
   maxAppointmentsPerDay?: true
+  bookingLinkSharedAt?: true
   operationalStatus?: true
   suspensionReason?: true
   suspendedAt?: true
@@ -368,6 +374,7 @@ export type ClinicGroupByOutputType = {
   billingReconciledAt: Date | null
   cancelAtPeriodEnd: boolean
   maxAppointmentsPerDay: number | null
+  bookingLinkSharedAt: Date | null
   operationalStatus: $Enums.ClinicOperationalStatus
   suspensionReason: string | null
   suspendedAt: Date | null
@@ -426,6 +433,7 @@ export type ClinicWhereInput = {
   billingReconciledAt?: Prisma.DateTimeNullableFilter<"Clinic"> | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFilter<"Clinic"> | boolean
   maxAppointmentsPerDay?: Prisma.IntNullableFilter<"Clinic"> | number | null
+  bookingLinkSharedAt?: Prisma.DateTimeNullableFilter<"Clinic"> | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFilter<"Clinic"> | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.StringNullableFilter<"Clinic"> | string | null
   suspendedAt?: Prisma.DateTimeNullableFilter<"Clinic"> | Date | string | null
@@ -477,6 +485,7 @@ export type ClinicOrderByWithRelationInput = {
   billingReconciledAt?: Prisma.SortOrderInput | Prisma.SortOrder
   cancelAtPeriodEnd?: Prisma.SortOrder
   maxAppointmentsPerDay?: Prisma.SortOrderInput | Prisma.SortOrder
+  bookingLinkSharedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   operationalStatus?: Prisma.SortOrder
   suspensionReason?: Prisma.SortOrderInput | Prisma.SortOrder
   suspendedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -531,6 +540,7 @@ export type ClinicWhereUniqueInput = Prisma.AtLeast<{
   billingReconciledAt?: Prisma.DateTimeNullableFilter<"Clinic"> | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFilter<"Clinic"> | boolean
   maxAppointmentsPerDay?: Prisma.IntNullableFilter<"Clinic"> | number | null
+  bookingLinkSharedAt?: Prisma.DateTimeNullableFilter<"Clinic"> | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFilter<"Clinic"> | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.StringNullableFilter<"Clinic"> | string | null
   suspendedAt?: Prisma.DateTimeNullableFilter<"Clinic"> | Date | string | null
@@ -582,6 +592,7 @@ export type ClinicOrderByWithAggregationInput = {
   billingReconciledAt?: Prisma.SortOrderInput | Prisma.SortOrder
   cancelAtPeriodEnd?: Prisma.SortOrder
   maxAppointmentsPerDay?: Prisma.SortOrderInput | Prisma.SortOrder
+  bookingLinkSharedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   operationalStatus?: Prisma.SortOrder
   suspensionReason?: Prisma.SortOrderInput | Prisma.SortOrder
   suspendedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -625,6 +636,7 @@ export type ClinicScalarWhereWithAggregatesInput = {
   billingReconciledAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Clinic"> | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolWithAggregatesFilter<"Clinic"> | boolean
   maxAppointmentsPerDay?: Prisma.IntNullableWithAggregatesFilter<"Clinic"> | number | null
+  bookingLinkSharedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Clinic"> | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusWithAggregatesFilter<"Clinic"> | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.StringNullableWithAggregatesFilter<"Clinic"> | string | null
   suspendedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Clinic"> | Date | string | null
@@ -659,6 +671,7 @@ export type ClinicCreateInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -710,6 +723,7 @@ export type ClinicUncheckedCreateInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -759,6 +773,7 @@ export type ClinicUpdateInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -810,6 +825,7 @@ export type ClinicUncheckedUpdateInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -860,6 +876,7 @@ export type ClinicCreateManyInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -894,6 +911,7 @@ export type ClinicUpdateManyMutationInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -929,6 +947,7 @@ export type ClinicUncheckedUpdateManyInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -979,6 +998,7 @@ export type ClinicCountOrderByAggregateInput = {
   billingReconciledAt?: Prisma.SortOrder
   cancelAtPeriodEnd?: Prisma.SortOrder
   maxAppointmentsPerDay?: Prisma.SortOrder
+  bookingLinkSharedAt?: Prisma.SortOrder
   operationalStatus?: Prisma.SortOrder
   suspensionReason?: Prisma.SortOrder
   suspendedAt?: Prisma.SortOrder
@@ -1018,6 +1038,7 @@ export type ClinicMaxOrderByAggregateInput = {
   billingReconciledAt?: Prisma.SortOrder
   cancelAtPeriodEnd?: Prisma.SortOrder
   maxAppointmentsPerDay?: Prisma.SortOrder
+  bookingLinkSharedAt?: Prisma.SortOrder
   operationalStatus?: Prisma.SortOrder
   suspensionReason?: Prisma.SortOrder
   suspendedAt?: Prisma.SortOrder
@@ -1053,6 +1074,7 @@ export type ClinicMinOrderByAggregateInput = {
   billingReconciledAt?: Prisma.SortOrder
   cancelAtPeriodEnd?: Prisma.SortOrder
   maxAppointmentsPerDay?: Prisma.SortOrder
+  bookingLinkSharedAt?: Prisma.SortOrder
   operationalStatus?: Prisma.SortOrder
   suspensionReason?: Prisma.SortOrder
   suspendedAt?: Prisma.SortOrder
@@ -1396,6 +1418,7 @@ export type ClinicCreateWithoutBillingUnitsInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -1446,6 +1469,7 @@ export type ClinicUncheckedCreateWithoutBillingUnitsInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -1499,6 +1523,7 @@ export type ClinicCreateWithoutBillingOwnerInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -1548,6 +1573,7 @@ export type ClinicUncheckedCreateWithoutBillingOwnerInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -1618,6 +1644,7 @@ export type ClinicUpdateWithoutBillingUnitsInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1668,6 +1695,7 @@ export type ClinicUncheckedUpdateWithoutBillingUnitsInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1736,6 +1764,7 @@ export type ClinicScalarWhereInput = {
   billingReconciledAt?: Prisma.DateTimeNullableFilter<"Clinic"> | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFilter<"Clinic"> | boolean
   maxAppointmentsPerDay?: Prisma.IntNullableFilter<"Clinic"> | number | null
+  bookingLinkSharedAt?: Prisma.DateTimeNullableFilter<"Clinic"> | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFilter<"Clinic"> | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.StringNullableFilter<"Clinic"> | string | null
   suspendedAt?: Prisma.DateTimeNullableFilter<"Clinic"> | Date | string | null
@@ -1770,6 +1799,7 @@ export type ClinicCreateWithoutAdminAuditLogsInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -1820,6 +1850,7 @@ export type ClinicUncheckedCreateWithoutAdminAuditLogsInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -1884,6 +1915,7 @@ export type ClinicUpdateWithoutAdminAuditLogsInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1934,6 +1966,7 @@ export type ClinicUncheckedUpdateWithoutAdminAuditLogsInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1982,6 +2015,7 @@ export type ClinicCreateWithoutPaymentHistoryInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -2032,6 +2066,7 @@ export type ClinicUncheckedCreateWithoutPaymentHistoryInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -2096,6 +2131,7 @@ export type ClinicUpdateWithoutPaymentHistoryInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2146,6 +2182,7 @@ export type ClinicUncheckedUpdateWithoutPaymentHistoryInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2194,6 +2231,7 @@ export type ClinicCreateWithoutSlugAliasesInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -2244,6 +2282,7 @@ export type ClinicUncheckedCreateWithoutSlugAliasesInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -2308,6 +2347,7 @@ export type ClinicUpdateWithoutSlugAliasesInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2358,6 +2398,7 @@ export type ClinicUncheckedUpdateWithoutSlugAliasesInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2406,6 +2447,7 @@ export type ClinicCreateWithoutBillingContractsInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -2456,6 +2498,7 @@ export type ClinicUncheckedCreateWithoutBillingContractsInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -2520,6 +2563,7 @@ export type ClinicUpdateWithoutBillingContractsInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2570,6 +2614,7 @@ export type ClinicUncheckedUpdateWithoutBillingContractsInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2618,6 +2663,7 @@ export type ClinicCreateWithoutBusinessHoursInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -2668,6 +2714,7 @@ export type ClinicUncheckedCreateWithoutBusinessHoursInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -2732,6 +2779,7 @@ export type ClinicUpdateWithoutBusinessHoursInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2782,6 +2830,7 @@ export type ClinicUncheckedUpdateWithoutBusinessHoursInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2830,6 +2879,7 @@ export type ClinicCreateWithoutInvitationsInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -2880,6 +2930,7 @@ export type ClinicUncheckedCreateWithoutInvitationsInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -2944,6 +2995,7 @@ export type ClinicUpdateWithoutInvitationsInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2994,6 +3046,7 @@ export type ClinicUncheckedUpdateWithoutInvitationsInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3042,6 +3095,7 @@ export type ClinicCreateWithoutMembershipsInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -3092,6 +3146,7 @@ export type ClinicUncheckedCreateWithoutMembershipsInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -3156,6 +3211,7 @@ export type ClinicUpdateWithoutMembershipsInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3206,6 +3262,7 @@ export type ClinicUncheckedUpdateWithoutMembershipsInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3254,6 +3311,7 @@ export type ClinicCreateWithoutCustomersInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -3304,6 +3362,7 @@ export type ClinicUncheckedCreateWithoutCustomersInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -3368,6 +3427,7 @@ export type ClinicUpdateWithoutCustomersInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3418,6 +3478,7 @@ export type ClinicUncheckedUpdateWithoutCustomersInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3466,6 +3527,7 @@ export type ClinicCreateWithoutServicesInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -3516,6 +3578,7 @@ export type ClinicUncheckedCreateWithoutServicesInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -3580,6 +3643,7 @@ export type ClinicUpdateWithoutServicesInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3630,6 +3694,7 @@ export type ClinicUncheckedUpdateWithoutServicesInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3678,6 +3743,7 @@ export type ClinicCreateWithoutProfessionalsInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -3728,6 +3794,7 @@ export type ClinicUncheckedCreateWithoutProfessionalsInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -3792,6 +3859,7 @@ export type ClinicUpdateWithoutProfessionalsInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3842,6 +3910,7 @@ export type ClinicUncheckedUpdateWithoutProfessionalsInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3890,6 +3959,7 @@ export type ClinicCreateWithoutProfessionalAvailabilitiesInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -3940,6 +4010,7 @@ export type ClinicUncheckedCreateWithoutProfessionalAvailabilitiesInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -4004,6 +4075,7 @@ export type ClinicUpdateWithoutProfessionalAvailabilitiesInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4054,6 +4126,7 @@ export type ClinicUncheckedUpdateWithoutProfessionalAvailabilitiesInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4102,6 +4175,7 @@ export type ClinicCreateWithoutAppointmentsInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -4152,6 +4226,7 @@ export type ClinicUncheckedCreateWithoutAppointmentsInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -4216,6 +4291,7 @@ export type ClinicUpdateWithoutAppointmentsInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4266,6 +4342,7 @@ export type ClinicUncheckedUpdateWithoutAppointmentsInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4314,6 +4391,7 @@ export type ClinicCreateWithoutFinancialEntriesInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -4364,6 +4442,7 @@ export type ClinicUncheckedCreateWithoutFinancialEntriesInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -4428,6 +4507,7 @@ export type ClinicUpdateWithoutFinancialEntriesInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4478,6 +4558,7 @@ export type ClinicUncheckedUpdateWithoutFinancialEntriesInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4526,6 +4607,7 @@ export type ClinicCreateWithoutNotificationsInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -4576,6 +4658,7 @@ export type ClinicUncheckedCreateWithoutNotificationsInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -4640,6 +4723,7 @@ export type ClinicUpdateWithoutNotificationsInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4690,6 +4774,7 @@ export type ClinicUncheckedUpdateWithoutNotificationsInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4738,6 +4823,7 @@ export type ClinicCreateManyBillingOwnerInput = {
   billingReconciledAt?: Date | string | null
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: number | null
+  bookingLinkSharedAt?: Date | string | null
   operationalStatus?: $Enums.ClinicOperationalStatus
   suspensionReason?: string | null
   suspendedAt?: Date | string | null
@@ -4772,6 +4858,7 @@ export type ClinicUpdateWithoutBillingOwnerInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4821,6 +4908,7 @@ export type ClinicUncheckedUpdateWithoutBillingOwnerInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4870,6 +4958,7 @@ export type ClinicUncheckedUpdateManyWithoutBillingOwnerInput = {
   billingReconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   maxAppointmentsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bookingLinkSharedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   operationalStatus?: Prisma.EnumClinicOperationalStatusFieldUpdateOperationsInput | $Enums.ClinicOperationalStatus
   suspensionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   suspendedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -5062,6 +5151,7 @@ export type ClinicSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   billingReconciledAt?: boolean
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: boolean
+  bookingLinkSharedAt?: boolean
   operationalStatus?: boolean
   suspensionReason?: boolean
   suspendedAt?: boolean
@@ -5114,6 +5204,7 @@ export type ClinicSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   billingReconciledAt?: boolean
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: boolean
+  bookingLinkSharedAt?: boolean
   operationalStatus?: boolean
   suspensionReason?: boolean
   suspendedAt?: boolean
@@ -5150,6 +5241,7 @@ export type ClinicSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   billingReconciledAt?: boolean
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: boolean
+  bookingLinkSharedAt?: boolean
   operationalStatus?: boolean
   suspensionReason?: boolean
   suspendedAt?: boolean
@@ -5186,6 +5278,7 @@ export type ClinicSelectScalar = {
   billingReconciledAt?: boolean
   cancelAtPeriodEnd?: boolean
   maxAppointmentsPerDay?: boolean
+  bookingLinkSharedAt?: boolean
   operationalStatus?: boolean
   suspensionReason?: boolean
   suspendedAt?: boolean
@@ -5194,7 +5287,7 @@ export type ClinicSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ClinicOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "legacyExternalId" | "billingOwnerId" | "name" | "slug" | "timeZone" | "contactEmail" | "phone" | "address" | "publicDescription" | "imageUrl" | "subscriptionStatus" | "subscriptionPlan" | "subscriptionCycle" | "pendingSubscriptionPlan" | "pendingSubscriptionCycle" | "trialEndsAt" | "subscriptionExpiresAt" | "hasPaidOnce" | "mercadoPagoSubscriptionId" | "mercadoPagoCheckoutKey" | "mercadoPagoCheckoutStartedAt" | "mercadoPagoCheckoutUrl" | "billingReconciledAt" | "cancelAtPeriodEnd" | "maxAppointmentsPerDay" | "operationalStatus" | "suspensionReason" | "suspendedAt" | "deletedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["clinic"]>
+export type ClinicOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "legacyExternalId" | "billingOwnerId" | "name" | "slug" | "timeZone" | "contactEmail" | "phone" | "address" | "publicDescription" | "imageUrl" | "subscriptionStatus" | "subscriptionPlan" | "subscriptionCycle" | "pendingSubscriptionPlan" | "pendingSubscriptionCycle" | "trialEndsAt" | "subscriptionExpiresAt" | "hasPaidOnce" | "mercadoPagoSubscriptionId" | "mercadoPagoCheckoutKey" | "mercadoPagoCheckoutStartedAt" | "mercadoPagoCheckoutUrl" | "billingReconciledAt" | "cancelAtPeriodEnd" | "maxAppointmentsPerDay" | "bookingLinkSharedAt" | "operationalStatus" | "suspensionReason" | "suspendedAt" | "deletedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["clinic"]>
 export type ClinicInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   memberships?: boolean | Prisma.Clinic$membershipsArgs<ExtArgs>
   customers?: boolean | Prisma.Clinic$customersArgs<ExtArgs>
@@ -5268,6 +5361,10 @@ export type $ClinicPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     billingReconciledAt: Date | null
     cancelAtPeriodEnd: boolean
     maxAppointmentsPerDay: number | null
+    /**
+     * Primeira vez que o link de agendamento foi copiado no painel (passo "Divulgar link" do checklist).
+     */
+    bookingLinkSharedAt: Date | null
     operationalStatus: $Enums.ClinicOperationalStatus
     suspensionReason: string | null
     suspendedAt: Date | null
@@ -5739,6 +5836,7 @@ export interface ClinicFieldRefs {
   readonly billingReconciledAt: Prisma.FieldRef<"Clinic", 'DateTime'>
   readonly cancelAtPeriodEnd: Prisma.FieldRef<"Clinic", 'Boolean'>
   readonly maxAppointmentsPerDay: Prisma.FieldRef<"Clinic", 'Int'>
+  readonly bookingLinkSharedAt: Prisma.FieldRef<"Clinic", 'DateTime'>
   readonly operationalStatus: Prisma.FieldRef<"Clinic", 'ClinicOperationalStatus'>
   readonly suspensionReason: Prisma.FieldRef<"Clinic", 'String'>
   readonly suspendedAt: Prisma.FieldRef<"Clinic", 'DateTime'>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Clock3Icon } from "lucide-react";
 
 import { AppointmentActions } from "@/components/dashboard/appointment-actions";
 import { RescheduleAppointmentDialog } from "@/components/dashboard/reschedule-appointment-dialog";
@@ -9,7 +8,7 @@ import { EditAppointmentDialog } from "@/components/dashboard/edit-appointment-d
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMascot, EmptyTitle } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useAppointments } from "@/hooks/use-appointments";
@@ -47,21 +46,31 @@ interface AgendaAppointmentsListProps {
   services?: Array<{ id: string; name: string; duration: number }>;
 }
 
-export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, customers = [], services = [] }: AgendaAppointmentsListProps) {
+export function AgendaAppointmentsList({
+  timeZone,
+  minStartTime,
+  canSchedule,
+  customers = [],
+  services = [],
+}: AgendaAppointmentsListProps) {
   const [page, setPageState] = useState(() => Math.max(1, Number.parseInt(readUrlSearchParam("pagina", "1"), 10) || 1));
   const [statusFilter, setStatusFilter] = useState<AppointmentStatus | "ALL">(() => {
     const value = readUrlSearchParam("status", "ALL");
-    return filters.some((item) => item.status === value) ? value as AppointmentStatus | "ALL" : "ALL";
+    return filters.some((item) => item.status === value) ? (value as AppointmentStatus | "ALL") : "ALL";
   });
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>(() => {
     const value = readUrlSearchParam("periodo", "ALL");
-    return periodFilters.some((item) => item.value === value) ? value as PeriodFilter : "ALL";
+    return periodFilters.some((item) => item.value === value) ? (value as PeriodFilter) : "ALL";
   });
   function setPage(nextPage: number) {
     setPageState(nextPage);
     replaceUrlSearchParams({ pagina: nextPage > 1 ? String(nextPage) : null });
   }
-  const { data, isPending, isError, isFetching, refetch } = useAppointments({ page, status: statusFilter, period: periodFilter });
+  const { data, isPending, isError, isFetching, refetch } = useAppointments({
+    page,
+    status: statusFilter,
+    period: periodFilter,
+  });
   const appointments = data?.items ?? [];
   const pageCount = Math.max(1, Math.ceil((data?.total ?? 0) / (data?.pageSize ?? 15)));
 
@@ -81,7 +90,9 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
         <AlertTitle>Não foi possível carregar os atendimentos</AlertTitle>
         <AlertDescription className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <span>Verifique sua conexão. Nenhuma alteração foi realizada.</span>
-          <Button type="button" size="sm" variant="outline" onClick={() => void refetch()}>Tentar novamente</Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => void refetch()}>
+            Tentar novamente
+          </Button>
         </AlertDescription>
       </Alert>
     );
@@ -91,10 +102,12 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
     return (
       <Empty className="min-h-48 border border-dashed border-border/80 bg-background/50">
         <EmptyHeader>
-          <EmptyMedia variant="icon"><Clock3Icon /></EmptyMedia>
+          <EmptyMascot />
           <EmptyTitle>Nenhum atendimento futuro</EmptyTitle>
           <EmptyDescription>
-            {canSchedule ? "Use o formulário acima para registrar o primeiro horário." : "Cadastre os itens necessários acima para começar."}
+            {canSchedule
+              ? "Use o formulário acima para registrar o primeiro horário."
+              : "Cadastre os itens necessários acima para começar."}
           </EmptyDescription>
         </EmptyHeader>
       </Empty>
@@ -143,7 +156,7 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
       {appointments.length === 0 ? (
         <Empty className="min-h-32 border border-dashed border-border/80 bg-background/50">
           <EmptyHeader>
-            <EmptyMedia variant="icon"><Clock3Icon /></EmptyMedia>
+            <EmptyMascot />
             <EmptyTitle>Nenhum atendimento neste filtro</EmptyTitle>
             <EmptyDescription>Tente selecionar outro status para visualizar os atendimentos.</EmptyDescription>
           </EmptyHeader>
@@ -166,7 +179,7 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="flex size-10 shrink-0 flex-col items-center justify-center rounded-md border bg-muted text-xs font-medium">
                     <span>{startTime.toLocaleDateString("pt-BR", { day: "2-digit", timeZone })}</span>
-                    <span className="text-[10px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {startTime.toLocaleDateString("pt-BR", { month: "short", timeZone })}
                     </span>
                   </div>
@@ -182,17 +195,43 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
                   <Badge variant={appointmentStatusBadgeVariant(appointment.status)}>
                     {appointmentStatusLabel(appointment.status)}
                   </Badge>
-                  {appointment.status !== "CANCELED" && appointment.status !== "NO_SHOW" && appointment.status !== "COMPLETED" ? (
-                    canSchedule ? <EditAppointmentDialog appointment={appointment} customers={customers} services={services} currentStartTime={formatClinicDateTimeInput(startTime, timeZone)} minStartTime={minStartTime} /> : <RescheduleAppointmentDialog appointmentId={appointment.id} currentStartTime={formatClinicDateTimeInput(startTime, timeZone)} minStartTime={minStartTime} />
+                  {appointment.status !== "CANCELED" &&
+                  appointment.status !== "NO_SHOW" &&
+                  appointment.status !== "COMPLETED" ? (
+                    canSchedule ? (
+                      <EditAppointmentDialog
+                        appointment={appointment}
+                        customers={customers}
+                        services={services}
+                        currentStartTime={formatClinicDateTimeInput(startTime, timeZone)}
+                        minStartTime={minStartTime}
+                      />
+                    ) : (
+                      <RescheduleAppointmentDialog
+                        appointmentId={appointment.id}
+                        currentStartTime={formatClinicDateTimeInput(startTime, timeZone)}
+                        minStartTime={minStartTime}
+                      />
+                    )
                   ) : null}
-                  <AppointmentActions appointmentId={appointment.id} status={appointment.status} />
+                  <AppointmentActions
+                    appointmentId={appointment.id}
+                    status={appointment.status}
+                    startTime={appointment.startTime}
+                  />
                 </div>
               </div>
             );
           })}
         </div>
       )}
-      <PaginationControls page={data?.page ?? page} pageCount={pageCount} totalItems={data?.total ?? 0} onPageChange={setPage} itemLabelPlural="atendimentos" />
+      <PaginationControls
+        page={data?.page ?? page}
+        pageCount={pageCount}
+        totalItems={data?.total ?? 0}
+        onPageChange={setPage}
+        itemLabelPlural="atendimentos"
+      />
     </div>
   );
 }

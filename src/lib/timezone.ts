@@ -122,3 +122,51 @@ export function getClinicMonthlyBounds(timeZone: string, months: number, now = n
 
   return result;
 }
+
+const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Converte um valor de `<input type="date">` (YYYY-MM-DD) num instante ao
+ * meio-dia do fuso da loja. Ao contrário de `new Date("YYYY-MM-DD")` (00:00
+ * UTC, ou seja, véspera em horário de Brasília), o resultado cai no mesmo dia
+ * tanto no fuso da loja quanto em UTC - por isso filtros por período e a
+ * exibição com `formatDateOnly` concordam sobre a data escolhida.
+ */
+export function parseClinicDateOnly(value: string, timeZone: string) {
+  return DATE_ONLY_PATTERN.test(value) ? parseClinicDateTime(`${value}T12:00`, timeZone) : null;
+}
+
+/** Soma dias a uma data de calendário YYYY-MM-DD (independe de fuso). */
+export function addDaysToDateKey(dateKey: string, days: number) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
+}
+
+/** Dia da semana (0 = domingo) de uma data de calendário YYYY-MM-DD. */
+export function weekdayOfDateKey(dateKey: string) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+}
+
+/** Segunda-feira da semana de uma data de calendário. */
+export function startOfWeekDateKey(dateKey: string) {
+  return addDaysToDateKey(dateKey, -((weekdayOfDateKey(dateKey) + 6) % 7));
+}
+
+export function isDateKey(value: string | null | undefined): value is string {
+  return Boolean(value && DATE_ONLY_PATTERN.test(value) && parseClinicDateTime(`${value}T12:00`, "UTC"));
+}
+
+function nextDateKey(dateKey: string) {
+  return addDaysToDateKey(dateKey, 1);
+}
+
+/**
+ * Converte o filtro `from`/`to` (YYYY-MM-DD, ambos inclusivos) em limites
+ * `[from, to)` no fuso da loja. Valores ausentes ou inválidos ficam indefinidos.
+ */
+export function parseClinicDateRange(fromValue: string | null | undefined, toValue: string | null | undefined, timeZone: string) {
+  const from = isDateKey(fromValue) ? parseClinicDateTime(`${fromValue}T00:00`, timeZone) ?? undefined : undefined;
+  const to = isDateKey(toValue) ? parseClinicDateTime(`${nextDateKey(toValue)}T00:00`, timeZone) ?? undefined : undefined;
+  return { from, to };
+}

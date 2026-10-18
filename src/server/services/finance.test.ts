@@ -6,6 +6,7 @@ import type { ClinicModel } from "@/generated/prisma/models/Clinic";
 
 const clinic: ClinicModel = {
   billingReconciledAt: null,
+  bookingLinkSharedAt: null,
   id: "clinic-1",
   legacyExternalId: "org_1",
   billingOwnerId: null,
@@ -75,16 +76,37 @@ describe("getFinanceMetrics", () => {
   });
 
   it("calcula receita e contagens do mês atual", async () => {
-    const { startOfMonth } = await import("@/lib/timezone").then((m) =>
-      m.getClinicDateBounds(clinic.timeZone),
-    );
+    const { getClinicDateBounds } = await import("@/lib/timezone");
+    const { startOfMonth } = getClinicDateBounds(clinic.timeZone);
 
     prismaMock.appointment.findMany.mockResolvedValueOnce([
-      createAppointment({ status: "CONFIRMED", price: 50, startTime: new Date(startOfMonth.getTime() + 60 * 60_000), paymentMethod: "PIX" }),
-      createAppointment({ status: "COMPLETED", price: 70, startTime: new Date(startOfMonth.getTime() + 2 * 60 * 60_000), paymentMethod: "CREDIT_CARD" }),
-      createAppointment({ status: "CANCELED", price: 30, startTime: new Date(startOfMonth.getTime() + 3 * 60 * 60_000) }),
-      createAppointment({ status: "NO_SHOW", price: 40, startTime: new Date(startOfMonth.getTime() + 4 * 60 * 60_000) }),
-      createAppointment({ status: "PENDING", price: 60, startTime: new Date(startOfMonth.getTime() + 5 * 60 * 60_000) }),
+      createAppointment({
+        status: "CONFIRMED",
+        price: 50,
+        startTime: new Date(startOfMonth.getTime() + 60 * 60_000),
+        paymentMethod: "PIX",
+      }),
+      createAppointment({
+        status: "COMPLETED",
+        price: 70,
+        startTime: new Date(startOfMonth.getTime() + 2 * 60 * 60_000),
+        paymentMethod: "CREDIT_CARD",
+      }),
+      createAppointment({
+        status: "CANCELED",
+        price: 30,
+        startTime: new Date(startOfMonth.getTime() + 3 * 60 * 60_000),
+      }),
+      createAppointment({
+        status: "NO_SHOW",
+        price: 40,
+        startTime: new Date(startOfMonth.getTime() + 4 * 60 * 60_000),
+      }),
+      createAppointment({
+        status: "PENDING",
+        price: 60,
+        startTime: new Date(startOfMonth.getTime() + 5 * 60 * 60_000),
+      }),
     ]);
     prismaMock.appointment.findMany.mockResolvedValueOnce([]);
     prismaMock.appointment.findMany.mockResolvedValueOnce([]);
@@ -107,15 +129,18 @@ describe("getFinanceMetrics", () => {
   });
 
   it("calcula variação percentual em relação ao mês anterior", async () => {
-    const { startOfMonth, startOfPreviousMonth } = await import("@/lib/timezone").then((m) =>
-      m.getClinicDateBounds(clinic.timeZone),
-    );
+    const { getClinicDateBounds } = await import("@/lib/timezone");
+    const { startOfMonth, startOfPreviousMonth } = getClinicDateBounds(clinic.timeZone);
 
     prismaMock.appointment.findMany.mockResolvedValueOnce([
       createAppointment({ status: "COMPLETED", price: 120, startTime: new Date(startOfMonth.getTime() + 60 * 60_000) }),
     ]);
     prismaMock.appointment.findMany.mockResolvedValueOnce([
-      createAppointment({ status: "COMPLETED", price: 100, startTime: new Date(startOfPreviousMonth.getTime() + 60 * 60_000) }),
+      createAppointment({
+        status: "COMPLETED",
+        price: 100,
+        startTime: new Date(startOfPreviousMonth.getTime() + 60 * 60_000),
+      }),
     ]);
     prismaMock.appointment.findMany.mockResolvedValueOnce([]);
 
@@ -127,14 +152,31 @@ describe("getFinanceMetrics", () => {
   });
 
   it("agrupa receita diária corretamente", async () => {
-    const { startOfMonth } = await import("@/lib/timezone").then((m) =>
-      m.getClinicDateBounds(clinic.timeZone),
-    );
+    const { getClinicDateBounds } = await import("@/lib/timezone");
+    const { startOfMonth } = getClinicDateBounds(clinic.timeZone);
 
     prismaMock.appointment.findMany.mockResolvedValueOnce([
-      createAppointment({ id: "app-1", status: "COMPLETED", price: 50, startTime: new Date(startOfMonth.getTime() + 60 * 60_000), paymentMethod: "PIX" }),
-      createAppointment({ id: "app-2", status: "COMPLETED", price: 70, startTime: new Date(startOfMonth.getTime() + 2 * 60 * 60_000), paymentMethod: "PIX" }),
-      createAppointment({ id: "app-3", status: "COMPLETED", price: 30, startTime: new Date(startOfMonth.getTime() + 24 * 60 * 60_000), paymentMethod: "CASH" }),
+      createAppointment({
+        id: "app-1",
+        status: "COMPLETED",
+        price: 50,
+        startTime: new Date(startOfMonth.getTime() + 60 * 60_000),
+        paymentMethod: "PIX",
+      }),
+      createAppointment({
+        id: "app-2",
+        status: "COMPLETED",
+        price: 70,
+        startTime: new Date(startOfMonth.getTime() + 2 * 60 * 60_000),
+        paymentMethod: "PIX",
+      }),
+      createAppointment({
+        id: "app-3",
+        status: "COMPLETED",
+        price: 30,
+        startTime: new Date(startOfMonth.getTime() + 24 * 60 * 60_000),
+        paymentMethod: "CASH",
+      }),
     ]);
     prismaMock.appointment.findMany.mockResolvedValueOnce([]);
     prismaMock.appointment.findMany.mockResolvedValueOnce([]);
@@ -148,6 +190,25 @@ describe("getFinanceMetrics", () => {
     expect(metrics.paymentMethodDistribution.find((m) => m.name === "Dinheiro")?.value).toBe(20);
   });
 
+  it("mantém os centavos no ticket médio", async () => {
+    const { startOfMonth } = await import("@/lib/timezone").then((m) =>
+      m.getClinicDateBounds(clinic.timeZone),
+    );
+    const startTime = new Date(startOfMonth.getTime() + 60 * 60_000);
+
+    prismaMock.appointment.findMany.mockResolvedValueOnce([
+      createAppointment({ id: "app-1", status: "COMPLETED", price: 49.99, startTime, paymentMethod: "PIX" }),
+      createAppointment({ id: "app-2", status: "COMPLETED", price: 49.99, startTime, paymentMethod: "PIX" }),
+    ]);
+    prismaMock.appointment.findMany.mockResolvedValueOnce([]);
+    prismaMock.appointment.findMany.mockResolvedValueOnce([]);
+
+    const metrics = await getFinanceMetrics(clinic);
+
+    // Arredondar para reais mostrava R$ 50,00.
+    expect(metrics.kpiSeries.ticket.filter((value) => value > 0)).toEqual([49.99]);
+  });
+
   it("aplica o intervalo selecionado também nas consultas financeiras", async () => {
     prismaMock.appointment.findMany.mockResolvedValueOnce([]);
     prismaMock.appointment.findMany.mockResolvedValueOnce([]);
@@ -155,12 +216,21 @@ describe("getFinanceMetrics", () => {
 
     await getFinanceMetrics(clinic, "7days");
 
-    const selectedWhere = prismaMock.appointment.findMany.mock.calls[0]?.[0]?.where?.startTime as { gte: Date; lt: Date };
-    const previousWhere = prismaMock.appointment.findMany.mock.calls[1]?.[0]?.where?.startTime as { gte: Date; lt: Date };
+    const selectedWhere = prismaMock.appointment.findMany.mock.calls[0]?.[0]?.where?.startTime as {
+      gte: Date;
+      lt: Date;
+    };
+    const previousWhere = prismaMock.appointment.findMany.mock.calls[1]?.[0]?.where?.startTime as {
+      gte: Date;
+      lt: Date;
+    };
     const selectedDurationInDays = (selectedWhere.lt.getTime() - selectedWhere.gte.getTime()) / (24 * 60 * 60 * 1_000);
 
     expect(selectedDurationInDays).toBeGreaterThanOrEqual(6.9);
     expect(selectedDurationInDays).toBeLessThanOrEqual(7.1);
-    expect(previousWhere.lt).toEqual(selectedWhere.gte);
+    // O período anterior é cortado no mesmo tempo decorrido do atual (parcial vs parcial).
+    const elapsed = Math.min(Date.now(), selectedWhere.lt.getTime()) - selectedWhere.gte.getTime();
+    expect(previousWhere.lt.getTime()).toBeLessThanOrEqual(selectedWhere.gte.getTime());
+    expect(Math.abs(previousWhere.lt.getTime() - previousWhere.gte.getTime() - elapsed)).toBeLessThan(5_000);
   });
 });
