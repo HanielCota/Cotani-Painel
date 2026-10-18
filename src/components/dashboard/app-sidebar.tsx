@@ -3,8 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CheckIcon, ChevronsUpDownIcon, LogOutIcon, StoreIcon, UserRoundIcon } from "lucide-react";
+import { CheckIcon, ChevronsUpDownIcon, LogOutIcon, StoreIcon } from "lucide-react";
 
+import { NotificationBell } from "@/components/dashboard/notification-bell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -27,6 +28,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { getVisibleNavigation, isActivePath, type NavigationItem } from "@/config/dashboard-navigation";
 import type { ClinicRole, SubscriptionPlan } from "@/generated/prisma/enums";
@@ -52,6 +54,8 @@ interface AppSidebarProps {
   user: SidebarIdentity;
   clinics: SidebarClinic[];
   activeClinicId?: string | null;
+  /** Sem negócio ativo não há agenda para notificar. */
+  showNotifications?: boolean;
 }
 
 function initialsOf(name: string) {
@@ -60,8 +64,8 @@ function initialsOf(name: string) {
 
 function BrandMark() {
   return (
-    <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring">
-      <Image src="/images/cotani-favicon.png" alt="" width={36} height={36} priority className="size-9 shrink-0" />
+    <Link href="/dashboard" aria-label="Cotani - Visão geral" className="flex min-w-0 items-center gap-2.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring group-data-[collapsible=icon]:justify-center">
+      <Image src="/images/cotani-favicon.png" alt="" width={36} height={36} priority className="size-9 shrink-0 transition-[width,height] group-data-[collapsible=icon]:size-8" />
       <span className="truncate text-lg font-bold tracking-tight text-sidebar-foreground group-data-[collapsible=icon]:hidden">Cotani</span>
     </Link>
   );
@@ -85,7 +89,7 @@ function ClinicSwitcher({ clinics, activeClinicId, role }: { clinics: SidebarCli
   );
 
   if (clinics.length < 2) {
-    return <div className="flex h-12 items-center gap-2 rounded-lg px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">{label}</div>;
+    return <div className="flex h-12 items-center gap-2 rounded-lg px-2 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0" title={activeClinic.name}>{label}</div>;
   }
 
   return (
@@ -154,11 +158,6 @@ function UserMenu({ user }: { user: SidebarIdentity }) {
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem render={<Link href="/dashboard/minha-conta" />} className="min-h-10">
-          <UserRoundIcon aria-hidden="true" />
-          Minha conta
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
         <form action={signOut}>
           <DropdownMenuItem render={<button type="submit" />} variant="destructive" className="min-h-10 w-full">
             <LogOutIcon aria-hidden="true" />
@@ -170,13 +169,17 @@ function UserMenu({ user }: { user: SidebarIdentity }) {
   );
 }
 
-export function AppSidebar({ subscriptionPlan, role, user, clinics, activeClinicId }: AppSidebarProps) {
+export function AppSidebar({ subscriptionPlan, role, user, clinics, activeClinicId, showNotifications = true }: AppSidebarProps) {
   const sections = getVisibleNavigation(role, subscriptionPlan);
 
   return (
     <Sidebar collapsible="icon" variant="sidebar" className="border-r border-sidebar-border">
-      <SidebarHeader className="gap-3 px-3 pt-4 pb-2">
-        <BrandMark />
+      <SidebarHeader className="gap-3 px-3 pt-4 pb-2 group-data-[collapsible=icon]:px-2">
+        {/* Recolhida: logo e botão empilhados no centro. */}
+        <div className="flex items-center justify-between gap-2 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:justify-start">
+          <BrandMark />
+          <SidebarTrigger className="hidden text-muted-foreground hover:text-foreground md:inline-flex" />
+        </div>
         <SidebarMenu>
           <SidebarMenuItem>
             <ClinicSwitcher clinics={clinics} activeClinicId={activeClinicId} role={role} />
@@ -199,6 +202,11 @@ export function AppSidebar({ subscriptionPlan, role, user, clinics, activeClinic
 
       <SidebarFooter className="border-t border-sidebar-border p-2">
         <SidebarMenu>
+          {showNotifications ? (
+            <SidebarMenuItem>
+              <NotificationBell />
+            </SidebarMenuItem>
+          ) : null}
           <SidebarMenuItem>
             <UserMenu user={user} />
           </SidebarMenuItem>

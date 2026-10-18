@@ -23,8 +23,8 @@ describe("getVisibleNavigation", () => {
   const titles = (role: Parameters<typeof getVisibleNavigation>[0], plan: Parameters<typeof getVisibleNavigation>[1]) =>
     getVisibleNavigation(role, plan).flatMap((section) => section.items.map((item) => item.title));
 
-  it("profissional vê apenas a agenda", () => {
-    expect(titles("PROVIDER", "PROFESSIONAL")).toEqual(["Agenda"]);
+  it("profissional vê apenas a agenda e as configurações da conta", () => {
+    expect(titles("PROVIDER", "PROFESSIONAL")).toEqual(["Agenda", "Configurações"]);
   });
 
   it("recepção não vê financeiro, relatórios nem cadastros do negócio", () => {
