@@ -4,6 +4,7 @@ import type { NotificationChannel, NotificationKind } from "@/generated/prisma/e
 import { logger } from "@/lib/logger";
 import { normalizeWhatsAppPhone } from "@/lib/phone";
 import { readJsonOrNull } from "@/lib/ignore-failure";
+import { isWhatsAppApiMode } from "@/server/services/messaging/sender-mode";
 
 /**
  * Mensagem de saída normalizada, independente de canal ou provedor.
@@ -188,7 +189,7 @@ const senders: Record<NotificationChannel, MessageSender> = {
 };
 
 export function getMessageSender(channel: NotificationChannel): MessageSender {
-  if (channel === "WHATSAPP" && process.env.WHATSAPP_SENDER_MODE !== "api") {
+  if (channel === "WHATSAPP" && !isWhatsAppApiMode()) {
     return new ConsoleMessageSender();
   }
   return senders[channel];

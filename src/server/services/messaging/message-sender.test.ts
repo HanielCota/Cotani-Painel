@@ -49,3 +49,11 @@ describe("envio simulado", () => {
     expect(logged).not.toContain("Olá Maria");
   });
 });
+
+describe("modo do WhatsApp", () => {
+  it.each(["API", " api "])("usa a API da Meta com WHATSAPP_SENDER_MODE=%j", (mode) => {
+    vi.stubEnv("WHATSAPP_SENDER_MODE", mode);
+
+    expect(getMessageSender("WHATSAPP")).not.toBeInstanceOf(ConsoleMessageSender);
+  });
+});

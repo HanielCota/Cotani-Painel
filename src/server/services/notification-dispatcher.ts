@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import type { NotificationModel } from "@/generated/prisma/models/Notification";
 import { getPlanEntitlements } from "@/config/subscription-plans";
 import { getMessageSender } from "@/server/services/messaging/message-sender";
+import { isWhatsAppApiMode } from "@/server/services/messaging/sender-mode";
 import { isSubscriptionActive } from "@/server/subscription";
 
 /**
@@ -23,11 +24,6 @@ export interface DispatchStats {
   sent: number;
   retried: number;
   failed: number;
-}
-
-function isWhatsAppManualMode(): boolean {
-  const mode = process.env.WHATSAPP_SENDER_MODE?.trim().toLowerCase();
-  return mode !== "api";
 }
 
 /**
@@ -142,7 +138,7 @@ async function sendOne(notification: NotificationModel, stats: DispatchStats) {
 /** Processa um lote da fila: cancela lembretes vencidos e envia o que é devido. */
 export async function dispatchDueNotifications(now = new Date()): Promise<DispatchStats> {
   await cancelExpiredReminders(now);
-  const batch = await claimBatch(now, isWhatsAppManualMode());
+  const batch = await claimBatch(now, !isWhatsAppApiMode());
   const stats: DispatchStats = { claimed: batch.length, sent: 0, retried: 0, failed: 0 };
 
   // Envio sequencial intencional: lote pequeno, respeita rate limits dos provedores
