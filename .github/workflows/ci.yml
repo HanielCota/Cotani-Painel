@@ -59,7 +59,7 @@ jobs:
       - run: pnpm build
 
   audit:
-    name: Production dependency audit
+    name: Full dependency audit
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -70,9 +70,8 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: package.json
-      # Bloqueia avisos altos/críticos no que vai para produção. As
-      # devDependencies ficam a cargo do Dependabot (não chegam ao runtime).
-      - run: pnpm audit --prod --audit-level high
+      # Block high and critical advisories in production and development tools.
+      - run: pnpm audit --audit-level high
 
   database:
     name: Migrations and schema drift
