@@ -157,6 +157,19 @@ describe("toggleServiceActive", () => {
     );
   });
 
+  it("conta os agendamentos futuros só depois de travar a linha (FOR UPDATE)", async () => {
+    prismaMock.service.findFirst.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440001", isActive: true });
+    prismaMock.$queryRaw.mockResolvedValueOnce([]);
+    prismaMock.appointment.count.mockResolvedValueOnce(0);
+
+    await toggleServiceActive("550e8400-e29b-41d4-a716-446655440001");
+
+    // Sem a trava, um agendamento em andamento passava despercebido pela contagem.
+    expect(prismaMock.$queryRaw).toHaveBeenCalled();
+    expect(prismaMock.$queryRaw.mock.invocationCallOrder[0]).toBeLessThan(prismaMock.appointment.count.mock.invocationCallOrder[0]);
+  });
+
+
   it("retorna erro para ID inválido", async () => {
     const result = await toggleServiceActive("invalid");
 

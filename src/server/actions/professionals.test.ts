@@ -210,6 +210,18 @@ describe("toggleProfessionalActive", () => {
     });
   });
 
+  it("conta os agendamentos futuros só depois de travar a linha (FOR UPDATE)", async () => {
+    prismaMock.professional.findFirst.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440002", isActive: true });
+    prismaMock.$queryRaw.mockResolvedValueOnce([]);
+    prismaMock.appointment.count.mockResolvedValueOnce(0);
+
+    await toggleProfessionalActive("550e8400-e29b-41d4-a716-446655440002");
+
+    // Sem a trava, um agendamento em andamento passava despercebido pela contagem.
+    expect(prismaMock.$queryRaw).toHaveBeenCalled();
+    expect(prismaMock.$queryRaw.mock.invocationCallOrder[0]).toBeLessThan(prismaMock.appointment.count.mock.invocationCallOrder[0]);
+  });
+
   it("impede desativação quando há agendamentos futuros", async () => {
     prismaMock.professional.findFirst.mockResolvedValueOnce({
       id: "550e8400-e29b-41d4-a716-446655440002",
