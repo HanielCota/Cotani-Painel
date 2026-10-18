@@ -5,7 +5,6 @@ import { connection } from "next/server";
 import { headers } from "next/headers";
 
 import { AppProviders } from "@/app/providers";
-import { ThemeToggle } from "@/components/theme-toggle";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -73,7 +72,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         </a>
         <AppProviders nonce={nonce}>
           {children}
-          <ThemeToggle />
         </AppProviders>
         {analyticsEnabled ? <Analytics /> : null}
       </body>

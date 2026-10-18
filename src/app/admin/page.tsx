@@ -15,6 +15,7 @@ import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatCard } from "@/components/ui/stat-card";
 import { formatDateTime } from "@/lib/formatters";
 import { maskNotificationRecipient } from "@/lib/admin-display";
 import prisma from "@/lib/prisma";
@@ -94,13 +95,8 @@ export default async function PlatformAdminOverviewPage() {
       <AdminPageHeader title="Visão geral da plataforma" description={`Indicadores consultados em ${formatDateTime(now, "America/Sao_Paulo")}. “Operacionais” reflete o status cadastrado, não a disponibilidade em tempo real da loja.`} />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {metrics.map(({ label, value, detail, icon: Icon }) => (
-          <Card key={label}>
-            <CardContent className="flex items-center justify-between gap-4">
-              <div><p className="text-sm text-muted-foreground">{label}</p><p className="text-3xl font-semibold">{value}</p><p className="mt-1 text-xs text-muted-foreground">{detail}</p></div>
-              <span className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><Icon className="size-5" /></span>
-            </CardContent>
-          </Card>
+        {metrics.map(({ label, value, detail, icon }) => (
+          <StatCard key={label} title={label} value={String(value)} description={detail} icon={icon} />
         ))}
       </div>
 
@@ -178,7 +174,7 @@ export default async function PlatformAdminOverviewPage() {
                     <Badge variant={statusVariant(event.status, false)}>{statusLabel(event.status, false)}</Badge>
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(event.startedAt, "America/Sao_Paulo")} · {(event.durationMs / 1000).toFixed(1)} s</p>
-                  {event.externalEventId ? <p className="mt-1 break-all font-mono text-[11px] text-muted-foreground">Evento: {event.externalEventId}</p> : null}
+                  {event.externalEventId ? <p className="mt-1 break-all font-mono text-xs text-muted-foreground">Evento: {event.externalEventId}</p> : null}
                   {event.error ? <p className="mt-1 break-words text-xs text-destructive">{event.error}</p> : null}
                 </div>
               );

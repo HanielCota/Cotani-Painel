@@ -42,7 +42,12 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
   const [result, setResult] = useState<ActionResult | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  // Rola até o card só ao trocar de etapa; no carregamento isso escondia o
+  // cabeçalho da loja.
+  const previousStep = useRef(step);
   useEffect(() => {
+    if (previousStep.current === step) return;
+    previousStep.current = step;
     const reduceMotion = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     cardRef.current?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
   }, [step]);
@@ -52,6 +57,8 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
   const availableProfessionals = selectedService ? professionals.filter((professional) => professional.serviceIds.includes(selectedService.id)) : [];
   const hasProfessionals = availableProfessionals.length > 0;
   const canProceedFromService = Boolean(serviceId && (!hasProfessionals || professionalId));
+  // Explica por que "Continuar" está desabilitado (no mobile o botão fica fixo no rodapé).
+  const serviceStepHint = !serviceId ? "Escolha um serviço para continuar." : !canProceedFromService ? "Escolha um profissional para continuar." : null;
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ["public-availability", slug, serviceId, professionalId, date],
@@ -120,7 +127,7 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
   }
 
   return (
-    <Card ref={cardRef} className="overflow-hidden">
+    <Card ref={cardRef} className="scroll-mt-4 overflow-clip">
       <CardHeader className="gap-2">
         <CardTitle className="text-lg sm:text-xl">{rescheduleToken ? "Reagendar atendimento" : "Novo agendamento"}</CardTitle>
         <CardDescription>{rescheduleToken ? "Escolha o novo horário. O anterior será liberado somente após a confirmação." : `Complete as etapas para reservar seu horário em ${clinicName}.`}</CardDescription>
@@ -136,7 +143,9 @@ export function BookingSteps({ slug, clinicName, services, professionals, minDat
           {result?.status === "error" ? <Alert variant="destructive" className="mt-5"><AlertTitle>Não foi possível agendar</AlertTitle><AlertDescription>{result.message}</AlertDescription></Alert> : null}
         </form>
       </CardContent>
-      <CardFooter className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-between">
+      <CardFooter className="sticky bottom-0 z-10 flex flex-col-reverse gap-3 border-t border-border/70 bg-card/95 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/85 sm:static sm:flex-row sm:justify-between sm:border-0 sm:bg-card sm:pt-2 sm:backdrop-blur-none">
+        {step === "service-professional" && serviceStepHint ? <p className="text-center text-xs text-muted-foreground sm:hidden">{serviceStepHint}</p> : null}
+        {step === "datetime" && !slot ? <p className="text-center text-xs text-muted-foreground sm:hidden">Escolha um dia e um horário.</p> : null}
         {step !== "service-professional" ? <Button type="button" variant="outline" onClick={() => setStep(step === "customer" ? "datetime" : "service-professional")} disabled={isPending} className="h-12 w-full sm:w-auto"><ArrowLeftIcon data-icon="inline-start" />Voltar</Button> : <div className="hidden sm:block" />}
         {step === "service-professional" ? <Button type="button" disabled={!canProceedFromService} onClick={() => setStep("datetime")} className="h-12 w-full sm:w-auto">Continuar<ArrowRightIcon data-icon="inline-end" /></Button> : null}
         {step === "datetime" ? <Button type="button" disabled={!slot} onClick={() => setStep("customer")} className="h-12 w-full sm:w-auto">Continuar<ArrowRightIcon data-icon="inline-end" /></Button> : null}

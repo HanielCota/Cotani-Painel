@@ -153,7 +153,7 @@ export default async function ConfirmRecoveryPage({ searchParams }: ConfirmRecov
   const email = typeof claimsData?.claims?.email === "string" ? claimsData.claims.email : null;
 
   return (
-    <main id="main-content" tabIndex={-1} className="flex min-h-svh items-center justify-center bg-background p-4 outline-none">
+    <main id="main-content" tabIndex={-1} className="flex min-h-svh items-center justify-center p-4 outline-none">
       <AuthCard>
         <RecoveryContent error={params.error} formError={formError} recoverySession={recoverySession} mfa={mfa} email={email} />
       </AuthCard>

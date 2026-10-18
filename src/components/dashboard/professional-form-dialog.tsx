@@ -103,7 +103,7 @@ export function ProfessionalFormDialog({ professional }: ProfessionalFormDialogP
       >
         {isEditing ? <PencilIcon aria-hidden="true" className="size-4" /> : <><PlusIcon aria-hidden="true" className="size-4" /> Novo profissional</>}
       </DialogTrigger>
-      <DialogContent className="w-[95vw] sm:max-w-[600px] overflow-x-hidden overflow-y-auto max-h-[90vh]">
+      <DialogContent className="w-[95vw] sm:max-w-[600px] overflow-x-hidden overflow-y-auto max-h-[90svh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserIcon aria-hidden="true" />

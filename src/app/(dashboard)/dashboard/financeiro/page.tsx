@@ -10,7 +10,7 @@ import {
 import { FinanceDateTabs } from "@/components/dashboard/finance-date-tabs";
 import { FinanceKpiCards } from "@/components/dashboard/finance-kpi-cards";
 import { FinanceTransactionsTable } from "@/components/dashboard/finance-transactions-table";
-import { PageHeader } from "@/components/dashboard/page-header";
+import { PageHeader, SectionHeader } from "@/components/dashboard/page-header";
 import { PlanUpgradeRequired } from "@/components/dashboard/plan-upgrade-required";
 import { getPlanEntitlements } from "@/config/subscription-plans";
 import { financePeriodLabels, getFinanceAppointmentsPage, getFinanceMetrics, type FinancePeriod } from "@/server/services/finance";
@@ -60,45 +60,38 @@ export default withTenant<FinancePageProps>(async ({ clinic }, { searchParams })
   const periodLabel = financePeriodLabels[period].toLocaleLowerCase("pt-BR");
 
   return (
-    <div className="min-w-0 flex flex-col gap-5">
-      <PageHeader
-        title="Financeiro"
-        description={`Acompanhe receitas, vendas e movimentação da ${clinic.name}.`}
-      />
+    <div className="flex min-w-0 flex-col gap-8">
+      <div className="flex flex-col gap-5">
+        <PageHeader
+          title="Financeiro"
+          description={`Receitas, vendas e movimentações de ${clinic.name}.`}
+          actions={<FinanceDateTabs activePeriod={period} />}
+        />
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <FinanceDateTabs activePeriod={period} />
+        <FinanceKpiCards
+          currentMonthRevenue={metrics.currentMonthRevenue}
+          expectedRevenue={metrics.expectedRevenue}
+          previousMonthRevenue={metrics.previousMonthRevenue}
+          monthAppointmentsTotal={metrics.monthAppointmentsTotal}
+          monthPendingCount={metrics.monthPendingCount}
+          monthConfirmedCount={metrics.monthConfirmedCount}
+          monthCompletedCount={metrics.monthCompletedCount}
+          monthCanceledCount={metrics.monthCanceledCount}
+          monthNoShowCount={metrics.monthNoShowCount}
+          kpiSeries={metrics.kpiSeries}
+        />
       </div>
 
-      <FinanceKpiCards
-        currentMonthRevenue={metrics.currentMonthRevenue}
-        expectedRevenue={metrics.expectedRevenue}
-        previousMonthRevenue={metrics.previousMonthRevenue}
-        monthAppointmentsTotal={metrics.monthAppointmentsTotal}
-        monthPendingCount={metrics.monthPendingCount}
-        monthConfirmedCount={metrics.monthConfirmedCount}
-        monthCompletedCount={metrics.monthCompletedCount}
-        monthCanceledCount={metrics.monthCanceledCount}
-        monthNoShowCount={metrics.monthNoShowCount}
-        kpiSeries={metrics.kpiSeries}
-      />
-
-      <FinanceEntriesManager
-        entries={entries.map((entry) => ({ id: entry.id, type: entry.type, status: entry.status, description: entry.description, category: entry.category, amount: Number(entry.amount), paidAmount: Number(entry.paidAmount), dueDate: entry.dueDate?.toISOString() ?? null, occurredAt: entry.occurredAt.toISOString(), notes: entry.notes }))}
-        summary={{ received, paid, receivable, balance: received - paid }}
-        pagination={{ page: entriesPage, total: entriesTotal, pageSize: 15, period, siblingPage: page }}
-      />
-
-      <section className="min-w-0 flex flex-col gap-4">
-        <h2 className="text-base font-semibold text-foreground">Desempenho em {periodLabel}</h2>
+      <section className="flex min-w-0 flex-col gap-4" aria-labelledby="finance-performance">
+        <SectionHeader id="finance-performance" title={`Desempenho em ${periodLabel}`} description="Receita diária e dias de maior movimento." />
         <div className="grid gap-4 lg:grid-cols-12">
           <SalesPerformanceChart data={metrics.dailyRevenue} />
           <SalesCalendarHeatmap data={metrics.calendarHeatmap} />
         </div>
       </section>
 
-      <section className="min-w-0 flex flex-col gap-4">
-        <h2 className="text-base font-semibold text-foreground">Contexto e composição</h2>
+      <section className="flex min-w-0 flex-col gap-4" aria-labelledby="finance-composition">
+        <SectionHeader id="finance-composition" title="Contexto e composição" description="Evolução mensal, formas de pagamento e situação dos agendamentos." />
         <div className="grid gap-4 lg:grid-cols-3">
           <MrrEvolutionChart data={metrics.monthlyRevenue} />
           <PaymentMethodsChart data={metrics.paymentMethodDistribution} />
@@ -106,10 +99,16 @@ export default withTenant<FinancePageProps>(async ({ clinic }, { searchParams })
         </div>
       </section>
 
-      <section className="flex flex-col gap-4">
-        <h2 className="text-base font-semibold text-foreground">Movimentações em {periodLabel}</h2>
+      <section className="flex min-w-0 flex-col gap-4" aria-labelledby="finance-appointments">
+        <SectionHeader id="finance-appointments" title={`Atendimentos em ${periodLabel}`} description="Valores gerados pela agenda no período." />
         <FinanceTransactionsTable data={appointmentPage} timeZone={clinic.timeZone} period={period} siblingPage={entriesPage} />
       </section>
+
+      <FinanceEntriesManager
+        entries={entries.map((entry) => ({ id: entry.id, type: entry.type, status: entry.status, description: entry.description, category: entry.category, amount: Number(entry.amount), paidAmount: Number(entry.paidAmount), dueDate: entry.dueDate?.toISOString() ?? null, occurredAt: entry.occurredAt.toISOString(), notes: entry.notes }))}
+        summary={{ received, paid, receivable, balance: received - paid }}
+        pagination={{ page: entriesPage, total: entriesTotal, pageSize: 15, period, siblingPage: page }}
+      />
     </div>
   );
 }, ["ADMIN"]);

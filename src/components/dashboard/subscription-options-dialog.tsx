@@ -13,7 +13,7 @@ export function SubscriptionOptionsDialog({ plans }: { plans: SubscriptionPlanDa
         <CreditCardIcon aria-hidden="true" />
         Ver opções de assinatura
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
+      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>Escolha o plano da sua empresa</DialogTitle>
           <DialogDescription>

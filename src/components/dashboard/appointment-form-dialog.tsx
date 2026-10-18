@@ -31,7 +31,7 @@ export function AppointmentFormDialog(props: AppointmentFormDialogProps) {
         <CalendarPlusIcon data-icon="inline-start" />
         Novo atendimento
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto p-0 sm:max-w-3xl">
+      <DialogContent className="max-h-[90svh] overflow-y-auto p-0 sm:max-w-3xl">
         <DialogTitle className="sr-only">Adicionar atendimento</DialogTitle>
         <DialogDescription className="sr-only">
           Cadastre o cliente, serviço, profissional, data e horário do atendimento.

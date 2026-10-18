@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { financialEntryStatusBadgeVariant, financialEntryStatusLabel, financialEntryTypeLabel } from "@/lib/display-labels";
 import { formatCurrency, formatDateOnly } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
+import { SectionHeader } from "./page-header";
 import { FinanceEntryDelete } from "./finance-entry-delete";
 import { FinanceEntryDialog } from "./finance-entry-dialog";
 import type { FinanceEntry } from "./finance-entry-types";
@@ -83,13 +84,12 @@ export function FinanceEntriesManager({
 }) {
   return (
     <section className="min-w-0 space-y-4" aria-labelledby="finance-entries-title">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h2 id="finance-entries-title" className="text-base font-semibold">Receitas, despesas e contas a receber</h2>
-          <p className="text-sm text-muted-foreground">Movimentações manuais complementam os atendimentos concluídos.</p>
-        </div>
-        <FinanceEntryDialog />
-      </div>
+      <SectionHeader
+        id="finance-entries-title"
+        title="Receitas, despesas e contas a receber"
+        description="Movimentações manuais complementam os atendimentos concluídos."
+        actions={<FinanceEntryDialog />}
+      />
 
       <EntriesSummaryCards summary={summary} />
 

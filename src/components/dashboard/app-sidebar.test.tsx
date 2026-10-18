@@ -1,38 +1,42 @@
 import { describe, expect, it } from "vitest";
 
-import { isActivePath } from "@/components/dashboard/app-sidebar";
-
-function createSearchParams(query: string): URLSearchParams {
-  return new URLSearchParams(query);
-}
+import { getVisibleNavigation, isActivePath } from "@/config/dashboard-navigation";
 
 describe("isActivePath", () => {
-  it("ativa no match exato sem query string", () => {
-    expect(isActivePath("/dashboard/negocio/servicos", createSearchParams(""), "/dashboard/negocio/servicos")).toBe(true);
+  it("ativa no match exato e em sub-rotas", () => {
+    expect(isActivePath("/dashboard/negocio/servicos", "/dashboard/negocio/servicos")).toBe(true);
+    expect(isActivePath("/dashboard/clientes/123", "/dashboard/clientes")).toBe(true);
   });
 
-  it("não ativa quando href não tem query mas URL atual tem", () => {
-    expect(isActivePath("/dashboard/negocio/servicos", createSearchParams("filtro=ativos"), "/dashboard/negocio/servicos")).toBe(false);
+  it("itens exatos não ativam em sub-rotas", () => {
+    expect(isActivePath("/dashboard/agenda", "/dashboard", true)).toBe(false);
+    expect(isActivePath("/dashboard/negocio/servicos", "/dashboard/negocio", true)).toBe(false);
   });
 
-  it("ativa quando query string bate", () => {
-    expect(isActivePath("/dashboard/clientes", createSearchParams("page=2"), "/dashboard/clientes?page=2")).toBe(true);
+  it("não confunde prefixos parecidos", () => {
+    expect(isActivePath("/dashboard/negocio/profissionais", "/dashboard/negocio/servicos")).toBe(false);
+    expect(isActivePath("/dashboard/agendas", "/dashboard/agenda")).toBe(false);
+  });
+});
+
+describe("getVisibleNavigation", () => {
+  const titles = (role: Parameters<typeof getVisibleNavigation>[0], plan: Parameters<typeof getVisibleNavigation>[1]) =>
+    getVisibleNavigation(role, plan).flatMap((section) => section.items.map((item) => item.title));
+
+  it("profissional vê apenas a agenda", () => {
+    expect(titles("PROVIDER", "PROFESSIONAL")).toEqual(["Agenda"]);
   });
 
-  it("não ativa quando query string não bate", () => {
-    expect(isActivePath("/dashboard/clientes", createSearchParams("page=2"), "/dashboard/clientes?page=3")).toBe(false);
+  it("recepção não vê financeiro, relatórios nem cadastros do negócio", () => {
+    const visible = titles("RECEPTIONIST", "ENTERPRISE");
+    expect(visible).toContain("Clientes");
+    expect(visible).not.toContain("Financeiro");
+    expect(visible).not.toContain("Relatórios");
+    expect(visible).not.toContain("Serviços");
   });
 
-  it("ativa para sub-rotas", () => {
-    expect(isActivePath("/dashboard/agenda/123", createSearchParams(""), "/dashboard/agenda")).toBe(true);
-  });
-
-  it("não ativa /dashboard para sub-rotas", () => {
-    expect(isActivePath("/dashboard/agenda", createSearchParams(""), "/dashboard", true)).toBe(false);
-  });
-
-  it("distingue páginas do negócio", () => {
-    expect(isActivePath("/dashboard/negocio/profissionais", createSearchParams(""), "/dashboard/negocio/servicos")).toBe(false);
-    expect(isActivePath("/dashboard/negocio/servicos", createSearchParams(""), "/dashboard/negocio", true)).toBe(false);
+  it("relatórios dependem do plano", () => {
+    expect(titles("ADMIN", "ESSENTIAL")).not.toContain("Relatórios");
+    expect(titles("ADMIN", "PROFESSIONAL")).toContain("Relatórios");
   });
 });
