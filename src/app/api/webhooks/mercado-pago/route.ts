@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import type { Prisma } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
@@ -13,17 +14,28 @@ import { monitorOperation } from "@/server/services/operational-monitoring";
 
 export const maxDuration = 60;
 
+const notificationIdSchema = z.union([z.string(), z.number()]).nullish();
+
+const notificationSchema = z.object({
+  id: notificationIdSchema,
+  type: z.string().nullish(),
+  action: z.string().nullish(),
+  data: z.object({ id: notificationIdSchema }).nullish(),
+});
+
 export async function POST(request: NextRequest) {
-  let body: { id?: string | number; type?: string; action?: string; data?: { id?: string | number } };
+  let rawBody: unknown;
   try {
-    body = JSON.parse(await readRequestText(request, 256 * 1024));
-    if (!body || typeof body !== "object") throw new Error("Invalid body");
+    rawBody = JSON.parse(await readRequestText(request, 256 * 1024));
   } catch (error) {
     return NextResponse.json(
       { message: "Corpo inválido." },
       { status: error instanceof RequestBodyTooLargeError ? 413 : 400 },
     );
   }
+  const parsedBody = notificationSchema.safeParse(rawBody);
+  if (!parsedBody.success) return NextResponse.json({ message: "Corpo inválido." }, { status: 400 });
+  const body = parsedBody.data;
   const dataId = String(body.data?.id ?? request.nextUrl.searchParams.get("data.id") ?? "").trim();
   const eventType = body.type ?? request.nextUrl.searchParams.get("type");
   if (!dataId || !eventType) return NextResponse.json({ message: "Evento sem identificação." }, { status: 400 });
