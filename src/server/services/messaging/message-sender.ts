@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { NotificationChannel, NotificationKind } from "@/generated/prisma/enums";
+import { logger } from "@/lib/logger";
 import { normalizeWhatsAppPhone } from "@/lib/phone";
 import { readJsonOrNull } from "@/lib/ignore-failure";
 
@@ -31,16 +32,15 @@ export interface MessageSender {
 }
 
 /**
- * Mock de MVP: registra a mensagem no console e simula sucesso.
+ * Mock de MVP: registra o envio no log (sem destinatário nem texto) e simula sucesso.
  * Substituições planejadas: Evolution API (menor atrito inicial) e,
  * como caminho definitivo de compliance, a Meta Cloud API.
  */
 export class ConsoleMessageSender implements MessageSender {
   async send(message: OutboundMessage): Promise<SendResult> {
-    console.info("[message-sender:mock] envio simulado", {
+    logger.info("Envio simulado pelo message-sender de teste", {
       channel: message.channel,
-      recipient: message.recipient,
-      content: message.content,
+      contentLength: message.content.length,
       idempotencyKey: message.idempotencyKey,
     });
 
