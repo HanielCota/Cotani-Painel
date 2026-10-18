@@ -15,6 +15,7 @@ import { isSubscriptionActive } from "@/server/subscription";
 import { withTenant } from "@/server/with-tenant";
 import { getSubscriptionPlanOptions } from "@/server/services/subscription-plan-options";
 import { SubscriptionManagement } from "@/components/dashboard/subscription-management";
+import { PlanComparisonTable } from "@/components/dashboard/plan-comparison-table";
 import { getPlanFitIssues } from "@/server/services/billing-access";
 import { SubscriptionPlan } from "@/generated/prisma/enums";
 import { PaymentHistoryTable } from "@/components/dashboard/payment-history-table";
@@ -124,6 +125,15 @@ export default withTenant(async ({ clinic }) => {
             </CardContent>
           </Card>
           {active && clinic.hasPaidOnce ? <SubscriptionManagement currentPlan={clinic.subscriptionPlan} pendingPlan={clinic.pendingSubscriptionPlan} cancelAtPeriodEnd={clinic.cancelAtPeriodEnd} refundEligible={refundEligible} issuesByPlan={{ ESSENTIAL: essentialIssues, PROFESSIONAL: professionalIssues }} /> : null}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Comparar planos</CardTitle>
+              <CardDescription>O que cada plano inclui. O plano Empresa é contratado com a equipe Cotani.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PlanComparisonTable currentPlan={clinic.subscriptionPlan} />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="renew" className="mt-6">
