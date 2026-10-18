@@ -1,24 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+import { NextResponse } from "next/server";
 
-import { matchesBearerSecret } from "@/lib/secure-compare";
+import { cronJob } from "@/server/cron-job";
 import { reconcileMercadoPagoSubscriptions } from "@/server/services/subscription-reconciliation";
-import { getHttpOperationOutcome, monitorOperation } from "@/server/services/operational-monitoring";
 
-async function dispatch(request: NextRequest) {
-  const secret = z.string().min(1).safeParse(process.env.CRON_SECRET);
-  if (!secret.success) return NextResponse.json({ message: "CRON_SECRET não configurado." }, { status: 500 });
-  if (!matchesBearerSecret(request.headers.get("authorization"), secret.data)) return NextResponse.json({ message: "Não autorizado." }, { status: 401 });
-  const result = await reconcileMercadoPagoSubscriptions();
-  return NextResponse.json(result, { status: result.failed > 0 ? 503 : 200 });
-}
+export const { GET, POST } = cronJob({
+  operation: "subscription-reconciliation",
+  run: async () => {
+    const result = await reconcileMercadoPagoSubscriptions();
+    return NextResponse.json(result, { status: result.failed > 0 ? 503 : 200 });
+  },
+});
 
-const trackedDispatch = (request: NextRequest) => monitorOperation(
-  { category: "JOB", operation: "subscription-reconciliation" },
-  () => dispatch(request),
-  getHttpOperationOutcome,
-);
-
-export const GET = trackedDispatch;
-export const POST = trackedDispatch;
 export const maxDuration = 60;
