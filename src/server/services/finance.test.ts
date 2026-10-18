@@ -190,6 +190,25 @@ describe("getFinanceMetrics", () => {
     expect(metrics.paymentMethodDistribution.find((m) => m.name === "Dinheiro")?.value).toBe(20);
   });
 
+  it("mantém os centavos no ticket médio", async () => {
+    const { startOfMonth } = await import("@/lib/timezone").then((m) =>
+      m.getClinicDateBounds(clinic.timeZone),
+    );
+    const startTime = new Date(startOfMonth.getTime() + 60 * 60_000);
+
+    prismaMock.appointment.findMany.mockResolvedValueOnce([
+      createAppointment({ id: "app-1", status: "COMPLETED", price: 49.99, startTime, paymentMethod: "PIX" }),
+      createAppointment({ id: "app-2", status: "COMPLETED", price: 49.99, startTime, paymentMethod: "PIX" }),
+    ]);
+    prismaMock.appointment.findMany.mockResolvedValueOnce([]);
+    prismaMock.appointment.findMany.mockResolvedValueOnce([]);
+
+    const metrics = await getFinanceMetrics(clinic);
+
+    // Arredondar para reais mostrava R$ 50,00.
+    expect(metrics.kpiSeries.ticket.filter((value) => value > 0)).toEqual([49.99]);
+  });
+
   it("aplica o intervalo selecionado também nas consultas financeiras", async () => {
     prismaMock.appointment.findMany.mockResolvedValueOnce([]);
     prismaMock.appointment.findMany.mockResolvedValueOnce([]);
