@@ -92,14 +92,14 @@ function ClinicSwitcher({ clinics, activeClinicId, role }: { clinics: SidebarCli
     <DropdownMenu>
       <DropdownMenuTrigger
         render={<SidebarMenuButton size="lg" />}
-        aria-label={`Trocar de loja. Loja atual: ${activeClinic.name}`}
+        aria-label={`Trocar de negócio. Negócio atual: ${activeClinic.name}`}
       >
         {label}
         <ChevronsUpDownIcon className="ml-auto size-4 text-muted-foreground group-data-[collapsible=icon]:hidden" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-64">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Trocar de loja</DropdownMenuLabel>
+          <DropdownMenuLabel>Trocar de negócio</DropdownMenuLabel>
           {clinics.map((clinic) => {
             const isActive = clinic.id === activeClinic.id;
             return (

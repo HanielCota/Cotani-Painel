@@ -10,7 +10,7 @@ const links = [
   { href: "/admin", label: "Visão geral", icon: GaugeIcon },
   { href: "/admin/operacoes", label: "Operações", icon: ActivityIcon },
   { href: "/admin/notificacoes", label: "Notificações", icon: BellRingIcon },
-  { href: "/admin/lojas", label: "Lojas", icon: Building2Icon },
+  { href: "/admin/lojas", label: "Negócios", icon: Building2Icon },
   { href: "/admin/auditoria", label: "Auditoria", icon: ScrollTextIcon },
 ];
 

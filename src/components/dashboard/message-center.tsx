@@ -103,7 +103,7 @@ export function MessageCenter({
         <div className="md:col-span-2">
           <h2 className="font-semibold">Novo lembrete</h2>
           <p className="text-xs text-muted-foreground">
-            Horários exibidos no horário local da loja. Modelos podem ser
+            Horários exibidos no horário local do negócio. Modelos podem ser
             ajustados antes do envio.
           </p>
         </div>

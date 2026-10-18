@@ -61,7 +61,7 @@ export default async function SuccessPage({ params, searchParams }: SuccessPageP
             <div className="flex items-center justify-between gap-4 border-b pb-3">
               <dt className="flex items-center gap-2 text-muted-foreground">
                 <MapPinIcon aria-hidden="true" className="size-4 shrink-0" />
-                Loja
+                Local
               </dt>
               <dd className="min-w-0 truncate text-right font-medium">{clinic.name}</dd>
             </div>

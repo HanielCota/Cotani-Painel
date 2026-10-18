@@ -93,7 +93,7 @@ export function AppointmentForm({ customers, services, minStartTime, className, 
     <Card className={cn(className)}>
       <CardHeader>
         <CardTitle>Adicionar atendimento</CardTitle>
-        <CardDescription>Os horários são registrados no horário local da loja.</CardDescription>
+        <CardDescription>Os horários são registrados no horário local do negócio.</CardDescription>
       </CardHeader>
       <CardContent>
         <form id="create-appointment" action={formAction}>

@@ -48,7 +48,7 @@ function readEntryForm(formData: FormData) {
 async function getFinanceClinic() {
   await requireAuthenticatedUser();
   const clinic = await getClinicForRoles(["ADMIN"]);
-  if (!clinic) return { ok: false, message: "Selecione uma loja." } as const;
+  if (!clinic) return { ok: false, message: "Selecione um negócio." } as const;
   if (!isSubscriptionActive(clinic)) return { ok: false, message: SUBSCRIPTION_INACTIVE_MESSAGE } as const;
   // A página já esconde o módulo, mas a action pode ser chamada diretamente.
   if (!getPlanEntitlements(clinic.subscriptionPlan).finance) return { ok: false, message: "O financeiro está disponível a partir do plano Profissional." } as const;

@@ -47,7 +47,7 @@ export async function saveBusinessProfile(_previousState: ActionResult, formData
   });
   if (!parsed.success || !parsed.data.slug) return { status: "error", message: "Revise os dados e o endereço público informados." };
   const clinic = await getClinicForRoles(["ADMIN"]);
-  if (!clinic) return { status: "error", message: "Selecione uma loja antes de salvar." };
+  if (!clinic) return { status: "error", message: "Selecione um negócio antes de salvar." };
   if (!isSubscriptionActive(clinic)) return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
   if (parsed.data.imageUrl?.startsWith("data:") && !(await allowMediaUpload(authUser.id))) {
     return { status: "error", message: "Muitos envios de imagem. Aguarde antes de tentar novamente." };
@@ -71,11 +71,11 @@ export async function saveBusinessProfile(_previousState: ActionResult, formData
     if (clinic.imageUrl !== imageUrl) await removePublicImage({ url: clinic.imageUrl, clinicId: clinic.id, kind: "clinics" }).catch(() => undefined);
   } catch (error) {
     await removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "clinics" }).catch(() => undefined);
-    return { status: "error", message: error instanceof SlugInUseError ? error.message : "Não foi possível salvar os dados da empresa." };
+    return { status: "error", message: error instanceof SlugInUseError ? error.message : "Não foi possível salvar os dados do negócio." };
   }
   revalidatePath("/dashboard", "layout");
   revalidatePath(`/${parsed.data.slug}`);
-  return { status: "success", message: "Dados da empresa atualizados." };
+  return { status: "success", message: "Dados do negócio atualizados." };
 }
 
 export async function saveClinicSettings(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
@@ -93,7 +93,7 @@ export async function saveClinicSettings(_previousState: ActionResult, formData:
   const clinic = await getClinicForRoles(["ADMIN"]);
 
   if (!clinic) {
-    return { status: "error", message: "Selecione uma loja antes de salvar." };
+    return { status: "error", message: "Selecione um negócio antes de salvar." };
   }
 
   if (!isSubscriptionActive(clinic)) {

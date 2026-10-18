@@ -27,7 +27,7 @@ export async function findAvailableClinicSlug(name: string) {
     const slug = `${base}-${suffix}`.slice(0, 120);
     if (!await prisma.clinic.findUnique({ where: { slug }, select: { id: true } })) return slug;
   }
-  throw new Error("Não foi possível gerar um endereço único para a loja.");
+  throw new Error("Não foi possível gerar um endereço único para o negócio.");
 }
 
 export function mapSubscriptionStatus(value: unknown): SubscriptionStatus {

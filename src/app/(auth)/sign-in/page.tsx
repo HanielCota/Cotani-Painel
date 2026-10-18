@@ -12,7 +12,7 @@ export default function SignInPage() {
           <Image src="/images/cotani-favicon.png" alt="" width={64} height={64} priority className="size-16" />
           <div>
             <h1 className="text-xl font-semibold tracking-tight">Cotani</h1>
-            <p className="text-sm text-muted-foreground">Gestão simples para sua loja</p>
+            <p className="text-sm text-muted-foreground">Gestão simples para o seu negócio</p>
           </div>
         </div>
         <Suspense fallback={<Skeleton className="h-[25rem] w-full rounded-2xl border border-border/80" aria-label="Carregando formulário de acesso" />}>

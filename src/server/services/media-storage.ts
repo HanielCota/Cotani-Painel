@@ -61,7 +61,7 @@ export async function persistPublicImage(input: { clinicId: string; kind: Public
     const existingPath = objectPathFromPublicUrl(input.value);
     if (existingPath) {
       if (!isOwnedObjectPath(existingPath, input.clinicId, input.kind)) {
-        throw new Error("A imagem informada não pertence a esta loja.");
+        throw new Error("A imagem informada não pertence a este negócio.");
       }
       throw new Error("Envie novamente o arquivo em vez de reutilizar outra imagem armazenada.");
     }

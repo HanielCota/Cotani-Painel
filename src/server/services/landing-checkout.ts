@@ -143,7 +143,7 @@ async function sendExistingAccountEmail(email: string, name: string) {
       from,
       to: [email],
       subject: "Pagamento confirmado - seu acesso à Cotani está liberado",
-      text: `Olá, ${name}. Seu pagamento foi confirmado e sua empresa já está liberada na Cotani. Entre com este mesmo e-mail em ${appUrl()}/sign-in. Se não lembrar sua senha, use a opção \"Esqueci minha senha\".`,
+      text: `Olá, ${name}. Seu pagamento foi confirmado e seu negócio já está liberado na Cotani. Entre com este mesmo e-mail em ${appUrl()}/sign-in. Se não lembrar sua senha, use a opção \"Esqueci minha senha\".`,
     }),
     signal: AbortSignal.timeout(10_000),
   });

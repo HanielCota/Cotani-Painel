@@ -81,7 +81,7 @@ export default async function PlatformAdminOverviewPage() {
   ]);
 
   const metrics = [
-    { label: "Lojas", value: stores, detail: "Cadastros não excluídos", icon: Building2Icon },
+    { label: "Negócios", value: stores, detail: "Cadastros não excluídos", icon: Building2Icon },
     { label: "Operacionais", value: activeStores, detail: "Status cadastrado como ativo", icon: ActivityIcon },
     { label: "Suspensas", value: suspendedStores, detail: "Status cadastrado como suspenso", icon: ShieldBanIcon },
     { label: "Excluídas", value: deletedStores, detail: "Cadastros marcados como excluídos", icon: CircleAlertIcon },
@@ -92,7 +92,7 @@ export default async function PlatformAdminOverviewPage() {
 
   return (
     <>
-      <AdminPageHeader title="Visão geral da plataforma" description={`Indicadores consultados em ${formatDateTime(now, "America/Sao_Paulo")}. “Operacionais” reflete o status cadastrado, não a disponibilidade em tempo real da loja.`} />
+      <AdminPageHeader title="Visão geral da plataforma" description={`Indicadores consultados em ${formatDateTime(now, "America/Sao_Paulo")}. “Operacionais” reflete o status cadastrado, não a disponibilidade em tempo real do negócio.`} />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {metrics.map(({ label, value, detail, icon }) => (
@@ -149,7 +149,7 @@ export default async function PlatformAdminOverviewPage() {
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">Destinatário: {maskNotificationRecipient(item.recipient)}</p>
                 {item.error ? <p className="mt-1 break-words text-xs text-destructive">{item.error}</p> : null}
-                <Link className="mt-2 inline-block text-xs font-medium text-primary hover:underline" href={`/admin/lojas/${item.clinicId}`}>Ver loja</Link>
+                <Link className="mt-2 inline-block text-xs font-medium text-primary hover:underline" href={`/admin/lojas/${item.clinicId}`}>Ver negócio</Link>
               </div>
             ))}
             {!failedNotificationItems.length ? <p className="text-sm text-muted-foreground">Tudo certo por aqui.</p> : null}
@@ -186,7 +186,7 @@ export default async function PlatformAdminOverviewPage() {
 
       <Card className="overflow-hidden">
         <CardHeader className="flex-row items-center justify-between gap-4">
-          <div><CardTitle>Lojas recentes</CardTitle><CardDescription>Últimas lojas sincronizadas com a plataforma.</CardDescription></div>
+          <div><CardTitle>Negócios recentes</CardTitle><CardDescription>Últimos negócios cadastrados na plataforma.</CardDescription></div>
           <Button nativeButton={false} render={<Link href="/admin/lojas" />} variant="outline">Ver todas</Button>
         </CardHeader>
         <CardContent className="divide-y">

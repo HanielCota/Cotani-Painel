@@ -114,7 +114,7 @@ async function canClinicSend(notification: NotificationModel) {
 async function sendOne(notification: NotificationModel, stats: DispatchStats) {
   if (!(await canClinicSend(notification))) {
     await prisma.notification.update({ where: { id: notification.id }, data: {
-      status: "CANCELED", lockedAt: null, error: "Envio não permitido pelo plano ou situação atual da loja.",
+      status: "CANCELED", lockedAt: null, error: "Envio não permitido pelo plano ou situação atual do negócio.",
     } });
     return;
   }

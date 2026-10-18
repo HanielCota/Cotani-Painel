@@ -24,7 +24,7 @@ export function ClinicUnavailable({ clinicName }: ClinicUnavailableProps) {
           </h1>
           <EmptyDescription>
             Os agendamentos online estão suspensos no momento. Entre em contato
-            diretamente com a loja para mais informações.
+            diretamente com o estabelecimento para mais informações.
           </EmptyDescription>
         </EmptyHeader>
       </Empty>

@@ -58,7 +58,7 @@ export function BusinessHoursSettings({ businessHours, professionalId }: Busines
   return (
     <form action={formAction} className="flex flex-col gap-4">
       {professionalId ? <input type="hidden" name="professionalId" value={professionalId} /> : null}
-      <p className="text-sm text-muted-foreground">{professionalId ? "Os horários individuais limitam o expediente geral da empresa." : "Configure os dias e horários de funcionamento da loja."}</p>
+      <p className="text-sm text-muted-foreground">{professionalId ? "Os horários individuais limitam o expediente geral do negócio." : "Configure os dias e horários de funcionamento do negócio."}</p>
 
       <div className="overflow-hidden rounded-xl border border-border/80">
         <div className="flex flex-col divide-y">

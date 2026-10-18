@@ -69,11 +69,11 @@ export async function createPublicAppointment(_previousState: ActionResult, form
   });
 
   if (!clinic) {
-    return { status: "error", message: "Loja não encontrada." };
+    return { status: "error", message: "Negócio não encontrado." };
   }
 
   if (!isClinicOperational(clinic)) {
-    return { status: "error", message: "Esta loja está temporariamente indisponível." };
+    return { status: "error", message: "Este negócio está temporariamente indisponível." };
   }
 
   if (!isSubscriptionActive(clinic)) {

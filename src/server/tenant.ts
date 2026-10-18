@@ -69,7 +69,7 @@ export const getTenantContext = cache(async (): Promise<TenantContext> => {
   }
 
   if (!membership) {
-    throw new TenantResolutionError("Nenhuma loja acessível foi encontrada para esta conta.");
+    throw new TenantResolutionError("Nenhum negócio acessível foi encontrado para esta conta.");
   }
 
   return { clinic: membership.clinic, membership, role: membership.role };
@@ -124,7 +124,7 @@ export async function getApiTenant(roles: readonly ClinicRole[]): Promise<ApiTen
     const context = await getTenantContext();
     requireRole(context, roles);
     if (context.clinic.deletedAt || context.clinic.operationalStatus !== "ACTIVE") {
-      return { ok: false, status: 404, message: "Loja ativa não encontrada." };
+      return { ok: false, status: 404, message: "Negócio ativo não encontrado." };
     }
     return { ok: true, context };
   } catch (error) {
@@ -135,7 +135,7 @@ export async function getApiTenant(roles: readonly ClinicRole[]): Promise<ApiTen
       return { ok: false, status: 403, message: "Seu perfil não permite acessar este recurso." };
     }
     if (error instanceof TenantResolutionError) {
-      return { ok: false, status: 404, message: "Loja ativa não encontrada." };
+      return { ok: false, status: 404, message: "Negócio ativo não encontrado." };
     }
     throw error;
   }

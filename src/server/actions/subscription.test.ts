@@ -47,7 +47,7 @@ describe("cancelSubscription", () => {
     const result = await cancelSubscription();
 
     expect(result.status).toBe("error");
-    expect(result.message).toContain("Nenhuma loja encontrada");
+    expect(result.message).toContain("Nenhum negócio encontrado");
   });
 
   it("retorna erro quando a assinatura não está ativa", async () => {

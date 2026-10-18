@@ -28,7 +28,7 @@ export async function cancelSubscription(): Promise<ActionResult> {
     const tenant = requireRole(await getTenantContext(), ["ADMIN"]);
 
     if (!tenant) {
-      return { status: "error", message: "Nenhuma loja encontrada para este usuário." };
+      return { status: "error", message: "Nenhum negócio encontrado para este usuário." };
     }
 
     const { clinic, membership: actorMembership } = tenant;

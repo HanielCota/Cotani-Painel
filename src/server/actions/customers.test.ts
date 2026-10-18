@@ -65,7 +65,7 @@ describe("createCustomer", () => {
     const result = await createCustomer(validCustomer);
 
     expect(result.status).toBe("error");
-    expect(result.message).toContain("Selecione uma loja");
+    expect(result.message).toContain("Selecione um negócio");
   });
 
   it("cria cliente com sucesso", async () => {

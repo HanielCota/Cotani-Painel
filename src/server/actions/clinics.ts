@@ -18,7 +18,7 @@ const switchSchema = z.object({ clinicId: z.uuid() });
 /** Primeira loja da conta, com período grátis (uma vez por usuário). */
 export async function createClinic(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
   const parsed = clinicSchema.safeParse({ name: formData.get("name") });
-  if (!parsed.success) return { status: "error", message: "Informe um nome válido para a loja." };
+  if (!parsed.success) return { status: "error", message: "Informe um nome válido para o negócio." };
   const { appUser } = await ensureCurrentAppUser();
   const slug = await findAvailableClinicSlug(parsed.data.name);
   const result = await prisma.$transaction(async (transaction) => {
@@ -27,7 +27,7 @@ export async function createClinic(_previousState: ActionResult, formData: FormD
       transaction.user.findUnique({ where: { id: appUser.id }, select: { trialStartedAt: true } }),
       transaction.membership.count({ where: { userId: appUser.id } }),
     ]);
-    if (membershipCount > 0) return { ok: false, error: "Sua conta já possui uma loja. Unidades adicionais são liberadas somente no plano Empresa." } as const;
+    if (membershipCount > 0) return { ok: false, error: "Sua conta já possui um negócio. Unidades adicionais são liberadas somente no plano Empresa." } as const;
     if (user?.trialStartedAt) return { ok: false, error: "O período grátis desta conta já foi utilizado." } as const;
     const trialStartedAt = new Date();
     const created = await transaction.clinic.create({

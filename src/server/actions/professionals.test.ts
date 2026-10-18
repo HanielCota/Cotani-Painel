@@ -77,7 +77,7 @@ describe("createProfessional", () => {
     const result = await createProfessional(validProfessional);
 
     expect(result.status).toBe("error");
-    expect(result.message).toContain("Selecione uma loja");
+    expect(result.message).toContain("Selecione um negócio");
   });
 
   it("retorna erro quando serviço selecionado é inválido", async () => {

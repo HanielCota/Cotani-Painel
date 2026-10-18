@@ -150,7 +150,7 @@ function MemberRow({
             <AlertDialogHeader>
               <AlertDialogTitle>Remover acesso?</AlertDialogTitle>
               <AlertDialogDescription>
-                {member.name} perderá o acesso a esta empresa. O histórico será
+                {member.name} perderá o acesso a este negócio. O histórico será
                 preservado.
               </AlertDialogDescription>
             </AlertDialogHeader>

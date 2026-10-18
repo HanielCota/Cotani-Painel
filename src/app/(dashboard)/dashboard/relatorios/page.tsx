@@ -105,7 +105,7 @@ export default withTenant<ReportsPageProps>(async (context, { searchParams }) =>
       <Card>
         <CardHeader>
           <CardTitle>Como os indicadores são calculados</CardTitle>
-          <CardDescription>As taxas consideram o período selecionado e o horário local da sua empresa.</CardDescription>
+          <CardDescription>As taxas consideram o período selecionado e o horário local do seu negócio.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-2 text-sm text-muted-foreground">
           <p>

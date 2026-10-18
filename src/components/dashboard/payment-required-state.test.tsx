@@ -26,7 +26,7 @@ describe("PaymentRequiredState", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /ver opções de assinatura/i }));
 
-    expect(await screen.findByText("Escolha o plano da sua empresa")).toBeInTheDocument();
+    expect(await screen.findByText("Escolha o plano do seu negócio")).toBeInTheDocument();
     expect(screen.getByText("Opções de planos carregadas")).toBeInTheDocument();
   });
 
