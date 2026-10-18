@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { parsePageNumber } from "@/lib/page-number";
 import { AppointmentActions } from "@/components/dashboard/appointment-actions";
 import { RescheduleAppointmentDialog } from "@/components/dashboard/reschedule-appointment-dialog";
 import { EditAppointmentDialog } from "@/components/dashboard/edit-appointment-dialog";
@@ -53,7 +54,7 @@ export function AgendaAppointmentsList({
   customers = [],
   services = [],
 }: AgendaAppointmentsListProps) {
-  const [page, setPageState] = useState(() => Math.max(1, Number.parseInt(readUrlSearchParam("pagina", "1"), 10) || 1));
+  const [page, setPageState] = useState(() => parsePageNumber(readUrlSearchParam("pagina", "1")));
   const [statusFilter, setStatusFilter] = useState<AppointmentStatus | "ALL">(() => {
     const value = readUrlSearchParam("status", "ALL");
     return filters.some((item) => item.status === value) ? (value as AppointmentStatus | "ALL") : "ALL";

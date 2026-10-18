@@ -7,6 +7,7 @@ import {
   SalesCalendarHeatmap,
   SalesPerformanceChart,
 } from "@/components/dashboard/finance-charts";
+import { parsePageNumber } from "@/lib/page-number";
 import { FinanceDateTabs } from "@/components/dashboard/finance-date-tabs";
 import { FinanceKpiCards } from "@/components/dashboard/finance-kpi-cards";
 import { FinanceTransactionsTable } from "@/components/dashboard/finance-transactions-table";
@@ -45,8 +46,8 @@ export default withTenant<FinancePageProps>(
       requestedPeriod && financePeriods.has(requestedPeriod as FinancePeriod)
         ? (requestedPeriod as FinancePeriod)
         : "month";
-    const page = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1);
-    const entriesPage = Math.max(1, Number.parseInt(query.entriesPage ?? "1", 10) || 1);
+    const page = parsePageNumber(query.page);
+    const entriesPage = parsePageNumber(query.entriesPage);
     const bounds = financePeriodBounds(period, clinic.timeZone);
     const entryWhere = { clinicId: clinic.id, occurredAt: { gte: bounds.start, lt: bounds.end } };
     const [metrics, appointmentPage, entries, entriesTotal, entryGroups] = await Promise.all([

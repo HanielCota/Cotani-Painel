@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { parsePageNumber } from "@/lib/page-number";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,7 +14,7 @@ const PAGE_SIZE = 30;
 
 export default async function AuditPage({ searchParams }: { searchParams: Promise<{ pagina?: string }> }) {
   const params = await searchParams;
-  const requestedPage = Math.max(1, Number.parseInt(params.pagina ?? "1", 10) || 1);
+  const requestedPage = parsePageNumber(params.pagina);
   const total = await prisma.adminAuditLog.count();
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const page = Math.min(requestedPage, totalPages);

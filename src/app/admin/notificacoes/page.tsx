@@ -1,6 +1,7 @@
 import { addDays } from "date-fns";
 import Link from "next/link";
 
+import { parsePageNumber } from "@/lib/page-number";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,7 @@ export default async function FailedNotificationsPage({
 }) {
   const params = await searchParams;
   const period = periods.find((value) => value === params.periodo) ?? "30";
-  const requestedPage = Math.max(1, Number.parseInt(params.pagina ?? "1", 10) || 1);
+  const requestedPage = parsePageNumber(params.pagina);
   const where: Prisma.NotificationWhereInput = { status: "FAILED" };
   if (period !== "all") where.updatedAt = { gte: addDays(new Date(), -Number(period)) };
 

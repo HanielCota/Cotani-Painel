@@ -1,6 +1,7 @@
 import { DownloadIcon } from "lucide-react";
 import type { Metadata } from "next";
 
+import { parsePageNumber } from "@/lib/page-number";
 import { ReportsAppointmentsTable } from "@/components/dashboard/reports-appointments-table";
 import { ReportsKpiCards } from "@/components/dashboard/reports-kpi-cards";
 import { ReportsMonthlyChart } from "@/components/dashboard/reports-monthly-chart";
@@ -31,7 +32,7 @@ export default withTenant<ReportsPageProps>(async (context, { searchParams }) =>
   const query = await searchParams;
   const { from, to } = parseClinicDateRange(query.from, query.to, clinic.timeZone);
   const unitIds = await getAuthorizedReportClinicIds(context);
-  const page = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1);
+  const page = parsePageNumber(query.page);
   const reportOptions = { from, to, clinicIds: unitIds };
   const [metrics, appointmentsPage] = await Promise.all([
     getReportsMetrics(clinic, reportOptions),

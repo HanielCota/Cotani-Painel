@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { SearchIcon } from "lucide-react";
 import Link from "next/link";
 
+import { parsePageNumber } from "@/lib/page-number";
 import { DeleteCustomerDialog } from "@/components/dashboard/delete-customer-dialog";
 import { EditCustomerDialog } from "@/components/dashboard/edit-customer-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -49,7 +50,7 @@ export function CustomersTable() {
   const initialSearch = readUrlSearchParam("busca");
   const [search, setSearch] = useState(initialSearch);
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
-  const [page, setPageState] = useState(() => Math.max(1, Number.parseInt(readUrlSearchParam("pagina", "1"), 10) || 1));
+  const [page, setPageState] = useState(() => parsePageNumber(readUrlSearchParam("pagina", "1")));
 
   function setPage(nextPage: number) {
     setPageState(nextPage);
