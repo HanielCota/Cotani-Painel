@@ -562,6 +562,40 @@ export type EnumNotificationStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumNotificationStatusFilter<$PrismaModel>
 }
 
+export type EnumOperationalCategoryFilter<$PrismaModel = never> = {
+  equals?: $Enums.OperationalCategory | Prisma.EnumOperationalCategoryFieldRefInput<$PrismaModel>
+  in?: $Enums.OperationalCategory[] | Prisma.ListEnumOperationalCategoryFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OperationalCategory[] | Prisma.ListEnumOperationalCategoryFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOperationalCategoryFilter<$PrismaModel> | $Enums.OperationalCategory
+}
+
+export type EnumOperationalStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.OperationalStatus | Prisma.EnumOperationalStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.OperationalStatus[] | Prisma.ListEnumOperationalStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OperationalStatus[] | Prisma.ListEnumOperationalStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOperationalStatusFilter<$PrismaModel> | $Enums.OperationalStatus
+}
+
+export type EnumOperationalCategoryWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OperationalCategory | Prisma.EnumOperationalCategoryFieldRefInput<$PrismaModel>
+  in?: $Enums.OperationalCategory[] | Prisma.ListEnumOperationalCategoryFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OperationalCategory[] | Prisma.ListEnumOperationalCategoryFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOperationalCategoryWithAggregatesFilter<$PrismaModel> | $Enums.OperationalCategory
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOperationalCategoryFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOperationalCategoryFilter<$PrismaModel>
+}
+
+export type EnumOperationalStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OperationalStatus | Prisma.EnumOperationalStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.OperationalStatus[] | Prisma.ListEnumOperationalStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OperationalStatus[] | Prisma.ListEnumOperationalStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOperationalStatusWithAggregatesFilter<$PrismaModel> | $Enums.OperationalStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOperationalStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOperationalStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -1092,6 +1126,40 @@ export type NestedEnumNotificationStatusWithAggregatesFilter<$PrismaModel = neve
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumNotificationStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumNotificationStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumOperationalCategoryFilter<$PrismaModel = never> = {
+  equals?: $Enums.OperationalCategory | Prisma.EnumOperationalCategoryFieldRefInput<$PrismaModel>
+  in?: $Enums.OperationalCategory[] | Prisma.ListEnumOperationalCategoryFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OperationalCategory[] | Prisma.ListEnumOperationalCategoryFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOperationalCategoryFilter<$PrismaModel> | $Enums.OperationalCategory
+}
+
+export type NestedEnumOperationalStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.OperationalStatus | Prisma.EnumOperationalStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.OperationalStatus[] | Prisma.ListEnumOperationalStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OperationalStatus[] | Prisma.ListEnumOperationalStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOperationalStatusFilter<$PrismaModel> | $Enums.OperationalStatus
+}
+
+export type NestedEnumOperationalCategoryWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OperationalCategory | Prisma.EnumOperationalCategoryFieldRefInput<$PrismaModel>
+  in?: $Enums.OperationalCategory[] | Prisma.ListEnumOperationalCategoryFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OperationalCategory[] | Prisma.ListEnumOperationalCategoryFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOperationalCategoryWithAggregatesFilter<$PrismaModel> | $Enums.OperationalCategory
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOperationalCategoryFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOperationalCategoryFilter<$PrismaModel>
+}
+
+export type NestedEnumOperationalStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OperationalStatus | Prisma.EnumOperationalStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.OperationalStatus[] | Prisma.ListEnumOperationalStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OperationalStatus[] | Prisma.ListEnumOperationalStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOperationalStatusWithAggregatesFilter<$PrismaModel> | $Enums.OperationalStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOperationalStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOperationalStatusFilter<$PrismaModel>
 }
 
 
