@@ -1,22 +1,22 @@
-import { CalendarDaysIcon } from "lucide-react";
 import type { Metadata } from "next";
 
-import { AgendaAppointmentsList } from "@/components/dashboard/agenda-appointments-list";
+import { AgendaBoard } from "@/components/dashboard/agenda/agenda-board";
 import { AgendaSetup } from "@/components/dashboard/agenda-setup";
 import { AppointmentFormDialog } from "@/components/dashboard/appointment-form-dialog";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import prisma from "@/lib/prisma";
-import { formatClinicDateTimeInput } from "@/lib/timezone";
+import { formatClinicDateKey, formatClinicDateTimeInput } from "@/lib/timezone";
 import { withTenant } from "@/server/with-tenant";
 
 export const metadata: Metadata = { title: "Agenda" };
 
-interface AgendaPageProps { searchParams: Promise<{ customerId?: string | string[] }> }
+interface AgendaPageProps { searchParams: Promise<{ customerId?: string | string[]; visao?: string | string[]; data?: string | string[] }> }
+
+const firstParam = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value);
 export default withTenant<AgendaPageProps>(async ({ clinic, membership, role }, { searchParams }) => {
-  const requestedCustomerId = (await searchParams).customerId;
-  const initialCustomerId = Array.isArray(requestedCustomerId) ? requestedCustomerId[0] : requestedCustomerId;
+  const query = await searchParams;
+  const initialCustomerId = firstParam(query.customerId);
   const now = new Date();
   const providerProfessional = role === "PROVIDER"
     ? await prisma.professional.findFirst({ where: { clinicId: clinic.id, membershipId: membership.id, isActive: true }, select: { id: true } })
@@ -40,7 +40,7 @@ export default withTenant<AgendaPageProps>(async ({ clinic, membership, role }, 
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Agenda"
-        description={`Organize os próximos atendimentos de ${clinic.name}.`}
+        description="Veja o dia ou a semana, clique num horário vago para agendar e num atendimento para confirmar, reagendar ou concluir."
         actions={
           canSchedule ? (
             <AppointmentFormDialog
@@ -60,15 +60,16 @@ export default withTenant<AgendaPageProps>(async ({ clinic, membership, role }, 
         <Alert variant="warning"><AlertDescription>Seu acesso ainda não foi vinculado a um profissional ativo. Peça a um administrador para concluir o vínculo.</AlertDescription></Alert>
       ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><CalendarDaysIcon /> Próximos atendimentos</CardTitle>
-          <CardDescription>Confirme, reagende ou conclua os atendimentos conforme a operação avança. A lista é atualizada automaticamente.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AgendaAppointmentsList timeZone={clinic.timeZone} minStartTime={minStartTime} canSchedule={canSchedule} customers={customers} services={services} />
-        </CardContent>
-      </Card>
+      <AgendaBoard
+        timeZone={clinic.timeZone}
+        minStartTime={minStartTime}
+        canSchedule={canSchedule}
+        customers={customers}
+        services={services}
+        today={formatClinicDateKey(now, clinic.timeZone)}
+        initialView={firstParam(query.visao)}
+        initialDate={firstParam(query.data)}
+      />
     </div>
   );
 }, ["ADMIN", "RECEPTIONIST", "PROVIDER"]);

@@ -20,6 +20,17 @@ export interface AgendaAppointment {
   totalPrice?: number;
 }
 
+/** Agenda em grade (dia/semana): atendimentos do intervalo + dados da grade. */
+export interface AgendaRange {
+  /** Primeiro dia (YYYY-MM-DD, fuso do negócio). */
+  from: string;
+  days: number;
+  timeZone: string;
+  items: AgendaAppointment[];
+  professionals: Array<{ id: string; name: string }>;
+  hours: Array<{ dayOfWeek: number; isOpen: boolean; openTime: string; closeTime: string }>;
+}
+
 export interface AppointmentsPage {
   items: AgendaAppointment[];
   total: number;

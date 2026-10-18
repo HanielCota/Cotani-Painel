@@ -136,9 +136,29 @@ export function parseClinicDateOnly(value: string, timeZone: string) {
   return DATE_ONLY_PATTERN.test(value) ? parseClinicDateTime(`${value}T12:00`, timeZone) : null;
 }
 
-function nextDateKey(dateKey: string) {
+/** Soma dias a uma data de calendário YYYY-MM-DD (independe de fuso). */
+export function addDaysToDateKey(dateKey: string, days: number) {
   const [year, month, day] = dateKey.split("-").map(Number);
-  return new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
+}
+
+/** Dia da semana (0 = domingo) de uma data de calendário YYYY-MM-DD. */
+export function weekdayOfDateKey(dateKey: string) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+}
+
+/** Segunda-feira da semana de uma data de calendário. */
+export function startOfWeekDateKey(dateKey: string) {
+  return addDaysToDateKey(dateKey, -((weekdayOfDateKey(dateKey) + 6) % 7));
+}
+
+export function isDateKey(value: string | null | undefined): value is string {
+  return Boolean(value && DATE_ONLY_PATTERN.test(value) && parseClinicDateTime(`${value}T12:00`, "UTC"));
+}
+
+function nextDateKey(dateKey: string) {
+  return addDaysToDateKey(dateKey, 1);
 }
 
 /**
