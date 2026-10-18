@@ -41,7 +41,7 @@ env:
 
 jobs:
   validate:
-    name: Lint, tipos, testes e build
+    name: Lint, types, tests and build
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -59,7 +59,7 @@ jobs:
       - run: pnpm build
 
   audit:
-    name: Vulnerabilidades (dependências de produção)
+    name: Production dependency audit
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -75,7 +75,7 @@ jobs:
       - run: pnpm audit --prod --audit-level high
 
   database:
-    name: Migrações do zero e drift do schema
+    name: Migrations and schema drift
     runs-on: ubuntu-latest
     timeout-minutes: 15
     services:
@@ -101,11 +101,11 @@ jobs:
           node-version-file: package.json
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Estrutura do Supabase que não vem na imagem do banco
+      - name: Bootstrap Supabase service schemas
         run: psql "postgresql://supabase_admin:postgres@localhost:5432/postgres" -v ON_ERROR_STOP=1 -q -f scripts/ci/supabase-bootstrap.sql
-      - name: Aplica todas as migrações do zero
+      - name: Apply all migrations to an empty database
         run: pnpm exec prisma migrate deploy
-      - name: Schema Prisma idêntico ao resultado das migrações
+      - name: Verify Prisma schema matches migrations
         run: |
           # A FK User -> auth.users é específica do Supabase e fica fora do
           # modelo Prisma; sem removê-la a introspecção recusa o schema `auth`.
@@ -113,7 +113,7 @@ jobs:
           pnpm exec prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
 
   e2e:
-    name: E2E (rotas públicas)
+    name: E2E public routes
     runs-on: ubuntu-latest
     timeout-minutes: 25
     services:

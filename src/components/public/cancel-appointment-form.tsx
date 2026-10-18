@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { CalendarXIcon } from "lucide-react";
-import { toast } from "sonner";
 import { toastResult } from "@/lib/toast-result";
 
 import { cancelAppointmentByToken } from "@/server/actions/cancel-appointment";

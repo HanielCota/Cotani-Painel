@@ -166,7 +166,7 @@ function nextDateKey(dateKey: string) {
  * `[from, to)` no fuso da loja. Valores ausentes ou inválidos ficam indefinidos.
  */
 export function parseClinicDateRange(fromValue: string | null | undefined, toValue: string | null | undefined, timeZone: string) {
-  const from = fromValue && DATE_ONLY_PATTERN.test(fromValue) ? parseClinicDateTime(`${fromValue}T00:00`, timeZone) ?? undefined : undefined;
-  const to = toValue && DATE_ONLY_PATTERN.test(toValue) ? parseClinicDateTime(`${nextDateKey(toValue)}T00:00`, timeZone) ?? undefined : undefined;
+  const from = isDateKey(fromValue) ? parseClinicDateTime(`${fromValue}T00:00`, timeZone) ?? undefined : undefined;
+  const to = isDateKey(toValue) ? parseClinicDateTime(`${nextDateKey(toValue)}T00:00`, timeZone) ?? undefined : undefined;
   return { from, to };
 }

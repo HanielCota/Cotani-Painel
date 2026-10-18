@@ -8,7 +8,7 @@ import { getNotificationChannels } from "@/config/subscription-plans";
 import { parseClinicDateTime } from "@/lib/timezone";
 import { checkAppointmentTransition, PAYMENT_METHODS } from "@/lib/appointment-status";
 import { isWithinStaffBookingHorizon, STAFF_MAX_BOOKING_HORIZON_DAYS } from "@/config/booking";
-import { getClinicForRoles, getTenantContext } from "@/server/tenant";
+import { getTenantContext } from "@/server/tenant";
 import { requireClinicAction } from "@/server/clinic-action";
 import {
   DOUBLE_BOOKING_MESSAGE,

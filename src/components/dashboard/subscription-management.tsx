@@ -3,7 +3,6 @@
 import { useActionState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRightIcon, CreditCardIcon, RotateCcwIcon, ShieldCheckIcon } from "lucide-react";
-import { toast } from "sonner";
 import { toastResult } from "@/lib/toast-result";
 
 import { Button } from "@/components/ui/button";

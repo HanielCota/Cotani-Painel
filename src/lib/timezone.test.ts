@@ -78,3 +78,10 @@ describe("datas sem horário", () => {
     expect(parseClinicDateRange(null, "lixo", "America/Sao_Paulo")).toEqual({ from: undefined, to: undefined });
   });
 });
+
+describe("report date range validation", () => {
+  it.each(["2026-99-99", "2026-02-30", "2026-00-01", "0000-00-00"])("ignores nonexistent date %s without rolling it forward or throwing", async (value) => {
+    const { parseClinicDateRange } = await import("./timezone");
+    expect(parseClinicDateRange(value, value, "America/Sao_Paulo")).toEqual({ from: undefined, to: undefined });
+  });
+});

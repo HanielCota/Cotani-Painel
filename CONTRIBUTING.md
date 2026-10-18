@@ -1,37 +1,35 @@
-# Como contribuir
+# Contributing
 
-## Fluxo
+## Workflow
 
-1. Crie um branch a partir da `main` atualizada: `tipo/descricao-curta`
-   (ex.: `fix/recuperacao-senha`, `feat/agenda-semanal`, `chore/deps`).
-2. Faça PRs **pequenos e de um tema só**. Mudanças não relacionadas vão em PRs
-   separados.
-3. Nunca faça push direto na `main`.
-4. O PR só entra com o CI verde e revisão do responsável pela área
-   (`.github/CODEOWNERS`).
+1. Create a branch from the latest `main`: `type/short-description`, such as
+   `fix/password-recovery`, `feat/weekly-agenda`, or `chore/dependencies`.
+2. Keep pull requests small and focused. Separate unrelated changes.
+3. Submit changes through a pull request instead of pushing directly to `main`.
+4. Run CI and request review from the owner listed in `.github/CODEOWNERS`.
+   If a hosting or account issue prevents CI from running, document the blocker
+   and the local validation results before the repository owner decides to merge.
 
-## Commits
+## Language and commits
 
-Use [Conventional Commits](https://www.conventionalcommits.org/pt-br/), em
-português: `fix(auth): ...`, `feat(agenda): ...`, `chore(deps): ...`,
-`ci: ...`, `docs: ...`, `refactor: ...`, `test: ...`.
+Write repository content and GitHub activity in English, including comments,
+user-facing strings, documentation, commit messages, and pull requests. Preserve
+proper names, external identifiers, and immutable cryptographic records exactly.
+Use Conventional Commits: `fix(auth): ...`, `feat(agenda): ...`, `chore(deps): ...`,
+`ci: ...`, `docs: ...`, `refactor: ...`, and `test: ...`.
 
-## Antes de abrir o PR
+## Validation
 
 ```bash
-pnpm check   # lint + tipos + testes
+pnpm check
 pnpm build
 ```
 
-- Mudou o banco? Crie a migração com `pnpm prisma migrate dev` e **nunca edite
-  uma migração já aplicada**. O CI recria o banco do zero e compara com o
-  `schema.prisma`.
-- Nova variável de ambiente? Atualize `.env.example`, `scripts/check-env.mjs`
-  e os valores fictícios do CI.
-- Testes rodam em UTC (como no CI). Monte datas sempre com fuso explícito.
-
-## Ambiente local
-
-O `.env.local` aponta para serviços reais. Para testes E2E e experimentos que
-gravam dados, use um banco local (veja `scripts/ci/supabase-bootstrap.sql` e o
-job `database` em `.github/workflows/ci.yml`).
+- For database changes, add a migration with `pnpm exec prisma migrate dev`.
+  Never edit an applied migration. CI rebuilds the database and checks schema drift.
+- For new environment variables, update `.env.example`, `scripts/check-env.mjs`,
+  and the placeholder values in CI.
+- Tests run in UTC. Always include explicit offsets in date fixtures.
+- Use a local database for browser tests and experiments that write data.
+  See `scripts/ci/supabase-bootstrap.sql` and the `database` job in
+  `.github/workflows/ci.yml`. Local environment files may reference live services.
