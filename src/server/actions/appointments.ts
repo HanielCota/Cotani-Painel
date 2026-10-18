@@ -6,6 +6,7 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { getNotificationChannels } from "@/config/subscription-plans";
 import { parseClinicDateTime } from "@/lib/timezone";
+import { checkAppointmentTransition, PAYMENT_METHODS } from "@/lib/appointment-status";
 import { getClinicForRoles, getTenantContext } from "@/server/tenant";
 import {
   DOUBLE_BOOKING_MESSAGE,
@@ -35,7 +36,7 @@ const editAppointmentSchema = z.object({
 });
 
 const appointmentStatusSchema = z.enum(["CONFIRMED", "COMPLETED", "CANCELED", "NO_SHOW"]);
-const paymentMethodSchema = z.enum(["PIX", "CREDIT_CARD", "DEBIT_CARD", "CASH", "OTHER"]);
+const paymentMethodSchema = z.enum(PAYMENT_METHODS);
 
 const updateAppointmentStatusSchema = z.object({
   status: appointmentStatusSchema,
@@ -54,6 +55,9 @@ function revalidateScheduleViews() {
 async function getAgendaActor() {
   const tenant = await getTenantContext();
   if (!["ADMIN", "RECEPTIONIST", "PROVIDER"].includes(tenant.role)) return null;
+  // Loja suspensa/arquivada pela plataforma fica somente leitura, como nas
+  // demais ações que passam por `getClinicForRoles`.
+  if (tenant.clinic.operationalStatus !== "ACTIVE" || tenant.clinic.deletedAt !== null) return null;
   if (tenant.role !== "PROVIDER") return { ...tenant, professionalId: null as string | null };
   const professional = await prisma.professional.findFirst({
     where: { clinicId: tenant.clinic.id, membershipId: tenant.membership.id, isActive: true },
@@ -298,20 +302,21 @@ export async function updateAppointmentStatus(
 
   const appointment = await prisma.appointment.findFirst({
     where: { id: parsedId.data, clinicId: clinic.id, ...(professionalId ? { professionalId } : {}) },
-    select: { id: true, status: true },
+    select: { id: true, status: true, startTime: true },
   });
 
   if (!appointment) {
     return { status: "error", message: "Atendimento não encontrado." };
   }
 
-  const allowedStatuses: Record<string, AppointmentStatusUpdate[]> = {
-    PENDING: ["CONFIRMED", "CANCELED", "NO_SHOW"],
-    CONFIRMED: ["COMPLETED", "CANCELED", "NO_SHOW"],
-  };
-
-  if (!allowedStatuses[appointment.status]?.includes(nextStatus)) {
-    return { status: "error", message: "Essa mudança de status não é permitida." };
+  const transition = checkAppointmentTransition(appointment.status, nextStatus, appointment.startTime);
+  if (!transition.ok) {
+    return {
+      status: "error",
+      message: transition.reason === "not-started"
+        ? "Só é possível concluir ou registrar falta depois do horário do atendimento."
+        : "Essa mudança de status não é permitida.",
+    };
   }
 
   if (nextStatus === "COMPLETED" && !paymentMethod) {

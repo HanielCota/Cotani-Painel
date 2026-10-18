@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useCustomers } from "@/hooks/use-customers";
 import { readUrlSearchParam, replaceUrlSearchParams } from "@/lib/browser-url";
-import { formatDate } from "@/lib/formatters";
+import { formatDate, formatDateOnly } from "@/lib/formatters";
 import { formatBrazilianPhone } from "@/lib/phone";
 import type { CustomerListItem } from "@/types";
 
@@ -100,7 +100,7 @@ export function CustomersTable() {
                     <TableCell><RelationshipBadge customer={customer} /></TableCell>
                     <TableCell className="tabular-nums">{customer.appointmentCount}</TableCell>
                     <TableCell>{customer.lastAppointmentAt ? <div><p>{formatDate(customer.lastAppointmentAt)}</p><p className="max-w-40 truncate text-xs text-muted-foreground">{customer.lastServiceName}</p></div> : "-"}</TableCell>
-                    <TableCell>{customer.nextReturnAt ? formatDate(customer.nextReturnAt) : "-"}</TableCell>
+                    <TableCell>{customer.nextReturnAt ? formatDateOnly(customer.nextReturnAt) : "-"}</TableCell>
                     <TableCell><CustomerActions customer={customer} /></TableCell>
                   </TableRow>
                 ))}

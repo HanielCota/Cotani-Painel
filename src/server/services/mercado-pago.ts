@@ -1,5 +1,6 @@
 import "server-only";
 
+import { isIP } from "node:net";
 import { Invoice, Payment, PaymentRefund, MercadoPagoConfig, PreApproval, WebhookSignatureValidator } from "mercadopago";
 
 import { BillingCycle, SubscriptionPlan, SubscriptionStatus } from "@/generated/prisma/enums";
@@ -9,9 +10,8 @@ import {
   getProductPlan,
 } from "@/config/subscription-plans";
 
-const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim();
-
 function getConfig() {
+  const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim();
   if (!accessToken) {
     throw new Error("MERCADO_PAGO_ACCESS_TOKEN não está configurado.");
   }
@@ -47,6 +47,25 @@ export function getPlanConfig(plan: SubscriptionPlan, cycle: BillingCycle): Plan
     price: getPlanPrice(plan, cycle),
     mercadoPagoPlanId,
   };
+}
+
+/** Confere erros locais antes de reservar uma loja e um contrato de checkout. */
+export function assertSubscriptionCheckoutReady(plan: SubscriptionPlan, cycle: BillingCycle, backUrl: string): PlanConfig {
+  getConfig();
+  const config = getPlanConfig(plan, cycle);
+  let url: URL;
+  try {
+    url = new URL(backUrl);
+  } catch {
+    throw new Error("LANDING_PAGE_URL não é uma URL válida para o retorno do checkout.");
+  }
+  const hostname = url.hostname.toLowerCase();
+  const localHost = hostname === "localhost" || [".localhost", ".local", ".test", ".invalid", ".internal"].some((suffix) => hostname.endsWith(suffix));
+  if (url.protocol !== "https:" || !hostname || localHost || isIP(hostname.replace(/^\[|\]$/g, "")) !== 0
+    || url.username || url.password || url.hash) {
+    throw new Error("LANDING_PAGE_URL deve usar HTTPS público para o retorno do checkout.");
+  }
+  return config;
 }
 
 export interface CreateCheckoutInput {

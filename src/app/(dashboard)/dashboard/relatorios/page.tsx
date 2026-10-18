@@ -12,8 +12,8 @@ import { getPlanEntitlements } from "@/config/subscription-plans";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getReportAppointmentsPage, getReportsMetrics } from "@/server/services/reports";
-import { parseClinicDateTime } from "@/lib/timezone";
-import prisma from "@/lib/prisma";
+import { getAuthorizedReportClinicIds } from "@/server/services/report-scope";
+import { parseClinicDateRange } from "@/lib/timezone";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { withTenant } from "@/server/with-tenant";
@@ -22,17 +22,15 @@ import { isSubscriptionActive } from "@/server/subscription";
 export const metadata: Metadata = { title: "Relatórios" };
 
 interface ReportsPageProps { searchParams: Promise<{ from?: string; to?: string; page?: string }> }
-export default withTenant<ReportsPageProps>(async ({ clinic }, { searchParams }) => {
+export default withTenant<ReportsPageProps>(async (context, { searchParams }) => {
+  const { clinic } = context;
   const entitlements = getPlanEntitlements(clinic.subscriptionPlan);
   if (!isSubscriptionActive(clinic) || !entitlements.monthlyReports) {
     return <PlanUpgradeRequired feature="Relatórios mensais" />;
   }
   const query = await searchParams;
-  const from = query.from ? parseClinicDateTime(`${query.from}T00:00`, clinic.timeZone) ?? undefined : undefined;
-  const toStart = query.to ? parseClinicDateTime(`${query.to}T00:00`, clinic.timeZone) : null;
-  const to = toStart ? new Date(toStart.getTime() + 24 * 60 * 60_000) : undefined;
-  const ownerId = clinic.billingOwnerId ?? clinic.id;
-  const unitIds = entitlements.multipleLocations ? (await prisma.clinic.findMany({ where: { OR: [{ id: ownerId }, { billingOwnerId: ownerId }], deletedAt: null }, select: { id: true } })).map((item) => item.id) : [clinic.id];
+  const { from, to } = parseClinicDateRange(query.from, query.to, clinic.timeZone);
+  const unitIds = await getAuthorizedReportClinicIds(context);
   const page = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1);
   const reportOptions = { from, to, clinicIds: unitIds };
   const [metrics, appointmentsPage] = await Promise.all([

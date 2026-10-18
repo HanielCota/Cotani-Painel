@@ -51,3 +51,12 @@ export function formatDate(value: Date | string, timeZone?: string): string {
   }
   return formatter.format(typeof value === "string" ? new Date(value) : value);
 }
+
+/**
+ * Formata datas sem horário (vencimento, data do lançamento, próximo retorno).
+ * Esses campos são gravados ao meio-dia da loja (ver `parseClinicDateOnly`), ou
+ * à 00:00 UTC em registros antigos; em ambos os casos o dia correto é o de UTC.
+ */
+export function formatDateOnly(value: Date | string): string {
+  return formatDate(value, "UTC");
+}

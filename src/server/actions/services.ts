@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
+import { ACTIVE_APPOINTMENT_STATUSES } from "@/lib/appointment-status";
 import { getClinicForRoles } from "@/server/tenant";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
@@ -210,27 +211,30 @@ export async function toggleServiceActive(serviceId: string): Promise<ActionResu
 
   const nextIsActive = !service.isActive;
 
-  if (!nextIsActive) {
-    const pendingAppointments = await prisma.appointment.count({
-      where: {
-        serviceId: service.id,
-        status: { in: ["PENDING", "CONFIRMED"] },
-        startTime: { gte: new Date() },
-      },
-    });
-
-    if (pendingAppointments > 0) {
-      return {
-        status: "error",
-        message: "Este serviço possui agendamentos futuros pendentes ou confirmados. Cancele ou reagende-os antes de desativar.",
-      };
+  const outcome = await prisma.$transaction(async (transaction) => {
+    if (!nextIsActive) {
+      // FOR UPDATE espera agendamentos em andamento (que seguram a linha com
+      // FOR SHARE) terminarem, então a contagem abaixo já os enxerga.
+      await transaction.$queryRaw`SELECT id FROM "Service" WHERE id = ${service.id} FOR UPDATE`;
+      const pendingAppointments = await transaction.appointment.count({
+        where: {
+          serviceId: service.id,
+          status: { in: [...ACTIVE_APPOINTMENT_STATUSES] },
+          startTime: { gte: new Date() },
+        },
+      });
+      if (pendingAppointments > 0) return "has-appointments" as const;
     }
-  }
-
-  await prisma.service.update({
-    where: { id: service.id },
-    data: { isActive: nextIsActive },
+    await transaction.service.update({ where: { id: service.id }, data: { isActive: nextIsActive } });
+    return "updated" as const;
   });
+
+  if (outcome === "has-appointments") {
+    return {
+      status: "error",
+      message: "Este serviço possui agendamentos futuros pendentes ou confirmados. Cancele ou reagende-os antes de desativar.",
+    };
+  }
 
   revalidateServiceViews();
   return { status: "success", message: nextIsActive ? "Serviço reativado." : "Serviço desativado." };

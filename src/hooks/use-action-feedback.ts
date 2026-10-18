@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { toast } from "sonner"
 
 interface ActionFeedbackState {
@@ -8,10 +8,24 @@ interface ActionFeedbackState {
   message: string
 }
 
-export function useActionFeedback(state: ActionFeedbackState) {
+interface ActionFeedbackOptions {
+  /** Executado após o toast de sucesso (ex.: fechar o diálogo). */
+  onSuccess?: () => void
+}
+
+export function useActionFeedback(state: ActionFeedbackState, options: ActionFeedbackOptions = {}) {
+  const onSuccessRef = useRef(options.onSuccess)
+  useEffect(() => {
+    onSuccessRef.current = options.onSuccess
+  })
+
   useEffect(() => {
     if (!state.message) return
-    if (state.status === "success") toast.success(state.message)
-    else toast.error(state.message)
+    if (state.status === "success") {
+      toast.success(state.message)
+      // Adia para não atualizar estado do pai durante o commit da action.
+      const onSuccess = onSuccessRef.current
+      if (onSuccess) queueMicrotask(onSuccess)
+    } else toast.error(state.message)
   }, [state])
 }

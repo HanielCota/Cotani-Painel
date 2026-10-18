@@ -76,6 +76,29 @@ async function lockClinicDay(transaction: Prisma.TransactionClient, clinicId: st
   `;
 }
 
+/**
+ * Confere, dentro da transação, que serviço e profissional continuam ativos e
+ * segura as linhas com `FOR SHARE` até o commit. A desativação usa
+ * `FOR UPDATE` nas mesmas linhas: ou ela espera este agendamento terminar (e
+ * o vê ao contar os futuros), ou este agendamento a vê como inativa e recusa.
+ */
+async function lockActiveResources(transaction: Prisma.TransactionClient, params: ScheduleAppointmentParams) {
+  const services = await transaction.$queryRaw<{ isActive: boolean }[]>`
+    SELECT "isActive" FROM "Service"
+    WHERE id = ${params.serviceId} AND "clinicId" = ${params.clinicId}
+    FOR SHARE
+  `;
+  if (!services[0]?.isActive) return false;
+  if (!params.professionalId) return true;
+
+  const professionals = await transaction.$queryRaw<{ isActive: boolean }[]>`
+    SELECT "isActive" FROM "Professional"
+    WHERE id = ${params.professionalId} AND "clinicId" = ${params.clinicId}
+    FOR SHARE
+  `;
+  return Boolean(professionals[0]?.isActive);
+}
+
 function getErrorMetadata(error: unknown) {
   let current: unknown = error;
 
@@ -107,6 +130,10 @@ async function isValidBusinessSlot(
   await lockClinicDay(transaction, params.clinicId, day);
 
   if (params.startTime <= new Date() || endTime > dayEnd) {
+    return false;
+  }
+
+  if (!(await lockActiveResources(transaction, params))) {
     return false;
   }
 

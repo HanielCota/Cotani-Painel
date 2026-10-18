@@ -27,6 +27,19 @@ const membershipSchema = z.object({ membershipId: z.uuid(), role: z.enum(["ADMIN
 const invitationSchema = z.object({ invitationId: z.uuid() });
 const unitSchema = z.object({ unitId: z.uuid(), name: z.string().trim().min(2).max(120).optional() });
 
+const TENANT_ARCHIVE_REASON = "Arquivada pelo administrador da empresa";
+
+type BillingOwnerState = Parameters<typeof isSubscriptionActive>[0] & {
+  subscriptionPlan: Parameters<typeof getPlanEntitlements>[0];
+  pendingSubscriptionPlan: Parameters<typeof getPlanEntitlements>[0] | null;
+};
+
+function multipleLocationsAllowed(owner: BillingOwnerState) {
+  return isSubscriptionActive(owner)
+    && getPlanEntitlements(owner.subscriptionPlan).multipleLocations
+    && (!owner.pendingSubscriptionPlan || getPlanEntitlements(owner.pendingSubscriptionPlan).multipleLocations);
+}
+
 async function getManageableUnit(unitId: string) {
   const tenant = requireRole(await getTenantContext(), ["ADMIN"]);
   const ownerId = tenant.clinic.billingOwnerId ?? tenant.clinic.id;
@@ -107,10 +120,7 @@ export async function createEnterpriseUnit(_previousState: ActionResult, formDat
   const created = await prisma.$transaction(async (transaction) => {
     await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${owner.id}, 0))`;
     const currentOwner = await transaction.clinic.findUnique({ where: { id: owner.id } });
-    if (!currentOwner || !isSubscriptionActive(currentOwner) || !getPlanEntitlements(currentOwner.subscriptionPlan).multipleLocations
-      || (currentOwner.pendingSubscriptionPlan && !getPlanEntitlements(currentOwner.pendingSubscriptionPlan).multipleLocations)) {
-      return null;
-    }
+    if (!currentOwner || !multipleLocationsAllowed(currentOwner)) return null;
     const unit = await transaction.clinic.create({
       data: {
         name: parsed.data.name,
@@ -224,13 +234,33 @@ export async function toggleEnterpriseUnitArchive(_previousState: ActionResult, 
   if (!parsed.success) return { status: "error", message: "Unidade inválida." };
   const context = await getManageableUnit(parsed.data);
   if (!context) return { status: "error", message: "Unidade não encontrada ou sem permissão." };
-  const archive = !context.unit.deletedAt;
-  if (archive) {
-    const future = await prisma.appointment.count({ where: { clinicId: context.unit.id, status: { in: ["PENDING", "CONFIRMED"] }, startTime: { gte: new Date() } } });
-    if (future) return { status: "error", message: "Cancele ou reagende os atendimentos futuros antes de arquivar." };
+  // Suspensão/exclusão aplicada pela administração da plataforma não pode ser
+  // desfeita (nem sobrescrita) pelo administrador da empresa.
+  const { unit } = context;
+  if (unit.operationalStatus !== "ACTIVE" && unit.suspensionReason !== TENANT_ARCHIVE_REASON) {
+    return { status: "error", message: "Esta unidade foi suspensa pela equipe Cotani. Fale com o suporte para reativá-la." };
   }
-  await prisma.clinic.update({ where: { id: context.unit.id }, data: { deletedAt: archive ? new Date() : null, operationalStatus: archive ? "SUSPENDED" : "ACTIVE", suspendedAt: archive ? new Date() : null, suspensionReason: archive ? "Arquivada pelo administrador da empresa" : null } });
-  if (archive && context.tenant.clinic.id === context.unit.id) (await cookies()).set(ACTIVE_CLINIC_COOKIE, context.ownerId, activeClinicCookieOptions());
+  const archive = !unit.deletedAt;
+  if (archive) {
+    const future = await prisma.appointment.count({ where: { clinicId: unit.id, status: { in: ["PENDING", "CONFIRMED"] }, startTime: { gte: new Date() } } });
+    if (future) return { status: "error", message: "Cancele ou reagende os atendimentos futuros antes de arquivar." };
+    await prisma.clinic.update({ where: { id: unit.id }, data: { deletedAt: new Date(), operationalStatus: "SUSPENDED", suspendedAt: new Date(), suspensionReason: TENANT_ARCHIVE_REASON } });
+    if (context.tenant.clinic.id === unit.id) (await cookies()).set(ACTIVE_CLINIC_COOKIE, context.ownerId, activeClinicCookieOptions());
+  } else {
+    // Reativar volta a ocupar uma vaga de unidade: revalida o plano sob o mesmo
+    // lock usado na criação, inclusive contra downgrade já agendado.
+    const reactivated = await prisma.$transaction(async (transaction) => {
+      await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${context.ownerId}, 0))`;
+      const owner = await transaction.clinic.findUnique({ where: { id: context.ownerId } });
+      if (!owner || !multipleLocationsAllowed(owner)) return false;
+      const updated = await transaction.clinic.updateMany({
+        where: { id: unit.id, suspensionReason: TENANT_ARCHIVE_REASON },
+        data: { deletedAt: null, operationalStatus: "ACTIVE", suspendedAt: null, suspensionReason: null },
+      });
+      return updated.count === 1;
+    });
+    if (!reactivated) return { status: "error", message: "Reativar unidades exige uma assinatura Empresa ativa, sem troca de plano agendada." };
+  }
   revalidatePath("/dashboard", "layout");
   return { status: "success", message: archive ? "Unidade arquivada." : "Unidade reativada." };
 }

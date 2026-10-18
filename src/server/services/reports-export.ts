@@ -2,15 +2,7 @@ import "server-only";
 
 import type { ReportAppointment } from "@/server/services/reports";
 import { appointmentStatusLabel } from "@/lib/display-labels";
-
-function escapeCsvCell(value: string | number): string {
-  let normalized = String(value).replace(/\r?\n/g, " ");
-
-  // Evita que Excel e similares interpretem dados do cliente como fórmula.
-  if (/^[=+\-@]/.test(normalized)) normalized = `'${normalized}`;
-
-  return `"${normalized.replace(/"/g, '""')}"`;
-}
+import { toCsvRow } from "@/lib/csv";
 
 export function buildAppointmentsCsv(
   appointments: readonly ReportAppointment[],
@@ -33,5 +25,5 @@ export function buildAppointmentsCsv(
   return [
     ["Data e horário", "Cliente", "Serviço", "Profissional", "Status", "Valor (R$)"],
     ...rows,
-  ].map((row) => row.map(escapeCsvCell).join(";")).join("\r\n");
+  ].map((row) => toCsvRow(row, ";")).join("\r\n");
 }

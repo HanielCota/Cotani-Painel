@@ -166,7 +166,7 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="flex size-10 shrink-0 flex-col items-center justify-center rounded-md border bg-muted text-xs font-medium">
                     <span>{startTime.toLocaleDateString("pt-BR", { day: "2-digit", timeZone })}</span>
-                    <span className="text-[10px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {startTime.toLocaleDateString("pt-BR", { month: "short", timeZone })}
                     </span>
                   </div>
@@ -185,7 +185,7 @@ export function AgendaAppointmentsList({ timeZone, minStartTime, canSchedule, cu
                   {appointment.status !== "CANCELED" && appointment.status !== "NO_SHOW" && appointment.status !== "COMPLETED" ? (
                     canSchedule ? <EditAppointmentDialog appointment={appointment} customers={customers} services={services} currentStartTime={formatClinicDateTimeInput(startTime, timeZone)} minStartTime={minStartTime} /> : <RescheduleAppointmentDialog appointmentId={appointment.id} currentStartTime={formatClinicDateTimeInput(startTime, timeZone)} minStartTime={minStartTime} />
                   ) : null}
-                  <AppointmentActions appointmentId={appointment.id} status={appointment.status} />
+                  <AppointmentActions appointmentId={appointment.id} status={appointment.status} startTime={appointment.startTime} />
                 </div>
               </div>
             );

@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { BillingCycle, SubscriptionPlan } from "@/generated/prisma/enums";
 import {
   buildHostedSubscriptionBody,
+  assertSubscriptionCheckoutReady,
   isMercadoPagoCheckoutUrl,
   normalizeMercadoPagoCheckoutUrl,
   normalizeSubscriptionStatus,
@@ -11,9 +12,32 @@ import {
   subscriptionPeriodEnd,
 } from "./mercado-pago";
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+});
 
 describe("checkout hospedado de assinatura", () => {
+  it("rejeita retorno HTTP antes de criar uma tentativa de checkout", () => {
+    vi.stubEnv("MERCADO_PAGO_ACCESS_TOKEN", "test-token");
+    vi.stubEnv("MERCADO_PAGO_PROFESSIONAL_MONTHLY_PLAN_ID", "test-plan");
+    expect(() => assertSubscriptionCheckoutReady(
+      SubscriptionPlan.PROFESSIONAL,
+      BillingCycle.MONTHLY,
+      "http://localhost:4321/checkout/retorno",
+    )).toThrow(/HTTPS público/);
+    expect(() => assertSubscriptionCheckoutReady(
+      SubscriptionPlan.PROFESSIONAL,
+      BillingCycle.MONTHLY,
+      "https://localhost/checkout/retorno",
+    )).toThrow(/HTTPS público/);
+    expect(() => assertSubscriptionCheckoutReady(
+      SubscriptionPlan.PROFESSIONAL,
+      BillingCycle.MONTHLY,
+      "https://cotani.com.br/checkout/retorno",
+    )).not.toThrow();
+  });
+
   it("aceita somente URLs HTTPS oficiais para o redirecionamento", () => {
     expect(isMercadoPagoCheckoutUrl("https://www.mercadopago.com.br/subscriptions/checkout")).toBe(true);
     expect(isMercadoPagoCheckoutUrl("https://checkout.mercadopago.com/path")).toBe(true);
