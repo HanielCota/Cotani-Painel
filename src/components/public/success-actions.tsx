@@ -158,7 +158,7 @@ export function SuccessActions({
     .filter(Boolean)
     .join("\n");
 
-  const contactMessage = `Olá! Gostaria de solicitar uma alteração ou o cancelamento deste atendimento.\n\n${eventDetails}`;
+  const contactMessage = `Olá, gostaria de solicitar uma alteração ou o cancelamento deste atendimento.\n\n${eventDetails}`;
   const whatsappUrl = phone ? buildWhatsAppLink(phone, contactMessage) : null;
   const mapsUrl = address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}` : null;
 

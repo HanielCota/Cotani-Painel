@@ -22,7 +22,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   applicationName: "Cotani",
   title: {
-    default: "Cotani - Gestão inteligente para negócios",
+    default: "Cotani - Agenda on-line e gestão para negócios",
     template: "%s | Cotani",
   },
   description:
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "pt_BR",
     siteName: "Cotani",
-    title: "Cotani - Gestão inteligente para negócios",
+    title: "Cotani - Agenda on-line e gestão para negócios",
     description:
       "Plataforma de gestão para negócios com agenda on-line, clientes, relatórios e agendamento público.",
     images: [
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Cotani - Gestão inteligente para negócios",
+    title: "Cotani - Agenda on-line e gestão para negócios",
     description:
       "Plataforma de gestão para negócios com agenda on-line, clientes, relatórios e agendamento público.",
     images: ["https://painel.cotani.com.br/images/cotani-logo.png"],

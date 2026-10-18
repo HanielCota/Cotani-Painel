@@ -116,7 +116,7 @@ export function PasswordRecoveryForm({ mode, initialError = null }: { mode: "req
         setRequestedEmail(email);
       } else {
         // Primeira senha (convite/checkout): a sessão já é do próprio usuário.
-        toast.success("Senha criada. Bem-vindo ao Cotani!");
+        toast.success("Senha criada. Você já pode usar o painel.");
         window.location.replace("/dashboard");
       }
     } catch {

@@ -27,11 +27,11 @@ import { readUrlSearchParam, replaceUrlSearchParams } from "@/lib/browser-url";
 const initial: ActionResult = { status: "success", message: "" };
 const templates = {
   reminder:
-    "Olá! Este é um lembrete do seu atendimento. Se precisar reagendar, fale conosco.",
+    "Olá, este é um lembrete do seu atendimento. Se precisar reagendar, fale conosco.",
   confirmation:
-    "Olá! Seu atendimento está reservado. Por favor, confirme sua presença.",
+    "Olá, seu atendimento está reservado. Por favor, confirme sua presença.",
   return:
-    "Olá! Está chegando o momento sugerido para o seu retorno. Quer reservar um novo horário?",
+    "Olá, está chegando o momento sugerido para o seu retorno. Quer reservar um novo horário?",
 };
 type Message = {
   id: string;
