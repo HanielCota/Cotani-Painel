@@ -7,6 +7,8 @@ import type { NotificationChannel } from "@/generated/prisma/enums";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import { formatClinicDateTimeInput, getClinicDateBounds } from "@/lib/timezone";
+import { isWithinStaffBookingHorizon } from "@/config/booking";
+import { getClinicWeekday, minutesFromTime, resolveWorkingWindow, slotFitsWindow } from "@/server/domain/working-hours";
 import { enqueueAppointmentNotifications, replaceAppointmentReminders } from "@/server/services/notifications";
 
 export const DOUBLE_BOOKING_MESSAGE = "Horário indisponível. Por favor, escolha outro.";
@@ -55,13 +57,6 @@ export type ScheduleAppointmentResult =
   | { status: "success"; appointmentId: string; cancellationToken: string }
   | { status: "conflict" }
   | { status: "error" };
-
-const SLOT_STEP_MINUTES = 30;
-
-function minutesFromTime(time: string): number {
-  const [hours, minutes] = time.split(":").map(Number);
-  return hours * 60 + minutes;
-}
 
 /**
  * Serializa alterações da agenda da mesma loja/dia. A trava evita que
@@ -129,7 +124,9 @@ async function isValidBusinessSlot(
 
   await lockClinicDay(transaction, params.clinicId, day);
 
-  if (params.startTime <= new Date() || endTime > dayEnd) {
+  // Futuro, dentro do mesmo dia e com no máximo 1 ano de antecedência (o
+  // limite de 15 min / 180 dias da reserva pública é aplicado na própria action).
+  if (params.startTime <= new Date() || endTime > dayEnd || !isWithinStaffBookingHorizon(params.startTime)) {
     return false;
   }
 
@@ -137,48 +134,22 @@ async function isValidBusinessSlot(
     return false;
   }
 
-  const weekdayLabel = new Intl.DateTimeFormat("en-US", {
-    timeZone: params.timeZone,
-    weekday: "short",
-  }).format(params.startTime);
-  const weekday = ({ Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 } as const)[
-    weekdayLabel as "Sun" | "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat"
-  ];
+  const weekday = getClinicWeekday(day, params.timeZone);
+  if (weekday === null) return false;
 
   const businessHour = await transaction.businessHour.findUnique({
     where: { clinicId_dayOfWeek: { clinicId: params.clinicId, dayOfWeek: weekday } },
   });
-
   if (!businessHour?.isOpen) return false;
 
   const professionalHour = params.professionalId
     ? await transaction.professionalAvailability.findUnique({ where: { professionalId_dayOfWeek: { professionalId: params.professionalId, dayOfWeek: weekday } } })
     : null;
-  if (professionalHour && !professionalHour.isOpen) return false;
 
-  const startMinutes = minutesFromTime(localTime);
-  const endMinutes = startMinutes + params.serviceDuration;
-  const openMinutes = Math.max(minutesFromTime(businessHour.openTime), professionalHour ? minutesFromTime(professionalHour.openTime) : 0);
-  const closeMinutes = Math.min(minutesFromTime(businessHour.closeTime), professionalHour ? minutesFromTime(professionalHour.closeTime) : 24 * 60);
-
-  if (
-    startMinutes < openMinutes ||
-    endMinutes > closeMinutes ||
-    (startMinutes - openMinutes) % SLOT_STEP_MINUTES !== 0
-  ) {
+  // Mesma regra da grade exibida no agendamento (server/domain/working-hours.ts).
+  const window = resolveWorkingWindow(businessHour, professionalHour);
+  if (!window || !slotFitsWindow(window, minutesFromTime(localTime), params.serviceDuration)) {
     return false;
-  }
-
-  if (businessHour.breakStart && businessHour.breakEnd) {
-    const breakStart = minutesFromTime(businessHour.breakStart);
-    const breakEnd = minutesFromTime(businessHour.breakEnd);
-    if (startMinutes < breakEnd && endMinutes > breakStart) return false;
-  }
-
-  if (professionalHour?.breakStart && professionalHour.breakEnd) {
-    const breakStart = minutesFromTime(professionalHour.breakStart);
-    const breakEnd = minutesFromTime(professionalHour.breakEnd);
-    if (startMinutes < breakEnd && endMinutes > breakStart) return false;
   }
 
   if (params.maxAppointmentsPerDay && params.maxAppointmentsPerDay > 0) {
