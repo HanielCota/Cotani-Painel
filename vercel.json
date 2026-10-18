@@ -12,5 +12,6 @@
       "path": "/api/jobs/maintenance",
       "schedule": "30 6 * * *"
     }
-  ]
+  ],
+  "buildCommand": "pnpm run vercel-build"
 }

@@ -13,7 +13,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit --incremental false",
-    "check": "pnpm lint && pnpm typecheck && pnpm test",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:deploy",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -21,7 +21,9 @@
     "test:e2e:ui": "playwright test --ui",
     "mercado-pago:plans": "node scripts/setup-mercado-pago-plans.mjs",
     "db:migrate-to-supabase": "node scripts/migrate-data-to-supabase.mjs",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "vercel-build": "node scripts/vercel-build.mjs",
+    "test:deploy": "node --test scripts/vercel-build.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
