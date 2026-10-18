@@ -4,8 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
-import { getClinicForRoles } from "@/server/tenant";
-import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
+import { requireClinicAction } from "@/server/clinic-action";
 import type { ActionResult } from "@/types";
 import { requireAuthenticatedUser } from "@/server/auth";
 import { validateDaySchedule } from "@/server/domain/working-hours";
@@ -42,15 +41,9 @@ export async function saveBusinessHours(input: unknown): Promise<ActionResult> {
     return { status: "error", message: "Revise os horários informados." };
   }
 
-  const clinic = await getClinicForRoles(["ADMIN"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione um negócio antes de salvar o expediente." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN"], "Selecione um negócio antes de salvar o expediente.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   const scheduleError = firstScheduleError(parsed.data);
   if (scheduleError) return { status: "error", message: scheduleError };
@@ -126,8 +119,9 @@ export async function saveProfessionalAvailabilityFromForm(_previousState: Actio
   }));
   const parsed = businessHoursSchema.safeParse(items);
   if (!professionalId.success || !parsed.success) return { status: "error", message: "Revise os horários informados." };
-  const clinic = await getClinicForRoles(["ADMIN"]);
-  if (!clinic || !isSubscriptionActive(clinic)) return { status: "error", message: clinic ? SUBSCRIPTION_INACTIVE_MESSAGE : "Selecione um negócio." };
+  const access = await requireClinicAction(["ADMIN"]);
+  if (!access.ok) return access.result;
+  const { clinic } = access;
   const professional = await prisma.professional.findFirst({ where: { id: professionalId.data, clinicId: clinic.id, isActive: true }, select: { id: true } });
   if (!professional) return { status: "error", message: "Profissional não encontrado." };
   const scheduleError = firstScheduleError(parsed.data);

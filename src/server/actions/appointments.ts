@@ -9,6 +9,7 @@ import { parseClinicDateTime } from "@/lib/timezone";
 import { checkAppointmentTransition, PAYMENT_METHODS } from "@/lib/appointment-status";
 import { isWithinStaffBookingHorizon, STAFF_MAX_BOOKING_HORIZON_DAYS } from "@/config/booking";
 import { getClinicForRoles, getTenantContext } from "@/server/tenant";
+import { requireClinicAction } from "@/server/clinic-action";
 import {
   DOUBLE_BOOKING_MESSAGE,
   rescheduleScheduledAppointment,
@@ -84,15 +85,9 @@ export async function createAppointment(input: unknown): Promise<ActionResult> {
     return { status: "error", message: "Revise os dados do agendamento." };
   }
 
-  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione um negócio antes de criar agendamentos." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN", "RECEPTIONIST"], "Selecione um negócio antes de criar agendamentos.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   const [customer, service, professional] = await Promise.all([
     prisma.customer.findFirst({ where: { id: parsed.data.customerId, clinicId: clinic.id } }),
@@ -156,15 +151,9 @@ export async function createAppointment(input: unknown): Promise<ActionResult> {
 export async function createAppointmentFromForm(_previousState: ActionResult, formData: FormData): Promise<ActionResult> {
   await requireAuthenticatedUser();
 
-  const clinic = await getClinicForRoles(["ADMIN", "RECEPTIONIST"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione um negócio antes de criar agendamentos." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN", "RECEPTIONIST"], "Selecione um negócio antes de criar agendamentos.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   const startTime = parseClinicDateTime(String(formData.get("startTime") ?? ""), clinic.timeZone);
   const startTimeError = staffStartTimeError(startTime);

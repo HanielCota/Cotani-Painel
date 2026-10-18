@@ -4,8 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
-import { getClinicForRoles } from "@/server/tenant";
-import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
+import { requireClinicAction } from "@/server/clinic-action";
 import type { ActionResult } from "@/types";
 import { requireAuthenticatedUser } from "@/server/auth";
 import { allowMediaUpload } from "@/server/services/action-rate-limit";
@@ -46,9 +45,9 @@ export async function saveBusinessProfile(_previousState: ActionResult, formData
     imageUrl: imageValue,
   });
   if (!parsed.success || !parsed.data.slug) return { status: "error", message: "Revise os dados e o endereço público informados." };
-  const clinic = await getClinicForRoles(["ADMIN"]);
-  if (!clinic) return { status: "error", message: "Selecione um negócio antes de salvar." };
-  if (!isSubscriptionActive(clinic)) return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
+  const access = await requireClinicAction(["ADMIN"], "Selecione um negócio antes de salvar.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
   if (parsed.data.imageUrl?.startsWith("data:") && !(await allowMediaUpload(authUser.id))) {
     return { status: "error", message: "Muitos envios de imagem. Aguarde antes de tentar novamente." };
   }
@@ -90,15 +89,9 @@ export async function saveClinicSettings(_previousState: ActionResult, formData:
     return { status: "error", message: "Revise o limite diário informado." };
   }
 
-  const clinic = await getClinicForRoles(["ADMIN"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione um negócio antes de salvar." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN"], "Selecione um negócio antes de salvar.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   const maxAppointmentsPerDay = parsed.data.maxAppointmentsPerDay === "" || parsed.data.maxAppointmentsPerDay === undefined
     ? null

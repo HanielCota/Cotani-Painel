@@ -6,7 +6,7 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { ACTIVE_APPOINTMENT_STATUSES } from "@/lib/appointment-status";
 import { findProfessionalLimitReached, professionalLimitMessage } from "@/server/services/billing-access";
-import { getClinicForRoles } from "@/server/tenant";
+import { requireClinicAction } from "@/server/clinic-action";
 import { isSubscriptionActive, SUBSCRIPTION_INACTIVE_MESSAGE } from "@/server/subscription";
 import type { ActionResult } from "@/types";
 import { requireAuthenticatedUser } from "@/server/auth";
@@ -69,15 +69,9 @@ export async function createProfessional(input: unknown): Promise<ActionResult> 
     return { status: "error", message: "Revise os dados do profissional." };
   }
 
-  const clinic = await getClinicForRoles(["ADMIN"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione um negócio antes de cadastrar profissionais." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN"], "Selecione um negócio antes de cadastrar profissionais.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   if (isNewImageUpload(parsed.data.imageUrl) && !(await allowMediaUpload(authUser.id))) {
     return { status: "error", message: "Muitos envios de imagem. Aguarde antes de tentar novamente." };
@@ -135,15 +129,9 @@ export async function updateProfessional(input: unknown): Promise<ActionResult> 
     return { status: "error", message: "Revise os dados do profissional." };
   }
 
-  const clinic = await getClinicForRoles(["ADMIN"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione um negócio antes de atualizar profissionais." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN"], "Selecione um negócio antes de atualizar profissionais.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   if (isNewImageUpload(parsed.data.imageUrl) && !(await allowMediaUpload(authUser.id))) {
     return { status: "error", message: "Muitos envios de imagem. Aguarde antes de tentar novamente." };
@@ -222,15 +210,9 @@ export async function toggleProfessionalActive(professionalId: string): Promise<
     return { status: "error", message: "Não foi possível alterar este profissional." };
   }
 
-  const clinic = await getClinicForRoles(["ADMIN"]);
-
-  if (!clinic) {
-    return { status: "error", message: "Selecione um negócio antes de alterar profissionais." };
-  }
-
-  if (!isSubscriptionActive(clinic)) {
-    return { status: "error", message: SUBSCRIPTION_INACTIVE_MESSAGE };
-  }
+  const access = await requireClinicAction(["ADMIN"], "Selecione um negócio antes de alterar profissionais.");
+  if (!access.ok) return access.result;
+  const { clinic } = access;
 
   const professional = await prisma.professional.findFirst({
     where: { id: parsedId.data, clinicId: clinic.id },
