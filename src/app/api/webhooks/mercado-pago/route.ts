@@ -34,8 +34,10 @@ export async function POST(request: NextRequest) {
       { status: error instanceof RequestBodyTooLargeError ? 413 : 400 },
     );
   }
+
   const parsedBody = notificationSchema.safeParse(rawBody);
   if (!parsedBody.success) return NextResponse.json({ message: "Corpo inválido." }, { status: 400 });
+
   const body = parsedBody.data;
   const dataId = String(body.data?.id ?? request.nextUrl.searchParams.get("data.id") ?? "").trim();
   const eventType = body.type ?? request.nextUrl.searchParams.get("type");
