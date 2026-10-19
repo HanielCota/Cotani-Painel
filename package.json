@@ -71,6 +71,8 @@
     "eslint-config-next": "16.4.0",
     "happy-dom": "^21.0.1",
     "jsdom": "^30.1.2",
+    "oxlint": "1.88.0",
+    "oxlint-tsgolint": "7.0.2004",
     "prisma": "^7.10.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
