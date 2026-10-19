@@ -13,17 +13,12 @@ stylesheet locally preserves existing variants and animations without installing
 the CLI's dependency tree. When updating it, review and copy both the stylesheet
 and license from the selected upstream release.
 
-Next's ESLint plugin uses only `globSync(pattern, { onlyDirectories: true })`
-from fast-glob. A dependency-scoped pnpm override supplies `tinyglobby@0.2.17`,
-which supports that API. A scoped pnpm patch preserves absolute output paths
-for absolute patterns, matching fast-glob behavior. `pnpm test:tooling` exercises the plugin's actual root
-directory resolver, including brace patterns, arrays, directory filtering, and
-Windows separators, and relative paths. Recheck the override whenever upgrading the Next ESLint
-plugin; it is intentionally not a global replacement for fast-glob.
-
-Together these changes remove braces and micromatch from the installed graph,
-including the unpatched development-only advisory
+Linting runs on Oxlint (`.oxlintrc.json`) with type-aware rules from
+`oxlint-tsgolint`. ESLint, `eslint-config-next` and Next's ESLint plugin are not
+installed, so the fast-glob override, the plugin patch and `pnpm test:tooling`
+that existed for that plugin were removed with them. braces and micromatch stay
+out of the installed graph, including the development-only advisory
 [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm).
-No vulnerability is suppressed and no upstream version number is fabricated.
+
 CI audits both production and development dependencies with
 `pnpm audit --audit-level high`.
