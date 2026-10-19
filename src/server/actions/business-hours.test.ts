@@ -96,6 +96,7 @@ describe("saveBusinessHours", () => {
     const logged = JSON.stringify(consoleError.mock.calls);
     expect(logged).toContain("P2002");
     expect(logged).not.toContain("maria@example.com");
+
     consoleError.mockRestore();
   });
 

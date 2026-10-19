@@ -27,6 +27,7 @@ export function getErrorMetadata(error: unknown): ErrorMetadata {
   const errorName = error instanceof Error ? error.name : "UnknownError";
   const errorCode = findErrorCode(error);
 
-  if (!errorCode) return { errorName };
+  if (errorCode == null) return { errorName };
+
   return { errorName, errorCode };
 }
