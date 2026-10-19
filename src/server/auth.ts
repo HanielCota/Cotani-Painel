@@ -62,7 +62,9 @@ type LegacyUserWithMemberships = Prisma.UserGetPayload<{
 type LegacyMembership = LegacyUserWithMemberships["memberships"][number];
 
 function hasConfirmedEmail(authUser: SupabaseUser, email: string | null): email is string {
-  return Boolean(email && authUser.email_confirmed_at);
+  if (email == null || email.length === 0) return false;
+
+  return authUser.email_confirmed_at != null && authUser.email_confirmed_at.length > 0;
 }
 
 function activeInvitationsFor(email: string) {
@@ -76,6 +78,7 @@ function activeInvitationsFor(email: string) {
 
 async function findPendingInvitation(authUser: SupabaseUser, email: string | null) {
   if (!hasConfirmedEmail(authUser, email)) return null;
+
   return prisma.clinicInvitation.findFirst({ where: activeInvitationsFor(email), select: { id: true } });
 }
 
@@ -135,6 +138,7 @@ async function moveMembershipToUser(
   if (membership.professional) {
     await moveProfessionalToMembership(transaction, membership.professional.id, canonicalMembership.id);
   }
+
   await transaction.membership.delete({ where: { id: membership.id } });
 }
 
@@ -168,11 +172,13 @@ async function claimLegacyUser(
     orderBy: { createdAt: "asc" },
   });
   const [canonicalUser, ...duplicates] = legacyUsers;
-  if (!canonicalUser) return null;
+
+  if (canonicalUser == null) return null;
 
   for (const duplicate of duplicates) {
     await mergeDuplicateUser(transaction, duplicate, canonicalUser.id);
   }
+
   return canonicalUser;
 }
 
@@ -212,16 +218,21 @@ async function linkInvitedProfessional(
     },
     select: { id: true },
   });
-  if (!professional) return;
+
+  if (professional == null) return;
 
   await transaction.professional.update({ where: { id: professional.id }, data: { membershipId } });
+}
+
+interface InvitationAccepter {
+  appUserId: string;
+  authUserId: string;
 }
 
 async function acceptInvitation(
   transaction: Prisma.TransactionClient,
   invitation: ClinicInvitationModel,
-  appUserId: string,
-  authUserId: string,
+  { appUserId, authUserId }: InvitationAccepter,
 ) {
   const membership = await transaction.membership.upsert({
     where: { clinicId_userId: { clinicId: invitation.clinicId, userId: appUserId } },
@@ -239,14 +250,14 @@ async function acceptInvitation(
 async function acceptPendingInvitations(
   transaction: Prisma.TransactionClient,
   authUser: SupabaseUser,
-  email: string | null,
-  appUserId: string,
+  { email, appUserId }: { email: string | null; appUserId: string },
 ) {
   if (!hasConfirmedEmail(authUser, email)) return;
 
   const invitations = await transaction.clinicInvitation.findMany({ where: activeInvitationsFor(email) });
+
   for (const invitation of invitations) {
-    await acceptInvitation(transaction, invitation, appUserId, authUser.id);
+    await acceptInvitation(transaction, invitation, { appUserId, authUserId: authUser.id });
   }
 
   await transaction.clinicInvitation.updateMany({
@@ -264,7 +275,8 @@ async function linkAppUserInTransaction(
   const candidate = currentAppUser ?? (await claimLegacyUser(transaction, authUser, identity.email));
   const appUser = await saveLinkedAppUser(transaction, candidate, identity);
 
-  await acceptPendingInvitations(transaction, authUser, identity.email, appUser.id);
+  await acceptPendingInvitations(transaction, authUser, { email: identity.email, appUserId: appUser.id });
+
   return { authUser, appUser };
 }
 
