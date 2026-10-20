@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { prismaMock } from "@/test/mocks/prisma";
 import {
@@ -48,10 +48,24 @@ function createFormData(overrides: Record<string, string | null> = {}) {
   return formData;
 }
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe("createCustomer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
+  });
+
+  it("telefone repetido não vira erro de servidor no log", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    prismaMock.customer.create.mockRejectedValueOnce(Object.assign(new Error("Unique constraint failed"), { code: "P2002" }));
+
+    const result = await createCustomer(validCustomer);
+
+    expect(result.status).toBe("error");
+    expect(consoleError).not.toHaveBeenCalled();
   });
 
   it("retorna erro para dados inválidos", async () => {

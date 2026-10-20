@@ -27,6 +27,11 @@ const updateCustomerSchema = customerSchema.extend({
   customerId: z.uuid(),
 });
 
+/** Telefone já usado por outro cliente da loja (@@unique([clinicId, phone])): erro de digitação, não falha do servidor. */
+function isDuplicatePhoneError(error: unknown): boolean {
+  return getErrorMetadata(error).errorCode === "P2002";
+}
+
 export async function createCustomer(input: unknown): Promise<ActionResult> {
   await requireAuthenticatedUser();
 
@@ -55,7 +60,9 @@ export async function createCustomer(input: unknown): Promise<ActionResult> {
       },
     });
   } catch (error) {
-    logger.error("Falha ao cadastrar cliente", { clinicId: clinic.id, ...getErrorMetadata(error) });
+    if (!isDuplicatePhoneError(error)) {
+      logger.error("Falha ao cadastrar cliente", { clinicId: clinic.id, ...getErrorMetadata(error) });
+    }
 
     if (error instanceof Error) {
       return { status: "error", message: "Não foi possível cadastrar este cliente." };
@@ -120,7 +127,10 @@ export async function updateCustomer(input: unknown): Promise<ActionResult> {
       },
     });
   } catch (error) {
-    logger.error("Falha ao atualizar cliente", { clinicId: clinic.id, customerId: customer.id, ...getErrorMetadata(error) });
+    if (!isDuplicatePhoneError(error)) {
+      logger.error("Falha ao atualizar cliente", { clinicId: clinic.id, customerId: customer.id, ...getErrorMetadata(error) });
+    }
+
     return { status: "error", message: "Não foi possível atualizar este cliente. Verifique se o telefone já está em uso." };
   }
 
