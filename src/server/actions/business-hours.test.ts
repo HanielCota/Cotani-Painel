@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { prismaMock } from "@/test/mocks/prisma";
 import { saveBusinessHours, saveBusinessHoursFromForm } from "@/server/actions/business-hours";
@@ -31,6 +31,10 @@ function createValidHours() {
     { dayOfWeek: 6, isOpen: true, openTime: "08:00", closeTime: "14:00", breakStart: "", breakEnd: "" },
   ];
 }
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe("saveBusinessHours", () => {
   beforeEach(() => {
@@ -96,8 +100,6 @@ describe("saveBusinessHours", () => {
     const logged = JSON.stringify(consoleError.mock.calls);
     expect(logged).toContain("P2002");
     expect(logged).not.toContain("maria@example.com");
-
-    consoleError.mockRestore();
   });
 
   it("processa FormData corretamente", async () => {
