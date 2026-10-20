@@ -15,7 +15,6 @@ export async function fetchJson<T>(input: RequestInfo | URL, init?: RequestInit)
   if (response.status === 401 || response.redirected || contentType.includes("text/html")) {
     if (typeof window !== "undefined") {
       // Este utilitário roda fora da árvore React; a troca completa garante a limpeza da sessão expirada.
-      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = "/sign-in";
     }
 
