@@ -117,7 +117,7 @@ if (!Number.isInteger(abandonedCheckoutRetentionDays) || abandonedCheckoutRetent
   hasError = true;
 }
 
-const whatsAppMode = process.env.WHATSAPP_SENDER_MODE?.trim() || "manual";
+const whatsAppMode = process.env.WHATSAPP_SENDER_MODE?.trim().toLowerCase() || "manual";
 if (!["manual", "api"].includes(whatsAppMode)) {
   console.error("✗ WHATSAPP_SENDER_MODE - use 'manual' ou 'api'");
   hasError = true;
