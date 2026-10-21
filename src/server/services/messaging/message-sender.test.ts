@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getMessageSender } from "./message-sender";
+import { ConsoleMessageSender, getMessageSender } from "./message-sender";
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -28,5 +28,32 @@ describe("envio de e-mail da fila", () => {
     expect(options.headers).toMatchObject({
       "Idempotency-Key": "appointment-1:CONFIRMATION:EMAIL:2026-10-04T12:00:00.000Z",
     });
+  });
+});
+
+describe("envio simulado", () => {
+  it("não grava telefone nem texto da mensagem no log", async () => {
+    const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+    await new ConsoleMessageSender().send({
+      channel: "WHATSAPP",
+      recipient: "5511988887777",
+      content: "Olá Maria, seu horário é amanhã.",
+      notificationKind: "CONFIRMATION",
+      idempotencyKey: "appointment-1:CONFIRMATION:WHATSAPP:2026-10-04T12:00:00.000Z",
+    });
+
+    const logged = JSON.stringify([...info.mock.calls, ...log.mock.calls]);
+    expect(logged).not.toContain("5511988887777");
+    expect(logged).not.toContain("Olá Maria");
+  });
+});
+
+describe("modo do WhatsApp", () => {
+  it.each(["API", " api "])("usa a API da Meta com WHATSAPP_SENDER_MODE=%j", (mode) => {
+    vi.stubEnv("WHATSAPP_SENDER_MODE", mode);
+
+    expect(getMessageSender("WHATSAPP")).not.toBeInstanceOf(ConsoleMessageSender);
   });
 });

@@ -23,7 +23,6 @@ overrides:
   "postcss-selector-parser@^7": ^7.1.6
   proxy-addr: ^2.0.8
   "undici@^7": ^7.29.1
-  # Vitest e @vitejs/plugin-react (GHSA-587h-7wmj-h5pm, launch-editor):
   vite: ^8.1.6
 
   # Next only uses globSync(pattern, { onlyDirectories: true }) from fast-glob.
