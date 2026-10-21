@@ -255,7 +255,6 @@ export async function finalizeLandingCheckoutAccess(remoteId: string) {
         where: { id: contract.id },
         data: { activationStartedAt: null, activationError: message.slice(0, 500) },
       }),
-      "Falha ao registrar o erro de ativação do checkout",
     );
     throw error;
   }
