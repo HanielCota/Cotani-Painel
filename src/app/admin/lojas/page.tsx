@@ -1,6 +1,7 @@
 import { Building2Icon, SearchIcon } from "lucide-react";
 import Link from "next/link";
 
+import { parsePageNumber } from "@/lib/page-number";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ export default async function StoresPage({
   const params = await searchParams;
   const query = params.q?.trim().slice(0, 120) ?? "";
   const filter = filters.find(([value]) => value === params.filtro)?.[0] ?? "all";
-  const requestedPage = Math.max(1, Number.parseInt(params.pagina ?? "1", 10) || 1);
+  const requestedPage = parsePageNumber(params.pagina);
   const where = {
     ...(query
       ? {

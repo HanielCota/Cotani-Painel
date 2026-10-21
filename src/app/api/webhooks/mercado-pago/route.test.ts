@@ -44,6 +44,28 @@ describe("webhook Mercado Pago", () => {
     expect((await POST(request())).status).toBe(500);
     expect(mocks.upsert).not.toHaveBeenCalled();
   });
+  it("recusa corpo fora do formato da notificação", async () => {
+    const invalid = new NextRequest("https://painel.cotani.com.br/api/webhooks/mercado-pago", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ type: 42, data: { id: { nested: true } } }),
+    });
+    expect((await POST(invalid)).status).toBe(400);
+    expect(mocks.validate).not.toHaveBeenCalled();
+  });
+  it("guarda a notificação inteira no registro do evento", async () => {
+    const notification = {
+      id: 123, type: "subscription_preapproval", action: "updated", live_mode: true,
+      date_created: "2026-10-18T12:00:00Z", user_id: 456, data: { id: "subscription-1", extra: "kept" },
+    };
+    const full = new NextRequest("https://painel.cotani.com.br/api/webhooks/mercado-pago", {
+      method: "POST", headers: { "content-type": "application/json", "x-request-id": "req-1" },
+      body: JSON.stringify(notification),
+    });
+    expect((await POST(full)).status).toBe(200);
+    expect(mocks.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({ create: expect.objectContaining({ payloadSnapshot: notification }) }),
+    );
+  });
   it("ignora a notificação já processada", async () => {
     mocks.findUnique.mockResolvedValue({ id: "event-1" });
     expect(await (await POST(request())).json()).toEqual({ received: true, skipped: true });

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { parsePageNumber } from "@/lib/page-number";
 import { checkApiRateLimit } from "@/lib/api-rate-limit";
 import prisma from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
@@ -19,8 +20,7 @@ export async function GET(request: NextRequest) {
   const professional = role === "PROVIDER"
     ? await prisma.professional.findFirst({ where: { clinicId: clinic.id, membershipId: membership.id, isActive: true }, select: { id: true } })
     : null;
-  const requestedPage = Number(request.nextUrl.searchParams.get("page") ?? "1");
-  const page = Number.isInteger(requestedPage) && requestedPage > 0 ? Math.min(requestedPage, 10_000) : 1;
+  const page = parsePageNumber(request.nextUrl.searchParams.get("page"));
   const requestedStatus = request.nextUrl.searchParams.get("status") ?? "ALL";
   const status = statuses.has(requestedStatus) ? requestedStatus : "ALL";
   const requestedPeriod = request.nextUrl.searchParams.get("period") ?? "ALL";

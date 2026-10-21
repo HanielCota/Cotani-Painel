@@ -122,6 +122,12 @@ describe("recuperação de senha", () => {
     expect(response.headers.get("location")).toBe(`${origin}/forgot-password?error=link`);
   });
 
+  it("tipo de link desconhecido não chega ao Supabase", async () => {
+    const response = await GET(new NextRequest(`${origin}/auth/callback?token_hash=hash&type=bogus`));
+    expect(auth.verifyOtp).not.toHaveBeenCalled();
+    expect(response.headers.get("location")).toBe(`${origin}/sign-in?error=auth_callback`);
+  });
+
   it("sessão comum (convite/login) segue para o destino pedido", async () => {
     auth.getClaims.mockResolvedValueOnce({ data: { claims: { sub: "user-1", amr: [{ method: "otp" }] } }, error: null });
     const response = await GET(new NextRequest(`${origin}/auth/callback?code=valid&next=/dashboard/agenda`));
