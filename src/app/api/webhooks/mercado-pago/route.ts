@@ -16,11 +16,12 @@ export const maxDuration = 60;
 
 const notificationIdSchema = z.union([z.string(), z.number()]).nullish();
 
-const notificationSchema = z.object({
+/** Loose objects keep the fields we do not read, so `payloadSnapshot` stores the full notification. */
+const notificationSchema = z.looseObject({
   id: notificationIdSchema,
   type: z.string().nullish(),
   action: z.string().nullish(),
-  data: z.object({ id: notificationIdSchema }).nullish(),
+  data: z.looseObject({ id: notificationIdSchema }).nullish(),
 });
 
 export async function POST(request: NextRequest) {
