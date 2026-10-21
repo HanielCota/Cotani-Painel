@@ -5,6 +5,7 @@ import { WhatsAppCrmList } from "@/components/dashboard/whatsapp-crm-list";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getWhatsAppCrmData } from "@/server/services/whatsapp-crm";
+import { isWhatsAppApiMode } from "@/server/services/messaging/sender-mode";
 import { withTenant } from "@/server/with-tenant";
 import { MessageCenter } from "@/components/dashboard/message-center";
 import prisma from "@/lib/prisma";
@@ -24,7 +25,7 @@ export default withTenant(
       }),
       prisma.notification.findMany({ where: { clinicId: clinic.id }, orderBy: { createdAt: "desc" }, take: 100 }),
     ]);
-    const automaticMode = process.env.WHATSAPP_SENDER_MODE === "api";
+    const automaticMode = isWhatsAppApiMode();
 
     return (
       <div className="flex flex-col gap-6">

@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { getErrorMetadata } from "@/lib/error-metadata";
+import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import { ACTIVE_APPOINTMENT_STATUSES } from "@/lib/appointment-status";
 import { requireClinicAction } from "@/server/clinic-action";
@@ -86,8 +88,9 @@ export async function createService(input: unknown): Promise<ActionResult> {
         imageUrl,
       },
     });
-  } catch {
-    await ignoreFailure(removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "services" }));
+  } catch (error) {
+    logger.error("Falha ao cadastrar serviço", { clinicId: clinic.id, ...getErrorMetadata(error) });
+    await ignoreFailure(removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "services" }), "Falha ao remover imagem do storage");
     return { status: "error", message: "Não foi possível cadastrar este serviço. Tente novamente." };
   }
 
@@ -150,13 +153,14 @@ export async function updateService(input: unknown): Promise<ActionResult> {
         imageUrl,
       },
     });
-  } catch {
-    await ignoreFailure(removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "services" }));
+  } catch (error) {
+    logger.error("Falha ao atualizar serviço", { clinicId: clinic.id, serviceId: service.id, ...getErrorMetadata(error) });
+    await ignoreFailure(removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "services" }), "Falha ao remover imagem do storage");
     return { status: "error", message: "Não foi possível atualizar este serviço. Tente novamente." };
   }
 
   if (service.imageUrl !== imageUrl) {
-    await ignoreFailure(removePublicImage({ url: service.imageUrl, clinicId: clinic.id, kind: "services" }));
+    await ignoreFailure(removePublicImage({ url: service.imageUrl, clinicId: clinic.id, kind: "services" }), "Falha ao remover imagem do storage");
   }
 
   revalidateServiceViews();

@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { getErrorMetadata } from "@/lib/error-metadata";
+import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import { requireClinicAction } from "@/server/clinic-action";
 import type { ActionResult } from "@/types";
@@ -79,7 +81,8 @@ export async function saveBusinessHours(input: unknown): Promise<ActionResult> {
         }),
       ),
     );
-  } catch {
+  } catch (error) {
+    logger.error("Falha ao salvar o expediente", { clinicId: clinic.id, ...getErrorMetadata(error) });
     return { status: "error", message: "Não foi possível salvar o expediente. Tente novamente." };
   }
 

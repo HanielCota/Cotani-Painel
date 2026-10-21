@@ -4,6 +4,9 @@ import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { cache } from "react";
 
+import type { Prisma } from "@/generated/prisma/client";
+import type { ClinicInvitationModel } from "@/generated/prisma/models/ClinicInvitation";
+import type { UserModel } from "@/generated/prisma/models/User";
 import prisma from "@/lib/prisma";
 import { isRecoverySession } from "@/lib/supabase/recovery-session";
 import { createClient } from "@/lib/supabase/server";
@@ -47,6 +50,224 @@ export async function requireMfaAssurance(): Promise<void> {
   if (await requiresMfaVerification()) throw new AuthenticationRequiredError();
 }
 
+interface AppUserIdentity {
+  authUserId: string;
+  email: string | null;
+  name: string;
+}
+
+type LegacyUserWithMemberships = Prisma.UserGetPayload<{
+  include: { memberships: { include: { professional: true } } };
+}>;
+type LegacyMembership = LegacyUserWithMemberships["memberships"][number];
+
+function hasConfirmedEmail(authUser: SupabaseUser, email: string | null): email is string {
+  return Boolean(email && authUser.email_confirmed_at);
+}
+
+function activeInvitationsFor(email: string) {
+  return {
+    email: { equals: email, mode: "insensitive" as const },
+    status: "PENDING" as const,
+    expiresAt: { gt: new Date() },
+    clinic: { deletedAt: null },
+  };
+}
+
+async function findPendingInvitation(authUser: SupabaseUser, email: string | null) {
+  if (!hasConfirmedEmail(authUser, email)) return null;
+  return prisma.clinicInvitation.findFirst({ where: activeInvitationsFor(email), select: { id: true } });
+}
+
+async function syncExistingAppUser(appUser: UserModel, identity: AppUserIdentity): Promise<UserModel> {
+  if (appUser.email === identity.email && appUser.name === identity.name) return appUser;
+
+  return prisma.user.update({
+    where: { id: appUser.id },
+    data: { email: identity.email, name: identity.name },
+  });
+}
+
+/** Cria o usuário novo sem transação; devolve null quando há cadastro legado a vincular. */
+async function createAppUserUnlessLegacy(authUser: SupabaseUser, identity: AppUserIdentity) {
+  const legacyUser = hasConfirmedEmail(authUser, identity.email)
+    ? await prisma.user.findFirst({
+        where: { authUserId: null, email: { equals: identity.email, mode: "insensitive" } },
+        select: { id: true },
+      })
+    : null;
+
+  if (legacyUser) return null;
+
+  return prisma.user.upsert({
+    where: { authUserId: identity.authUserId },
+    create: { authUserId: identity.authUserId, email: identity.email, name: identity.name },
+    update: { email: identity.email, name: identity.name },
+  });
+}
+
+async function moveProfessionalToMembership(
+  transaction: Prisma.TransactionClient,
+  professionalId: string,
+  membershipId: string,
+) {
+  const occupied = await transaction.professional.findUnique({ where: { membershipId } });
+
+  await transaction.professional.update({
+    where: { id: professionalId },
+    data: { membershipId: occupied ? null : membershipId },
+  });
+}
+
+async function moveMembershipToUser(
+  transaction: Prisma.TransactionClient,
+  membership: LegacyMembership,
+  canonicalUserId: string,
+) {
+  const canonicalMembership = await transaction.membership.upsert({
+    where: { clinicId_userId: { clinicId: membership.clinicId, userId: canonicalUserId } },
+    create: { clinicId: membership.clinicId, userId: canonicalUserId, role: membership.role },
+    update: {},
+  });
+
+  if (canonicalMembership.id === membership.id) return;
+
+  if (membership.professional) {
+    await moveProfessionalToMembership(transaction, membership.professional.id, canonicalMembership.id);
+  }
+  await transaction.membership.delete({ where: { id: membership.id } });
+}
+
+async function mergeDuplicateUser(
+  transaction: Prisma.TransactionClient,
+  duplicate: LegacyUserWithMemberships,
+  canonicalUserId: string,
+) {
+  for (const membership of duplicate.memberships) {
+    await moveMembershipToUser(transaction, membership, canonicalUserId);
+  }
+
+  await transaction.clinicInvitation.updateMany({
+    where: { invitedByUserId: duplicate.id },
+    data: { invitedByUserId: canonicalUserId },
+  });
+  await transaction.user.delete({ where: { id: duplicate.id } });
+}
+
+/** Escolhe o cadastro legado mais antigo do e-mail e funde os duplicados nele. */
+async function claimLegacyUser(
+  transaction: Prisma.TransactionClient,
+  authUser: SupabaseUser,
+  email: string | null,
+): Promise<UserModel | null> {
+  if (!hasConfirmedEmail(authUser, email)) return null;
+
+  const legacyUsers = await transaction.user.findMany({
+    where: { authUserId: null, email: { equals: email, mode: "insensitive" } },
+    include: { memberships: { include: { professional: true } } },
+    orderBy: { createdAt: "asc" },
+  });
+  const [canonicalUser, ...duplicates] = legacyUsers;
+  if (!canonicalUser) return null;
+
+  for (const duplicate of duplicates) {
+    await mergeDuplicateUser(transaction, duplicate, canonicalUser.id);
+  }
+  return canonicalUser;
+}
+
+async function saveLinkedAppUser(
+  transaction: Prisma.TransactionClient,
+  candidate: UserModel | null,
+  identity: AppUserIdentity,
+): Promise<UserModel> {
+  const profile = { email: identity.email, name: identity.name };
+
+  if (candidate) {
+    return transaction.user.update({
+      where: { id: candidate.id },
+      data: { authUserId: identity.authUserId, ...profile },
+    });
+  }
+
+  return transaction.user.upsert({
+    where: { authUserId: identity.authUserId },
+    create: { authUserId: identity.authUserId, ...profile },
+    update: profile,
+  });
+}
+
+async function linkInvitedProfessional(
+  transaction: Prisma.TransactionClient,
+  invitation: ClinicInvitationModel,
+  membershipId: string,
+) {
+  if (invitation.role !== "PROVIDER" || !invitation.professionalId) return;
+
+  const professional = await transaction.professional.findFirst({
+    where: {
+      id: invitation.professionalId,
+      clinicId: invitation.clinicId,
+      OR: [{ membershipId: null }, { membershipId }],
+    },
+    select: { id: true },
+  });
+  if (!professional) return;
+
+  await transaction.professional.update({ where: { id: professional.id }, data: { membershipId } });
+}
+
+async function acceptInvitation(
+  transaction: Prisma.TransactionClient,
+  invitation: ClinicInvitationModel,
+  appUserId: string,
+  authUserId: string,
+) {
+  const membership = await transaction.membership.upsert({
+    where: { clinicId_userId: { clinicId: invitation.clinicId, userId: appUserId } },
+    create: { clinicId: invitation.clinicId, userId: appUserId, role: invitation.role },
+    update: { role: invitation.role },
+  });
+
+  await linkInvitedProfessional(transaction, invitation, membership.id);
+  await transaction.clinicInvitation.update({
+    where: { id: invitation.id },
+    data: { status: "ACCEPTED", acceptedAt: new Date(), authUserId },
+  });
+}
+
+async function acceptPendingInvitations(
+  transaction: Prisma.TransactionClient,
+  authUser: SupabaseUser,
+  email: string | null,
+  appUserId: string,
+) {
+  if (!hasConfirmedEmail(authUser, email)) return;
+
+  const invitations = await transaction.clinicInvitation.findMany({ where: activeInvitationsFor(email) });
+  for (const invitation of invitations) {
+    await acceptInvitation(transaction, invitation, appUserId, authUser.id);
+  }
+
+  await transaction.clinicInvitation.updateMany({
+    where: { email: { equals: email, mode: "insensitive" }, status: "PENDING", expiresAt: { lte: new Date() } },
+    data: { status: "EXPIRED" },
+  });
+}
+
+async function linkAppUserInTransaction(
+  transaction: Prisma.TransactionClient,
+  authUser: SupabaseUser,
+  identity: AppUserIdentity,
+) {
+  const currentAppUser = await transaction.user.findUnique({ where: { authUserId: identity.authUserId } });
+  const candidate = currentAppUser ?? (await claimLegacyUser(transaction, authUser, identity.email));
+  const appUser = await saveLinkedAppUser(transaction, candidate, identity);
+
+  await acceptPendingInvitations(transaction, authUser, identity.email, appUser.id);
+  return { authUser, appUser };
+}
+
 /**
  * Sincroniza a identidade Supabase com o usuário da aplicação e aceita convites
  * pendentes pelo e-mail confirmado. O vínculo legado por e-mail preserva os
@@ -54,8 +275,11 @@ export async function requireMfaAssurance(): Promise<void> {
  */
 export const ensureCurrentAppUser = cache(async () => {
   const authUser = await requireAuthenticatedUser();
-  const email = authUser.email?.trim().toLowerCase() ?? null;
-  const name = getUserName(authUser);
+  const identity: AppUserIdentity = {
+    authUserId: authUser.id,
+    email: authUser.email?.trim().toLowerCase() ?? null,
+    name: getUserName(authUser),
+  };
 
   // O dashboard pode disparar várias renderizações de Server Components logo
   // após o login. Evite abrir uma transação interativa em cada uma delas: o
@@ -63,131 +287,20 @@ export const ensureCurrentAppUser = cache(async () => {
   // idempotente e pode ser resolvido com operações simples.
   const [existingAppUser, pendingInvitation] = await Promise.all([
     prisma.user.findUnique({ where: { authUserId: authUser.id } }),
-    email && authUser.email_confirmed_at
-      ? prisma.clinicInvitation.findFirst({
-        where: {
-          email: { equals: email, mode: "insensitive" },
-          status: "PENDING",
-          expiresAt: { gt: new Date() },
-          clinic: { deletedAt: null },
-        },
-        select: { id: true },
-      })
-      : Promise.resolve(null),
+    findPendingInvitation(authUser, identity.email),
   ]);
 
   if (existingAppUser && !pendingInvitation) {
-    const appUser = existingAppUser.email !== email || existingAppUser.name !== name
-      ? await prisma.user.update({
-          where: { id: existingAppUser.id },
-          data: { email, name },
-        })
-      : existingAppUser;
-
-    return { authUser, appUser };
+    return { authUser, appUser: await syncExistingAppUser(existingAppUser, identity) };
   }
 
   if (!existingAppUser && !pendingInvitation) {
-    const legacyUser = email && authUser.email_confirmed_at
-      ? await prisma.user.findFirst({
-          where: { authUserId: null, email: { equals: email, mode: "insensitive" } },
-          select: { id: true },
-        })
-      : null;
-
-    if (!legacyUser) {
-      const appUser = await prisma.user.upsert({
-        where: { authUserId: authUser.id },
-        create: { authUserId: authUser.id, email, name },
-        update: { email, name },
-      });
-
-      return { authUser, appUser };
-    }
+    const newAppUser = await createAppUserUnlessLegacy(authUser, identity);
+    if (newAppUser) return { authUser, appUser: newAppUser };
   }
 
-  return prisma.$transaction(async (transaction) => {
-    let appUser = await transaction.user.findUnique({ where: { authUserId: authUser.id } });
-
-    if (!appUser && email && authUser.email_confirmed_at) {
-      const legacyUsers = await transaction.user.findMany({
-        where: { authUserId: null, email: { equals: email, mode: "insensitive" } },
-        include: { memberships: { include: { professional: true } } },
-        orderBy: { createdAt: "asc" },
-      });
-      appUser = legacyUsers[0] ?? null;
-
-      if (appUser && legacyUsers.length > 1) {
-        for (const duplicate of legacyUsers.slice(1)) {
-          for (const membership of duplicate.memberships) {
-            const canonicalMembership = await transaction.membership.upsert({
-              where: { clinicId_userId: { clinicId: membership.clinicId, userId: appUser.id } },
-              create: { clinicId: membership.clinicId, userId: appUser.id, role: membership.role },
-              update: {},
-            });
-            if (membership.professional && canonicalMembership.id !== membership.id) {
-              const occupied = await transaction.professional.findUnique({ where: { membershipId: canonicalMembership.id } });
-              await transaction.professional.update({
-                where: { id: membership.professional.id },
-                data: { membershipId: occupied ? null : canonicalMembership.id },
-              });
-            }
-            if (canonicalMembership.id !== membership.id) {
-              await transaction.membership.delete({ where: { id: membership.id } });
-            }
-          }
-          await transaction.clinicInvitation.updateMany({ where: { invitedByUserId: duplicate.id }, data: { invitedByUserId: appUser.id } });
-          await transaction.user.delete({ where: { id: duplicate.id } });
-        }
-      }
-    }
-
-    appUser = appUser
-      ? await transaction.user.update({
-          where: { id: appUser.id },
-          data: { authUserId: authUser.id, email, name },
-        })
-      : await transaction.user.upsert({
-          where: { authUserId: authUser.id },
-          create: { authUserId: authUser.id, email, name },
-          update: { email, name },
-        });
-
-    if (email && authUser.email_confirmed_at) {
-      const invitations = await transaction.clinicInvitation.findMany({
-        where: {
-          email: { equals: email, mode: "insensitive" },
-          status: "PENDING",
-          expiresAt: { gt: new Date() },
-          clinic: { deletedAt: null },
-        },
-      });
-
-      for (const invitation of invitations) {
-        const membership = await transaction.membership.upsert({
-          where: { clinicId_userId: { clinicId: invitation.clinicId, userId: appUser.id } },
-          create: { clinicId: invitation.clinicId, userId: appUser.id, role: invitation.role },
-          update: { role: invitation.role },
-        });
-        if (invitation.role === "PROVIDER" && invitation.professionalId) {
-          const professional = await transaction.professional.findFirst({
-            where: { id: invitation.professionalId, clinicId: invitation.clinicId, OR: [{ membershipId: null }, { membershipId: membership.id }] },
-            select: { id: true },
-          });
-          if (professional) await transaction.professional.update({ where: { id: professional.id }, data: { membershipId: membership.id } });
-        }
-        await transaction.clinicInvitation.update({
-          where: { id: invitation.id },
-          data: { status: "ACCEPTED", acceptedAt: new Date(), authUserId: authUser.id },
-        });
-      }
-
-      await transaction.clinicInvitation.updateMany({
-        where: { email: { equals: email, mode: "insensitive" }, status: "PENDING", expiresAt: { lte: new Date() } },
-        data: { status: "EXPIRED" },
-      });
-    }
-
-    return { authUser, appUser };
-  }, { maxWait: 10_000, timeout: 20_000 });
+  return prisma.$transaction(
+    (transaction) => linkAppUserInTransaction(transaction, authUser, identity),
+    { maxWait: 10_000, timeout: 20_000 },
+  );
 });
