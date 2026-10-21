@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { ClinicRole } from "@/generated/prisma/enums";
+import { getErrorMetadata } from "@/lib/error-metadata";
+import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import { requirePlatformAdmin } from "@/server/platform-admin";
 import { writeAdminAuditLog } from "@/server/services/admin-audit";
@@ -36,6 +38,10 @@ const membershipRoleSchema = z.object({
   role: z.enum(ClinicRole),
   reason: reasonSchema,
 });
+
+function isLastAdminError(error: unknown) {
+  return error instanceof Error && error.message === "LAST_ADMIN";
+}
 
 function redirectToClinic(clinicId: string, status: "success" | "error", message: string): never {
   const params = new URLSearchParams({ status, message });
@@ -100,6 +106,9 @@ export async function updateClinicAsPlatformAdmin(formData: FormData): Promise<v
       });
     });
   } catch (error) {
+    if (!(error instanceof SlugInUseError)) {
+      logger.error("Falha ao atualizar negócio pelo admin", { clinicId: parsed.data.clinicId, ...getErrorMetadata(error) });
+    }
     redirectToClinic(parsed.data.clinicId, "error", error instanceof SlugInUseError
       ? "Esse slug já é usado por outro negócio (atual ou antigo)."
       : "Não foi possível atualizar. Verifique se o slug já está em uso.");
@@ -211,7 +220,10 @@ export async function updateMembershipRoleAsPlatformAdmin(formData: FormData): P
       });
     });
   } catch (error) {
-    redirectToClinic(parsed.data.clinicId, "error", error instanceof Error && error.message === "LAST_ADMIN"
+    if (!isLastAdminError(error)) {
+      logger.error("Falha ao alterar papel pelo admin", { clinicId: parsed.data.clinicId, ...getErrorMetadata(error) });
+    }
+    redirectToClinic(parsed.data.clinicId, "error", isLastAdminError(error)
       ? "O negócio precisa manter pelo menos um administrador."
       : "Não foi possível alterar o papel do usuário.");
   }
@@ -255,7 +267,10 @@ export async function removeMembershipAsPlatformAdmin(formData: FormData): Promi
       });
     });
   } catch (error) {
-    redirectToClinic(parsed.data.clinicId, "error", error instanceof Error && error.message === "LAST_ADMIN"
+    if (!isLastAdminError(error)) {
+      logger.error("Falha ao remover vínculo pelo admin", { clinicId: parsed.data.clinicId, ...getErrorMetadata(error) });
+    }
+    redirectToClinic(parsed.data.clinicId, "error", isLastAdminError(error)
       ? "Não é possível remover o último administrador."
       : "Não foi possível remover o vínculo.");
   }

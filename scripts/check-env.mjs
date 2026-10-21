@@ -52,28 +52,28 @@ const isProduction = process.env.VERCEL_ENV === "production" || process.env.APP_
 
 let hasError = false;
 
+/** Mostra o resultado da variável e devolve true quando ela está ausente. */
+function reportMissingVariable(key, missingDescription) {
+  const value = process.env[key];
+  if (!value || value.trim() === "") {
+    console.error(`✗ ${key} - ${missingDescription}`);
+    return true;
+  }
+
+  console.log(`✓ ${key}`);
+  return false;
+}
+
 console.log("Verificando variáveis de ambiente...\n");
 
 for (const key of required) {
-  const value = process.env[key];
-  if (!value || value.trim() === "") {
-    console.error(`✗ ${key} - ausente ou vazia`);
-    hasError = true;
-  } else {
-    console.log(`✓ ${key}`);
-  }
+  if (reportMissingVariable(key, "ausente ou vazia")) hasError = true;
 }
 
 if (isProduction) {
   console.log("\nVerificações obrigatórias em produção:");
   for (const key of productionOnly) {
-    const value = process.env[key];
-    if (!value || value.trim() === "") {
-      console.error(`✗ ${key} - obrigatória em produção`);
-      hasError = true;
-    } else {
-      console.log(`✓ ${key}`);
-    }
+    if (reportMissingVariable(key, "obrigatória em produção")) hasError = true;
   }
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL?.startsWith("https://")) {
@@ -117,7 +117,7 @@ if (!Number.isInteger(abandonedCheckoutRetentionDays) || abandonedCheckoutRetent
   hasError = true;
 }
 
-const whatsAppMode = process.env.WHATSAPP_SENDER_MODE?.trim() || "manual";
+const whatsAppMode = process.env.WHATSAPP_SENDER_MODE?.trim().toLowerCase() || "manual";
 if (!["manual", "api"].includes(whatsAppMode)) {
   console.error("✗ WHATSAPP_SENDER_MODE - use 'manual' ou 'api'");
   hasError = true;

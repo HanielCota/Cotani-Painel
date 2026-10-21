@@ -5,6 +5,7 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireClinicAction } from "@/server/clinic-action";
 import { requireAuthenticatedUser } from "@/server/auth";
+import { isWhatsAppApiMode } from "@/server/services/messaging/sender-mode";
 import { parseClinicDateTime } from "@/lib/timezone";
 import type { ActionResult } from "@/types";
 
@@ -27,7 +28,7 @@ export async function createManualReminder(_previousState: ActionResult, formDat
       scheduledFor: formData.get("scheduledFor"),
     });
   if (!parsed.success) return { status: "error", message: "Revise os dados do lembrete." };
-  if (parsed.data.channel === "WHATSAPP" && process.env.WHATSAPP_SENDER_MODE !== "api")
+  if (parsed.data.channel === "WHATSAPP" && !isWhatsAppApiMode())
     return {
       status: "error",
       message: "O WhatsApp automático ainda não está habilitado. Use o envio manual desta tela.",

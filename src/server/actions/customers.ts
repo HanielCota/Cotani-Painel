@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { getErrorMetadata } from "@/lib/error-metadata";
+import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import { normalizeWhatsAppPhone } from "@/lib/phone";
 import { parseClinicDateOnly } from "@/lib/timezone";
@@ -53,6 +55,8 @@ export async function createCustomer(input: unknown): Promise<ActionResult> {
       },
     });
   } catch (error) {
+    logger.error("Falha ao cadastrar cliente", { clinicId: clinic.id, ...getErrorMetadata(error) });
+
     if (error instanceof Error) {
       return { status: "error", message: "Não foi possível cadastrar este cliente." };
     }
@@ -115,7 +119,8 @@ export async function updateCustomer(input: unknown): Promise<ActionResult> {
         nextReturnAt: parsed.data.nextReturnAt ? parseClinicDateOnly(parsed.data.nextReturnAt, clinic.timeZone) : null,
       },
     });
-  } catch {
+  } catch (error) {
+    logger.error("Falha ao atualizar cliente", { clinicId: clinic.id, customerId: customer.id, ...getErrorMetadata(error) });
     return { status: "error", message: "Não foi possível atualizar este cliente. Verifique se o telefone já está em uso." };
   }
 
@@ -160,7 +165,8 @@ export async function importCustomersFromCsv(_previousState: ActionResult, formD
         });
       }
     }, { timeout: 60_000 });
-  } catch {
+  } catch (error) {
+    logger.error("Falha ao importar clientes", { clinicId: clinic.id, rows: parsed.rows.length, ...getErrorMetadata(error) });
     return { status: "error", message: "Não foi possível importar a planilha. Nenhum cliente foi alterado." };
   }
 

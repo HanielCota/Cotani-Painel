@@ -2,6 +2,7 @@ import "server-only";
 
 import type { Prisma } from "@/generated/prisma/client";
 import type { NotificationChannel, NotificationKind } from "@/generated/prisma/enums";
+import { isWhatsAppApiMode } from "@/server/services/messaging/sender-mode";
 
 /**
  * Outbox transacional de notificações (docs/ARCHITECTURE.md, seção 5.3).
@@ -44,7 +45,7 @@ function buildContent(
 ) {
   const when = formatClinicDateTime(params.startTime, params.timeZone);
   const acceptsAutomaticWhatsAppReply =
-    channel === "WHATSAPP" && process.env.WHATSAPP_SENDER_MODE?.trim().toLowerCase() === "api";
+    channel === "WHATSAPP" && isWhatsAppApiMode();
   const replyInstructions = acceptsAutomaticWhatsAppReply
     ? " Responda 1 para confirmar ou 2 para solicitar um reagendamento."
     : "";
