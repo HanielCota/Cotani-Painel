@@ -204,7 +204,7 @@ export async function updateProfessional(input: unknown): Promise<ActionResult> 
       });
     });
   } catch (error) {
-    logger.error("Falha ao atualizar profissional", { clinicId: clinic.id, ...getErrorMetadata(error) });
+    logger.error("Falha ao atualizar profissional", { clinicId: clinic.id, professionalId: professional.id, ...getErrorMetadata(error) });
     await ignoreFailure(removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "professionals" }), "Falha ao remover imagem do storage");
     return { status: "error", message: "Não foi possível atualizar o profissional. Tente novamente." };
   }

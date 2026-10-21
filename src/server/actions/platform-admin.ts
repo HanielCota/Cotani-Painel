@@ -14,10 +14,6 @@ import { moveClinicSlug, SlugInUseError } from "@/server/services/clinic-slug";
 
 const clinicIdSchema = z.uuid();
 const reasonSchema = z.string().trim().min(5).max(500);
-
-function isLastAdminError(error: unknown) {
-  return error instanceof Error && error.message === "LAST_ADMIN";
-}
 const updateClinicSchema = z.object({
   clinicId: z.uuid(),
   name: z.string().trim().min(2).max(120),
@@ -42,6 +38,10 @@ const membershipRoleSchema = z.object({
   role: z.enum(ClinicRole),
   reason: reasonSchema,
 });
+
+function isLastAdminError(error: unknown) {
+  return error instanceof Error && error.message === "LAST_ADMIN";
+}
 
 function redirectToClinic(clinicId: string, status: "success" | "error", message: string): never {
   const params = new URLSearchParams({ status, message });

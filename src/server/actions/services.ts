@@ -154,7 +154,7 @@ export async function updateService(input: unknown): Promise<ActionResult> {
       },
     });
   } catch (error) {
-    logger.error("Falha ao atualizar serviço", { clinicId: clinic.id, ...getErrorMetadata(error) });
+    logger.error("Falha ao atualizar serviço", { clinicId: clinic.id, serviceId: service.id, ...getErrorMetadata(error) });
     await ignoreFailure(removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "services" }), "Falha ao remover imagem do storage");
     return { status: "error", message: "Não foi possível atualizar este serviço. Tente novamente." };
   }
