@@ -130,9 +130,10 @@ if (!shouldApply) {
       if (!matchesPlan(configuredPlan, plan)) {
         hasInvalidPlan = true;
         console.error(`- DIVERGENTE: ${plan.reason} não corresponde ao valor, ciclo ou status esperado.`);
-      } else {
-        console.log(`- OK: ${plan.reason}`);
+        continue;
       }
+
+      console.log(`- OK: ${plan.reason}`);
     } catch (error) {
       hasInvalidPlan = true;
       console.error(`- INVÁLIDO: ${plan.reason} (${error instanceof Error ? error.message : String(error)})`);
