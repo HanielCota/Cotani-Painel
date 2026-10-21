@@ -4,9 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { z } from "zod";
 
-import { getErrorMetadata } from "@/lib/error-metadata";
 import { getClientIpFromHeaders } from "@/lib/get-client-ip";
-import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
 import { deletePendingNotifications } from "@/server/services/notifications";
@@ -90,8 +88,7 @@ export async function cancelAppointmentByToken(input: unknown): Promise<ActionRe
     if (!canceled) {
       return { status: "error", message: "Este agendamento foi alterado e não pode mais ser cancelado por este link." };
     }
-  } catch (error) {
-    logger.error("Falha ao cancelar agendamento pelo link", { clinicId: clinic.id, appointmentId: appointment.id, ...getErrorMetadata(error) });
+  } catch {
     return { status: "error", message: "Não foi possível cancelar o agendamento. Tente novamente." };
   }
 

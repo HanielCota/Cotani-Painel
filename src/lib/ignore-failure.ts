@@ -1,16 +1,13 @@
-import { getErrorMetadata } from "@/lib/error-metadata";
-import { logger } from "@/lib/logger";
-
 /**
- * Aguarda uma tarefa secundária e não deixa a falha interromper o fluxo
- * principal (ex.: apagar a imagem antiga depois de salvar a nova). A falha
- * fica registrada como aviso com a descrição informada.
+ * Aguarda uma tarefa secundária e descarta a falha de propósito (ex.: apagar
+ * a imagem antiga depois de salvar a nova). Use só quando a falha não deve
+ * interromper o fluxo principal.
  */
-export async function ignoreFailure(task: Promise<unknown>, description: string): Promise<void> {
+export async function ignoreFailure(task: Promise<unknown>): Promise<void> {
   try {
     await task;
-  } catch (error) {
-    logger.warn(description, getErrorMetadata(error));
+  } catch {
+    // Falha secundária: o fluxo principal já foi concluído.
   }
 }
 

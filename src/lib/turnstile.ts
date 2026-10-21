@@ -1,8 +1,5 @@
 import "server-only";
 
-import { getErrorMetadata } from "@/lib/error-metadata";
-import { logger } from "@/lib/logger";
-
 const SITEVERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const ALWAYS_PASS_TEST_SECRET = "1x0000000000000000000000000000000AA";
 
@@ -39,16 +36,12 @@ export async function verifyTurnstileToken(token: string, remoteIp?: string) {
       cache: "no-store",
       signal: AbortSignal.timeout(8_000),
     });
-    if (!response.ok) {
-      logger.warn("Turnstile respondeu com erro", { status: response.status });
-      return false;
-    }
+    if (!response.ok) return false;
     const result = await response.json() as TurnstileResponse;
     const validAction = result.action === "checkout"
       || (secret === ALWAYS_PASS_TEST_SECRET && !result.action);
     return result.success === true && validAction;
-  } catch (error) {
-    logger.warn("Falha ao validar o Turnstile", getErrorMetadata(error));
+  } catch {
     return false;
   }
 }
