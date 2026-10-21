@@ -17,6 +17,14 @@ describe("getErrorMetadata", () => {
     expect(getErrorMetadata(new Error("envolvente", { cause }))).toEqual({ errorName: "Error", errorCode: "40001" });
   });
 
+  it("termina mesmo com uma cadeia de causas circular", () => {
+    const first = new Error("primeiro");
+    const second = new Error("segundo", { cause: first });
+    Object.assign(first, { cause: second });
+
+    expect(getErrorMetadata(first)).toEqual({ errorName: "Error" });
+  });
+
   it("valor que não é erro vira UnknownError sem código", () => {
     expect(getErrorMetadata("texto solto")).toEqual({ errorName: "UnknownError" });
   });
