@@ -84,7 +84,7 @@ pnpm build
 pnpm test:e2e
 ```
 
-`pnpm check` executa lint, typecheck e testes unitários. O build também valida as variáveis obrigatórias.
+`pnpm check` executa lint, typecheck e testes unitários. O lint é o Oxlint (`.oxlintrc.json`), com as regras que dependem de tipos rodando pelo `oxlint-tsgolint`. O build também valida as variáveis obrigatórias.
 
 ## Estrutura principal
 
