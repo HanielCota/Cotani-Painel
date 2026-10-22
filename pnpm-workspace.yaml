@@ -29,4 +29,4 @@ overrides:
   # tinyglobby provides this API without the unpatched braces dependency.
   "@next/eslint-plugin-next>fast-glob": npm:tinyglobby@0.2.17
 patchedDependencies:
-  "@next/eslint-plugin-next@16.4.0": patches/@next__eslint-plugin-next@16.4.0.patch
+  "@next/eslint-plugin-next@16.4.1": patches/@next__eslint-plugin-next@16.4.1.patch
