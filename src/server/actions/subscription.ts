@@ -172,6 +172,7 @@ export async function schedulePlanChange(_previousState: ActionResult, formData:
           getPlanPrice(clinic.subscriptionPlan, clinic.subscriptionCycle),
           `Cotani - ${getProductPlan(clinic.subscriptionPlan).name}`,
         ),
+        "Falha ao desfazer o valor da assinatura no Mercado Pago",
       );
       throw error;
     }
@@ -217,6 +218,7 @@ export async function cancelScheduledPlanChange(): Promise<ActionResult> {
           pendingAmount,
           `Cotani - ${getProductPlan(clinic.pendingSubscriptionPlan).name}`,
         ),
+        "Falha ao desfazer o valor da assinatura no Mercado Pago",
       );
       throw error;
     }
