@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 
 import type { Prisma } from "@/generated/prisma/client";
 import type { NotificationChannel } from "@/generated/prisma/enums";
+import { getErrorMetadata } from "@/lib/error-metadata";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import { formatClinicDateTimeInput, getClinicDateBounds } from "@/lib/timezone";
@@ -92,20 +93,6 @@ async function lockActiveResources(transaction: Prisma.TransactionClient, params
     FOR SHARE
   `;
   return Boolean(professionals[0]?.isActive);
-}
-
-function getErrorMetadata(error: unknown) {
-  let current: unknown = error;
-
-  while (current !== null && typeof current === "object") {
-    const code = (current as { code?: unknown }).code;
-    if (typeof code === "string") {
-      return { errorCode: code, errorName: error instanceof Error ? error.name : "UnknownError" };
-    }
-    current = (current as { cause?: unknown }).cause;
-  }
-
-  return { errorName: error instanceof Error ? error.name : "UnknownError" };
 }
 
 async function isValidBusinessSlot(

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { prismaMock } from "@/test/mocks/prisma";
 import {
@@ -48,10 +48,24 @@ function createFormData(overrides: Record<string, string | null> = {}) {
   return formData;
 }
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe("createCustomer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (getClinicForRoles as ReturnType<typeof vi.fn>).mockResolvedValue(activeClinic);
+  });
+
+  it("telefone repetido não vira erro de servidor no log", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    prismaMock.customer.create.mockRejectedValueOnce(Object.assign(new Error("Unique constraint failed"), { code: "P2002" }));
+
+    const result = await createCustomer(validCustomer);
+
+    expect(result.status).toBe("error");
+    expect(consoleError).not.toHaveBeenCalled();
   });
 
   it("retorna erro para dados inválidos", async () => {
@@ -134,6 +148,31 @@ describe("updateCustomer", () => {
       where: { id: "550e8400-e29b-41d4-a716-446655440003" },
       data: expect.objectContaining({ name: validCustomer.name }),
     });
+  });
+
+  it("telefone repetido na edição não vira erro de servidor no log", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    prismaMock.customer.findFirst.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440003" });
+    prismaMock.customer.update.mockRejectedValueOnce(Object.assign(new Error("Unique constraint failed"), { code: "P2002" }));
+
+    const result = await updateCustomer({ ...validCustomer, customerId: "550e8400-e29b-41d4-a716-446655440003" });
+
+    expect(result.status).toBe("error");
+    expect(consoleError).not.toHaveBeenCalled();
+  });
+
+  it("registra outras falhas da edição sem a mensagem do erro", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    prismaMock.customer.findFirst.mockResolvedValueOnce({ id: "550e8400-e29b-41d4-a716-446655440003" });
+    prismaMock.customer.update.mockRejectedValueOnce(Object.assign(new Error("conexão perdida com joao@example.com"), { code: "P1001" }));
+
+    const result = await updateCustomer({ ...validCustomer, customerId: "550e8400-e29b-41d4-a716-446655440003" });
+
+    expect(result.status).toBe("error");
+    const logged = JSON.stringify(consoleError.mock.calls);
+    expect(logged).toContain("P1001");
+    expect(logged).toContain("550e8400-e29b-41d4-a716-446655440003");
+    expect(logged).not.toContain("joao@example.com");
   });
 });
 

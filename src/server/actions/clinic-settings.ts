@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { getErrorMetadata } from "@/lib/error-metadata";
+import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import { requireClinicAction } from "@/server/clinic-action";
 import type { ActionResult } from "@/types";
@@ -97,9 +99,12 @@ export async function saveBusinessProfile(_previousState: ActionResult, formData
       });
     });
     if (clinic.imageUrl !== imageUrl)
-      await ignoreFailure(removePublicImage({ url: clinic.imageUrl, clinicId: clinic.id, kind: "clinics" }));
+      await ignoreFailure(removePublicImage({ url: clinic.imageUrl, clinicId: clinic.id, kind: "clinics" }), "Falha ao remover imagem do storage");
   } catch (error) {
-    await ignoreFailure(removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "clinics" }));
+    if (!(error instanceof SlugInUseError)) {
+      logger.error("Falha ao salvar os dados do negócio", { clinicId: clinic.id, ...getErrorMetadata(error) });
+    }
+    await ignoreFailure(removePublicImage({ url: uploadedImageUrl, clinicId: clinic.id, kind: "clinics" }), "Falha ao remover imagem do storage");
     return {
       status: "error",
       message: error instanceof SlugInUseError ? error.message : "Não foi possível salvar os dados do negócio.",
@@ -136,7 +141,8 @@ export async function saveClinicSettings(_previousState: ActionResult, formData:
       where: { id: clinic.id },
       data: { maxAppointmentsPerDay },
     });
-  } catch {
+  } catch (error) {
+    logger.error("Falha ao salvar as configurações do negócio", { clinicId: clinic.id, ...getErrorMetadata(error) });
     return { status: "error", message: "Não foi possível salvar as configurações. Tente novamente." };
   }
 

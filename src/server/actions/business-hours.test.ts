@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { prismaMock } from "@/test/mocks/prisma";
 import { saveBusinessHours, saveBusinessHoursFromForm } from "@/server/actions/business-hours";
@@ -31,6 +31,10 @@ function createValidHours() {
     { dayOfWeek: 6, isOpen: true, openTime: "08:00", closeTime: "14:00", breakStart: "", breakEnd: "" },
   ];
 }
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe("saveBusinessHours", () => {
   beforeEach(() => {
@@ -83,6 +87,19 @@ describe("saveBusinessHours", () => {
     expect(result.status).toBe("success");
     expect(prismaMock.$transaction).toHaveBeenCalled();
     expect(prismaMock.businessHour.upsert).toHaveBeenCalledTimes(7);
+  });
+
+  it("registra a falha ao salvar sem a mensagem do erro", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const failure = Object.assign(new Error("valor duplicado para maria@example.com"), { code: "P2002" });
+    prismaMock.$transaction.mockRejectedValueOnce(failure);
+
+    const result = await saveBusinessHours(createValidHours());
+
+    expect(result.status).toBe("error");
+    const logged = JSON.stringify(consoleError.mock.calls);
+    expect(logged).toContain("P2002");
+    expect(logged).not.toContain("maria@example.com");
   });
 
   it("processa FormData corretamente", async () => {
