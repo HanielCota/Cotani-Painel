@@ -138,7 +138,7 @@ export async function updateClinicMemberRole(formData: FormData): Promise<Action
   const blockedLastAdmin = await prisma.$transaction(async (transaction) => {
     await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
     const current = await transaction.membership.findFirst({ where: { id: membership.id, clinicId: clinic.id } });
-    if (!current) return false;
+    if (current == null) return false;
     if (current.role === "ADMIN" && parsed.data.role !== "ADMIN") {
       const adminCount = await transaction.membership.count({ where: { clinicId: clinic.id, role: "ADMIN" } });
       if (adminCount <= 1) return true;
@@ -177,7 +177,7 @@ export async function removeClinicMember(formData: FormData): Promise<ActionResu
   const blockedLastAdmin = await prisma.$transaction(async (transaction) => {
     await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
     const current = await transaction.membership.findFirst({ where: { id: membership.id, clinicId: clinic.id } });
-    if (!current) return false;
+    if (current == null) return false;
     if (current.role === "ADMIN") {
       const adminCount = await transaction.membership.count({ where: { clinicId: clinic.id, role: "ADMIN" } });
       if (adminCount <= 1) return true;

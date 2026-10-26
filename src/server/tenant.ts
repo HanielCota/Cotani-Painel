@@ -64,7 +64,7 @@ export const getTenantContext = cache(async (): Promise<TenantContext> => {
 
   const selectedMembership = await findAccessibleMembership(appUser.id, selectedClinicId);
   // Cookie apontando para um negócio sem acesso: cai no primeiro negócio da conta.
-  const membership = selectedMembership ?? (selectedClinicId ? await findAccessibleMembership(appUser.id, null) : null);
+  const membership = selectedMembership ?? (selectedClinicId == null ? null : await findAccessibleMembership(appUser.id, null));
 
   if (!membership) {
     throw new TenantResolutionError("Nenhum negócio acessível foi encontrado para esta conta.");
