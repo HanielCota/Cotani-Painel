@@ -5,6 +5,7 @@ import { ConsoleMessageSender, getMessageSender } from "./message-sender";
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 describe("envio de e-mail da fila", () => {

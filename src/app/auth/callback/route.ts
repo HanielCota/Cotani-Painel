@@ -32,9 +32,11 @@ const emailOtpTypes: ReadonlySet<EmailOtpType> = new Set<EmailOtpType>([
 ]);
 
 function parseEmailOtpType(value: string | null): EmailOtpType | null {
-  if (!value) return null;
+  if (value == null || value.trim().length === 0) return null;
+
   const candidate = value as EmailOtpType;
   if (!emailOtpTypes.has(candidate)) return null;
+
   return candidate;
 }
 
