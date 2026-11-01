@@ -222,18 +222,16 @@ export async function finalizeLandingCheckoutAccess(remoteId: string) {
   try {
     const user = await prisma.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${checkoutEmail}, 0))`;
-      let appUser = await tx.user.findFirst({
+      const existingUser = await tx.user.findFirst({
         where: { email: { equals: checkoutEmail, mode: "insensitive" } },
         orderBy: { createdAt: "asc" },
       });
-      if (!appUser) {
-        appUser = await tx.user.create({
-          data: {
-            email: checkoutEmail,
-            name: contract.checkoutName || checkoutEmail.split("@")[0],
-          },
-        });
-      }
+      const appUser = existingUser ?? await tx.user.create({
+        data: {
+          email: checkoutEmail,
+          name: contract.checkoutName || checkoutEmail.split("@")[0],
+        },
+      });
       await tx.membership.upsert({
         where: { clinicId_userId: { clinicId: contract.clinicId, userId: appUser.id } },
         create: { clinicId: contract.clinicId, userId: appUser.id, role: ClinicRole.ADMIN },

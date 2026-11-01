@@ -28,6 +28,20 @@ describe("tenant", () => {
     expect(prismaMock.membership.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ userId: "user-1", clinicId: "clinic-1" }) }));
   });
 
+  it("cai no primeiro negócio da conta quando o cookie aponta para um negócio sem acesso", async () => {
+    const otherClinic = { ...clinic, id: "clinic-2" };
+    prismaMock.membership.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ ...membership, clinicId: otherClinic.id, clinic: otherClinic } as never);
+
+    const result = await getTenantContext();
+
+    expect(result.clinic).toEqual(otherClinic);
+    const fallbackWhere = prismaMock.membership.findFirst.mock.calls.at(-1)?.[0]?.where;
+    expect(fallbackWhere?.userId).toBe("user-1");
+    expect(fallbackWhere?.clinicId).toBeUndefined();
+  });
+
   it("falha fechado quando não existe vínculo", async () => {
     prismaMock.membership.findFirst.mockResolvedValueOnce(null);
     await expect(getTenantContext()).rejects.toBeInstanceOf(TenantResolutionError);
