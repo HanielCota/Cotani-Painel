@@ -45,7 +45,9 @@ export default withTenant<ReportsPageProps>(async (context, { searchParams }) =>
       : metrics.retentionRate < 25
         ? `A retenção está em ${metrics.retentionRate}%. Use a previsão de retorno dos clientes para estimular novos agendamentos.`
         : `A retenção está saudável em ${metrics.retentionRate}% e a taxa de faltas em ${metrics.noShowRate}%. Mantenha a rotina de confirmações.`;
-  const exportQuery = new URLSearchParams(); if (query.from) exportQuery.set("from", query.from); if (query.to) exportQuery.set("to", query.to);
+  const exportQuery = new URLSearchParams();
+  if (query.from) exportQuery.set("from", query.from);
+  if (query.to) exportQuery.set("to", query.to);
 
   return (
     <div className="flex flex-col gap-6">

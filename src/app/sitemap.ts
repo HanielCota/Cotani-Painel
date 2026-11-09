@@ -1,13 +1,13 @@
 import type { MetadataRoute } from "next";
 
+import { DEVELOPMENT_APP_URL, readConfiguredAppUrl } from "@/config/app-url";
 import prisma from "@/lib/prisma";
 
 // As clínicas são dados vivos; não consulte o banco durante o build.
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() ?? "http://localhost:3000";
-  const baseUrl = appUrl.replace(/\/$/, "");
+  const baseUrl = readConfiguredAppUrl() ?? DEVELOPMENT_APP_URL;
 
   const clinics = await prisma.clinic.findMany({
     where: { deletedAt: null, subscriptionStatus: "ACTIVE", operationalStatus: "ACTIVE" },

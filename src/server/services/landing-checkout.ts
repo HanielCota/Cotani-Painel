@@ -1,6 +1,7 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
+import { requireConfiguredAppUrl } from "@/config/app-url";
 import { BillingCycle, ClinicRole, SubscriptionPlan } from "@/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -28,10 +29,10 @@ export async function createLandingCheckout(input: LandingCheckoutInput) {
   const landingOrigin = landingPageUrl();
   const config = assertSubscriptionCheckoutReady(input.plan, input.cycle, `${landingOrigin}/checkout/retorno`);
   const recentSince = new Date(Date.now() - ACTIVE_ATTEMPT_MS);
-  const attempt = await prisma.$transaction(async (tx) => {
-    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${input.email}, 0))`;
+  const attempt = await prisma.$transaction(async (transaction) => {
+    await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${input.email}, 0))`;
 
-    const existingMember = await tx.user.findFirst({
+    const existingMember = await transaction.user.findFirst({
       where: {
         email: { equals: input.email, mode: "insensitive" },
         memberships: { some: {} },
@@ -44,7 +45,7 @@ export async function createLandingCheckout(input: LandingCheckoutInput) {
       );
     }
 
-    const recent = await tx.billingContract.findFirst({
+    const recent = await transaction.billingContract.findFirst({
       where: {
         checkoutSource: LANDING_SOURCE,
         checkoutEmail: input.email,
@@ -69,7 +70,7 @@ export async function createLandingCheckout(input: LandingCheckoutInput) {
 
     const clinicId = randomUUID();
     const contractId = randomUUID();
-    await tx.clinic.create({
+    await transaction.clinic.create({
       data: {
         id: clinicId,
         name: input.business,
@@ -83,7 +84,7 @@ export async function createLandingCheckout(input: LandingCheckoutInput) {
         mercadoPagoCheckoutStartedAt: new Date(),
       },
     });
-    const contract = await tx.billingContract.create({
+    const contract = await transaction.billingContract.create({
       data: {
         id: contractId,
         clinicId,
@@ -115,13 +116,13 @@ export async function createLandingCheckout(input: LandingCheckoutInput) {
     payerEmail: input.email,
     backUrl,
   });
-  await prisma.$transaction(async (tx) => {
-    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${attempt.clinicId}, 0))`;
-    await tx.billingContract.update({
+  await prisma.$transaction(async (transaction) => {
+    await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${attempt.clinicId}, 0))`;
+    await transaction.billingContract.update({
       where: { id: attempt.contract.id },
       data: { remoteId: remote.mercadoPagoSubscriptionId, checkoutUrl: remote.checkoutUrl, state: "pending" },
     });
-    await tx.clinic.update({
+    await transaction.clinic.update({
       where: { id: attempt.clinicId, mercadoPagoCheckoutKey: attempt.contract.id },
       data: {
         mercadoPagoSubscriptionId: remote.mercadoPagoSubscriptionId,
@@ -133,9 +134,6 @@ export async function createLandingCheckout(input: LandingCheckoutInput) {
   return { checkoutId: attempt.contract.id, checkoutUrl: remote.checkoutUrl, resumed: false };
 }
 
-function appUrl() {
-  return (process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://painel.cotani.com.br").replace(/\/$/, "");
-}
 
 async function sendExistingAccountEmail(email: string, name: string) {
   const apiKey = process.env.RESEND_API_KEY?.trim();
@@ -148,7 +146,7 @@ async function sendExistingAccountEmail(email: string, name: string) {
       from,
       to: [email],
       subject: "Pagamento confirmado - seu acesso à Cotani está liberado",
-      text: `Olá, ${name}. Seu pagamento foi confirmado e seu negócio já está liberado na Cotani. Entre com este mesmo e-mail em ${appUrl()}/sign-in. Se não lembrar sua senha, use a opção \"Esqueci minha senha\".`,
+      text: `Olá, ${name}. Seu pagamento foi confirmado e seu negócio já está liberado na Cotani. Entre com este mesmo e-mail em ${requireConfiguredAppUrl()}/sign-in. Se não lembrar sua senha, use a opção \"Esqueci minha senha\".`,
     }),
     signal: AbortSignal.timeout(10_000),
   });
@@ -177,7 +175,7 @@ async function deliverAccess(
   const supabase = createAdminClient();
   const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
     data: { name, source: "landing_checkout", clinic_id: clinicId },
-    redirectTo: `${appUrl()}/update-password`,
+    redirectTo: `${requireConfiguredAppUrl()}/update-password`,
   });
   if (error && !isAlreadyRegisteredError(error)) throw new Error(`Falha ao enviar convite de acesso: ${error.message}`);
 
@@ -220,19 +218,19 @@ export async function finalizeLandingCheckoutAccess(remoteId: string) {
   if (claimed.count === 0) return;
 
   try {
-    const user = await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${checkoutEmail}, 0))`;
-      const existingUser = await tx.user.findFirst({
+    const user = await prisma.$transaction(async (transaction) => {
+      await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${checkoutEmail}, 0))`;
+      const existingUser = await transaction.user.findFirst({
         where: { email: { equals: checkoutEmail, mode: "insensitive" } },
         orderBy: { createdAt: "asc" },
       });
-      const appUser = existingUser ?? await tx.user.create({
+      const appUser = existingUser ?? await transaction.user.create({
         data: {
           email: checkoutEmail,
           name: contract.checkoutName || checkoutEmail.split("@")[0],
         },
       });
-      await tx.membership.upsert({
+      await transaction.membership.upsert({
         where: { clinicId_userId: { clinicId: contract.clinicId, userId: appUser.id } },
         create: { clinicId: contract.clinicId, userId: appUser.id, role: ClinicRole.ADMIN },
         update: { role: ClinicRole.ADMIN },

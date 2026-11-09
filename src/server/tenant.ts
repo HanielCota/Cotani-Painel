@@ -75,14 +75,14 @@ export const getTenantContext = cache(async (): Promise<TenantContext> => {
 
 /**
  * Guarda de autorização por papel. Lança `InsufficientRoleError` quando
- * `ctx.role` não está em `roles`. Retorna o próprio contexto para encadeamento.
+ * `tenantContext.role` não está em `roles`. Retorna o próprio contexto para encadeamento.
  */
-export function requireRole(ctx: TenantContext, roles: readonly ClinicRole[]): TenantContext {
-  if (!roles.includes(ctx.role)) {
-    throw new InsufficientRoleError(ctx.role, roles);
+export function requireRole(tenantContext: TenantContext, roles: readonly ClinicRole[]): TenantContext {
+  if (!roles.includes(tenantContext.role)) {
+    throw new InsufficientRoleError(tenantContext.role, roles);
   }
 
-  return ctx;
+  return tenantContext;
 }
 
 /** Resolve o tenant e aplica RBAC sem esconder falhas de autenticação. */

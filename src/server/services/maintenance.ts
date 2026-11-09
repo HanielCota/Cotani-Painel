@@ -31,8 +31,8 @@ async function redactAbandonedLandingCheckouts(now: Date) {
   for (const candidate of candidates) {
     try {
       if (candidate.remoteId) await cancelMercadoPagoSubscription(candidate.remoteId);
-      const changed = await prisma.$transaction(async (tx) => {
-        const contract = await tx.billingContract.updateMany({
+      const changed = await prisma.$transaction(async (transaction) => {
+        const contract = await transaction.billingContract.updateMany({
           where: {
             id: candidate.id,
             updatedAt: candidate.updatedAt,
@@ -53,7 +53,7 @@ async function redactAbandonedLandingCheckouts(now: Date) {
         });
         if (contract.count === 0) return false;
 
-        await tx.clinic.updateMany({
+        await transaction.clinic.updateMany({
           where: { id: candidate.clinicId, hasPaidOnce: false, memberships: { none: {} } },
           data: {
             name: "Checkout abandonado",

@@ -83,16 +83,16 @@ export async function cancelSubscription(): Promise<ActionResult> {
 
     const ownerId = billingClinic.id;
     const canceledRemoteId = billingClinic.mercadoPagoSubscriptionId;
-    await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${ownerId}, 0))`;
-      const current = await tx.clinic.findUniqueOrThrow({ where: { id: ownerId } });
+    await prisma.$transaction(async (transaction) => {
+      await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${ownerId}, 0))`;
+      const current = await transaction.clinic.findUniqueOrThrow({ where: { id: ownerId } });
       if (current.mercadoPagoSubscriptionId !== canceledRemoteId) return;
       const cancellationData =
         current.subscriptionStatus === SubscriptionStatus.ACTIVE && isSubscriptionActive(current)
           ? { cancelAtPeriodEnd: true }
           : { subscriptionStatus: SubscriptionStatus.CANCELED, cancelAtPeriodEnd: false };
-      await tx.clinic.update({ where: { id: ownerId }, data: cancellationData });
-      await tx.clinic.updateMany({ where: { billingOwnerId: ownerId }, data: cancellationData });
+      await transaction.clinic.update({ where: { id: ownerId }, data: cancellationData });
+      await transaction.clinic.updateMany({ where: { billingOwnerId: ownerId }, data: cancellationData });
     });
 
     return {
@@ -149,9 +149,9 @@ export async function schedulePlanChange(_previousState: ActionResult, formData:
     if (target === clinic.subscriptionPlan && !clinic.pendingSubscriptionPlan)
       return { status: "error", message: "Este já é o seu plano atual." };
 
-    await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
-      await assertPlanFits(tx, clinic.id, target);
+    await prisma.$transaction(async (transaction) => {
+      await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinic.id}, 0))`;
+      await assertPlanFits(transaction, clinic.id, target);
     });
     const amount = getPlanPrice(target, clinic.subscriptionCycle);
     await updateMercadoPagoSubscriptionAmount(
@@ -247,9 +247,9 @@ export async function requestSubscriptionRefund(): Promise<ActionResult> {
       return { status: "error", message: "Não há pagamento elegível para a garantia de 7 dias." };
     await refundMercadoPagoPayment(payment.mercadoPagoPaymentId, payment.id);
     if (clinic.mercadoPagoSubscriptionId) await cancelMercadoPagoSubscription(clinic.mercadoPagoSubscriptionId);
-    await prisma.$transaction(async (tx) => {
-      await tx.paymentHistory.update({ where: { id: payment.id }, data: { status: "refunded" } });
-      const coverage = await tx.paymentHistory.findFirst({
+    await prisma.$transaction(async (transaction) => {
+      await transaction.paymentHistory.update({ where: { id: payment.id }, data: { status: "refunded" } });
+      const coverage = await transaction.paymentHistory.findFirst({
         where: {
           clinicId: clinic.id,
           id: { not: payment.id },
@@ -273,8 +273,8 @@ export async function requestSubscriptionRefund(): Promise<ActionResult> {
               subscriptionExpiresAt: new Date(),
               cancelAtPeriodEnd: false,
             };
-      await tx.clinic.update({ where: { id: clinic.id }, data });
-      await tx.clinic.updateMany({ where: { billingOwnerId: clinic.id }, data });
+      await transaction.clinic.update({ where: { id: clinic.id }, data });
+      await transaction.clinic.updateMany({ where: { billingOwnerId: clinic.id }, data });
     });
     return { status: "success", message: "Reembolso solicitado ao Mercado Pago e acesso encerrado." };
   } catch (error) {

@@ -18,12 +18,12 @@ export async function settleSubscription(remoteId: string, invoiceId?: string) {
   const clinicId = known?.clinicId ?? linked?.id;
   if (!clinicId) throw new Error("Contrato ainda não vinculado; repetir notificação.");
   await prisma.$transaction(
-    async (tx) => {
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinicId}, 0))`;
-      const clinic = await tx.clinic.findUniqueOrThrow({ where: { id: clinicId } });
+    async (transaction) => {
+      await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${clinicId}, 0))`;
+      const clinic = await transaction.clinic.findUniqueOrThrow({ where: { id: clinicId } });
       const remote = await syncSubscriptionFromMercadoPago({ mercadoPagoSubscriptionId: remoteId });
       if (remote.externalReference !== clinic.id) throw new Error("Referência do contrato divergente.");
-      let contract = await tx.billingContract.findUnique({ where: { remoteId } });
+      let contract = await transaction.billingContract.findUnique({ where: { remoteId } });
       if (!contract) {
         // Lazy adoption of an exact legacy binding, never by external_reference alone.
         if (clinic.mercadoPagoSubscriptionId !== remoteId) throw new Error("Contrato antigo não vinculado.");
@@ -35,7 +35,7 @@ export async function settleSubscription(remoteId: string, invoiceId?: string) {
           throw new Error("Plano legado divergente; revisão manual necessária.");
         if (!remote.amount || remote.currency !== "BRL")
           throw new Error("Contrato legado sem preço/moeda verificáveis.");
-        contract = await tx.billingContract.create({
+        contract = await transaction.billingContract.create({
           data: {
             id: randomUUID(),
             clinicId,
@@ -65,7 +65,7 @@ export async function settleSubscription(remoteId: string, invoiceId?: string) {
       }
       if (invoiceId) {
         const invoice = await getInvoiceFromMercadoPago(invoiceId);
-        const existing = await tx.paymentHistory.findUnique({ where: { mercadoPagoPaymentId: invoice.paymentId } });
+        const existing = await transaction.paymentHistory.findUnique({ where: { mercadoPagoPaymentId: invoice.paymentId } });
         if (existing && (existing.clinicId !== clinicId || existing.mercadoPagoSubscriptionId !== remoteId))
           throw new Error("Pagamento já vinculado a outro contrato.");
         const pendingPlan = current ? clinic.pendingSubscriptionPlan : null;
@@ -88,7 +88,7 @@ export async function settleSubscription(remoteId: string, invoiceId?: string) {
         const anchor = existing?.paidAt ?? invoice.periodStartsAt ?? invoice.paidAt;
         const periodEndsAt =
           existing?.periodEndsAt ?? (anchor ? subscriptionPeriodEnd(contract.cycle, undefined, anchor) : undefined);
-        await tx.paymentHistory.upsert({
+        await transaction.paymentHistory.upsert({
           where: { mercadoPagoPaymentId: invoice.paymentId },
           create: {
             clinicId,
@@ -109,12 +109,12 @@ export async function settleSubscription(remoteId: string, invoiceId?: string) {
             mercadoPagoInvoiceId: invoiceId,
           },
         });
-        const coverage = await tx.paymentHistory.findFirst({
+        const coverage = await transaction.paymentHistory.findFirst({
           where: { clinicId, status: "approved", periodEndsAt: { gt: new Date() }, paidAt: { lte: new Date() } },
           orderBy: [{ paidAt: "desc" }, { periodEndsAt: "desc" }],
         });
         if (coverage?.plan && coverage.billingCycle) {
-          await assertPlanFits(tx, clinicId, coverage.plan);
+          await assertPlanFits(transaction, clinicId, coverage.plan);
           const data = {
             subscriptionStatus: "ACTIVE" as const,
             hasPaidOnce: true,
@@ -122,7 +122,7 @@ export async function settleSubscription(remoteId: string, invoiceId?: string) {
             subscriptionCycle: coverage.billingCycle,
             subscriptionExpiresAt: coverage.periodEndsAt,
           };
-          await tx.clinic.update({
+          await transaction.clinic.update({
             where: { id: clinicId },
             data: {
               ...data,
@@ -131,7 +131,7 @@ export async function settleSubscription(remoteId: string, invoiceId?: string) {
                 : {}),
             },
           });
-          await tx.clinic.updateMany({ where: { billingOwnerId: clinicId }, data });
+          await transaction.clinic.updateMany({ where: { billingOwnerId: clinicId }, data });
         }
 
         const hasCoverage = Boolean(coverage?.plan && coverage.billingCycle);
@@ -143,8 +143,8 @@ export async function settleSubscription(remoteId: string, invoiceId?: string) {
         ) {
           // Do not revoke unrelated/manual access or a different paid period.
           const data = { subscriptionStatus: "INACTIVE" as const, subscriptionExpiresAt: new Date() };
-          await tx.clinic.update({ where: { id: clinicId }, data });
-          await tx.clinic.updateMany({ where: { billingOwnerId: clinicId }, data });
+          await transaction.clinic.update({ where: { id: clinicId }, data });
+          await transaction.clinic.updateMany({ where: { billingOwnerId: clinicId }, data });
         }
       }
       if (
@@ -152,10 +152,10 @@ export async function settleSubscription(remoteId: string, invoiceId?: string) {
         (remote.rawStatus === "cancelled" || remote.rawStatus === "canceled" || remote.rawStatus === "paused")
       ) {
         // Stop renewal, preserving only the already-recorded paid expiration.
-        await tx.clinic.update({ where: { id: clinicId }, data: { cancelAtPeriodEnd: true } });
-        await tx.clinic.updateMany({ where: { billingOwnerId: clinicId }, data: { cancelAtPeriodEnd: true } });
+        await transaction.clinic.update({ where: { id: clinicId }, data: { cancelAtPeriodEnd: true } });
+        await transaction.clinic.updateMany({ where: { billingOwnerId: clinicId }, data: { cancelAtPeriodEnd: true } });
       }
-      await tx.billingContract.update({ where: { id: contract.id }, data: { state: remote.rawStatus } });
+      await transaction.billingContract.update({ where: { id: contract.id }, data: { state: remote.rawStatus } });
     },
     { timeout: 40000, maxWait: 10000 },
   );

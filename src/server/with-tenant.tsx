@@ -6,16 +6,16 @@ import { EmptyClinicState } from "@/components/dashboard/empty-clinic-state";
 import { getTenantContext, TenantResolutionError, type TenantContext } from "@/server/tenant";
 
 export function withTenant<TProps extends object = Record<string, never>>(
-  handler: (ctx: TenantContext, props: TProps) => Promise<ReactElement> | ReactElement,
+  handler: (tenantContext: TenantContext, props: TProps) => Promise<ReactElement> | ReactElement,
   roles?: readonly ClinicRole[],
 ): (props: TProps) => Promise<ReactElement> {
   return async function TenantPage(props: TProps): Promise<ReactElement> {
     try {
-      const ctx = await getTenantContext();
-      if (roles && !roles.includes(ctx.role)) {
+      const tenantContext = await getTenantContext();
+      if (roles && !roles.includes(tenantContext.role)) {
         redirect("/acesso-negado");
       }
-      return await handler(ctx, props);
+      return await handler(tenantContext, props);
     } catch (error) {
       if (error instanceof TenantResolutionError) {
         return <EmptyClinicState />;

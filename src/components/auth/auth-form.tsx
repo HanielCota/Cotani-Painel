@@ -80,7 +80,11 @@ export function AuthForm() {
     if (mode === "sign-in") {
       const factors = await supabase.auth.mfa.listFactors();
       const verified = factors.data?.totp.find((factor) => factor.status === "verified");
-      if (verified) { setMfaFactorId(verified.id); setPending(false); return; }
+      if (verified) {
+        setMfaFactorId(verified.id);
+        setPending(false);
+        return;
+      }
     }
 
     setPending(false);
@@ -90,9 +94,17 @@ export function AuthForm() {
 
   async function handleMfa() {
     if (!mfaFactorId || mfaCode.length !== 6) return;
-    setPending(true); const { error } = await createClient().auth.mfa.challengeAndVerify({ factorId: mfaFactorId, code: mfaCode }); setPending(false);
-    if (error) { toast.error("Código de autenticação inválido."); return; }
-    router.push(redirectTo); router.refresh();
+    setPending(true);
+    const { error } = await createClient().auth.mfa.challengeAndVerify({ factorId: mfaFactorId, code: mfaCode });
+    setPending(false);
+
+    if (error) {
+      toast.error("Código de autenticação inválido.");
+      return;
+    }
+
+    router.push(redirectTo);
+    router.refresh();
   }
 
   async function handleGoogle() {

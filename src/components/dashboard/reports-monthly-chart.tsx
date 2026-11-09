@@ -49,7 +49,7 @@ function ChartTooltip({
 export function ReportsMonthlyChart({ data }: ReportsMonthlyChartProps) {
   return (
     <Card><CardHeader><CardTitle>Evolução mensal</CardTitle></CardHeader><CardContent><div className="h-64 w-full sm:h-80">
-        {data.length === 0 || data.every((d) => d.appointments === 0) ? (
+        {data.length === 0 || data.every((month) => month.appointments === 0) ? (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
             Nenhum dado nos últimos meses
           </div>

@@ -46,5 +46,5 @@ export async function orderByDailyLoad(clinicId: string, timeZone: string, start
   for (const appointment of appointments) {
     if (appointment.professionalId) load.set(appointment.professionalId, (load.get(appointment.professionalId) ?? 0) + 1);
   }
-  return [...professionalIds].sort((a, b) => (load.get(a) ?? 0) - (load.get(b) ?? 0));
+  return [...professionalIds].sort((firstProfessionalId, secondProfessionalId) => (load.get(firstProfessionalId) ?? 0) - (load.get(secondProfessionalId) ?? 0));
 }

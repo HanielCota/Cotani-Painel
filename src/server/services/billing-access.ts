@@ -4,16 +4,16 @@ import { getPlanEntitlements } from "@/config/subscription-plans";
 import type { SubscriptionPlan } from "@/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 
-export async function assertPlanFits(tx: Prisma.TransactionClient, clinicId: string, plan: SubscriptionPlan) {
+export async function assertPlanFits(transaction: Prisma.TransactionClient, clinicId: string, plan: SubscriptionPlan) {
   const limits = getPlanEntitlements(plan);
-  if (!limits.multipleLocations && (await tx.clinic.count({ where: { billingOwnerId: clinicId, deletedAt: null } }))) {
+  if (!limits.multipleLocations && (await transaction.clinic.count({ where: { billingOwnerId: clinicId, deletedAt: null } }))) {
     throw new Error(
       "O plano escolhido permite somente uma unidade. Ajuste as unidades vinculadas antes de mudar de plano.",
     );
   }
   if (
     limits.maxProfessionals !== null &&
-    (await tx.professional.count({ where: { clinicId, isActive: true } })) > limits.maxProfessionals
+    (await transaction.professional.count({ where: { clinicId, isActive: true } })) > limits.maxProfessionals
   ) {
     throw new Error(
       `O plano escolhido permite até ${limits.maxProfessionals} profissionais ativos. Desative os excedentes antes de mudar de plano.`,
@@ -70,12 +70,12 @@ export function getEffectiveProfessionalLimit(clinic: ProfessionalLimitState) {
 
 /** Retorna o limite atingido (para a mensagem) ou `null` quando ainda cabe mais um ativo. */
 export async function findProfessionalLimitReached(
-  tx: Prisma.TransactionClient,
+  transaction: Prisma.TransactionClient,
   clinic: ProfessionalLimitState & { id: string },
 ) {
   const limit = getEffectiveProfessionalLimit(clinic);
   if (!Number.isFinite(limit)) return null;
-  const active = await tx.professional.count({ where: { clinicId: clinic.id, isActive: true } });
+  const active = await transaction.professional.count({ where: { clinicId: clinic.id, isActive: true } });
   return active >= limit ? limit : null;
 }
 

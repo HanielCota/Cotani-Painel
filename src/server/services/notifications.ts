@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { Prisma } from "@/generated/prisma/client";
+import { readConfiguredAppUrl } from "@/config/app-url";
 import type { NotificationChannel, NotificationKind } from "@/generated/prisma/enums";
 import { isWhatsAppApiMode } from "@/server/services/messaging/sender-mode";
 
@@ -63,9 +64,8 @@ function buildContent(
 }
 
 function buildCancellationUrl(params: AppointmentNotificationParams): string {
-  // URL absoluta mínima: o domínio real deve vir de uma variável de ambiente
-  // quando disponível; fallback para path relativo funciona em links clicáveis.
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "";
+  // Sem NEXT_PUBLIC_APP_URL, o link fica relativo (ainda clicável no painel).
+  const baseUrl = readConfiguredAppUrl() ?? "";
   return `${baseUrl}/${params.clinicSlug}/cancelar/${params.cancellationToken}`;
 }
 
