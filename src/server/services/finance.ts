@@ -347,20 +347,26 @@ function buildKpiSeries(periodAppointments: readonly PeriodAppointment[], timeZo
   };
 }
 
+function sumByKey<T>(items: readonly T[], keyOf: (item: T) => string, amountOf: (item: T) => number) {
+  const totals = new Map<string, number>();
+  for (const item of items) {
+    const key = keyOf(item);
+    totals.set(key, (totals.get(key) ?? 0) + amountOf(item));
+  }
+
+  return totals;
+}
+
 /** Distribuição de métodos de pagamento: percentual da receita realizada no período. */
 function buildPaymentMethodDistribution(periodAppointments: readonly PeriodAppointment[]) {
-  const revenueByMethod = periodAppointments
-    .filter(isCompleted)
-    .reduce<Record<string, number>>(
-      (totals, appointment) => ({
-        ...totals,
-        [appointment.paymentMethod]: (totals[appointment.paymentMethod] ?? 0) + Number(appointment.totalPrice),
-      }),
-      {},
-    );
-  const totalRevenue = Object.values(revenueByMethod).reduce((sum, value) => sum + value, 0);
+  const revenueByMethod = sumByKey(
+    periodAppointments.filter(isCompleted),
+    (appointment) => appointment.paymentMethod,
+    (appointment) => Number(appointment.totalPrice),
+  );
+  const totalRevenue = Array.from(revenueByMethod.values()).reduce((sum, value) => sum + value, 0);
 
-  return Object.entries(revenueByMethod)
+  return Array.from(revenueByMethod.entries())
     .map(([method, value]) => ({
       name: paymentMethodLabel(method),
       value: totalRevenue > 0 ? Math.round((value / totalRevenue) * 100) : 0,
@@ -371,12 +377,13 @@ function buildPaymentMethodDistribution(periodAppointments: readonly PeriodAppoi
 
 /** Distribuição de status: todos os agendamentos do período. */
 function buildStatusDistribution(periodAppointments: readonly PeriodAppointment[]) {
-  const countByStatus = periodAppointments.reduce<Record<string, number>>(
-    (counts, appointment) => ({ ...counts, [appointment.status]: (counts[appointment.status] ?? 0) + 1 }),
-    {},
+  const countByStatus = sumByKey(
+    periodAppointments,
+    (appointment) => appointment.status,
+    () => 1,
   );
 
-  return Object.entries(countByStatus)
+  return Array.from(countByStatus.entries())
     .map(([status, value]) => ({
       name: appointmentStatusLabel(status),
       value,
@@ -393,17 +400,13 @@ function localWeekdayName(startTime: Date, timeZone: string) {
 
 /** Receita realizada por dia da semana no período selecionado. */
 function buildCalendarHeatmap(periodAppointments: readonly PeriodAppointment[], timeZone: string) {
-  const revenueByWeekday = periodAppointments
-    .filter(isCompleted)
-    .reduce<Record<string, number>>(
-      (totals, appointment) => {
-        const weekdayName = localWeekdayName(appointment.startTime, timeZone);
-        return { ...totals, [weekdayName]: (totals[weekdayName] ?? 0) + Number(appointment.totalPrice) };
-      },
-      Object.fromEntries(weekdayNames.map((day) => [day, 0])),
-    );
+  const revenueByWeekday = sumByKey(
+    periodAppointments.filter(isCompleted),
+    (appointment) => localWeekdayName(appointment.startTime, timeZone),
+    (appointment) => Number(appointment.totalPrice),
+  );
 
-  return weekdayNames.map((day) => ({ day, value: revenueByWeekday[day] ?? 0 }));
+  return weekdayNames.map((day) => ({ day, value: revenueByWeekday.get(day) ?? 0 }));
 }
 
 export async function getFinanceMetrics(clinic: ClinicModel, period: FinancePeriod = "month"): Promise<FinanceMetrics> {
