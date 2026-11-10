@@ -6,7 +6,13 @@ import type { ClinicModel } from "@/generated/prisma/models/Clinic";
 import prisma from "@/lib/prisma";
 import { appointmentStatusLabel } from "@/lib/display-labels";
 import { paymentMethodLabel } from "@/lib/appointment-status";
-import { formatClinicDateKey, getClinicDateBounds, getClinicMonthlyBounds, parseClinicDateTime } from "@/lib/timezone";
+import {
+  formatClinicDateKey,
+  getClinicDateBounds,
+  getClinicMonthlyBounds,
+  parseClinicDateTime,
+  type MonthlyBounds,
+} from "@/lib/timezone";
 import type { AgendaAppointment } from "@/types";
 
 export interface FinanceAppointment extends AgendaAppointment {
@@ -186,14 +192,46 @@ function toFinanceAppointment(appointment: {
   };
 }
 
-export async function getFinanceMetrics(clinic: ClinicModel, period: FinancePeriod = "month"): Promise<FinanceMetrics> {
+type FinanceMetricsData = Awaited<ReturnType<typeof loadFinanceMetricsData>>;
+
+type PeriodAppointment = FinanceMetricsData["periodAppointments"][number];
+
+type PricedAppointment = { totalPrice: unknown };
+
+const weekdayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+function isCompleted(appointment: { status: AppointmentStatus }) {
+  return appointment.status === "COMPLETED";
+}
+
+function isForecast(appointment: { status: AppointmentStatus }) {
+  return appointment.status === "PENDING" || appointment.status === "CONFIRMED";
+}
+
+function isCanceledOrNoShow(appointment: { status: AppointmentStatus }) {
+  return appointment.status === "CANCELED" || appointment.status === "NO_SHOW";
+}
+
+function sumTotalPrice(appointments: readonly PricedAppointment[]) {
+  return appointments.reduce((sum, appointment) => sum + Number(appointment.totalPrice), 0);
+}
+
+function averageTicket(appointments: readonly PricedAppointment[]) {
+  return appointments.length > 0 ? roundCents(sumTotalPrice(appointments) / appointments.length) : 0;
+}
+
+function countWithStatus(appointments: readonly PeriodAppointment[], status: AppointmentStatus) {
+  return appointments.filter((appointment) => appointment.status === status).length;
+}
+
+async function loadFinanceMetricsData(clinic: ClinicModel, period: FinancePeriod) {
   const { startOfMonth, startOfNextMonth } = getClinicDateBounds(clinic.timeZone);
   const periodBounds = financePeriodBounds(period, clinic.timeZone);
 
   const monthlyBounds = getClinicMonthlyBounds(clinic.timeZone, 6);
   const historyStart = monthlyBounds[0]?.start ?? startOfMonth;
 
-  const [currentMonthAppointments, previousMonthAppointments, historyAppointments] = await Promise.all([
+  const [periodAppointments, previousPeriodAppointments, historyAppointments] = await Promise.all([
     prisma.appointment.findMany({
       where: {
         clinicId: clinic.id,
@@ -221,143 +259,168 @@ export async function getFinanceMetrics(clinic: ClinicModel, period: FinancePeri
     }),
   ]);
 
-  const currentMonthRevenue = currentMonthAppointments
-    .filter((appointment) => appointment.status === "COMPLETED")
-    .reduce((sum, appointment) => sum + Number(appointment.totalPrice), 0);
-  const expectedRevenue = currentMonthAppointments
-    .filter((appointment) => appointment.status === "PENDING" || appointment.status === "CONFIRMED")
-    .reduce((sum, appointment) => sum + Number(appointment.totalPrice), 0);
+  return { monthlyBounds, periodAppointments, previousPeriodAppointments, historyAppointments };
+}
 
-  const previousMonthRevenue = previousMonthAppointments.reduce(
-    (sum, appointment) => sum + Number(appointment.totalPrice),
-    0,
-  );
+function summarizeRevenue(
+  periodAppointments: readonly PeriodAppointment[],
+  previousPeriodAppointments: readonly PricedAppointment[],
+) {
+  const currentMonthRevenue = sumTotalPrice(periodAppointments.filter(isCompleted));
+  const expectedRevenue = sumTotalPrice(periodAppointments.filter(isForecast));
+  const previousMonthRevenue = sumTotalPrice(previousPeriodAppointments);
 
   const revenueChangePercent =
     previousMonthRevenue > 0
       ? Math.round(((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue) * 100)
       : null;
 
-  const monthPendingCount = currentMonthAppointments.filter((a) => a.status === "PENDING").length;
-  const monthConfirmedCount = currentMonthAppointments.filter((a) => a.status === "CONFIRMED").length;
-  const monthCompletedCount = currentMonthAppointments.filter((a) => a.status === "COMPLETED").length;
-  const monthCanceledCount = currentMonthAppointments.filter((a) => a.status === "CANCELED").length;
-  const monthNoShowCount = currentMonthAppointments.filter((a) => a.status === "NO_SHOW").length;
+  return { currentMonthRevenue, expectedRevenue, previousMonthRevenue, revenueChangePercent };
+}
 
-  const appointmentsByLocalDay = new Map<string, typeof currentMonthAppointments>();
-  for (const appointment of currentMonthAppointments) {
-    const key = formatClinicDateKey(appointment.startTime, clinic.timeZone);
-    appointmentsByLocalDay.set(key, [...(appointmentsByLocalDay.get(key) ?? []), appointment]);
-  }
-
-  // Desempenho de vendas: agrupado por dia do mês atual.
-  const dailyRevenueMap = new Map<string, number>();
-  for (const appointment of currentMonthAppointments) {
-    if (appointment.status !== "COMPLETED") continue;
-    const dateKey = formatClinicDateKey(appointment.startTime, clinic.timeZone);
-    const groupingKey = period === "year" ? dateKey.slice(0, 7) : dateKey;
-    dailyRevenueMap.set(groupingKey, (dailyRevenueMap.get(groupingKey) ?? 0) + Number(appointment.totalPrice));
-  }
-  const dailyRevenue = Array.from(dailyRevenueMap.entries())
-    .sort(([firstDate], [secondDate]) => firstDate.localeCompare(secondDate))
-    .map(([date, value]) => ({
-      date: period === "year" ? `${date.slice(5, 7)}/${date.slice(2, 4)}` : `${date.slice(8, 10)}/${date.slice(5, 7)}`,
-      value,
-    }));
-
-  // Evolução mensal: receita e ticket médio dos últimos meses.
-  const monthlyRevenue = monthlyBounds.map(({ label, start, end }) => {
-    const monthAppointmentsInBounds = historyAppointments.filter((a) => a.startTime >= start && a.startTime < end);
-    const revenue = monthAppointmentsInBounds.reduce((sum, a) => sum + Number(a.totalPrice), 0);
-    const ticket = monthAppointmentsInBounds.length > 0 ? roundCents(revenue / monthAppointmentsInBounds.length) : 0;
-    return { month: label, revenue, ticket };
-  });
-
-  // Séries diárias para micrográficos dos KPIs (últimos 14 dias do mês).
-  const seriesDayKeys = Array.from(appointmentsByLocalDay.keys()).sort().slice(-14);
-  const kpiSeries = {
-    revenue: seriesDayKeys.map((dayKey) => {
-      return (appointmentsByLocalDay.get(dayKey) ?? [])
-        .filter((a) => a.status === "COMPLETED")
-        .reduce((sum, a) => sum + Number(a.totalPrice), 0);
-    }),
-    forecast: seriesDayKeys.map((dayKey) => {
-      return (appointmentsByLocalDay.get(dayKey) ?? [])
-        .filter((a) => a.status === "PENDING" || a.status === "CONFIRMED")
-        .reduce((sum, a) => sum + Number(a.totalPrice), 0);
-    }),
-    ticket: seriesDayKeys.map((dayKey) => {
-      const dayAppointments = (appointmentsByLocalDay.get(dayKey) ?? []).filter((a) => a.status === "COMPLETED");
-      const dayRevenue = dayAppointments.reduce((sum, a) => sum + Number(a.totalPrice), 0);
-      return dayAppointments.length > 0 ? roundCents(dayRevenue / dayAppointments.length) : 0;
-    }),
-    cancellations: seriesDayKeys.map((dayKey) => {
-      return (appointmentsByLocalDay.get(dayKey) ?? []).filter((a) => a.status === "CANCELED" || a.status === "NO_SHOW")
-        .length;
-    }),
+function countAppointmentsByStatus(periodAppointments: readonly PeriodAppointment[]) {
+  return {
+    monthAppointmentsTotal: periodAppointments.length,
+    monthPendingCount: countWithStatus(periodAppointments, "PENDING"),
+    monthConfirmedCount: countWithStatus(periodAppointments, "CONFIRMED"),
+    monthCompletedCount: countWithStatus(periodAppointments, "COMPLETED"),
+    monthCanceledCount: countWithStatus(periodAppointments, "CANCELED"),
+    monthNoShowCount: countWithStatus(periodAppointments, "NO_SHOW"),
   };
+}
 
-  // Distribuição de métodos de pagamento: apenas agendamentos confirmados/concluídos do mês.
-  const paymentMethodCounts: Record<string, number> = {};
-  for (const appointment of currentMonthAppointments) {
-    if (appointment.status !== "COMPLETED") continue;
-    paymentMethodCounts[appointment.paymentMethod] =
-      (paymentMethodCounts[appointment.paymentMethod] ?? 0) + Number(appointment.totalPrice);
+function formatDailyRevenueLabel(groupingKey: string, period: FinancePeriod) {
+  if (period === "year") return `${groupingKey.slice(5, 7)}/${groupingKey.slice(2, 4)}`;
+  return `${groupingKey.slice(8, 10)}/${groupingKey.slice(5, 7)}`;
+}
+
+/** Desempenho de vendas: agrupado por dia do período (ou por mês, no período anual). */
+function buildDailyRevenue(periodAppointments: readonly PeriodAppointment[], period: FinancePeriod, timeZone: string) {
+  const revenueByGroupingKey = new Map<string, number>();
+  for (const appointment of periodAppointments.filter(isCompleted)) {
+    const dateKey = formatClinicDateKey(appointment.startTime, timeZone);
+    const groupingKey = period === "year" ? dateKey.slice(0, 7) : dateKey;
+    revenueByGroupingKey.set(groupingKey, (revenueByGroupingKey.get(groupingKey) ?? 0) + Number(appointment.totalPrice));
   }
-  const totalPaymentMethodRevenue = Object.values(paymentMethodCounts).reduce((sum, value) => sum + value, 0);
-  const paymentMethodDistribution = Object.entries(paymentMethodCounts)
+
+  return Array.from(revenueByGroupingKey.entries())
+    .sort(([firstDate], [secondDate]) => firstDate.localeCompare(secondDate))
+    .map(([date, value]) => ({ date: formatDailyRevenueLabel(date, period), value }));
+}
+
+/** Evolução mensal: receita e ticket médio dos últimos meses. */
+function buildMonthlyRevenue(
+  monthlyBounds: readonly MonthlyBounds[],
+  historyAppointments: FinanceMetricsData["historyAppointments"],
+) {
+  return monthlyBounds.map(({ label, start, end }) => {
+    const appointmentsInMonth = historyAppointments.filter(
+      (appointment) => appointment.startTime >= start && appointment.startTime < end,
+    );
+    return { month: label, revenue: sumTotalPrice(appointmentsInMonth), ticket: averageTicket(appointmentsInMonth) };
+  });
+}
+
+function groupByLocalDay(periodAppointments: readonly PeriodAppointment[], timeZone: string) {
+  const appointmentsByLocalDay = new Map<string, PeriodAppointment[]>();
+  for (const appointment of periodAppointments) {
+    const dayKey = formatClinicDateKey(appointment.startTime, timeZone);
+    appointmentsByLocalDay.set(dayKey, [...(appointmentsByLocalDay.get(dayKey) ?? []), appointment]);
+  }
+
+  return appointmentsByLocalDay;
+}
+
+/** Séries diárias para micrográficos dos KPIs (últimos 14 dias com agendamentos). */
+function buildKpiSeries(periodAppointments: readonly PeriodAppointment[], timeZone: string) {
+  const appointmentsByLocalDay = groupByLocalDay(periodAppointments, timeZone);
+  const seriesDays = Array.from(appointmentsByLocalDay.keys())
+    .sort()
+    .slice(-14)
+    .map((dayKey) => appointmentsByLocalDay.get(dayKey) ?? []);
+
+  return {
+    revenue: seriesDays.map((dayAppointments) => sumTotalPrice(dayAppointments.filter(isCompleted))),
+    forecast: seriesDays.map((dayAppointments) => sumTotalPrice(dayAppointments.filter(isForecast))),
+    ticket: seriesDays.map((dayAppointments) => averageTicket(dayAppointments.filter(isCompleted))),
+    cancellations: seriesDays.map((dayAppointments) => dayAppointments.filter(isCanceledOrNoShow).length),
+  };
+}
+
+function sumByKey<T>(items: readonly T[], keyOf: (item: T) => string, amountOf: (item: T) => number) {
+  const totals = new Map<string, number>();
+  for (const item of items) {
+    const key = keyOf(item);
+    totals.set(key, (totals.get(key) ?? 0) + amountOf(item));
+  }
+
+  return totals;
+}
+
+/** Distribuição de métodos de pagamento: percentual da receita realizada no período. */
+function buildPaymentMethodDistribution(periodAppointments: readonly PeriodAppointment[]) {
+  const revenueByMethod = sumByKey(
+    periodAppointments.filter(isCompleted),
+    (appointment) => appointment.paymentMethod,
+    (appointment) => Number(appointment.totalPrice),
+  );
+  const totalRevenue = Array.from(revenueByMethod.values()).reduce((sum, value) => sum + value, 0);
+
+  return Array.from(revenueByMethod.entries())
     .map(([method, value]) => ({
       name: paymentMethodLabel(method),
-      value: totalPaymentMethodRevenue > 0 ? Math.round((value / totalPaymentMethodRevenue) * 100) : 0,
+      value: totalRevenue > 0 ? Math.round((value / totalRevenue) * 100) : 0,
       color: paymentMethodColors[method] ?? "var(--muted-foreground)",
     }))
-    .sort((a, b) => b.value - a.value);
+    .sort((first, second) => second.value - first.value);
+}
 
-  // Distribuição de status: todos os agendamentos do mês.
-  const statusCounts: Record<string, number> = {};
-  for (const appointment of currentMonthAppointments) {
-    statusCounts[appointment.status] = (statusCounts[appointment.status] ?? 0) + 1;
-  }
-  const statusDistribution = Object.entries(statusCounts)
+/** Distribuição de status: todos os agendamentos do período. */
+function buildStatusDistribution(periodAppointments: readonly PeriodAppointment[]) {
+  const countByStatus = sumByKey(
+    periodAppointments,
+    (appointment) => appointment.status,
+    () => 1,
+  );
+
+  return Array.from(countByStatus.entries())
     .map(([status, value]) => ({
       name: appointmentStatusLabel(status),
       value,
       color: statusColors[status] ?? "var(--muted-foreground)",
     }))
-    .sort((a, b) => b.value - a.value);
+    .sort((first, second) => second.value - first.value);
+}
 
-  // Receita realizada por dia da semana no período selecionado.
-  const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-  const calendarMap: Record<string, number> = {};
-  for (const day of dayNames) {
-    calendarMap[day] = 0;
-  }
+function localWeekdayName(startTime: Date, timeZone: string) {
+  const localKey = formatClinicDateKey(startTime, timeZone);
+  const localDay = new Date(`${localKey}T12:00:00.000Z`);
+  return weekdayNames[localDay.getUTCDay()];
+}
 
-  for (const appointment of currentMonthAppointments) {
-    if (appointment.status !== "COMPLETED") continue;
-    const localKey = formatClinicDateKey(appointment.startTime, clinic.timeZone);
-    const localDay = new Date(`${localKey}T12:00:00.000Z`);
-    const dayName = dayNames[localDay.getUTCDay()];
-    calendarMap[dayName] += Number(appointment.totalPrice);
-  }
-  const calendarHeatmap = dayNames.map((day) => ({ day, value: calendarMap[day] }));
+/** Receita realizada por dia da semana no período selecionado. */
+function buildCalendarHeatmap(periodAppointments: readonly PeriodAppointment[], timeZone: string) {
+  const revenueByWeekday = sumByKey(
+    periodAppointments.filter(isCompleted),
+    (appointment) => localWeekdayName(appointment.startTime, timeZone),
+    (appointment) => Number(appointment.totalPrice),
+  );
+
+  return weekdayNames.map((day) => ({ day, value: revenueByWeekday.get(day) ?? 0 }));
+}
+
+export async function getFinanceMetrics(clinic: ClinicModel, period: FinancePeriod = "month"): Promise<FinanceMetrics> {
+  const { monthlyBounds, periodAppointments, previousPeriodAppointments, historyAppointments } =
+    await loadFinanceMetricsData(clinic, period);
 
   return {
-    currentMonthRevenue,
-    expectedRevenue,
-    previousMonthRevenue,
-    revenueChangePercent,
-    monthAppointmentsTotal: currentMonthAppointments.length,
-    monthPendingCount,
-    monthConfirmedCount,
-    monthCompletedCount,
-    monthCanceledCount,
-    monthNoShowCount,
-    dailyRevenue,
-    monthlyRevenue,
-    paymentMethodDistribution,
-    statusDistribution,
-    calendarHeatmap,
-    kpiSeries,
+    ...summarizeRevenue(periodAppointments, previousPeriodAppointments),
+    ...countAppointmentsByStatus(periodAppointments),
+    dailyRevenue: buildDailyRevenue(periodAppointments, period, clinic.timeZone),
+    monthlyRevenue: buildMonthlyRevenue(monthlyBounds, historyAppointments),
+    paymentMethodDistribution: buildPaymentMethodDistribution(periodAppointments),
+    statusDistribution: buildStatusDistribution(periodAppointments),
+    calendarHeatmap: buildCalendarHeatmap(periodAppointments, clinic.timeZone),
+    kpiSeries: buildKpiSeries(periodAppointments, clinic.timeZone),
   };
 }

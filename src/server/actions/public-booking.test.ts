@@ -5,10 +5,11 @@ import { createPublicAppointment } from "@/server/actions/public-booking";
 
 vi.mock("@/server/services/scheduling", () => ({
   scheduleAppointment: vi.fn(),
+  rescheduleScheduledAppointment: vi.fn(),
   DOUBLE_BOOKING_MESSAGE: "Horário indisponível. Por favor, escolha outro.",
 }));
 
-const { scheduleAppointment } = await import("@/server/services/scheduling");
+const { scheduleAppointment, rescheduleScheduledAppointment } = await import("@/server/services/scheduling");
 
 describe("createPublicAppointment", () => {
   beforeEach(() => {
@@ -129,6 +130,57 @@ describe("createPublicAppointment", () => {
     const result = await createPublicAppointment({ status: "success", message: "" }, createFormData());
 
     expect(result.status).toBe("success");
+  });
+
+  describe("reagendamento pelo link público", () => {
+    const rescheduleToken = "550e8400-e29b-41d4-a716-446655440099";
+
+    function arrangeClinicAndService() {
+      vi.setSystemTime(new Date("2026-07-19T10:00:00.000Z"));
+      prismaMock.clinic.findFirst.mockResolvedValueOnce({
+        id: "clinic-1", slug: "loja-teste", name: "Loja", timeZone: "America/Sao_Paulo",
+        subscriptionStatus: "ACTIVE", subscriptionExpiresAt: new Date("2099-01-01T00:00:00.000Z"), operationalStatus: "ACTIVE", deletedAt: null,
+      });
+      prismaMock.service.findFirst.mockResolvedValueOnce({
+        id: "550e8400-e29b-41d4-a716-446655440001",
+        name: "Serviço A",
+        duration: 30,
+        price: 50,
+      });
+    }
+
+    it("recusa link de reagendamento inválido sem tentar reservar", async () => {
+      arrangeClinicAndService();
+      prismaMock.appointment.findFirst.mockResolvedValueOnce(null);
+
+      const result = await createPublicAppointment({ status: "success", message: "" }, createFormData({ rescheduleToken }));
+
+      expect(result).toEqual({ status: "error", message: "Este link de reagendamento não é mais válido." });
+      expect(vi.mocked(rescheduleScheduledAppointment)).not.toHaveBeenCalled();
+      expect(vi.mocked(scheduleAppointment)).not.toHaveBeenCalled();
+    });
+
+    it("reagenda o atendimento existente mantendo cliente e token", async () => {
+      arrangeClinicAndService();
+      prismaMock.appointment.findFirst.mockResolvedValueOnce({
+        id: "app-existing",
+        customerId: "cust-1",
+        cancellationToken: rescheduleToken,
+        customer: { name: "João Silva", phone: "5511999999999", email: null },
+      });
+      vi.mocked(rescheduleScheduledAppointment).mockResolvedValueOnce({ status: "success" });
+
+      const result = await createPublicAppointment({ status: "success", message: "" }, createFormData({ rescheduleToken }));
+
+      expect(result).toEqual({ status: "success", message: "Agendamento reagendado.", professionalName: undefined });
+      expect(vi.mocked(rescheduleScheduledAppointment).mock.calls[0][0]).toMatchObject({
+        appointmentId: "app-existing",
+        customerId: "cust-1",
+        cancellationToken: rescheduleToken,
+        professionalId: null,
+      });
+      expect(vi.mocked(scheduleAppointment)).not.toHaveBeenCalled();
+    });
   });
 
   describe("sem preferência de profissional", () => {

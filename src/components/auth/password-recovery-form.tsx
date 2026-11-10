@@ -1,38 +1,177 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
+import { useRef, type RefObject } from "react";
 import { CheckCircle2Icon, KeyRoundIcon, MailCheckIcon, OctagonXIcon } from "lucide-react";
-import { toast } from "sonner";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createClient } from "@/lib/supabase/client";
-import { isRecoverySession } from "@/lib/supabase/recovery-session";
 import { AuthCard } from "@/components/auth/auth-card";
 import { PasswordField } from "@/components/auth/password-field";
 import { TurnstileWidget, type TurnstileWidgetHandle } from "@/components/security/turnstile-widget";
+import { usePasswordRecovery, type PasswordRecoveryMode } from "./use-password-recovery";
 
-/** Destino de todo link de recuperação: o fluxo protegido (link → 2FA → senha). */
-const RECOVERY_REDIRECT_PATH = "/auth/callback?next=/auth/confirm-recovery";
+interface RecoveryEmailSentCardProps {
+  email: string;
+  onBackToSignIn: () => void;
+  onResend: () => void;
+}
 
-function recoveryErrorMessage(error: { code?: string; message: string }, mode: "request" | "update") {
-  if (mode === "request") return "Não foi possível enviar o e-mail agora. Tente novamente em instantes.";
+interface RecoveryFormCardProps {
+  isRequest: boolean;
+  ready: boolean;
+  pending: boolean;
+  submitError: string | null;
+  submitDisabled: boolean;
+  captchaRef: RefObject<TurnstileWidgetHandle | null>;
+  onCaptchaTokenChange: (token: string | null) => void;
+  onSubmit: (formData: FormData) => Promise<void>;
+  onBackToSignIn: () => void;
+}
 
-  const details = `${error.code ?? ""} ${error.message}`.toLowerCase();
-  if (details.includes("password should be at least") || details.includes("weak_password")) {
-    return "Use uma senha com pelo menos 8 caracteres.";
-  }
-  if (details.includes("same_password") || details.includes("same password")) {
-    return "A nova senha deve ser diferente da senha anterior.";
-  }
-  if (details.includes("session") || details.includes("jwt") || details.includes("expired")) {
-    return "Este link expirou ou já foi utilizado. Peça um novo convite ou link.";
-  }
-  return "Não foi possível salvar a senha. Tente novamente.";
+function getFormDescription(isRequest: boolean, ready: boolean) {
+  if (isRequest) return "Informe o e-mail da sua conta e enviaremos um link para criar uma nova senha.";
+  if (ready) return "Defina a senha que você usará para entrar no Cotani.";
+  return "Validando seu link seguro...";
+}
+
+function getSubmitLabel(isRequest: boolean, pending: boolean) {
+  if (pending) return isRequest ? "Enviando..." : "Salvando...";
+  return isRequest ? "Enviar link de redefinição" : "Salvar senha";
+}
+
+function RecoveryEmailSentCard({ email, onBackToSignIn, onResend }: RecoveryEmailSentCardProps) {
+  return (
+    <AuthCard>
+      <div className="mb-5 flex flex-col items-center gap-3 text-center">
+        <span className="flex size-12 items-center justify-center rounded-full bg-primary/15 text-primary">
+          <MailCheckIcon aria-hidden="true" className="size-6" />
+        </span>
+        <div>
+          <h1 className="text-xl font-semibold">Verifique seu e-mail</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Enviamos as instruções para redefinir sua senha.</p>
+        </div>
+      </div>
+
+      <Alert role="status" className="mb-4 border-primary/25 bg-primary/5">
+        <CheckCircle2Icon aria-hidden="true" className="text-primary" />
+        <AlertTitle>Solicitação enviada</AlertTitle>
+        <AlertDescription>
+          Se houver uma conta cadastrada para{" "}
+          <strong className="font-medium text-foreground">{email}</strong>, você receberá um link seguro em alguns
+          instantes.
+        </AlertDescription>
+      </Alert>
+
+      <ul className="mb-5 space-y-1.5 text-xs leading-relaxed text-muted-foreground">
+        <li>• O link vale por tempo limitado e funciona uma única vez.</li>
+        <li>• Abra o link neste mesmo navegador.</li>
+        <li>• Não encontrou? Verifique o spam ou aguarde alguns minutos.</li>
+      </ul>
+
+      <div className="space-y-2">
+        <Button type="button" className="w-full" onClick={onBackToSignIn}>
+          Voltar para entrar
+        </Button>
+        <Button type="button" variant="ghost" className="w-full" onClick={onResend}>
+          Enviar novamente
+        </Button>
+      </div>
+    </AuthCard>
+  );
+}
+
+function RecoveryFormHeader({ isRequest, ready }: { isRequest: boolean; ready: boolean }) {
+  return (
+    <div className="mb-5 flex flex-col items-center gap-3 text-center">
+      <span className="flex size-12 items-center justify-center rounded-full bg-primary/15 text-primary">
+        <KeyRoundIcon aria-hidden="true" className="size-6" />
+      </span>
+      <div>
+        <h1 className="text-xl font-semibold">{isRequest ? "Esqueceu sua senha?" : "Crie sua senha"}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{getFormDescription(isRequest, ready)}</p>
+      </div>
+    </div>
+  );
+}
+
+function EmailField() {
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor="email">E-mail</Label>
+      <Input id="email" name="email" type="email" autoComplete="email" required autoFocus />
+    </div>
+  );
+}
+
+function NewPasswordFields({ ready }: { ready: boolean }) {
+  return (
+    <>
+      <PasswordField
+        id="password"
+        name="password"
+        label="Nova senha"
+        hint="Mínimo de 8 caracteres."
+        autoComplete="new-password"
+        minLength={8}
+        required
+        disabled={!ready}
+      />
+      <PasswordField
+        id="confirmPassword"
+        name="confirmPassword"
+        label="Confirme a senha"
+        autoComplete="new-password"
+        minLength={8}
+        required
+        disabled={!ready}
+      />
+    </>
+  );
+}
+
+function RecoveryErrorAlert({ isRequest, message }: { isRequest: boolean; message: string | null }) {
+  if (!message) return null;
+
+  return (
+    <Alert variant="destructive" role="alert">
+      <OctagonXIcon aria-hidden="true" />
+      <AlertTitle>{isRequest ? "Não foi possível continuar" : "Não foi possível salvar"}</AlertTitle>
+      <AlertDescription>{message}</AlertDescription>
+    </Alert>
+  );
+}
+
+function RecoveryFormCard({
+  isRequest,
+  ready,
+  pending,
+  submitError,
+  submitDisabled,
+  captchaRef,
+  onCaptchaTokenChange,
+  onSubmit,
+  onBackToSignIn,
+}: RecoveryFormCardProps) {
+  return (
+    <AuthCard>
+      <RecoveryFormHeader isRequest={isRequest} ready={ready} />
+      <form action={onSubmit} className="space-y-4">
+        {isRequest ? <EmailField /> : <NewPasswordFields ready={ready} />}
+        <RecoveryErrorAlert isRequest={isRequest} message={submitError} />
+        {isRequest ? (
+          <TurnstileWidget ref={captchaRef} action="authentication" onTokenChange={onCaptchaTokenChange} />
+        ) : null}
+        <Button type="submit" className="w-full" disabled={submitDisabled}>
+          {getSubmitLabel(isRequest, pending)}
+        </Button>
+        <Button type="button" variant="ghost" className="w-full" onClick={onBackToSignIn}>
+          Voltar para entrar
+        </Button>
+      </form>
+    </AuthCard>
+  );
 }
 
 /**
@@ -45,240 +184,35 @@ export function PasswordRecoveryForm({
   mode,
   initialError = null,
 }: {
-  mode: "request" | "update";
+  mode: PasswordRecoveryMode;
   initialError?: string | null;
 }) {
-  const [pending, setPending] = useState(false);
-  const [ready, setReady] = useState(mode === "request");
-  const [requestedEmail, setRequestedEmail] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(initialError);
-  const submittingRef = useRef(false);
   const captchaRef = useRef<TurnstileWidgetHandle>(null);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const captchaRequired = mode === "request" && Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim());
-  const router = useRouter();
+  const recovery = usePasswordRecovery(mode, initialError, captchaRef);
 
-  useEffect(() => {
-    if (mode === "request") return;
-    const supabase = createClient();
-    let active = true;
-
-    async function handleSession(session: Session | null) {
-      if (!active) return;
-      if (session) {
-        const { data } = await supabase.auth.getClaims();
-        if (isRecoverySession(data?.claims)) {
-          window.location.replace("/auth/confirm-recovery");
-          return;
-        }
-      }
-      if (active) setReady(Boolean(session));
-    }
-
-    async function loadSession() {
-      const { data, error } = await supabase.auth.getSession();
-      await handleSession(error ? null : data.session);
-    }
-
-    void loadSession();
-    const { data } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
-      if (event === "PASSWORD_RECOVERY") {
-        window.location.replace("/auth/confirm-recovery");
-        return;
-      }
-      void handleSession(session);
-    });
-    return () => {
-      active = false;
-      data.subscription.unsubscribe();
-    };
-  }, [mode]);
-
-  async function submit(formData: FormData) {
-    if (submittingRef.current) return;
-
-    if (mode === "update") {
-      const password = String(formData.get("password") ?? "");
-      if (password !== String(formData.get("confirmPassword") ?? password)) {
-        setSubmitError("As senhas digitadas não são iguais.");
-        return;
-      }
-    }
-
-    submittingRef.current = true;
-    setPending(true);
-    setSubmitError(null);
-    let succeeded = false;
-
-    try {
-      const supabase = createClient();
-      const email = String(formData.get("email") ?? "").trim();
-      const error =
-        mode === "request"
-          ? (
-              await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}${RECOVERY_REDIRECT_PATH}`,
-                ...(captchaToken ? { captchaToken } : {}),
-              })
-            ).error
-          : (await supabase.auth.updateUser({ password: String(formData.get("password") ?? "") })).error;
-
-      if (error) {
-        setSubmitError(recoveryErrorMessage(error, mode));
-        return;
-      }
-
-      succeeded = true;
-      if (mode === "request") {
-        setRequestedEmail(email);
-        return;
-      }
-
-      // Primeira senha (convite/checkout): a sessão já é do próprio usuário.
-      toast.success("Senha criada. Você já pode usar o painel.");
-      window.location.replace("/dashboard");
-    } catch {
-      setSubmitError(
-        mode === "request"
-          ? "Não foi possível enviar o e-mail agora. Verifique sua conexão e tente novamente."
-          : "Não foi possível salvar a senha. Verifique sua conexão e tente novamente.",
-      );
-    } finally {
-      setPending(false);
-      if (!succeeded) submittingRef.current = false;
-      if (!succeeded && mode === "request") captchaRef.current?.reset();
-    }
-  }
-
-  function resetRequest() {
-    submittingRef.current = false;
-    setRequestedEmail(null);
-  }
-
-  async function backToSignIn() {
-    if (mode === "update") {
-      try {
-        await createClient().auth.signOut({ scope: "local" });
-      } finally {
-        window.location.replace("/sign-in");
-      }
-      return;
-    }
-    router.push("/sign-in");
-  }
-
-  if (mode === "request" && requestedEmail) {
+  if (mode === "request" && recovery.requestedEmail) {
     return (
-      <AuthCard>
-        <div className="mb-5 flex flex-col items-center gap-3 text-center">
-          <span className="flex size-12 items-center justify-center rounded-full bg-primary/15 text-primary">
-            <MailCheckIcon aria-hidden="true" className="size-6" />
-          </span>
-          <div>
-            <h1 className="text-xl font-semibold">Verifique seu e-mail</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Enviamos as instruções para redefinir sua senha.</p>
-          </div>
-        </div>
-
-        <Alert role="status" className="mb-4 border-primary/25 bg-primary/5">
-          <CheckCircle2Icon aria-hidden="true" className="text-primary" />
-          <AlertTitle>Solicitação enviada</AlertTitle>
-          <AlertDescription>
-            Se houver uma conta cadastrada para{" "}
-            <strong className="font-medium text-foreground">{requestedEmail}</strong>, você receberá um link seguro em
-            alguns instantes.
-          </AlertDescription>
-        </Alert>
-
-        <ul className="mb-5 space-y-1.5 text-xs leading-relaxed text-muted-foreground">
-          <li>• O link vale por tempo limitado e funciona uma única vez.</li>
-          <li>• Abra o link neste mesmo navegador.</li>
-          <li>• Não encontrou? Verifique o spam ou aguarde alguns minutos.</li>
-        </ul>
-
-        <div className="space-y-2">
-          <Button type="button" className="w-full" onClick={() => router.push("/sign-in")}>
-            Voltar para entrar
-          </Button>
-          <Button type="button" variant="ghost" className="w-full" onClick={resetRequest}>
-            Enviar novamente
-          </Button>
-        </div>
-      </AuthCard>
+      <RecoveryEmailSentCard
+        email={recovery.requestedEmail}
+        onBackToSignIn={recovery.goToSignIn}
+        onResend={recovery.resetRequest}
+      />
     );
   }
 
-  const isRequest = mode === "request";
+  const captchaMissing = recovery.captchaRequired && !recovery.captchaToken;
 
   return (
-    <AuthCard>
-      <div className="mb-5 flex flex-col items-center gap-3 text-center">
-        <span className="flex size-12 items-center justify-center rounded-full bg-primary/15 text-primary">
-          <KeyRoundIcon aria-hidden="true" className="size-6" />
-        </span>
-        <div>
-          <h1 className="text-xl font-semibold">{isRequest ? "Esqueceu sua senha?" : "Crie sua senha"}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {isRequest
-              ? "Informe o e-mail da sua conta e enviaremos um link para criar uma nova senha."
-              : ready
-                ? "Defina a senha que você usará para entrar no Cotani."
-                : "Validando seu link seguro..."}
-          </p>
-        </div>
-      </div>
-      <form action={submit} className="space-y-4">
-        {isRequest ? (
-          <div className="space-y-1.5">
-            <Label htmlFor="email">E-mail</Label>
-            <Input id="email" name="email" type="email" autoComplete="email" required autoFocus />
-          </div>
-        ) : (
-          <>
-            <PasswordField
-              id="password"
-              name="password"
-              label="Nova senha"
-              hint="Mínimo de 8 caracteres."
-              autoComplete="new-password"
-              minLength={8}
-              required
-              disabled={!ready}
-            />
-            <PasswordField
-              id="confirmPassword"
-              name="confirmPassword"
-              label="Confirme a senha"
-              autoComplete="new-password"
-              minLength={8}
-              required
-              disabled={!ready}
-            />
-          </>
-        )}
-        {submitError ? (
-          <Alert variant="destructive" role="alert">
-            <OctagonXIcon aria-hidden="true" />
-            <AlertTitle>{isRequest ? "Não foi possível continuar" : "Não foi possível salvar"}</AlertTitle>
-            <AlertDescription>{submitError}</AlertDescription>
-          </Alert>
-        ) : null}
-        {isRequest ? (
-          <TurnstileWidget ref={captchaRef} action="authentication" onTokenChange={setCaptchaToken} />
-        ) : null}
-        <Button type="submit" className="w-full" disabled={pending || !ready || (captchaRequired && !captchaToken)}>
-          {pending
-            ? isRequest
-              ? "Enviando..."
-              : "Salvando..."
-            : isRequest
-              ? "Enviar link de redefinição"
-              : "Salvar senha"}
-        </Button>
-        <Button type="button" variant="ghost" className="w-full" onClick={() => void backToSignIn()}>
-          Voltar para entrar
-        </Button>
-      </form>
-    </AuthCard>
+    <RecoveryFormCard
+      isRequest={mode === "request"}
+      ready={recovery.ready}
+      pending={recovery.pending}
+      submitError={recovery.submitError}
+      submitDisabled={recovery.pending || !recovery.ready || captchaMissing}
+      captchaRef={captchaRef}
+      onCaptchaTokenChange={recovery.setCaptchaToken}
+      onSubmit={recovery.submit}
+      onBackToSignIn={() => void recovery.backToSignIn()}
+    />
   );
 }

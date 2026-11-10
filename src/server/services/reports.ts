@@ -2,7 +2,7 @@ import "server-only";
 
 import type { ClinicModel } from "@/generated/prisma/models/Clinic";
 import prisma from "@/lib/prisma";
-import { getClinicDateBounds, getClinicMonthlyBounds } from "@/lib/timezone";
+import { getClinicDateBounds, getClinicMonthlyBounds, type MonthlyBounds } from "@/lib/timezone";
 
 export interface MonthlyReportData {
   month: string;
@@ -119,7 +119,31 @@ export async function getReportAppointmentsForExport(clinic: ClinicModel, option
   return items.map(toReportAppointment);
 }
 
-export async function getReportsMetrics(clinic: ClinicModel, options?: ReportsQueryOptions): Promise<ReportsMetrics> {
+type ReportsMetricsData = Awaited<ReturnType<typeof loadReportsMetricsData>>;
+
+type PeriodAppointment = ReportsMetricsData["periodAppointments"][number];
+
+const weekdayLabels = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+const englishWeekdayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function isNotCanceled(appointment: { status: string }) {
+  return appointment.status !== "CANCELED";
+}
+
+function isCompleted(appointment: { status: string }) {
+  return appointment.status === "COMPLETED";
+}
+
+function percentOf(part: number, total: number) {
+  return total > 0 ? Math.round((part / total) * 100) : 0;
+}
+
+function sumTotalPrice(appointments: readonly { totalPrice: unknown }[]) {
+  return appointments.reduce((sum, appointment) => sum + Number(appointment.totalPrice), 0);
+}
+
+async function loadReportsMetricsData(clinic: ClinicModel, options?: ReportsQueryOptions) {
   const { startOfMonth, startOfNextMonth } = getClinicDateBounds(clinic.timeZone);
   const { reportStart, reportEnd, clinicIds } = getReportScope(clinic, options);
   const monthlyBounds = getClinicMonthlyBounds(clinic.timeZone, 8);
@@ -129,7 +153,7 @@ export async function getReportsMetrics(clinic: ClinicModel, options?: ReportsQu
     totalAppointments,
     totalCustomers,
     totalServices,
-    monthAppointmentsResult,
+    periodAppointments,
     historyAppointments,
     confirmationNotifications,
   ] = await Promise.all([
@@ -164,119 +188,165 @@ export async function getReportsMetrics(clinic: ClinicModel, options?: ReportsQu
     }),
   ]);
 
-  const monthAppointmentsTotal = monthAppointmentsResult.filter(
-    (appointment) => appointment.status !== "CANCELED",
-  ).length;
-  const confirmedOrCompletedThisMonth = monthAppointmentsResult.filter((a) =>
-    ["CONFIRMED", "COMPLETED"].includes(a.status),
-  ).length;
-  const noShowsThisMonth = monthAppointmentsResult.filter((a) => a.status === "NO_SHOW").length;
-  const canceledThisMonth = monthAppointmentsResult.filter((a) => a.status === "CANCELED").length;
-  const completedThisMonth = monthAppointmentsResult.filter((a) => a.status === "COMPLETED");
-  const completedRevenue = completedThisMonth.reduce((sum, appointment) => sum + Number(appointment.totalPrice), 0);
-  const averageTicket = completedThisMonth.length > 0 ? completedRevenue / completedThisMonth.length : 0;
-  const appointmentsByCustomer = new Map<string, number>();
-  for (const appointment of monthAppointmentsResult) {
-    if (appointment.status === "CANCELED") continue;
-    appointmentsByCustomer.set(appointment.customerId, (appointmentsByCustomer.get(appointment.customerId) ?? 0) + 1);
-  }
-  const returningCustomers = Array.from(appointmentsByCustomer.values()).filter((count) => count >= 2).length;
-  const activeCustomersThisMonth = new Set(
-    monthAppointmentsResult.filter((a) => a.status !== "CANCELED").map((a) => a.customerId),
-  ).size;
-  const retentionRate = activeCustomersThisMonth
-    ? Math.round((returningCustomers / activeCustomersThisMonth) * 100)
-    : 0;
-  const weekdayLabels = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-  const noShowCounts = Array.from({ length: 7 }, () => 0);
-  for (const appointment of monthAppointmentsResult.filter((item) => item.status === "NO_SHOW")) {
-    const short = new Intl.DateTimeFormat("en-US", { timeZone: clinic.timeZone, weekday: "short" }).format(
-      appointment.startTime,
-    );
-    const index = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(short);
-    if (index >= 0) noShowCounts[index] += 1;
-  }
-  const noShowsByWeekday = weekdayLabels.map((day, index) => ({ day, count: noShowCounts[index] }));
-  const confirmationsByChannel = confirmationNotifications.map((item) => ({
-    channel: item.channel,
-    sent: item._count._all,
-  }));
-
-  const confirmationRate =
-    monthAppointmentsTotal > 0 ? Math.round((confirmedOrCompletedThisMonth / monthAppointmentsTotal) * 100) : 0;
-  const noShowRate = monthAppointmentsTotal > 0 ? Math.round((noShowsThisMonth / monthAppointmentsTotal) * 100) : 0;
-  const cancellationRate =
-    monthAppointmentsResult.length > 0 ? Math.round((canceledThisMonth / monthAppointmentsResult.length) * 100) : 0;
-
-  // Dados mensais: agendamentos e receita por mês.
-  const monthlyData: MonthlyReportData[] = monthlyBounds.map(({ label, start, end }) => {
-    const appointmentsInBounds = historyAppointments.filter((a) => a.startTime >= start && a.startTime < end);
-    const appointments = appointmentsInBounds.length;
-    const revenue = appointmentsInBounds
-      .filter((a) => a.status === "COMPLETED")
-      .reduce((sum, a) => sum + Number(a.totalPrice), 0);
-    return { month: label, appointments, revenue };
-  });
-
-  // Top serviços do mês atual.
-  const serviceMap = new Map<string, { name: string; count: number; revenue: number }>();
-  for (const appointment of monthAppointmentsResult) {
-    if (appointment.status === "CANCELED") continue;
-    const existing = serviceMap.get(appointment.serviceId);
-    const price = Number(appointment.totalPrice);
-    if (!existing) {
-      serviceMap.set(appointment.serviceId, {
-        name: appointment.service.name,
-        count: 1,
-        revenue: appointment.status === "COMPLETED" ? price : 0,
-      });
-      continue;
-    }
-
-    existing.count += 1;
-    if (appointment.status === "COMPLETED") existing.revenue += price;
-  }
-  const topServices = Array.from(serviceMap.values())
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
-
-  // Top profissionais do mês atual.
-  const professionalMap = new Map<string, { name: string; count: number }>();
-  for (const appointment of monthAppointmentsResult) {
-    if (appointment.status === "CANCELED" || !appointment.professional) continue;
-    const existing = professionalMap.get(appointment.professionalId ?? "");
-    if (existing) {
-      existing.count += 1;
-      continue;
-    }
-
-    professionalMap.set(appointment.professionalId ?? "", {
-      name: appointment.professional.name,
-      count: 1,
-    });
-  }
-  const topProfessionals = Array.from(professionalMap.values())
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
-
   return {
+    monthlyBounds,
     totalAppointments,
     totalCustomers,
     totalServices,
-    activeCustomersThisMonth,
-    confirmationRate,
-    noShowRate,
-    cancellationRate,
-    completedRevenue,
-    averageTicket,
-    returningCustomers,
-    retentionRate,
-    noShowsByWeekday,
-    confirmationsByChannel,
-    monthlyData,
-    topServices,
-    topProfessionals,
-    periodAppointmentsTotal: monthAppointmentsResult.length,
+    periodAppointments,
+    historyAppointments,
+    confirmationNotifications,
+  };
+}
+
+/** Taxas do período: confirmação e falta sobre os não cancelados; cancelamento sobre todos. */
+function summarizeRates(periodAppointments: readonly PeriodAppointment[]) {
+  const activeAppointmentsTotal = periodAppointments.filter(isNotCanceled).length;
+  const confirmedOrCompleted = periodAppointments.filter((appointment) =>
+    ["CONFIRMED", "COMPLETED"].includes(appointment.status),
+  ).length;
+  const noShows = periodAppointments.filter((appointment) => appointment.status === "NO_SHOW").length;
+  const canceled = periodAppointments.filter((appointment) => appointment.status === "CANCELED").length;
+
+  return {
+    confirmationRate: percentOf(confirmedOrCompleted, activeAppointmentsTotal),
+    noShowRate: percentOf(noShows, activeAppointmentsTotal),
+    cancellationRate: percentOf(canceled, periodAppointments.length),
+  };
+}
+
+function summarizeCompletedRevenue(periodAppointments: readonly PeriodAppointment[]) {
+  const completedAppointments = periodAppointments.filter(isCompleted);
+  const completedRevenue = sumTotalPrice(completedAppointments);
+  const averageTicket = completedAppointments.length > 0 ? completedRevenue / completedAppointments.length : 0;
+  return { completedRevenue, averageTicket };
+}
+
+function summarizeCustomerRetention(periodAppointments: readonly PeriodAppointment[]) {
+  const appointmentsByCustomer = new Map<string, number>();
+  for (const appointment of periodAppointments.filter(isNotCanceled)) {
+    appointmentsByCustomer.set(appointment.customerId, (appointmentsByCustomer.get(appointment.customerId) ?? 0) + 1);
+  }
+
+  const returningCustomers = Array.from(appointmentsByCustomer.values()).filter((count) => count >= 2).length;
+  const activeCustomersThisMonth = appointmentsByCustomer.size;
+  const retentionRate = activeCustomersThisMonth
+    ? Math.round((returningCustomers / activeCustomersThisMonth) * 100)
+    : 0;
+
+  return { activeCustomersThisMonth, returningCustomers, retentionRate };
+}
+
+function buildNoShowsByWeekday(periodAppointments: readonly PeriodAppointment[], timeZone: string) {
+  const weekdayFormatter = new Intl.DateTimeFormat("en-US", { timeZone, weekday: "short" });
+  const noShowWeekdayIndexes = periodAppointments
+    .filter((appointment) => appointment.status === "NO_SHOW")
+    .map((appointment) => englishWeekdayNames.indexOf(weekdayFormatter.format(appointment.startTime)));
+
+  return weekdayLabels.map((day, weekdayIndex) => ({
+    day,
+    count: noShowWeekdayIndexes.filter((index) => index === weekdayIndex).length,
+  }));
+}
+
+function buildConfirmationsByChannel(confirmationNotifications: ReportsMetricsData["confirmationNotifications"]) {
+  return confirmationNotifications.map((item) => ({
+    channel: item.channel,
+    sent: item._count._all,
+  }));
+}
+
+/** Dados mensais: agendamentos e receita realizada por mês. */
+function buildMonthlyData(
+  monthlyBounds: readonly MonthlyBounds[],
+  historyAppointments: ReportsMetricsData["historyAppointments"],
+): MonthlyReportData[] {
+  return monthlyBounds.map(({ label, start, end }) => {
+    const appointmentsInMonth = historyAppointments.filter(
+      (appointment) => appointment.startTime >= start && appointment.startTime < end,
+    );
+    return {
+      month: label,
+      appointments: appointmentsInMonth.length,
+      revenue: sumTotalPrice(appointmentsInMonth.filter(isCompleted)),
+    };
+  });
+}
+
+function addToServiceRanking(ranking: Map<string, TopServiceData>, appointment: PeriodAppointment) {
+  const revenue = isCompleted(appointment) ? Number(appointment.totalPrice) : 0;
+  const existing = ranking.get(appointment.serviceId);
+  if (!existing) {
+    ranking.set(appointment.serviceId, { name: appointment.service.name, count: 1, revenue });
+    return ranking;
+  }
+
+  existing.count += 1;
+  if (isCompleted(appointment)) existing.revenue += revenue;
+  return ranking;
+}
+
+/** Top serviços do período, por quantidade de agendamentos não cancelados. */
+function buildTopServices(periodAppointments: readonly PeriodAppointment[]) {
+  const ranking = periodAppointments
+    .filter(isNotCanceled)
+    .reduce(addToServiceRanking, new Map<string, TopServiceData>());
+
+  return Array.from(ranking.values())
+    .sort((first, second) => second.count - first.count)
+    .slice(0, 5);
+}
+
+function addToProfessionalRanking(ranking: Map<string, TopProfessionalData>, appointment: PeriodAppointment) {
+  if (!appointment.professional) return ranking;
+
+  const professionalKey = appointment.professionalId ?? "";
+  const existing = ranking.get(professionalKey);
+  if (existing) {
+    existing.count += 1;
+    return ranking;
+  }
+
+  ranking.set(professionalKey, { name: appointment.professional.name, count: 1 });
+  return ranking;
+}
+
+/** Top profissionais do período, por quantidade de agendamentos não cancelados. */
+function buildTopProfessionals(periodAppointments: readonly PeriodAppointment[]) {
+  const ranking = periodAppointments
+    .filter(isNotCanceled)
+    .reduce(addToProfessionalRanking, new Map<string, TopProfessionalData>());
+
+  return Array.from(ranking.values())
+    .sort((first, second) => second.count - first.count)
+    .slice(0, 5);
+}
+
+export async function getReportsMetrics(clinic: ClinicModel, options?: ReportsQueryOptions): Promise<ReportsMetrics> {
+  const data = await loadReportsMetricsData(clinic, options);
+  const { periodAppointments } = data;
+  const rates = summarizeRates(periodAppointments);
+  const customerRetention = summarizeCustomerRetention(periodAppointments);
+  const completedRevenue = summarizeCompletedRevenue(periodAppointments);
+
+  return {
+    totalAppointments: data.totalAppointments,
+    totalCustomers: data.totalCustomers,
+    totalServices: data.totalServices,
+    activeCustomersThisMonth: customerRetention.activeCustomersThisMonth,
+    confirmationRate: rates.confirmationRate,
+    noShowRate: rates.noShowRate,
+    cancellationRate: rates.cancellationRate,
+    completedRevenue: completedRevenue.completedRevenue,
+    averageTicket: completedRevenue.averageTicket,
+    returningCustomers: customerRetention.returningCustomers,
+    retentionRate: customerRetention.retentionRate,
+    noShowsByWeekday: buildNoShowsByWeekday(periodAppointments, clinic.timeZone),
+    confirmationsByChannel: buildConfirmationsByChannel(data.confirmationNotifications),
+    monthlyData: buildMonthlyData(data.monthlyBounds, data.historyAppointments),
+    topServices: buildTopServices(periodAppointments),
+    topProfessionals: buildTopProfessionals(periodAppointments),
+    periodAppointmentsTotal: periodAppointments.length,
   };
 }
 
